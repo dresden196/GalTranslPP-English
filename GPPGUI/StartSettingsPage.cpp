@@ -5,6 +5,7 @@
 #include <QButtonGroup>
 #include <QFileDialog>
 #include <QScrollBar>
+#include <QTextBlock>
 #include <QSystemTrayIcon>
 
 #include "ElaText.h"
@@ -59,14 +60,13 @@ void StartSettingsPage::_setupUI()
 	QHBoxLayout* topLayout = new QHBoxLayout(topWidget);
 
 	// 日志输出
-	ElaPlainTextEdit* logOutput = new ElaPlainTextEdit(topWidget);
-	logOutput->setReadOnly(true);
-	QFont font = logOutput->font();
+	ElaPlainTextEdit* editor = new ElaPlainTextEdit(topWidget);
+	editor->setReadOnly(true);
+	QFont font = editor->font();
 	font.setPixelSize(14);
-	logOutput->setFont(font);
-	logOutput->setMaximumBlockCount(3000);
-	logOutput->setPlaceholderText("日志输出");
-	topLayout->addWidget(logOutput);
+	editor->setFont(font);
+	editor->setPlaceholderText("日志输出");
+	topLayout->addWidget(editor);
 
 
 	ElaScrollPageArea* buttonArea = new ElaScrollPageArea(mainWidget);
@@ -162,9 +162,9 @@ void StartSettingsPage::_setupUI()
 	connect(_startTranslateButton, &ElaPushButton::clicked, this, &StartSettingsPage::_onStartTranslatingClicked);
 	connect(_startTranslateButton, &ElaPushButton::clicked, this, [=]()
 		{
-			QScrollBar* scrollBar = logOutput->verticalScrollBar();
+			QScrollBar* scrollBar = editor->verticalScrollBar();
 			bool scrollIsAtBottom = (scrollBar->value() == scrollBar->maximum());
-			QTextCursor tempCursor(logOutput->document());
+			QTextCursor tempCursor(editor->document());
 			tempCursor.movePosition(QTextCursor::End);
 			tempCursor.insertText("\n\n");
 			if (scrollIsAtBottom) {
@@ -213,14 +213,36 @@ void StartSettingsPage::_setupUI()
 		});
 	connect(_worker, &TranslatorWorker::writeLogSignal, this, [=](QString log)
 		{
-			// 1. 滚动条判断
-			QScrollBar* scrollBar = logOutput->verticalScrollBar();
-			bool scrollIsAtBottom = (scrollBar->value() == scrollBar->maximum());
+			auto docLayout = qobject_cast<QPlainTextDocumentLayout*>(editor->document()->documentLayout());
+			if (!docLayout) {
+				// 对于 QPlainTextEdit，这几乎不可能发生
+				return;
+			}
 
-			scrollBar->blockSignals(true);
+			const QSignalBlocker autoBlocker(editor);
+			editor->setUpdatesEnabled(false);
+
+			// 1. 滚动条判断
+			int MAX_LOG_LINES = 3000;
+			int toRemove = 0;
+			QScrollBar* scrollBar = editor->verticalScrollBar();
+			int currentPixelPos = scrollBar->sliderPosition();
+			int scrollValue = scrollBar->value();
+			bool scrollIsAtBottom = (scrollValue == scrollBar->maximum());
+
+			// --- 2. 捕获内容锚点 ---
+
+			QTextCursor cursorAtTop = editor->cursorForPosition(QPoint(5, 5));
+
+			int anchorBlockNumber = cursorAtTop.blockNumber();
+
+			int anchorPosInBlock = cursorAtTop.positionInBlock();
+
+			QTextCursor userCursor = editor->textCursor();
+
 
 			// 2. 使用一个临时的“影子”光标在后台进行操作
-			QTextCursor tempCursor(logOutput->document());
+			QTextCursor tempCursor(editor->document());
 			tempCursor.movePosition(QTextCursor::End); // 移动到文档末尾
 
 			if (log.contains("```\n问题概览:")) {
@@ -245,11 +267,73 @@ void StartSettingsPage::_setupUI()
 			else {
 				tempCursor.insertText(log); // 在末尾插入文本
 			}
-			scrollBar->blockSignals(false);
+
+			if (editor->blockCount() > MAX_LOG_LINES) {
+				toRemove = editor->blockCount() - MAX_LOG_LINES;
+				tempCursor.setPosition(QTextCursor::Start);
+				tempCursor.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor, toRemove);
+				tempCursor.removeSelectedText();
+			}
+
 			// 3. 智能滚动
 			if (scrollIsAtBottom) {
 				scrollBar->setValue(scrollBar->maximum());
 			}
+			else {
+				editor->setTextCursor(userCursor);
+				int newAnchorBlockNumber = std::max(0, anchorBlockNumber - toRemove);
+				QTextBlock newAnchorBlock = editor->document()->findBlockByNumber(newAnchorBlockNumber);
+
+				if (newAnchorBlock.isValid()) {
+
+					// --- 步骤 4.1: 粗略定位 ---
+
+					// 使用 setValue 将目标块滚动到视图顶部。
+
+					// 这个操作会强制Qt为该块生成有效的布局信息。
+
+					scrollBar->setValue(newAnchorBlockNumber);
+
+					// --- 步骤 4.2: 精确微调 ---
+
+					// 现在 newAnchorBlock 肯定有有效的布局了
+
+					QTextLayout* layout = newAnchorBlock.layout();
+
+					if (layout) {
+
+						QTextLine line = layout->lineForTextPosition(anchorPosInBlock);
+
+						if (line.isValid()) {
+
+							// 获取“粗略定位”后，滚动条的当前像素位置
+
+							// 这个位置约等于 newAnchorBlock 的顶部
+
+							int coarsePixelPos = scrollBar->sliderPosition();
+
+							// 计算锚点行相对于块顶部的像素偏移
+
+							int lineY_in_block = static_cast<int>(line.rect().top());
+
+							// 最终位置 = 粗略位置 + 行内偏移
+
+							int finalPixelPos = coarsePixelPos + lineY_in_block;
+
+							scrollBar->setSliderPosition(finalPixelPos);
+
+						}
+
+					}
+
+				}
+				else {
+
+					scrollBar->setSliderPosition(0);
+
+				}
+			}
+			editor->setUpdatesEnabled(true);
 		});
 	connect(_worker, &TranslatorWorker::addThreadNumSignal, this, [=]()
 		{

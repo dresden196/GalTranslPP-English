@@ -45,7 +45,7 @@ export {
         std::string m_dictDir;
 
         int m_totalSentences = 0;
-        int m_completedSentences = 0;
+        std::atomic<int> m_completedSentences = 0;
 
         int m_threadsNum;
         int m_batchSize;
@@ -1289,6 +1289,6 @@ void NormalJsonTranslator::run() {
     fs::remove_all(m_inputCacheDir);
     fs::remove_all(m_outputCacheDir);
     if (m_transEngine == TransEngine::Rebuild && m_completedSentences != m_totalSentences) {
-        m_logger->critical("重建过程中有句子未命中缓存，请检查日志以定位问题。");
+        m_logger->critical("重建过程中有句子未命中缓存 ({}/{} lines)，请检查日志以定位问题。", m_completedSentences.load(), m_totalSentences);
     }
 }

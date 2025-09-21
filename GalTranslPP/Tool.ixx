@@ -24,7 +24,7 @@ namespace fs = std::filesystem;
 
 export {
 
-    std::string GPPVERSION = "1.0.0";
+    std::string GPPVERSION = "1.0.1";
 
     fs::path pluginConfigsPath = L"BaseConfig/pluginConfigs";
 
@@ -309,7 +309,7 @@ export {
     }
 
     void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThisRound, std::map<int, Sentence*>& id2SentenceMap, const std::string& modelName,
-        TransEngine transEngine, bool& parseError, int& parsedCount, std::shared_ptr<IController> controller, int& completedSentences) {
+        TransEngine transEngine, bool& parseError, int& parsedCount, std::shared_ptr<IController> controller, std::atomic<int>& completedSentences) {
         if (content.find("</think>") != std::string::npos) {
             content = content.substr(content.find("</think>") + 8);
         }
