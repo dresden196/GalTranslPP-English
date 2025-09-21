@@ -11,12 +11,12 @@ export module NormalJsonTranslator;
 import <nlohmann/json.hpp>;
 import <toml++/toml.hpp>;
 import <ctpl_stl.h>;
-import Tool;
 import APIPool;
 import Dictionary;
 import DictionaryGenerator;
 import ProblemAnalyzer;
 import IPlugin;
+import NJ_ImpTool;
 export import ITranslator;
 
 using json = nlohmann::json;

@@ -10,10 +10,8 @@ export module DictionaryGenerator;
 import <nlohmann/json.hpp>;
 import <ctpl_stl.h>;
 import <toml++/toml.hpp>;
-import Tool;
 import APIPool;
 import Dictionary;
-import ITranslator;
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;

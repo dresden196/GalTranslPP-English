@@ -60,13 +60,13 @@ void StartSettingsPage::_setupUI()
 	QHBoxLayout* topLayout = new QHBoxLayout(topWidget);
 
 	// 日志输出
-	ElaPlainTextEdit* editor = new ElaPlainTextEdit(topWidget);
-	editor->setReadOnly(true);
-	QFont font = editor->font();
+	ElaPlainTextEdit* logOutput = new ElaPlainTextEdit(topWidget);
+	logOutput->setReadOnly(true);
+	QFont font = logOutput->font();
 	font.setPixelSize(14);
-	editor->setFont(font);
-	editor->setPlaceholderText("日志输出");
-	topLayout->addWidget(editor);
+	logOutput->setFont(font);
+	logOutput->setPlaceholderText("日志输出");
+	topLayout->addWidget(logOutput);
 
 
 	ElaScrollPageArea* buttonArea = new ElaScrollPageArea(mainWidget);
@@ -162,9 +162,9 @@ void StartSettingsPage::_setupUI()
 	connect(_startTranslateButton, &ElaPushButton::clicked, this, &StartSettingsPage::_onStartTranslatingClicked);
 	connect(_startTranslateButton, &ElaPushButton::clicked, this, [=]()
 		{
-			QScrollBar* scrollBar = editor->verticalScrollBar();
+			QScrollBar* scrollBar = logOutput->verticalScrollBar();
 			bool scrollIsAtBottom = (scrollBar->value() == scrollBar->maximum());
-			QTextCursor tempCursor(editor->document());
+			QTextCursor tempCursor(logOutput->document());
 			tempCursor.movePosition(QTextCursor::End);
 			tempCursor.insertText("\n\n");
 			if (scrollIsAtBottom) {
@@ -210,41 +210,32 @@ void StartSettingsPage::_setupUI()
 			usedTimeLabel->display("00:00:00");
 			_remainTimeLabel->display("--:--");
 			_estimator.reset();
+			
 		});
 	connect(_worker, &TranslatorWorker::writeLogSignal, this, [=](QString log)
 		{
-			auto docLayout = qobject_cast<QPlainTextDocumentLayout*>(editor->document()->documentLayout());
-			if (!docLayout) {
-				// 对于 QPlainTextEdit，这几乎不可能发生
-				return;
+			const int MAX_LOG_LINE_COUNT = 10000;
+
+			// 禁用更新可以防止在进行大量操作时出现闪烁，并提高性能
+			logOutput->setUpdatesEnabled(false);
+
+			// 1. 智能滚动判断: 记住修改前的位置
+			QScrollBar* scrollBar = logOutput->verticalScrollBar();
+			bool scrollIsAtBottom = (scrollBar->value() >= scrollBar->maximum() - 4); // 减去一个小的容差
+
+			// 如果用户没有滚动到底部，我们就需要“锚定”他当前看到的视图
+			int firstVisibleBlockNumber = -1;
+			if (!scrollIsAtBottom) {
+				// 获取视口左上角位置的文本光标，从而得到当前可见的第一个文本块
+				QTextCursor firstVisibleCursor = logOutput->cursorForPosition(QPoint(0, 0));
+				firstVisibleBlockNumber = firstVisibleCursor.blockNumber();
 			}
 
-			const QSignalBlocker autoBlocker(editor);
-			editor->setUpdatesEnabled(false);
-
-			// 1. 滚动条判断
-			int MAX_LOG_LINES = 3000;
-			int toRemove = 0;
-			QScrollBar* scrollBar = editor->verticalScrollBar();
-			int currentPixelPos = scrollBar->sliderPosition();
-			int scrollValue = scrollBar->value();
-			bool scrollIsAtBottom = (scrollValue == scrollBar->maximum());
-
-			// --- 2. 捕获内容锚点 ---
-
-			QTextCursor cursorAtTop = editor->cursorForPosition(QPoint(5, 5));
-
-			int anchorBlockNumber = cursorAtTop.blockNumber();
-
-			int anchorPosInBlock = cursorAtTop.positionInBlock();
-
-			QTextCursor userCursor = editor->textCursor();
-
-
-			// 2. 使用一个临时的“影子”光标在后台进行操作
-			QTextCursor tempCursor(editor->document());
+			// 2. 追加日志 (使用一个临时的“影子”光标在后台进行操作)
+			QTextCursor tempCursor(logOutput->document());
 			tempCursor.movePosition(QTextCursor::End); // 移动到文档末尾
 
+			// --- 高亮代码逻辑开始 ---
 			if (log.contains("```\n问题概览:")) {
 				QString pre, overview, post;
 				int index = log.indexOf("```\n问题概览:");
@@ -267,73 +258,46 @@ void StartSettingsPage::_setupUI()
 			else {
 				tempCursor.insertText(log); // 在末尾插入文本
 			}
+			// --- 高亮代码逻辑结束 ---
 
-			if (editor->blockCount() > MAX_LOG_LINES) {
-				toRemove = editor->blockCount() - MAX_LOG_LINES;
-				tempCursor.setPosition(QTextCursor::Start);
-				tempCursor.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor, toRemove);
-				tempCursor.removeSelectedText();
+
+			// 3. 清理旧日志
+			int toRemoveLineCount = 0;
+			int currentLineCount = logOutput->document()->lineCount();
+			if (currentLineCount > MAX_LOG_LINE_COUNT) {
+				toRemoveLineCount = currentLineCount - MAX_LOG_LINE_COUNT;
+
+				QTextCursor deleteCursor(logOutput->document());
+				deleteCursor.movePosition(QTextCursor::Start);
+				// 选中要删除的行数
+				deleteCursor.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor, toRemoveLineCount);
+				deleteCursor.removeSelectedText();
 			}
 
-			// 3. 智能滚动
+			// 4. 恢复视口: 这才是关键！
 			if (scrollIsAtBottom) {
+				// 如果原来就在底部，操作完成后依然滚动到底部
 				scrollBar->setValue(scrollBar->maximum());
 			}
-			else {
-				editor->setTextCursor(userCursor);
-				int newAnchorBlockNumber = std::max(0, anchorBlockNumber - toRemove);
-				QTextBlock newAnchorBlock = editor->document()->findBlockByNumber(newAnchorBlockNumber);
+			else if (toRemoveLineCount > 0 && firstVisibleBlockNumber != -1) {
+				// 如果我们删除了旧日志，并且之前已经锚定了视口
+				// 计算出我们锚定的那个文本块现在的新行号
+				int newTargetBlockNumber = firstVisibleBlockNumber - toRemoveLineCount;
+				if (newTargetBlockNumber < 0) newTargetBlockNumber = 0;
 
-				if (newAnchorBlock.isValid()) {
-
-					// --- 步骤 4.1: 粗略定位 ---
-
-					// 使用 setValue 将目标块滚动到视图顶部。
-
-					// 这个操作会强制Qt为该块生成有效的布局信息。
-
-					scrollBar->setValue(newAnchorBlockNumber);
-
-					// --- 步骤 4.2: 精确微调 ---
-
-					// 现在 newAnchorBlock 肯定有有效的布局了
-
-					QTextLayout* layout = newAnchorBlock.layout();
-
-					if (layout) {
-
-						QTextLine line = layout->lineForTextPosition(anchorPosInBlock);
-
-						if (line.isValid()) {
-
-							// 获取“粗略定位”后，滚动条的当前像素位置
-
-							// 这个位置约等于 newAnchorBlock 的顶部
-
-							int coarsePixelPos = scrollBar->sliderPosition();
-
-							// 计算锚点行相对于块顶部的像素偏移
-
-							int lineY_in_block = static_cast<int>(line.rect().top());
-
-							// 最终位置 = 粗略位置 + 行内偏移
-
-							int finalPixelPos = coarsePixelPos + lineY_in_block;
-
-							scrollBar->setSliderPosition(finalPixelPos);
-
-						}
-
-					}
-
-				}
-				else {
-
-					scrollBar->setSliderPosition(0);
-
+				// 找到这个新的文本块
+				QTextBlock targetBlock = logOutput->document()->findBlockByNumber(newTargetBlockNumber);
+				if (targetBlock.isValid()) {
+					// 创建一个光标并移动到这个块的开头
+					QTextCursor newCursor(targetBlock);
+					logOutput->setTextCursor(newCursor); // 将编辑器的光标设置到这里
+					// 这一步是可选的，但可以确保光标行完全可见
+					logOutput->ensureCursorVisible(); 
 				}
 			}
-			editor->setUpdatesEnabled(true);
+
+			// 所有操作完成后，重新启用更新，让界面一次性刷新
+			logOutput->setUpdatesEnabled(true);
 		});
 	connect(_worker, &TranslatorWorker::addThreadNumSignal, this, [=]()
 		{

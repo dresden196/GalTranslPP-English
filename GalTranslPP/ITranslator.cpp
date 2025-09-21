@@ -67,6 +67,7 @@ std::unique_ptr<ITranslator> createTranslator(const fs::path& projectDir, std::s
     ifs.close();
 
     std::string filePlugin = configData["plugins"]["filePlugin"].value_or("NormalJson");
+    std::string transEngine = configData["plugins"]["transEngine"].value_or("ForGalJson");
     // 日志配置
     spdlog::level::level_enum logLevel;
     bool saveLog = configData["common"]["saveLog"].value_or(true);
@@ -96,9 +97,23 @@ std::unique_ptr<ITranslator> createTranslator(const fs::path& projectDir, std::s
     std::shared_ptr<ControllerSink<std::mutex>> controllerSink = std::make_shared<ControllerSink<std::mutex>>(controller);
     std::vector<spdlog::sink_ptr> sinks = { controllerSink };
     if (saveLog) {
-        sinks.push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(wide2Ascii(projectDir, 0) + "/log.txt", true));
+        fs::create_directories(projectDir / L"logs");
+        for (size_t i = 5; i-- > 0;) {                      // NormalJson_4.log
+            fs::path logFilePath = projectDir / L"logs" / (ascii2Wide(transEngine) + L"_" + std::to_wstring(i) + L".log");
+            fs::path newLogFilePath = projectDir / L"logs" / (ascii2Wide(transEngine) + L"_" + std::to_wstring(i + 1) + L".log");
+            if (!fs::exists(logFilePath)) {
+                continue;
+            }
+            if (fs::exists(newLogFilePath)) {
+                fs::remove(newLogFilePath);
+            }
+            fs::rename(logFilePath, newLogFilePath);
+        }
+        fs::path logFilePath = projectDir / L"logs" / (ascii2Wide(transEngine) + L"_0.log");
+        sinks.push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(wide2Ascii(logFilePath, 0), true));
     }
-    std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>(wide2Ascii(projectDir) + "-Logger", sinks.begin(), sinks.end());
+    std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>(wide2Ascii(projectDir) + "-" + transEngine + "-Logger", sinks.begin(), sinks.end());
+    //spdlog::register_logger(logger);
     logger->set_level(logLevel);
     logger->set_pattern("[%H:%M:%S.%e %^%l%$] %v");
     logger->info("Logger initialized.");

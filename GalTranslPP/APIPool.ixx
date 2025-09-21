@@ -4,7 +4,7 @@ module;
 
 export module APIPool;
 
-import Tool;
+export import API_Tool;
 
 export {
 

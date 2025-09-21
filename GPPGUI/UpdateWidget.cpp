@@ -16,8 +16,9 @@ UpdateWidget::UpdateWidget(QWidget* parent)
 
     ElaText* updateTitle = new ElaText("v" + QString::fromStdString(GPPVERSION) + " 更新", 15, this);
     QStringList updateList = {
-        "1. 待解决: 修复日志在达到滚动上限后无法保持原位的问题",
+        "1. 修复日志在达到滚动上限后无法保持原位的问题，增大GUI日志行容量至10000",
         "2. 修复竞态条件导致的重建显示失败(实际成功)的问题",
+        "3. 将每个翻译模式的log分开，每个模式进行5个log的滚动",
     };
 
     mainLayout->addWidget(updateTitle);

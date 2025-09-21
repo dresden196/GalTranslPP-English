@@ -4,7 +4,8 @@ module;
 
 export module IPlugin;
 
-export import Tool;
+export import std;
+export import GPPDefines;
 
 namespace fs = std::filesystem;
 

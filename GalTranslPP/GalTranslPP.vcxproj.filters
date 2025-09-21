@@ -7,12 +7,6 @@
     <ClCompile Include="IPlugin.ixx">
       <Filter>textPlugins</Filter>
     </ClCompile>
-    <ClCompile Include="ITranslator.ixx">
-      <Filter>filePlugins</Filter>
-    </ClCompile>
-    <ClCompile Include="ITranslator.cpp">
-      <Filter>filePlugins</Filter>
-    </ClCompile>
     <ClCompile Include="EpubTranslator.ixx">
       <Filter>filePlugins</Filter>
     </ClCompile>
@@ -26,19 +20,34 @@
       <Filter>filePlugins</Filter>
     </ClCompile>
     <ClCompile Include="APIPool.ixx">
-      <Filter>Source</Filter>
+      <Filter>Tools</Filter>
     </ClCompile>
     <ClCompile Include="Dictionary.ixx">
-      <Filter>Source</Filter>
+      <Filter>Tools</Filter>
     </ClCompile>
     <ClCompile Include="DictionaryGenerator.ixx">
-      <Filter>Source</Filter>
+      <Filter>Tools</Filter>
     </ClCompile>
     <ClCompile Include="ProblemAnalyzer.ixx">
-      <Filter>Source</Filter>
+      <Filter>Tools</Filter>
     </ClCompile>
     <ClCompile Include="Tool.ixx">
-      <Filter>Source</Filter>
+      <Filter>Tools\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="NJ_ImpTool.ixx">
+      <Filter>Tools\Utils\children</Filter>
+    </ClCompile>
+    <ClCompile Include="GPPDefines.ixx">
+      <Filter>Tools\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="ITranslator.ixx">
+      <Filter>Tools\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ITranslator.cpp">
+      <Filter>Tools\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="API_Tool.ixx">
+      <Filter>Tools\Utils\children</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -48,8 +57,17 @@
     <Filter Include="textPlugins">
       <UniqueIdentifier>{37fcb97f-7dfc-4f79-a33f-66e8e440d1d9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source">
+    <Filter Include="Tools">
       <UniqueIdentifier>{be76689c-5c70-4419-87f1-e4fa81fa2b9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tools\Utils">
+      <UniqueIdentifier>{a59529ed-a8a2-4ef2-810b-aeeefe790343}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tools\Utils\children">
+      <UniqueIdentifier>{cb1a4c6b-be5d-4d19-bbc5-3de2ec63f522}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tools\Base">
+      <UniqueIdentifier>{94d1fba6-4217-4307-b40b-b02cfaf8d984}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

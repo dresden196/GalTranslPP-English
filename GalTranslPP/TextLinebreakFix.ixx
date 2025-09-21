@@ -6,7 +6,7 @@ export module TextLinebreakFix;
 
 import <toml++/toml.hpp>;
 import Tool;
-import IPlugin;
+export import IPlugin;
 
 namespace fs = std::filesystem;
 

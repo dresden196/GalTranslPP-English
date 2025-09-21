@@ -55,8 +55,25 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
     reply->deleteLater();
 }
 
-bool UpdateChecker::isVersionGreaterThan(const std::string& v1, const std::string& v2)
+bool UpdateChecker::isVersionGreaterThan(std::string v1, std::string v2)
 {
+    auto removePostfix = [](std::string& v)
+        {
+            while (true) {
+                if (v.ends_with("pre")) {
+                    v = v.substr(0, v.length() - 3);
+                }
+                else if (v.ends_with("p")) {
+                    v = v.substr(0, v.length() - 1);
+                }
+                else {
+                    break;
+                }
+            }
+        };
+    
+    removePostfix(v1);
+    removePostfix(v2);
     std::string v1s = v1.find_last_of("v") == std::string::npos ? v1 : v1.substr(v1.find_last_of("v") + 1);
     std::string v2s = v2.find_last_of("v") == std::string::npos ? v2 : v2.substr(v2.find_last_of("v") + 1);
 
