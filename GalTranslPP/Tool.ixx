@@ -92,6 +92,86 @@ export {
     }
 
 
+    std::string chooseString(const Sentence* sentence, CachePart tar) {
+        switch (tar) {
+        case CachePart::Name:
+            return sentence->name;
+            break;
+        case CachePart::NamePreview:
+            return sentence->name_preview;
+            break;
+        case CachePart::OrigText:
+            return sentence->original_text;
+            break;
+        case CachePart::PreprocText:
+            return sentence->pre_processed_text;
+            break;
+        case CachePart::PretransText:
+            return sentence->pre_translated_text;
+            break;
+        case CachePart::TransPreview:
+            return sentence->translated_preview;
+            break;
+        case CachePart::None:
+            throw std::runtime_error("Invalid condition target: None");
+        default:
+            throw std::runtime_error("Invalid condition target");
+        }
+        return {};
+    }
+
+    const std::string& chooseStringRef(const Sentence* sentence, CachePart tar) {
+        switch (tar) {
+        case CachePart::Name:
+            return sentence->name;
+            break;
+        case CachePart::NamePreview:
+            return sentence->name_preview;
+            break;
+        case CachePart::OrigText:
+            return sentence->original_text;
+            break;
+        case CachePart::PreprocText:
+            return sentence->pre_processed_text;
+            break;
+        case CachePart::PretransText:
+            return sentence->pre_translated_text;
+            break;
+        case CachePart::TransPreview:
+            return sentence->translated_preview;
+            break;
+        case CachePart::None:
+            throw std::runtime_error("Invalid condition target: None");
+        default:
+            throw std::runtime_error("Invalid condition target");
+        }
+        return {};
+    }
+
+    CachePart chooseCachePart(const std::string& partName) {
+        CachePart part = CachePart::None;
+        if (partName == "name") {
+            part = CachePart::Name;
+        }
+        else if (partName == "name_preview") {
+            part = CachePart::NamePreview;
+        }
+        else if (partName == "orig_text") {
+            part = CachePart::OrigText;
+        }
+        else if (partName == "preproc_text") {
+            part = CachePart::PreprocText;
+        }
+        else if (partName == "pretrans_text") {
+            part = CachePart::PretransText;
+        }
+        else if (partName == "trans_preview") {
+            part = CachePart::TransPreview;
+        }
+        return part;
+    }
+
+
     template<typename T>
     T parseToml(toml::v3::table& config, toml::v3::table& backup, const std::string& path) {
         if constexpr (std::is_same_v<T, toml::array>) {

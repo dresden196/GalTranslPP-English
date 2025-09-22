@@ -14,7 +14,7 @@
 #include "ElaPlainTextEdit.h"
 #include "ElaPushButton.h"
 #include "ElaProgressRing.h"
-#include "ElaComboBox.h"
+#include "NoWheelComboBox.h"
 #include "ElaMessageBar.h"
 #include "ElaLCDNumber.h"
 #include "ElaProgressBar.h"
@@ -81,7 +81,7 @@ void StartSettingsPage::_setupUI()
 	fileFormatLabel->setTextPixelSize(16);
 	fileFormatLabel->setText("文件格式:");
 	buttonLayout->addWidget(fileFormatLabel);
-	_fileFormatComboBox = new ElaComboBox(buttonArea);
+	_fileFormatComboBox = new NoWheelComboBox(buttonArea);
 	_fileFormatComboBox->addItem("NormalJson");
 	_fileFormatComboBox->addItem("Epub");
 	if (!filePluginStr.isEmpty()) {
@@ -138,7 +138,8 @@ void StartSettingsPage::_setupUI()
 	translateModeLabel->setTextPixelSize(16);
 	translateModeLabel->setText("翻译模式:");
 	buttonLayout->addWidget(translateModeLabel);
-	ElaComboBox* translateMode = new ElaComboBox(buttonArea);
+	ElaComboBox* translateMode = new NoWheelComboBox(buttonArea);
+	// TODO: 不要被鼠标滚轮的滚动改变选项
 	translateMode->addItem("ForGalJson");
 	translateMode->addItem("ForGalTsv");
 	translateMode->addItem("ForNovelTsv");

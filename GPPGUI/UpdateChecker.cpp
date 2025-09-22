@@ -44,9 +44,8 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
 
     QJsonObject jsonObj = jsonDoc.object();
     std::string latestVersion = jsonObj["tag_name"].toString().toStdString();
-    bool hasNewVersion = isVersionGreaterThan(latestVersion, GPPVERSION);
 
-    if (hasNewVersion) {
+    if (hasNewVersion(latestVersion, GPPVERSION)) {
         ElaMessageBar::information(ElaMessageBarType::TopLeft, "检测到新版本", "最新版本: " + QString::fromStdString(GPPVERSION), 5000);
     }
     else {
@@ -55,15 +54,18 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
     reply->deleteLater();
 }
 
-bool UpdateChecker::isVersionGreaterThan(std::string v1, std::string v2)
+bool UpdateChecker::hasNewVersion(std::string latestVer, std::string currentVer)
 {
-    auto removePostfix = [](std::string& v)
+    bool isCurrentVerPre = false;
+    auto removePostfix = [&](std::string& v)
         {
             while (true) {
-                if (v.ends_with("pre")) {
+                if (v.ends_with("pre") || v.ends_with("Pre")) {
+                    isCurrentVerPre = true;
                     v = v.substr(0, v.length() - 3);
                 }
-                else if (v.ends_with("p")) {
+                else if (v.ends_with("p") || v.ends_with("P")) {
+                    isCurrentVerPre = true;
                     v = v.substr(0, v.length() - 1);
                 }
                 else {
@@ -72,26 +74,30 @@ bool UpdateChecker::isVersionGreaterThan(std::string v1, std::string v2)
             }
         };
     
-    removePostfix(v1);
-    removePostfix(v2);
-    std::string v1s = v1.find_last_of("v") == std::string::npos ? v1 : v1.substr(v1.find_last_of("v") + 1);
-    std::string v2s = v2.find_last_of("v") == std::string::npos ? v2 : v2.substr(v2.find_last_of("v") + 1);
+    removePostfix(latestVer);
+    removePostfix(currentVer);
+    std::string v1s = latestVer.find_last_of("v") == std::string::npos ? latestVer : latestVer.substr(latestVer.find_last_of("v") + 1);
+    std::string v2s = currentVer.find_last_of("v") == std::string::npos ? currentVer : currentVer.substr(currentVer.find_last_of("v") + 1);
 
-    std::vector<std::string> v1parts = splitString(v1s, '.');
-    std::vector<std::string> v2parts = splitString(v2s, '.');
+    std::vector<std::string> lastVerParts = splitString(v1s, '.');
+    std::vector<std::string> currentVerParts = splitString(v2s, '.');
 
-    size_t len = std::max(v1parts.size(), v2parts.size());
+    size_t len = std::max(lastVerParts.size(), currentVerParts.size());
 
     for (size_t i = 0; i < len; i++) {
-        int v1part = i < v1parts.size() ? std::stoi(v1parts[i]) : 0;
-        int v2part = i < v2parts.size() ? std::stoi(v2parts[i]) : 0;
+        int lastVerPart = i < lastVerParts.size() ? std::stoi(lastVerParts[i]) : 0;
+        int currentVerPart = i < currentVerParts.size() ? std::stoi(currentVerParts[i]) : 0;
 
-        if (v1part > v2part) {
+        if (lastVerPart > currentVerPart) {
             return true;
         }
-        else if (v1part < v2part) {
+        else if (lastVerPart < currentVerPart) {
             return false;
         }
+    }
+
+    if (isCurrentVerPre) {
+        return true;
     }
 
     return false;

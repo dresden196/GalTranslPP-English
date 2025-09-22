@@ -1,6 +1,6 @@
 [backendSpecific.OpenAI-Compatible]
 apiStrategy = "random" # 令牌策略，random随机轮询，fallback优先第一个，出现[请求错误]时使用下一个
-apiTimeout = 60 # 请求超时时间，单位秒
+apiTimeout = 120 # 请求超时时间，单位秒
 
   [[backendSpecific.OpenAI-Compatible.apis]]
   apikey = ""             # sk-example-key | sakura引擎可不填
@@ -73,12 +73,6 @@ saveLog = true
 # 分词器所用的词典的路径
 dictDir = "BaseConfig/DictGenerator/mecab-ipadic-utf8" # 也可以用 mecab-ipadic-neologd 或 unidic(均需从网上下载字典)
 
-#"重翻在缓存的problem或orig_text中包含对应**关键字**的句子，去掉下面列表中的#号注释来使用，也可添加自定义的关键字。",
-retranslKeys = [
-  "翻译失败",
-  #"残留日文",
-]
-
 
 [problemAnalyze]
 # 要发现的问题清单
@@ -93,14 +87,35 @@ problemList = [
   "字典未使用",
 
   "残留日文",
-  "引入拉丁字母",
-  "引入韩文",
+  #"引入拉丁字母",
+  #"引入韩文",
   "语言不通",
+]
+
+#"重翻在缓存的problem或orig_text中包含对应**关键字**的句子，去掉下面列表中的#号注释来使用，也可添加自定义的关键字。",
+retranslKeys = [
+  "翻译失败",
+  #"残留日文",
 ]
 
 #规定标点错漏要查哪些标点
 punctSet = """（()）：:*[]{}<>『』「」“”;；'/\\"""
 langProbability = 0.85 # 语言不通检测的语言置信度，设置越高则检测越精准，但可能遗漏，反之亦然
+
+# 问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)
+overwriteCompareObj = [
+  { problemKey = "词频过高", base = "orig_text", check = "trans_preview" },
+  { problemKey = "残留日文", check = "trans_preview" },
+  { problemKey = "标点错漏", base = "preproc_text", check = "trans_preview" },
+  { problemKey = "引入拉丁字母", base = "preproc_text", check = "trans_preview" },
+  { problemKey = "引入韩文", base = "preproc_text", check = "trans_preview" },
+  { problemKey = "丢失换行", base = "orig_text", check = "trans_preview" },
+  { problemKey = "多加换行", base = "orig_text", check = "trans_preview" },
+  { problemKey = "比原文长", base = "orig_text", check = "trans_preview" },
+  { problemKey = "比原文长严格", base = "orig_text", check = "trans_preview" },
+  { problemKey = "字典未使用", base = "preproc_text", check = "trans_preview" },
+  { problemKey = "语言不通", base = "preproc_text", check = "trans_preview" },
+]
 
 [dictionary]
 defaultDictFolder = "BaseConfig/Dict" 

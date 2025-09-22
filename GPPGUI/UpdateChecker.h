@@ -19,7 +19,7 @@ private Q_SLOTS:
 
 private:
 
-    bool isVersionGreaterThan(std::string version1, std::string version2);
+    bool hasNewVersion(std::string version1, std::string version2);
 
     QNetworkAccessManager* m_networkManager;
 

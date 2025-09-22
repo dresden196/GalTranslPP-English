@@ -244,6 +244,7 @@
     <QtMoc Include="CommonNormalDictPage.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="NoWheelComboBox.h" />
     <QtMoc Include="CommonGptDictPage.h" />
     <QtMoc Include="DictExSettingsPage.h" />
     <ClInclude Include="NormalTabEntry.h" />

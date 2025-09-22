@@ -14,8 +14,6 @@ namespace fs = std::filesystem;
 
 export {
 
-    enum class CachePart { Name, NamePreview, OrigText, PreprocText, PretransText, TransPreview };
-
     struct GptTabEntry {
         int priority = 0;
         std::string searchStr;
@@ -45,7 +43,7 @@ export {
 
         std::string doReplace(const Sentence* se, CachePart targetToModify);
 
-        std::string checkDicUse(const Sentence* sentence);
+        std::string checkDicUse(const Sentence* sentence, CachePart base, CachePart check);
     };
 
 
@@ -83,32 +81,6 @@ export {
 
 module :private;
 
-std::string chooseString(const Sentence* sentence, CachePart tar) {
-    switch (tar) {
-    case CachePart::Name:
-        return sentence->name;
-        break;
-    case CachePart::NamePreview:
-        return sentence->name_preview;
-        break;
-    case CachePart::OrigText:
-        return sentence->original_text;
-        break;
-    case CachePart::PreprocText:
-        return sentence->pre_processed_text;
-        break;
-    case CachePart::PretransText:
-        return sentence->pre_translated_text;
-        break;
-    case CachePart::TransPreview:
-        return sentence->translated_preview;
-        break;
-    default:
-        throw std::runtime_error("Invalid condition target");
-    }
-    return {};
-}
-
 void GptDictionary::sort() {
     std::ranges::sort(m_entries, [](const GptTabEntry& a, const GptTabEntry& b)
         {
@@ -134,21 +106,23 @@ void GptDictionary::createTagger(const fs::path& dictDir) {
     }
 }
 
-std::string GptDictionary::checkDicUse(const Sentence* sentence) {
+std::string GptDictionary::checkDicUse(const Sentence* sentence, CachePart base, CachePart check) {
     if (!m_tagger) {
         throw std::runtime_error("MeCab Tagger 未初始化，无法进行 GPT 字典检查");
     }
     std::vector<std::string> problems;
+    const std::string& origText = chooseStringRef(sentence, base);
+    const std::string& transView = chooseStringRef(sentence, check);
     for (const auto& entry : m_entries) {
         // 如果原文中不包含这个词，就跳过检查
-        if (sentence->pre_processed_text.find(entry.searchStr) == std::string::npos) {
+        if (origText.find(entry.searchStr) == std::string::npos) {
             continue;
         }
         // 检查译文中是否使用了对应的词
         auto replaceWords = splitString(entry.replaceStr, '/');
         bool found = false;
         for (const auto& word : replaceWords) {
-            if (sentence->translated_preview.find(word) != std::string::npos || sentence->pre_translated_text.find(word)!= std::string::npos) {
+            if (transView.find(word) != std::string::npos) {
                 found = true;
                 break;
             }
@@ -164,7 +138,7 @@ std::string GptDictionary::checkDicUse(const Sentence* sentence) {
         }
         // 未出现则分词检查原文中是否有完整的 searchStr 词组
         std::unique_ptr<MeCab::Lattice> lattice(m_model->createLattice());
-        lattice->set_sentence(sentence->pre_processed_text.c_str());
+        lattice->set_sentence(origText.c_str());
         if (!m_tagger->parse(lattice.get())) {
             throw std::runtime_error(std::format("分词器解析失败，错误信息: {}", MeCab::getLastError()));
         }
@@ -387,12 +361,8 @@ void NormalDictionary::loadFromFile(const fs::path& filePath) {
                     }
 
                     std::string conditionTarget = el["conditionTarget"].value_or("");
-                    if (conditionTarget == "name") entry.conditionTarget = CachePart::Name;
-                    else if (conditionTarget == "orig_text") entry.conditionTarget = CachePart::OrigText;
-                    else if (conditionTarget == "preproc_text") entry.conditionTarget = CachePart::PreprocText;
-                    else if (conditionTarget == "pretrans_text") entry.conditionTarget = CachePart::PretransText;
-                    else if (conditionTarget == "trans_preview") entry.conditionTarget = CachePart::TransPreview;
-                    else {
+                    entry.conditionTarget = chooseCachePart(conditionTarget);
+                    if (entry.conditionTarget == CachePart::None) {
                         throw std::invalid_argument(std::format("Normal 字典文件格式错误(conditionTarget 无效): {}  ——  {}",
                             wide2Ascii(filePath), conditionTarget));
                     }

@@ -253,5 +253,8 @@
     <ClInclude Include="NormalTabEntry.h">
       <Filter>Header Files\ToolWidgetsH</Filter>
     </ClInclude>
+    <ClInclude Include="NoWheelComboBox.h">
+      <Filter>Header Files\ToolWidgetsH</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

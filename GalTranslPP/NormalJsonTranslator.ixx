@@ -271,19 +271,6 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         m_checkQuota = configData["common"]["checkQuota"].value_or(true);
         m_dictDir = configData["common"]["dictDir"].value_or("DictGenerator/mecab-ipadic-utf8");
 
-        auto retranslKeys = configData["common"]["retranslKeys"].as_array();
-        if (retranslKeys) {
-            retranslKeys->for_each([&](auto&& el)
-                {
-                    if constexpr (toml::is_string<decltype(el)>) {
-                        if ((*el).empty()) {
-                            return;
-                        }
-                        m_retranslKeys.push_back(*el);
-                    }
-                });
-        }
-
         auto problemList = configData["problemAnalyze"]["problemList"].as_array();
         if (problemList) {
             std::vector<std::string> problemsToCheck;
@@ -296,6 +283,43 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             std::string punctSet = configData["problemAnalyze"]["punctSet"].value_or("");
             double langProbability = configData["problemAnalyze"]["langProbability"].value_or(0.85);
             m_problemAnalyzer.loadProblems(problemsToCheck, punctSet, langProbability);
+        }
+
+        auto retranslKeys = configData["problemAnalyze"]["retranslKeys"].as_array();
+        if (retranslKeys) {
+            retranslKeys->for_each([&](auto&& el)
+                {
+                    if constexpr (toml::is_string<decltype(el)>) {
+                        if ((*el).empty()) {
+                            return;
+                        }
+                        m_retranslKeys.push_back(*el);
+                    }
+                });
+        }
+
+        auto overwriteCompareObj = configData["problemAnalyze"]["overwriteCompareObj"].as_array();
+        if (overwriteCompareObj) {
+            for (const auto& el : *overwriteCompareObj) {
+                auto pTbl = el.as_table();
+                if (!pTbl) {
+                    continue;
+                }
+                auto tbl = *pTbl;
+                std::string problemKey = tbl["problemKey"].value_or("");
+                if (problemKey.empty()) {
+                    continue;
+                }
+                std::string base = tbl["base"].value_or("");
+                if (base.empty()) {
+                    base = "orig_text";
+                }
+                std::string check = tbl["check"].value_or("");
+                if (check.empty()) {
+                    check = "trans_preview";
+                }
+                m_problemAnalyzer.overwriteCompareObj(problemKey, base, check);
+            }
         }
 
         std::string defaultDictFolder = configData["dictionary"]["defaultDictFolder"].value_or("Dict");
@@ -789,7 +813,7 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
 
         std::vector<fs::path> cachePaths;
         if (m_needsCombining && m_transEngine != TransEngine::Rebuild) {
-            // 这个逻辑还挺耗时的
+            // 这个逻辑还挺耗时的，将来可以考虑优化一下
             size_t pos = relInputPath.filename().wstring().rfind(L"_part_");
             std::wstring orgStem = relInputPath.filename().wstring().substr(0, pos);
             std::wstring cacheSpec = orgStem + L"_part_*.json";
