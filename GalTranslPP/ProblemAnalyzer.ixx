@@ -123,27 +123,43 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
     }
 
     // 4. 换行符不匹配
-    if ((m_problems.linebreakLost.use || m_problems.linebreakAdded.use) && !sentence->originalLinebreak.empty()) {
-        const std::string& origText = chooseStringRef(sentence, m_problems.linebreakLost.base);
-        const std::string& transView = chooseStringRef(sentence, m_problems.linebreakLost.check);
-        int orgLinebreaks = countSubstring(origText, sentence->originalLinebreak);
-        int transLinebreaks = countSubstring(transView, sentence->originalLinebreak);
-        if (m_problems.linebreakLost.use && orgLinebreaks > transLinebreaks) {
-            problemList.push_back("丢失换行");
+    if (m_problems.linebreakLost.use) {
+        if (!sentence->originalLinebreak.empty()) {
+            const std::string& origText = chooseStringRef(sentence, m_problems.linebreakLost.base);
+            const std::string& transView = chooseStringRef(sentence, m_problems.linebreakLost.check);
+            int orgLinebreaks = countSubstring(origText, sentence->originalLinebreak);
+            int transLinebreaks = countSubstring(transView, sentence->originalLinebreak);
+            if (orgLinebreaks > transLinebreaks) {
+                problemList.push_back("丢失换行");
+            }
         }
-        if (m_problems.linebreakAdded.use && orgLinebreaks < transLinebreaks) {
-            problemList.push_back("多加换行");
+    }
+    if (m_problems.linebreakAdded.use) {
+        if (!sentence->originalLinebreak.empty()) {
+            const std::string& origText = chooseStringRef(sentence, m_problems.linebreakAdded.base);
+            const std::string& transView = chooseStringRef(sentence, m_problems.linebreakAdded.check);
+            int orgLinebreaks = countSubstring(origText, sentence->originalLinebreak);
+            int transLinebreaks = countSubstring(transView, sentence->originalLinebreak);
+            if (orgLinebreaks < transLinebreaks) {
+                problemList.push_back("多加换行");
+            }
         }
     }
 
     // 5. 译文长度异常
-    if (m_problems.longer.use || m_problems.strictlyLonger.use) {
+    if (m_problems.longer.use) {
         const std::string& origText = chooseStringRef(sentence, m_problems.longer.base);
         const std::string& transView = chooseStringRef(sentence, m_problems.longer.check);
-        double lenBeta = m_problems.strictlyLonger.use ? 1.0 : 1.3;
-        if (transView.length() > origText.length() * lenBeta && !origText.empty()) {
-            double ratio = transView.length() / (double)origText.length();
-            problemList.push_back(std::format("比日文长 {:.2f} 倍", ratio));
+        if (transView.length() > origText.length() * 1.3 && !origText.empty()) {
+            problemList.push_back(std::format("比原文长 {:.2f} 倍", transView.length() / (double)origText.length()));
+        }
+    }
+
+    if (m_problems.strictlyLonger.use) {
+        const std::string& origText = chooseStringRef(sentence, m_problems.strictlyLonger.base);
+        const std::string& transView = chooseStringRef(sentence, m_problems.strictlyLonger.check);
+        if (transView.length() > origText.length() && !origText.empty()) {
+            problemList.push_back(std::format("比原文长严格 {:.2f} 倍", transView.length() / (double)origText.length()));
         }
     }
 
