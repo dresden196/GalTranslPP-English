@@ -46,7 +46,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
     std::string latestVersion = jsonObj["tag_name"].toString().toStdString();
 
     if (hasNewVersion(latestVersion, GPPVERSION)) {
-        ElaMessageBar::information(ElaMessageBarType::TopLeft, "检测到新版本", "最新版本: " + QString::fromStdString(GPPVERSION), 5000);
+        ElaMessageBar::information(ElaMessageBarType::TopLeft, "检测到新版本", "最新版本: " + QString::fromStdString(latestVersion), 5000);
     }
     else {
         ElaMessageBar::success(ElaMessageBarType::TopLeft, "版本检测", "当前已是最新的版本", 5000);
