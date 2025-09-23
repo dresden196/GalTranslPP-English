@@ -91,7 +91,7 @@ public:
 
 Q_SIGNALS:
     void startTranslating();  // 让projectSettings去保存配置
-    void finishTranslating(const QString& transEngine, int exitCode); // 这两个向projectSettings页发送
+    void finishTranslatingSignal(const QString& transEngine, int exitCode); // 这两个向projectSettings页发送
     void startWork();
     void stopWork();  // 这两个向worker发送
 

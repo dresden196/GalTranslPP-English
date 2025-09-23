@@ -30,15 +30,13 @@ protected:
     virtual void mouseReleaseEvent(QMouseEvent* event);
 
 private Q_SLOTS:
-    void _on_newProject_triggered();
-    void _on_openProject_triggered();
-    void _on_removeProject_triggered();
-    void _on_deleteProject_triggered();
-    void _on_saveProject_triggered();
-
-    void _on_finishTranslating(QString nodeKey);
-
-    void _on_closeWindow_clicked();
+    void _onNewProjectTriggered();
+    void _onOpenProjectTriggered();
+    void _onRemoveProjectTriggered();
+    void _onDeleteProjectTriggered();
+    void _onSaveProjectTriggered();
+    void _onFinishTranslating(QString nodeKey);
+    void _onCloseWindowClicked(bool restart);
 
 private:
 

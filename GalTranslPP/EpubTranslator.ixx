@@ -299,9 +299,7 @@ void EpubTranslator::run()
         // 解压 EPUB 文件
         m_logger->debug("解压 {} 到 {}", wide2Ascii(epubPath), wide2Ascii(bookUnpackPath));
         fs::create_directories(bookUnpackPath);
-        if (!extractZip(epubPath, bookUnpackPath)) {
-            throw std::runtime_error(std::format("解压 {} 失败，无法打开文件", wide2Ascii(epubPath)));
-        }
+        extractZip(epubPath, bookUnpackPath);
 
         // 从html中提取json和元数据
         createParent(bookRebuildPath);

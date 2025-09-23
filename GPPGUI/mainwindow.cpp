@@ -4,6 +4,8 @@
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QFileDialog>
+#include <QProcess>
+#include <QApplication>
 #include <QDesktopServices>
 #include <QMessageBox>
 
@@ -61,14 +63,18 @@ MainWindow::MainWindow(QWidget* parent)
 
     // 拦截默认关闭事件
     _closeDialog = new ElaContentDialog(this);
-    connect(_closeDialog, &ElaContentDialog::rightButtonClicked, this, &MainWindow::_on_closeWindow_clicked);
+    connect(_closeDialog, &ElaContentDialog::rightButtonClicked, this, [=]()
+        {
+            _onCloseWindowClicked(false);
+        });
     connect(_closeDialog, &ElaContentDialog::middleButtonClicked, this, [=]() 
         {
             _closeDialog->close();
             showMinimized();
         });
     this->setIsDefaultClosed(false);
-    connect(this, &MainWindow::closeButtonClicked, this, [=]()
+
+    auto closeCallback = [=](bool directlyClose)
         {
             if (
                 !(_globalConfig["allowCloseWhenRunning"].value_or(false)) &&
@@ -85,7 +91,20 @@ MainWindow::MainWindow(QWidget* parent)
             {
                 return;
             }
-            _closeDialog->exec();
+            if (directlyClose) {
+                _onCloseWindowClicked(true);
+            }
+            else {
+                _closeDialog->exec();
+            }
+        };
+    connect(this, &MainWindow::closeButtonClicked, this, [=]()
+        {
+            closeCallback(false);
+        });
+    connect(_updateChecker, &UpdateChecker::closeWindowSignal, this, [=]()
+        {
+            closeCallback(true);
         });
 
     // 初始化提示
@@ -144,11 +163,11 @@ void MainWindow::initEdgeLayout()
     QAction* removeProjectAction = menuBar->addElaIconAction(ElaIconType::TrashCan, "移除项目");
     QAction* deleteProjectAction = menuBar->addElaIconAction(ElaIconType::TrashXmark, "删除项目");
 
-    connect(newProjectAction, &QAction::triggered, this, &MainWindow::_on_newProject_triggered);
-    connect(openProjectAction, &QAction::triggered, this, &MainWindow::_on_openProject_triggered);
-    connect(saveProjectAction, &QAction::triggered, this, &MainWindow::_on_saveProject_triggered);
-    connect(removeProjectAction, &QAction::triggered, this, &MainWindow::_on_removeProject_triggered);
-    connect(deleteProjectAction, &QAction::triggered, this, &MainWindow::_on_deleteProject_triggered);
+    connect(newProjectAction, &QAction::triggered, this, &MainWindow::_onNewProjectTriggered);
+    connect(openProjectAction, &QAction::triggered, this, &MainWindow::_onOpenProjectTriggered);
+    connect(saveProjectAction, &QAction::triggered, this, &MainWindow::_onSaveProjectTriggered);
+    connect(removeProjectAction, &QAction::triggered, this, &MainWindow::_onRemoveProjectTriggered);
+    connect(deleteProjectAction, &QAction::triggered, this, &MainWindow::_onDeleteProjectTriggered);
 
     //状态栏
     ElaStatusBar* statusBar = new ElaStatusBar(this);
@@ -156,6 +175,8 @@ void MainWindow::initEdgeLayout()
     statusText->setTextPixelSize(14);
     statusBar->addWidget(statusText);
     this->setStatusBar(statusBar);
+
+    _updateChecker = new UpdateChecker(statusText, this);
 
     //停靠窗口
     ElaDockWidget* updateDockWidget = new ElaDockWidget("更新内容", this);
@@ -229,7 +250,7 @@ void MainWindow::initContent()
                     continue;
                 }
                 QSharedPointer<ProjectSettingsPage> newPage(new ProjectSettingsPage(_globalConfig, projectDir, this));
-                connect(newPage.get(), &ProjectSettingsPage::finishedTranslating, this, &MainWindow::_on_finishTranslating);
+                connect(newPage.get(), &ProjectSettingsPage::finishTranslatingSignal, this, &MainWindow::_onFinishTranslating);
                 _projectPages.push_back(newPage);
                 addPageNode(QString(projectDir.filename().wstring()), newPage.get(), _projectExpanderKey, ElaIconType::Projector);
             }
@@ -275,11 +296,9 @@ void MainWindow::initContent()
                 setWindowTitle("Galtransl++");
             }
         });*/
-
-    _updateChecker = new UpdateChecker(this);
 }
 
-void MainWindow::_on_newProject_triggered()
+void MainWindow::_onNewProjectTriggered()
 {
     QString parentPath = QFileDialog::getExistingDirectory(this, "选择新项目的存放位置", QDir::currentPath() + "/Projects");
     if (parentPath.isEmpty()) {
@@ -335,13 +354,8 @@ void MainWindow::_on_newProject_triggered()
         return;
     }
 
-    if (!extractZip(newProjectDir / L"sampleProject.zip", newProjectDir)) {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "创建失败", "无法解压模板文件！", 3000);
-        return;
-    }
-    else {
-        fs::remove(newProjectDir / L"sampleProject.zip");
-    }
+    extractZip(newProjectDir / L"sampleProject.zip", newProjectDir);
+    fs::remove(newProjectDir / L"sampleProject.zip");
 
     if (fs::exists(L"BaseConfig/Prompt.toml")) {
         fs::copy(L"BaseConfig/Prompt.toml", newProjectDir / L"Prompt.toml", fs::copy_options::overwrite_existing);
@@ -407,7 +421,7 @@ void MainWindow::_on_newProject_triggered()
     }
 
     QSharedPointer<ProjectSettingsPage> newPage(new ProjectSettingsPage(_globalConfig, newProjectDir, this));
-    connect(newPage.get(), &ProjectSettingsPage::finishedTranslating, this, &MainWindow::_on_finishTranslating);
+    connect(newPage.get(), &ProjectSettingsPage::finishTranslatingSignal, this, &MainWindow::_onFinishTranslating);
     _projectPages.push_back(newPage);
     addPageNode(projectName, newPage.get(), _projectExpanderKey, ElaIconType::Projector);
     this->navigation(newPage->property("ElaPageKey").toString());
@@ -417,7 +431,7 @@ void MainWindow::_on_newProject_triggered()
     ElaMessageBar::success(ElaMessageBarType::TopRight, "创建成功", "请将待翻译的文件放入 gt_input 中！", 8000);
 }
 
-void MainWindow::_on_openProject_triggered()
+void MainWindow::_onOpenProjectTriggered()
 {
     QString projectPath = QFileDialog::getExistingDirectory(this, "选择已有项目的文件夹路径", QDir::currentPath() + "/Projects");
     if (projectPath.isEmpty()) {
@@ -442,7 +456,7 @@ void MainWindow::_on_openProject_triggered()
     }
 
     QSharedPointer<ProjectSettingsPage> newPage(new ProjectSettingsPage(_globalConfig, projectDir, this));
-    connect(newPage.get(), &ProjectSettingsPage::finishedTranslating, this, &MainWindow::_on_finishTranslating);
+    connect(newPage.get(), &ProjectSettingsPage::finishTranslatingSignal, this, &MainWindow::_onFinishTranslating);
     _projectPages.push_back(newPage);
     addPageNode(newPage->getProjectName(), newPage.get(), _projectExpanderKey, ElaIconType::Projector);
     this->navigation(newPage->property("ElaPageKey").toString());
@@ -452,7 +466,7 @@ void MainWindow::_on_openProject_triggered()
     ElaMessageBar::success(ElaMessageBarType::TopRight, "打开成功", newPage->getProjectName() + " 已纳入项目管理！", 3000);
 }
 
-void MainWindow::_on_removeProject_triggered()
+void MainWindow::_onRemoveProjectTriggered()
 {
     QString pageKey = getCurrentNavigationPageKey();
     auto it = std::ranges::find_if(_projectPages, [&](auto& page)
@@ -500,7 +514,7 @@ void MainWindow::_on_removeProject_triggered()
     helpDialog.exec();
 }
 
-void MainWindow::_on_deleteProject_triggered()
+void MainWindow::_onDeleteProjectTriggered()
 {
     QString pageKey = getCurrentNavigationPageKey();
     auto it = std::ranges::find_if(_projectPages, [&](auto& page)
@@ -556,7 +570,7 @@ void MainWindow::_on_deleteProject_triggered()
     helpDialog.exec();
 }
 
-void MainWindow::_on_saveProject_triggered()
+void MainWindow::_onSaveProjectTriggered()
 {
     QString pageKey = getCurrentNavigationPageKey();
     auto it = std::ranges::find_if(_projectPages, [&](auto& page)
@@ -572,12 +586,12 @@ void MainWindow::_on_saveProject_triggered()
     ElaMessageBar::success(ElaMessageBarType::TopRight, "保存成功", "项目 " + it->get()->getProjectName() + " 配置信息已保存！", 3000);
 }
 
-void MainWindow::_on_finishTranslating(QString nodeKey)
+void MainWindow::_onFinishTranslating(QString nodeKey)
 {
     setNodeKeyPoints(nodeKey, getNodeKeyPoints(nodeKey) + 1);
 }
 
-void MainWindow::_on_closeWindow_clicked()
+void MainWindow::_onCloseWindowClicked(bool restart)
 {
     _defaultPromptPage->apply2Config();
     _commonPreDictPage->apply2Config();
@@ -596,6 +610,17 @@ void MainWindow::_on_closeWindow_clicked()
     std::ofstream ofs(L"BaseConfig/globalConfig.toml");
     ofs << _globalConfig;
     ofs.close();
+
+    if (_updateChecker->getIsDownloadSucceed()) {
+        QStringList arguments;
+        arguments << "--pid" << QString::number(QApplication::applicationPid());
+        arguments << "--source" << QApplication::applicationDirPath() + "/GUICORE.zip";
+        arguments << "--target" << QApplication::applicationDirPath();
+        if (restart) {
+            arguments << "--restart" << "true";
+        }
+        QProcess::startDetached("Updater.exe", arguments, QDir::currentPath());
+    }
     MainWindow::closeWindow();
 }
 

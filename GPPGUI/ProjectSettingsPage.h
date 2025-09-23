@@ -40,7 +40,7 @@ public:
 
 
 Q_SIGNALS:
-        void finishedTranslating(QString nodeKey); // 用于加红点提示翻译完成
+        void finishTranslatingSignal(QString nodeKey); // 用于加红点提示翻译完成
 
 private:
     // UI 控件

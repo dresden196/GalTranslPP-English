@@ -77,10 +77,10 @@ export {
         std::map<fs::path, std::map<fs::path, bool>> m_jsonToSplitFileParts;
 
         std::map<std::string, std::string> m_nameMap;
-        std::mutex m_cacheMutex;
-        std::mutex m_outputCacheFileMutex;
         toml::table m_problemOverview = toml::table{ {"problemOverview", toml::array{}} };
         std::function<void(fs::path)> m_onFileProcessed;
+        std::mutex m_cacheMutex;
+        std::mutex m_outputMutex;
 
         APIPool m_apiPool;
         GptDictionary m_gptDictionary;
@@ -833,9 +833,9 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
     std::vector<Sentence*> toTranslate;
 
     {
-        std::map<std::string, json> cacheMap;
+        std::unordered_map<std::string, json> cacheMap;
 
-        auto insertCacheMap = [&cacheMap](const json& jsonArr)
+        auto insertArr = [&](const json& jsonArr)
             {
                 for (size_t i = 0; i < jsonArr.size(); ++i) {
                     const auto& item = jsonArr[i];
@@ -851,37 +851,58 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
                 }
             };
 
+        auto insertCacheMap = [&](const fs::path& path)
+            {
+                std::lock_guard<std::mutex> lock(m_cacheMutex);
+                try {
+                    ifs.open(path);
+                    json jsonArr = json::parse(ifs);
+                    ifs.close();
+                    insertArr(jsonArr);
+                }
+                catch (const json::exception& e) {
+                    throw std::runtime_error(std::format("[线程 {}] 缓存文件 {} 解析失败: {}", threadId, wide2Ascii(path), e.what()));
+                }
+            };
+
         std::vector<fs::path> cachePaths;
-        if (m_needsCombining && m_transEngine != TransEngine::Rebuild) {
+
+        auto readPartCache = [&](const std::wstring& cacheSpec, const fs::path& path)
+            {
+                for (const auto& entry : fs::directory_iterator(path)) {
+                    if (!entry.is_regular_file()) {
+                        continue;
+                    }
+                    if (PathMatchSpecW(entry.path().filename().wstring().c_str(), cacheSpec.c_str())) {
+                        cachePaths.push_back(entry.path());
+                    }
+                }
+                for (const auto& cp : cachePaths) {
+                    insertCacheMap(cp);
+                }
+            };
+
+        if (m_transEngine == TransEngine::Rebuild) {
+            if (fs::exists(cachePath)) {
+                cachePaths.push_back(cachePath);
+            }
+        }
+        else if (m_needsCombining) {
+            if (fs::exists(m_cacheDir / m_splitFilePartsToJson[relInputPath])) {
+                cachePaths.push_back(m_cacheDir / m_splitFilePartsToJson[relInputPath]);
+            }
             // 这个逻辑还挺耗时的，将来可以考虑优化一下
             size_t pos = relInputPath.filename().wstring().rfind(L"_part_");
             std::wstring orgStem = relInputPath.filename().wstring().substr(0, pos);
             std::wstring cacheSpec = orgStem + L"_part_*.json";
-            for (const auto& entry : fs::directory_iterator(m_cacheDir / relInputPath.parent_path())) {
-                if (!entry.is_regular_file()) {
-                    continue;
-                }
-                if (PathMatchSpecW(entry.path().filename().wstring().c_str(), cacheSpec.c_str())) {
-                    cachePaths.push_back(entry.path());
-                }
-            }
-
-            for (const auto& cp : cachePaths) {
-                std::lock_guard<std::mutex> lock(m_cacheMutex);
-                try {
-                    ifs.open(cp);
-                    json cacheJsonList = json::parse(ifs);
-                    ifs.close();
-                    m_logger->debug("[线程 {}] 从 {} 加载了 {} 条缓存记录。", threadId, wide2Ascii(cp), cacheMap.size());
-                    insertCacheMap(cacheJsonList);
-                }
-                catch (const json::exception& e) {
-                    throw std::runtime_error(std::format("[线程 {}] 缓存文件 {} 解析失败: {}", threadId, wide2Ascii(cp), e.what()));
-                }
-            }
+            readPartCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
         }
-        else if (fs::exists(cachePath)) {
-            cachePaths.push_back(cachePath);
+        else {
+            if (fs::exists(cachePath)) {
+                cachePaths.push_back(cachePath);
+            }
+            std::wstring cacheSpec = relInputPath.stem().wstring() + L"_part_*.json";
+            readPartCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
         }
 
         json totalCacheJsonList = json::array();
@@ -892,13 +913,12 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
                 json cacheJsonList = json::parse(ifs);
                 ifs.close();
                 totalCacheJsonList.insert(totalCacheJsonList.end(), cacheJsonList.begin(), cacheJsonList.end());
-                m_logger->debug("[线程 {}] 从 {} 加载了 {} 条缓存记录。", threadId, wide2Ascii(cp), cacheMap.size());
             }
             catch (const json::exception& e) {
                 throw std::runtime_error(std::format("[线程 {}] 缓存文件 {} 解析失败: {}", threadId, wide2Ascii(cp), e.what()));
             }
         }
-        insertCacheMap(totalCacheJsonList);
+        insertArr(totalCacheJsonList);
 
 
         for (auto& se : sentences) {
@@ -936,6 +956,7 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
             for (auto& se : toTranslate) {
                 m_logger->error("[{}]", se->original_text);
             }
+            std::lock_guard<std::mutex> lock(m_cacheMutex);
             saveCache(sentences, cachePath);
             m_controller->reduceThreadNum();
             return;
@@ -1026,7 +1047,6 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
         outputJson.push_back(obj);
     }
 
-    std::lock_guard<std::mutex> lock(m_outputCacheFileMutex);
     std::ofstream ofs(outputPath);
     ofs << outputJson.dump(2);
     ofs.close();
@@ -1037,22 +1057,26 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
     if (m_needsCombining) {
         fs::path originalRelFilePath = m_splitFilePartsToJson[relInputPath];
         auto& splitFileParts = m_jsonToSplitFileParts[originalRelFilePath];
-        splitFileParts[relInputPath] = true;
-        if (
-            std::ranges::any_of(splitFileParts, [](const auto& p) { return !p.second; })
-            )
         {
-            m_logger->debug("文件 {} 尚未全部处理完成，跳过合并。", wide2Ascii(relInputPath));
-            return;
+            std::lock_guard<std::mutex> lock(m_outputMutex);
+            splitFileParts[relInputPath] = true;
+            if (
+                std::ranges::any_of(splitFileParts, [](const auto& p) { return !p.second; })
+                )
+            {
+                m_logger->debug("文件 {} 尚未全部处理完成，跳过合并。", wide2Ascii(relInputPath));
+                return;
+            }
+            m_logger->debug("开始合并 {} 的缓存文件...", wide2Ascii(relInputPath));
         }
-        m_logger->debug("开始合并 {} 的缓存文件...", wide2Ascii(relInputPath));
         combineOutputFiles(originalRelFilePath, splitFileParts, m_logger, m_outputCacheDir, m_outputDir);
-
+        std::lock_guard<std::mutex> lock(m_outputMutex);
         if (m_onFileProcessed) {
             m_onFileProcessed(originalRelFilePath);
         }
     }
     else {
+        std::lock_guard<std::mutex> lock(m_outputMutex);
         if (m_onFileProcessed) {
             m_onFileProcessed(relInputPath);
         }

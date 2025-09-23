@@ -240,7 +240,7 @@ void ProjectSettingsPage::_createPages()
     _stackedWidget->addWidget(_otherSettingsPage);
 
     connect(_startSettingsPage, &StartSettingsPage::startTranslating, this, &ProjectSettingsPage::_onStartTranslating);
-    connect(_startSettingsPage, &StartSettingsPage::finishTranslating, this, &ProjectSettingsPage::_onFinishTranslating);
+    connect(_startSettingsPage, &StartSettingsPage::finishTranslatingSignal, this, &ProjectSettingsPage::_onFinishTranslating);
     connect(_otherSettingsPage, &OtherSettingsPage::saveConfigSignal, this, &ProjectSettingsPage::apply2Config);
     connect(_otherSettingsPage, &OtherSettingsPage::refreshProjectConfigSignal, this, &ProjectSettingsPage::_refreshProjectConfig);
 }
@@ -291,7 +291,7 @@ void ProjectSettingsPage::_onFinishTranslating(const QString& transEngine, int e
             _dictSettingsPage->refreshDicts();
         }
     }
-    Q_EMIT finishedTranslating(this->property("ElaPageKey").toString());
+    Q_EMIT finishTranslatingSignal(this->property("ElaPageKey").toString());
     insertToml(_projectConfig, "GUIConfig.isRunning", false);
 }
 

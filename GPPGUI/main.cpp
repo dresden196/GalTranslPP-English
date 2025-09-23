@@ -10,6 +10,7 @@
 
 #pragma comment(lib, "../lib/GalTranslPP.lib")
 #pragma comment(lib, "../lib/ElaWidgetTools.lib")
+#pragma comment(lib, "../lib/QSimpleUpdater.lib")
 
 import std;
 namespace fs = std::filesystem;

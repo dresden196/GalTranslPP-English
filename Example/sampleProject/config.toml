@@ -106,7 +106,7 @@ langProbability = 0.85 # 语言不通检测的语言置信度，设置越高则�
 overwriteCompareObj = [
   { problemKey = "词频过高", base = "orig_text", check = "trans_preview" },
   { problemKey = "残留日文", check = "trans_preview" },
-  { problemKey = "标点错漏", base = "preproc_text", check = "trans_preview" },
+  { problemKey = "标点错漏", base = "orig_text", check = "trans_preview" },
   { problemKey = "引入拉丁字母", base = "preproc_text", check = "trans_preview" },
   { problemKey = "引入韩文", base = "preproc_text", check = "trans_preview" },
   { problemKey = "丢失换行", base = "orig_text", check = "trans_preview" },

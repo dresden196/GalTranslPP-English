@@ -477,11 +477,11 @@ export {
     template void insertToml(toml::table& table, const std::string& path, const toml::array& value);
     template void insertToml(toml::table& table, const std::string& path, const toml::table& value);
 
-    bool extractZip(const fs::path& zipPath, const fs::path& outputDir) {
+    void extractZip(const fs::path& zipPath, const fs::path& outputDir) {
         int error = 0;
         zip* za = zip_open(wide2Ascii(zipPath).c_str(), 0, &error);
         if (!za) {
-            return false;
+            throw std::runtime_error(std::format("Failed to open zip archive: {}", wide2Ascii(zipPath)));
         }
         zip_int64_t num_entries = zip_get_num_entries(za, 0);
         for (zip_int64_t i = 0; i < num_entries; i++) {
@@ -505,7 +505,6 @@ export {
             }
         }
         zip_close(za);
-        return true;
     }
 
 }

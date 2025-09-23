@@ -449,7 +449,7 @@ void StartSettingsPage::_workFinished(int exitCode)
 		break;
 	}
 
-	Q_EMIT finishTranslating(_transEngine, exitCode);
+	Q_EMIT finishTranslatingSignal(_transEngine, exitCode);
 	_startTranslateButton->setEnabled(true);
 	_stopTranslateButton->setEnabled(false);
 }
