@@ -6,14 +6,21 @@ namespace fs = std::filesystem;
 
 export {
 
-    std::string GPPVERSION = "1.0.1P";
+    std::string GPPVERSION = "1.0.1";
 
     fs::path pluginConfigsPath = L"BaseConfig/pluginConfigs";
+
+    enum  class NameType
+    {
+        None, Single, Multiple
+    };
 
     struct Sentence {
         int index;
         std::string name;
+        std::vector<std::string> names;
         std::string name_preview;
+        std::vector<std::string> names_preview;
         std::string original_text;
         std::string pre_processed_text;
         std::string pre_translated_text;
@@ -23,7 +30,7 @@ export {
         std::map<std::string, std::string> other_info;
 
         bool complete = false;
-        bool hasName = false;
+        NameType nameType = NameType::None;
         Sentence* prev = nullptr;
         Sentence* next = nullptr;
         std::string originalLinebreak;
@@ -31,10 +38,10 @@ export {
 
     enum  class TransEngine
     {
-        ForGalJson, ForGalTsv, ForNovelTsv, DeepseekJson, Sakura, DumpName, GenDict, Rebuild, ShowNormal
+        None, ForGalJson, ForGalTsv, ForNovelTsv, DeepseekJson, Sakura, DumpName, GenDict, Rebuild, ShowNormal
     };
 
-    enum class CachePart { Name, NamePreview, OrigText, PreprocText, PretransText, TransPreview, None };
+    enum class CachePart { None, Name, NamePreview, OrigText, PreprocText, PretransText, TransPreview };
 
 
 

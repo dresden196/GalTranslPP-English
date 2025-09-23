@@ -21,6 +21,7 @@ export import ITranslator;
 
 using json = nlohmann::json;
 using ordered_json = nlohmann::ordered_json;
+using nameType = std::variant<std::string, std::vector<std::string>>;
 namespace fs = std::filesystem;
 
 export {
@@ -455,12 +456,21 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
 void NormalJsonTranslator::preProcess(Sentence* se) {
 
     // se->name = se->name;
+    // se->names = se->names;
     // 相当于省略了 name_org 这一项，因为最原始人名并不在缓存里输出
     // se->name 实际上相当于 se->name_preproc
     se->pre_processed_text = se->original_text;
 
-    if (se->hasName && m_usePreDictInName) {
-        se->name = m_preDictionary.doReplace(se, CachePart::Name);
+    if (se->nameType != NameType::None && m_usePreDictInName) {
+        if (se->nameType == NameType::Single) {
+            se->name = m_preDictionary.doReplace(se, CachePart::Name);
+        }
+        else {
+            for (auto& name : se->names) {
+                se->name = name;
+                name = m_preDictionary.doReplace(se, CachePart::Name);
+            }
+        }
     }
 
     if (m_linebreakSymbol == "auto") {
@@ -518,6 +528,7 @@ void NormalJsonTranslator::preProcess(Sentence* se) {
 void NormalJsonTranslator::postProcess(Sentence* se) {
 
     se->name_preview = se->name;
+    se->names_preview = se->names;
     se->translated_preview = se->pre_translated_text;
 
     for (auto& plugin : m_postPlugins) {
@@ -532,18 +543,32 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
         replaceStrInplace(se->translated_preview, "<br>", se->originalLinebreak);
     }
 
-    if (se->hasName) {
-        if (m_useGPTDictToReplaceName) {
-            se->name_preview = m_gptDictionary.doReplace(se, CachePart::NamePreview);
-        }
-        if (!se->name_preview.empty()) {
-            auto it = m_nameMap.find(se->name_preview);
-            if (it != m_nameMap.end() && !it->second.empty()) {
-                se->name_preview = it->second;
+    auto replaceName = [&]() -> std::string
+        {
+            if (m_useGPTDictToReplaceName) {
+                se->name_preview = m_gptDictionary.doReplace(se, CachePart::NamePreview);
             }
+            if (!se->name_preview.empty()) {
+                auto it = m_nameMap.find(se->name_preview);
+                if (it != m_nameMap.end() && !it->second.empty()) {
+                    se->name_preview = it->second;
+                }
+            }
+            if (m_usePostDictInName) {
+                se->name_preview = m_postDictionary.doReplace(se, CachePart::NamePreview);
+            }
+            return se->name_preview;
+        };
+
+    if (se->nameType != NameType::None) {
+        if (se->nameType == NameType::Single) {
+            replaceName();
         }
-        if (m_usePostDictInName) {
-            se->name_preview = m_postDictionary.doReplace(se, CachePart::NamePreview);
+        else {
+            for (auto& name_preivew : se->names_preview) {
+                se->name_preview = name_preivew;
+                name_preivew = replaceName();
+            }
         }
     }
 
@@ -753,8 +778,14 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
             Sentence se;
             se.index = (int)i;
             if (item.contains("name")) {
-                se.hasName = true;
+                se.nameType = NameType::Single;
                 se.name = item.value("name", "");
+            }
+            else if (item.contains("names")) {
+                se.nameType = NameType::Multiple;
+                for (const auto& name : item["names"]) {
+                    se.names.push_back(name.get<std::string>());
+                }
             }
             if (!item.contains("message")) {
                 throw std::runtime_error(std::format("[线程 {}] [文件 {}] 第 {} 个对象缺少 message 字段。", threadId, wide2Ascii(inputPath), i));
@@ -778,7 +809,12 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
         json showNormalJson = json::array();
         for (const auto& se : sentences) {
             json showNormalObj;
-            showNormalObj["name"] = se.name;
+            if (se.nameType == NameType::Single) {
+                showNormalObj["name"] = se.name;
+            }
+            else if (se.nameType == NameType::Multiple) {
+                showNormalObj["names"] = se.names;
+            }
             showNormalObj["original_text"] = se.original_text;
             if (!se.other_info.empty()) {
                 showNormalObj["other_info"] = se.other_info;
@@ -804,9 +840,13 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
                 for (size_t i = 0; i < jsonArr.size(); ++i) {
                     const auto& item = jsonArr[i];
                     std::string prevText = "None", currentText, nextText = "None";
-                    currentText = item.value("name", "") + item.value("original_text", "") + item.value("pre_processed_text", "");
-                    if (i > 0) prevText = jsonArr[i - 1].value("name", "") + jsonArr[i - 1].value("original_text", "") + jsonArr[i - 1].value("pre_processed_text", "");
-                    if (i + 1 < jsonArr.size()) nextText = jsonArr[i + 1].value("name", "") + jsonArr[i + 1].value("original_text", "") + jsonArr[i + 1].value("pre_processed_text", "");
+                    currentText = getNameString(item) + item.value("original_text", "") + item.value("pre_processed_text", "");
+                    if (i > 0) {
+                        prevText = getNameString(jsonArr[i - 1]) + jsonArr[i - 1].value("original_text", "") + jsonArr[i - 1].value("pre_processed_text", "");
+                    }
+                    if (i + 1 < jsonArr.size()) {
+                        nextText = getNameString(jsonArr[i + 1]) + jsonArr[i + 1].value("original_text", "") + jsonArr[i + 1].value("pre_processed_text", "");
+                    }
                     cacheMap.insert(std::make_pair(prevText + currentText + nextText, item));
                 }
             };
@@ -937,8 +977,22 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
             toml::table tbl;
             tbl.insert("filename", relInputPathStr);
             tbl.insert("index", se.index);
-            tbl.insert("name", se.name);
-            tbl.insert("name_preview", se.name_preview);
+            if (se.nameType == NameType::Single) {
+                tbl.insert("name", se.name);
+                tbl.insert("name_preview", se.name_preview);
+            }
+            else if (se.nameType == NameType::Multiple) {
+                toml::array namesArr;
+                toml::array namePreviewsArr;
+                for (const auto& name : se.names) {
+                    namesArr.push_back(name);
+                }
+                for (const auto& namePreview : se.names_preview) {
+                    namePreviewsArr.push_back(namePreview);
+                }
+                tbl.insert("names", namesArr);
+                tbl.insert("names_preview", namePreviewsArr);
+            }
             tbl.insert("original_text", se.original_text);
             if (!se.other_info.empty()) {
                 toml::table otherInfoArr;
@@ -959,8 +1013,11 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
     ordered_json outputJson = ordered_json::array();
     for (const auto& se : sentences) {
         ordered_json obj;
-        if (se.hasName) {
+        if (se.nameType == NameType::Single) {
             obj["name"] = se.name_preview;
+        }
+        else if (se.nameType == NameType::Multiple) {
+            obj["names"] = se.names_preview;
         }
         obj["message"] = se.translated_preview;
         if (m_outputWithSrc) {
@@ -1031,25 +1088,43 @@ void NormalJsonTranslator::run() {
             ifs.open(entry.path());
             json data = json::parse(ifs);
             ifs.close();
+
+            auto insertNameTable = [&](const std::string& name)
+                {
+                    if (name.empty()) {
+                        return;
+                    }
+                    auto it = nameTableMap.find(name);
+                    if (it == nameTableMap.end()) {
+                        nameTableMap.insert(std::make_pair(name, 1));
+                    }
+                    else {
+                        it->second++;
+                    }
+                };
+
             for (const auto& item : data) {
                 m_totalSentences++;
-                if (!needGenerateNameTable || !item.contains("name")) {
+                if (!needGenerateNameTable) {
                     continue;
                 }
-                se.name = item["name"].get<std::string>();
-                if (m_usePreDictInName) {
-                    se.name = m_preDictionary.doReplace(&se, CachePart::Name);
+                if (item.contains("name")) {
+                    se.name = item["name"].get<std::string>();
+                    if (m_usePreDictInName) {
+                        se.name = m_preDictionary.doReplace(&se, CachePart::Name);
+                    }
+                    insertNameTable(se.name);
                 }
-                if (se.name.empty()) {
-                    continue;
+                else if (item.contains("names")) {
+                    for (const auto& name : item["names"]) {
+                        se.name = name.get<std::string>();
+                        if (m_usePreDictInName) {
+                            se.name = m_preDictionary.doReplace(&se, CachePart::Name);
+                        }
+                        insertNameTable(se.name);
+                    }
                 }
-                auto it = nameTableMap.find(se.name);
-                if (it == nameTableMap.end()) {
-                    nameTableMap.insert(std::make_pair(se.name, 1));
-                }
-                else {
-                    it->second++;
-                }
+
             }
         }
         catch (const json::exception& e) {
@@ -1067,6 +1142,9 @@ void NormalJsonTranslator::run() {
         }
         std::ranges::sort(nameTableKeys, [&](const std::string& a, const std::string& b)
             {
+                if (nameTableMap[a] == nameTableMap[b]) {
+                    return a > b;
+                }
                 return nameTableMap[a] > nameTableMap[b];
             });
 

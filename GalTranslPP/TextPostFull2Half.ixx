@@ -154,12 +154,18 @@ void TextPostFull2Half::createConversionMap() {
 std::string TextPostFull2Half::convertText(const std::string& text) {
     std::string result;
     icu::UnicodeString ustr = icu::UnicodeString::fromUTF8(text);
-    // 特殊处理：跳过<br>标签
+    
     for (int32_t i = 0; i < ustr.length();) {
+        if (i <= ustr.length() - 5) {
+            if (ustr.tempSubString(i, 5) == u"<tab>") {
+                result.append("<tab>");
+                i += 5;
+                continue;
+            }
+        }
         // 检测是否匹配"<br>"（使用子字符串比较）
         if (i <= ustr.length() - 4) {
-            icu::UnicodeString substr = ustr.tempSubString(i, 4);
-            if (substr == icu::UnicodeString(u"<br>")) {
+            if (ustr.tempSubString(i, 4) == u"<br>") {
                 result.append("<br>");
                 i += 4;
                 continue;

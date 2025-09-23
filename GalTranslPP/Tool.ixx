@@ -47,6 +47,48 @@ export {
         return wide2Ascii(ascii2Wide(ascii, src), dst, usedDefaultChar);
     }
 
+    std::string names2String(const std::vector<std::string>& names) {
+        std::string result;
+        for (const auto& name : names) {
+            result += name + "|";
+        }
+        if (!result.empty()) {
+            result.pop_back();
+        }
+        return result;
+    }
+
+    std::string names2String(const json& j) {
+        std::string result;
+        for (const auto& name : j) {
+            result += name.get<std::string>() + "|";
+        }
+        if (!result.empty()) {
+            result.pop_back();
+        }
+        return result;
+    }
+
+    std::string getNameString(const json& j) {
+        if (j.contains("name")) {
+            return j["name"].get<std::string>();
+        }
+        else if (j.contains("names")) {
+            return names2String(j["names"]);
+        }
+        return {};
+    }
+
+    std::string getNameString(const Sentence* se) {
+        if (se->nameType == NameType::Single) {
+            return se->name;
+        }
+        else if (se->nameType == NameType::Multiple) {
+            return names2String(se->names);
+        }
+        return {};
+    }
+
     void createParent(const fs::path& path) {
         if (path.has_parent_path()) {
             fs::create_directories(path.parent_path());
@@ -92,7 +134,7 @@ export {
     }
 
 
-    std::string chooseString(const Sentence* sentence, CachePart tar) {
+    const std::string& chooseStringRef(const Sentence* sentence, CachePart tar) {
         switch (tar) {
         case CachePart::Name:
             return sentence->name;
@@ -120,32 +162,8 @@ export {
         return {};
     }
 
-    const std::string& chooseStringRef(const Sentence* sentence, CachePart tar) {
-        switch (tar) {
-        case CachePart::Name:
-            return sentence->name;
-            break;
-        case CachePart::NamePreview:
-            return sentence->name_preview;
-            break;
-        case CachePart::OrigText:
-            return sentence->original_text;
-            break;
-        case CachePart::PreprocText:
-            return sentence->pre_processed_text;
-            break;
-        case CachePart::PretransText:
-            return sentence->pre_translated_text;
-            break;
-        case CachePart::TransPreview:
-            return sentence->translated_preview;
-            break;
-        case CachePart::None:
-            throw std::runtime_error("Invalid condition target: None");
-        default:
-            throw std::runtime_error("Invalid condition target");
-        }
-        return {};
+    std::string chooseString(const Sentence* sentence, CachePart tar) {
+        return chooseStringRef(sentence, tar);
     }
 
     CachePart chooseCachePart(const std::string& partName) {

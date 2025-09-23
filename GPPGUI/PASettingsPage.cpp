@@ -2,7 +2,7 @@
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QDebug>
+#include <QDesktopServices>
 #include <QButtonGroup>
 #include <QFileDialog>
 
@@ -13,6 +13,7 @@
 #include "ElaToolTip.h"
 #include "ElaMessageBar.h"
 #include "ElaSlider.h"
+#include "ElaPushButton.h"
 #include "ElaDoubleSpinBox.h"
 #include "ElaPlainTextEdit.h"
 #include "ElaToggleButton.h"
@@ -154,11 +155,24 @@ void PASettingsPage::_setupUI()
 	compareObjHelperText->setWordWrap(false);
 	mainLayout->addWidget(compareObjHelperText);
 	ElaPlainTextEdit* compareObjEdit = new ElaPlainTextEdit(mainWidget);
-	compareObjEdit->setMinimumHeight(290);
+	compareObjEdit->setMinimumHeight(280);
 	compareObjEdit->setFont(font);
 	compareObjEdit->setPlainText(QString::fromStdString(stream2String(compareObjTbl)));
 	compareObjEdit->moveCursor(QTextCursor::End);
 	mainLayout->addWidget(compareObjEdit);
+
+	QWidget* illusButtonWidget = new QWidget(mainWidget);
+	QHBoxLayout* illusButtonLayout = new QHBoxLayout(illusButtonWidget);
+	illusButtonLayout->addStretch();
+	ElaPushButton* illusButton = new ElaPushButton("语法示例", illusButtonWidget);
+	ElaToolTip* illusButtonTip = new ElaToolTip(illusButton);
+	illusButtonTip->setToolTip("查看 重翻关键字 和 问题比较对象 设定的语法示例");
+	illusButtonLayout->addWidget(illusButton);
+	connect(illusButton, &ElaPushButton::clicked, this, [=]()
+		{
+			QDesktopServices::openUrl(QUrl::fromLocalFile("BaseConfig/illustration/pahelper.html"));
+		});
+	mainLayout->addWidget(illusButtonWidget);
 	
 	mainLayout->addStretch();
 

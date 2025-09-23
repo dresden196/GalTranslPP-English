@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语法示例</title>
+    <style>
+        /* 页面整体样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        /* 内容容器 */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 标题样式 */
+        h2 {
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-top: 0;
+            color: #1a237e;
+        }
+
+        /* 代码块样式 */
+        pre {
+            background-color: #2d2d2d; /* 深色背景 */
+            color: #f8f8f2; /* 亮色文字 */
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto; /* 内容过长时显示滚动条 */
+            font-size: 0.9em;
+        }
+
+        code {
+            font-family: "Fira Code", "Consolas", "Monaco", monospace;
+        }
+
+        /* --- 语法高亮 --- */
+        .code-comment { color: #75715e; } /* 注释 */
+        .code-key { color: #66d9ef; } /* 键名，如 retranslKeys, base */
+        .code-operator { color: #f92672; } /* 操作符，如 = */
+        .code-string { color: #a6e22e; } /* 字符串 */
+        .code-punctuation { color: #f8f8f2; } /* 标点，如 [] {} , */
+        .code-variable { color: #fd971f; } /* 变量名 */
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>retranslKey语法示例:</h2>
+        <pre><code><span class="code-variable">retranslKeys</span> <span class="code-operator">=</span> <span class="code-punctuation">[</span>
+  <span class="code-string">"翻译失败"</span><span class="code-punctuation">,</span>
+  <span class="code-string">"残留日文"</span><span class="code-punctuation">,</span>
+  <span class="code-string">"本有"</span><span class="code-punctuation">,</span>
+  <span class="code-string">"本无"</span><span class="code-punctuation">,</span>
+  <span class="code-comment"># ...</span>
+<span class="code-punctuation">]</span></code></pre>
+
+        <h2>问题比较对象设定语法示例:</h2>
+        <p>如 <code>{ base = 'orig_text', check = 'trans_preview', problemKey = '比原文长严格' }</code>，<br>意思是当 trans_preview 比 orig_text 严格长时，在 problem 中留下对应的问题。</p>
+        <pre><code><span class="code-variable">overwriteCompareObj</span> <span class="code-operator">=</span> <span class="code-punctuation">[</span>
+    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'orig_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'词频过高'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
+    <span class="code-punctuation">{</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'残留日文'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
+    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'preproc_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'标点错漏'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
+    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'preproc_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'引入拉丁字母'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
+    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'preproc_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'引入韩文'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
+    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'orig_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'丢失换行'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
+    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'orig_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'多加换行'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
+    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'orig_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'比原文长'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
+    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'orig_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'比原文长严格'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
+    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'preproc_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'字典未使用'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
+    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'preproc_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'语言不通'</span> <span class="code-punctuation">}</span>
+<span class="code-punctuation">]</span></code></pre>
+    </div>
+
+</body>
+</html>

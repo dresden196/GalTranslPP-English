@@ -19,15 +19,15 @@ export {
         std::string prev_text = "None";
         const Sentence* temp = s->prev;
         if (temp) {
-            prev_text = temp->name + temp->original_text + temp->pre_processed_text;
+            prev_text = getNameString(temp) + temp->original_text + temp->pre_processed_text;
         }
 
-        std::string current_text = s->name + s->original_text + s->pre_processed_text;
+        std::string current_text = getNameString(s) + s->original_text + s->pre_processed_text;
 
         std::string next_text = "None";
         temp = s->next;
         if (temp) {
-            next_text = temp->name + temp->original_text + temp->pre_processed_text;
+            next_text = getNameString(temp) + temp->original_text + temp->pre_processed_text;
         }
 
         return prev_text + current_text + next_text;
@@ -51,7 +51,7 @@ export {
             int count = 0;
             while (current && count < contextHistorySize) {
                 if (current->complete) {
-                    std::string name = current->name.empty() ? "null" : current->name;
+                    std::string name = current->nameType == NameType::None ? "null" : getNameString(current);
                     contextLines.push_back(name + "\t" + current->pre_translated_text + "\t" + std::to_string(current->index));
                     count++;
                 }
@@ -94,7 +94,9 @@ export {
                 if (current->complete) { // current->complete
                     json item;
                     item["id"] = current->index;
-                    if (!current->name.empty()) item["name"] = current->name;
+                    if (current->nameType != NameType::None) {
+                        item["name"] = getNameString(current);
+                    }
                     item["dst"] = current->pre_translated_text;
                     historyJson.push_back(item);
                     count++;
@@ -116,8 +118,8 @@ export {
             std::vector<std::string> contextLines;
             while (current && count < contextHistorySize) {
                 if (current->complete) {
-                    if (!current->name.empty()) {
-                        contextLines.push_back(current->name + ":::::" + current->pre_translated_text); // :::::
+                    if (current->nameType != NameType::None) {
+                        contextLines.push_back(getNameString(current) + ":::::" + current->pre_translated_text); // :::::
                     }
                     else {
                         contextLines.push_back(current->pre_translated_text);
@@ -143,7 +145,7 @@ export {
         switch (transEngine) {
         case TransEngine::ForGalTsv: {
             for (const auto& pSentence : batchToTransThisRound) {
-                std::string name = pSentence->name.empty() ? "null" : pSentence->name;
+                std::string name = pSentence->nameType == NameType::None ? "null" : getNameString(pSentence);
                 inputBlock += name + "\t" + pSentence->pre_processed_text + "\t" + std::to_string(pSentence->index) + "\n";
                 id2SentenceMap[pSentence->index] = pSentence;
             }
@@ -162,7 +164,9 @@ export {
             for (const auto& pSentence : batchToTransThisRound) {
                 json item;
                 item["id"] = pSentence->index;
-                if (!pSentence->name.empty()) item["name"] = pSentence->name;
+                if (pSentence->nameType != NameType::None) {
+                    item["name"] = getNameString(pSentence);
+                }
                 item["src"] = pSentence->pre_processed_text;
                 inputBlock += item.dump() + "\n";
                 id2SentenceMap[pSentence->index] = pSentence;
@@ -171,8 +175,8 @@ export {
 
         case TransEngine::Sakura:
             for (const auto& pSentence : batchToTransThisRound) {
-                if (!pSentence->name.empty()) {
-                    inputBlock += pSentence->name + ":::::" + pSentence->pre_processed_text + "\n";
+                if (pSentence->nameType != NameType::None) {
+                    inputBlock += getNameString(pSentence) + ":::::" + pSentence->pre_processed_text + "\n";
                 }
                 else {
                     inputBlock += pSentence->pre_processed_text + "\n";
@@ -417,8 +421,14 @@ export {
             }
             json cacheObj;
             cacheObj["index"] = se.index;
-            cacheObj["name"] = se.name;
-            cacheObj["name_preview"] = se.name_preview;
+            if (se.nameType == NameType::Single) {
+                cacheObj["name"] = se.name;
+                cacheObj["name_preview"] = se.name_preview;
+            }
+            else if (se.nameType == NameType::Multiple) {
+                cacheObj["names"] = se.names;
+                cacheObj["names_preview"] = se.names_preview;
+            }
             cacheObj["original_text"] = se.original_text;
             if (!se.other_info.empty()) {
                 cacheObj["other_info"] = se.other_info;
