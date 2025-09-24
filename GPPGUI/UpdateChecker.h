@@ -5,8 +5,9 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QUrl>
-#include <string>
+#include <QTimer>
 #include <QSystemTrayIcon>
+#include <fstream>
 
 class ElaText;
 
@@ -24,7 +25,10 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onReplyFinished(QNetworkReply* reply);
+    void onReplyTimeout();
     void onDownloadFinished(QNetworkReply* reply);
+    void onDownloadTimeout();
+    void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 
 private:
 
@@ -34,8 +38,12 @@ private:
     ElaText* m_statusText = nullptr;
     QSystemTrayIcon* m_trayIcon = nullptr;
 
-    QNetworkAccessManager* m_networkManager = nullptr;
+    QNetworkAccessManager* m_checkManager = nullptr;
+    QNetworkReply* m_checkReply = nullptr;
+    QTimer* m_checkTimer = nullptr;
     QNetworkAccessManager* m_downloadManager = nullptr;
+    QNetworkReply* m_downloadReply = nullptr;
+    QTimer* m_downloadTimer = nullptr;
 
     const QString m_repoOwner = "julixian";
     const QString m_repoName = "GalTranslPP";

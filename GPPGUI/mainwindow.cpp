@@ -173,6 +173,7 @@ void MainWindow::initEdgeLayout()
     ElaStatusBar* statusBar = new ElaStatusBar(this);
     ElaText* statusText = new ElaText("初始化成功！", this);
     statusText->setTextPixelSize(14);
+    statusText->setWordWrap(false);
     statusBar->addWidget(statusText);
     this->setStatusBar(statusBar);
 

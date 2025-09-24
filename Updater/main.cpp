@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     if (pid == 0 || sourceZip.isEmpty() || targetDir.isEmpty()) {
         qWarning() << "Invalid arguments provided.";
 #ifdef Q_OS_WIN
-        MessageBoxW(NULL, L"Invalid arguments provided.", L"Updater", MB_ICONERROR);
+        MessageBoxW(NULL, L"Invalid arguments provided.", L"Updater", MB_ICONERROR | MB_TOPMOST);
 #endif
         return -1;
     }
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     catch (const std::exception& e) {
         qCritical() << "Failed to extract update package:" << e.what();
 #ifdef Q_OS_WIN
-        MessageBoxW(NULL, L"Failed to extract update package.", L"Updater", MB_ICONERROR);
+        MessageBoxW(NULL, L"Failed to extract update package.", L"Updater", MB_ICONERROR | MB_TOPMOST);
 #endif
         return -1;
     }
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     qDebug() << "Cleaned up temporary files.";
 
 #ifdef Q_OS_WIN
-    MessageBoxW(NULL, L"更新成功", L"成功", MB_OK);
+    MessageBoxW(NULL, L"更新成功", L"成功", MB_OK | MB_TOPMOST);
 #endif
     if (restart) {
         qDebug() << "Restarting main application...";

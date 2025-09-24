@@ -16,8 +16,7 @@ UpdateWidget::UpdateWidget(QWidget* parent)
 
     ElaText* updateTitle = new ElaText("v" + QString::fromStdString(GPPVERSION) + " 更新", 15, this);
     QStringList updateList = {
-        "1. 优化开启/关闭单文件分割前后的缓存命中",
-        "2. 增加自动安装更新包功能",
+        "1. 为更新检查和更新下载增加超时处理",
 
     };
 

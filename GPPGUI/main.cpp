@@ -4,13 +4,15 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QMessageBox>
+#ifdef Q_OS_WIN
+#include <Windows.h>
+#endif
 
 #include "ElaApplication.h"
 #include "mainwindow.h"
 
 #pragma comment(lib, "../lib/GalTranslPP.lib")
 #pragma comment(lib, "../lib/ElaWidgetTools.lib")
-#pragma comment(lib, "../lib/QSimpleUpdater.lib")
 
 import std;
 namespace fs = std::filesystem;
@@ -18,6 +20,12 @@ namespace fs = std::filesystem;
 int main(int argc, char* argv[])
 {
     try {
+
+        if (fs::exists(L"Updater_new.exe")) {
+            fs::remove(L"Updater.exe");
+            fs::rename(L"Updater_new.exe", L"Updater.exe");
+        }
+
         QApplication a(argc, argv);
 
         QString appDir = QApplication::applicationDirPath();
@@ -50,7 +58,9 @@ int main(int argc, char* argv[])
         // --- 如果程序运行到这里，说明这是第一个实例（服务器） ---
         // 尝试创建共享内存段
         if (!sharedMemory.create(1)) {
-            QMessageBox::critical(nullptr, "错误", "无法创建共享内存段，程序即将退出。", QMessageBox::Ok);
+#ifdef Q_OS_WIN
+            MessageBoxW(nullptr, L"无法创建共享内存段，程序即将退出。", L"错误", MB_ICONERROR);
+#endif
             return 1; // 创建失败，退出 
         }
 
@@ -93,7 +103,9 @@ int main(int argc, char* argv[])
             QLocalServer::removeServer(uniqueKey);
             // 再次尝试监听
             if (!server.listen(uniqueKey)) {
-                QMessageBox::critical(nullptr, "错误", "无法启动本地服务，程序即将退出。\n" + server.errorString());
+#ifdef Q_OS_WIN
+                MessageBoxW(nullptr, L"无法启动本地服务，程序即将退出。", L"错误", MB_ICONERROR);
+#endif
                 return 1;
             }
         }
@@ -108,11 +120,15 @@ int main(int argc, char* argv[])
         return result;
     }
     catch (const std::exception& e) {
-        QMessageBox::critical(nullptr, "遇到了预期外的错误", e.what(), QMessageBox::Ok);
+#ifdef Q_OS_WIN
+        MessageBoxW(nullptr, QString::fromStdString(e.what()).toStdWString().c_str(), L"错误", MB_ICONERROR);
+#endif
         return 1;
     }
     catch (...) {
-        QMessageBox::critical(nullptr, "遇到了未知的错误", "程序即将退出。", QMessageBox::Ok);
+#ifdef Q_OS_WIN
+        MessageBoxW(nullptr, L"遇到了未知的错误，程序即将退出。", L"错误", MB_ICONERROR);
+#endif
         return 1;
     }
     

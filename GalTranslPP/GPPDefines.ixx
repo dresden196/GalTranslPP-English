@@ -6,7 +6,7 @@ namespace fs = std::filesystem;
 
 export {
 
-    std::string GPPVERSION = "1.0.2";
+    std::string GPPVERSION = "1.0.3P";
 
     fs::path pluginConfigsPath = L"BaseConfig/pluginConfigs";
 
