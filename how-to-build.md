@@ -35,15 +35,11 @@ cd vcpkg
 
 ## 3. 获取项目源码
 
-将 GalTranslPP 主仓库及 `ElaWidgetTools` 依赖克隆至本地。
+将 GalTranslPP 主仓库连同子模块 `ElaWidgetTools` 依赖克隆至本地。
 
 ```cmd
-# 1. 克隆 GalTranslPP 主仓库
-git clone https://github.com/julixian/GalTranslPP.git
+git clone --recurse-submodules https://github.com/julixian/GalTranslPP.git
 cd GalTranslPP
-
-# 2. 克隆 ElaWidgetTools 依赖
-git clone https://github.com/Liniyous/ElaWidgetTools.git
 ```
 
 ## 4. 编译 ElaWidgetTools (GUI 依赖)
@@ -60,12 +56,12 @@ git clone https://github.com/Liniyous/ElaWidgetTools.git
 
 ### 4.2 编译与部署
 
-- 1、  使用 Visual Studio 打开 `ElaWidgetTools` 文件夹。
+- 1、  使用 Visual Studio 打开 `3rdParty\ElaWidgetTools` 文件夹。
 - 2、  在顶部工具栏中，将生成配置从 `Qt-Debug` 切换为 **`Qt-Release`**。
-- 3、  在菜单栏中选择 `生成` → `全部生成`。
+- 3、  在菜单栏中选择 `生成` → `全部生成` (如果使用Visual Studio且严格按照上述步骤执行，则无需更改CMakeLists中的QT_SDK_DIR)。
 - 4、  **部署编译产物**:
   - 在 `GalTranslPP` 根目录下手动创建一个名为 `lib` 的新文件夹。
-  - 将 `ElaWidgetTools\out\build\Release\ElaWidgetTools` 目录下的 `ElaWidgetTools.lib` 和 `ElaWidgetTools.exp` 文件移动到刚刚创建的 `GalTranslPP\lib` 文件夹中。
+  - 将 `3rdParty\ElaWidgetTools\out\build\Release\ElaWidgetTools` 目录下的 `ElaWidgetTools.lib` 和 `ElaWidgetTools.exp` 文件移动到刚刚创建的 `GalTranslPP\lib` 文件夹中。
 
 ## 5. 编译 GalTranslPP (主项目)
 
@@ -103,22 +99,11 @@ git clone https://github.com/Liniyous/ElaWidgetTools.git
 
 - 1、  将`BaseConfig`文件夹复制到`GalTranslPP\Release\GPPGUI`
 - 2、  在`GalTranslPP\Release\GPPGUI`新建`Projects`文件夹并将`sampleProject`文件夹整体复制进去
-- 3、  去Qt工具链复制以下内容
-  - `C:\Qt\6.9.2\msvc2022_64\plugins\generic`
-  - `C:\Qt\6.9.2\msvc2022_64\plugins\iconengines`
-  - `C:\Qt\6.9.2\msvc2022_64\plugins\imageformats`
-  - `C:\Qt\6.9.2\msvc2022_64\plugins\networkinformation`
-  - `C:\Qt\6.9.2\msvc2022_64\plugins\platforms`
-  - `C:\Qt\6.9.2\msvc2022_64\plugins\styles`
-  - `C:\Qt\6.9.2\msvc2022_64\plugins\tls`
-  - `C:\Qt\6.9.2\msvc2022_64\bin\d3dcompiler_47.dll`
-  - `C:\Qt\6.9.2\msvc2022_64\bin\opengl32sw.dll`
-  - `C:\Qt\6.9.2\msvc2022_64\bin\Qt6Core.dll`
-  - `C:\Qt\6.9.2\msvc2022_64\bin\Qt6Gui.dll`
-  - `C:\Qt\6.9.2\msvc2022_64\bin\Qt6Network.dll`
-  - `C:\Qt\6.9.2\msvc2022_64\bin\Qt6Svg.dll`
-  - `C:\Qt\6.9.2\msvc2022_64\bin\Qt6Widgets.dll`
+- 3、  打开 Qt专属控制台，如 Qt 6.9.2(MSVC 2022 64-bit)，输入命令 
+```cmd
+windeployqt path/to/GalTranslPP_GUI.exe
+```
 - 4、去ElaWidgetTools复制
-  - `ElaWidgetTools\out\build\Release\ElaWidgetTools\ElaWidgetTools.dll`
+  - `3rdParty\ElaWidgetTools\out\build\Release\ElaWidgetTools\ElaWidgetTools.dll`
 
 至此所有步骤均已完成。

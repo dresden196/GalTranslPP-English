@@ -1,6 +1,3 @@
-[submodule "3rdParty/ElaWidgetTool"]
-	path = 3rdParty/ElaWidgetTool
-	url = https://github.com/julixian/ElaWidgetTools.git
 [submodule "3rdParty/ElaWidgetTools"]
 	path = 3rdParty/ElaWidgetTools
 	url = https://github.com/julixian/ElaWidgetTools.git
