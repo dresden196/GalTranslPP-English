@@ -1,82 +1,124 @@
-# GalTransl++ 编译指南
+# GalTranslPP 编译指南
 
-## 1. 环境要求
+## 1. 环境配置
 
-- Windows 10/11
-- [Visual Studio 2026（工具集v143+v145）](https://visualstudio.microsoft.com/insiders/?rwnlp=zh-hans)
-- [git](https://git-scm.com/)
+在开始编译之前，请确保你的开发环境满足以下要求：
 
-## 2. 安装vcpkg
+- **操作系统**: Windows 10 或 Windows 11
+- **IDE**: [Visual Studio 2026](https://visualstudio.microsoft.com/insiders/?rwnlp=zh-hans)
+  - **必需工作负载**: `使用 C++ 的桌面开发`
+  - **必需工具集**: `MSVC v143` (VS 2022) 和 `MSVC v145`
+- **版本控制工具**: [git](https://git-scm.com/)
+
+## 2. 安装核心依赖
+
+### 2.1 vcpkg 包管理器
+
+vcpkg 用于管理项目所需的 C++ 库。
 
 ```cmd
-git clone https://github.com/microsoft/vcpkg
+# 1. 克隆 vcpkg 仓库到任意位置
+git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg
+
+# 2. 执行引导脚本进行安装
 .\bootstrap-vcpkg.bat
+
+# 3. (重要) 将 vcpkg 的根目录路径添加到用户环境变量"Path"中
 ```
 
-然后将刚才克隆的vcpkg的路径添加到环境变量Path中
+### 2.2 Qt 框架
 
-## 3. 安装Qt（编译GPPGUI和ElaWidgetTools时需要）
+- 1、  访问 [Qt 官方网站](https://www.qt.io/download-qt-installer-oss)下载并运行Qt社区开源版本(LGPL协议)的在线安装器 (需要注册 Qt 账户)。
+- 2、  在安装器的组件选择页面，确保勾选以下组件:
+  - `Qt` → `Qt 6.9.2` → `MSVC 2022 64-bit`
 
-- 1、 下载Qt的社区开源版本(LGPL协议)的在线安装器(需注册登录): [https://www.qt.io/download-qt-installer-oss](https://www.qt.io/download-qt-installer-oss)
-- 2、 选择安装组件:
-  - `Qt 6.9.2` → `MSVC 2022 64-bit`
+## 3. 获取项目源码
 
-## 4. 克隆GalTranslPP项目
+将 GalTranslPP 主仓库及 `ElaWidgetTools` 依赖克隆至本地。
 
 ```cmd
+# 1. 克隆 GalTranslPP 主仓库
 git clone https://github.com/julixian/GalTranslPP.git
 cd GalTranslPP
-```
 
-## 5. ElaWidgetTools（GPPGUI的依赖项）
-
-### 5.1 克隆ElaWidgetTools项目
-
-```cmd
+# 2. 克隆 ElaWidgetTools 依赖
 git clone https://github.com/Liniyous/ElaWidgetTools.git
 ```
 
-### 5.2 用Visual Studio 2026打开ElaWidgetTools项目
+## 4. 编译 ElaWidgetTools (GUI 依赖)
 
-可以打开文件夹也可以打开CMakeLists.txt
+### 4.1 配置 Visual Studio 与 Qt
 
-### 5.3 安装`Qt Visual Studio Tools`插件
+- 1、  **安装 VS 插件**:
+  - 启动 Visual Studio，在顶部菜单栏选择 `扩展` → `管理扩展`。
+  - 搜索并安装 **"Qt Visual Studio Tools"** 插件。
+  - 根据提示重启 Visual Studio 以完成安装。
+- 2、  **关联 Qt 版本**:
+  - 重启后，在菜单栏选择 `扩展` → `Qt VS Tools` → `Qt Versions`。
+  - 点击 `Add New Qt Version`，将路径指向你安装的 Qt MSVC 目录 (例如: `C:\Qt\6.9.2\msvc2022_64`)，并将其设置为默认版本。
 
-VS选项卡中`扩展` → `管理扩展` → 搜索"Qt Visual Studio Tools"  
-点击安装后过一会VS会在上方提示你关闭VS完成插件安装，之后重新用  
-Visual Studio 2026打开ElaWidgetTools项目
+### 4.2 编译与部署
 
-### 5.4 配置Qt路径
+- 1、  使用 Visual Studio 打开 `ElaWidgetTools` 文件夹。
+- 2、  在顶部工具栏中，将生成配置从 `Qt-Debug` 切换为 **`Qt-Release`**。
+- 3、  在菜单栏中选择 `生成` → `全部生成`。
+- 4、  **部署编译产物**:
+  - 在 `GalTranslPP` 根目录下手动创建一个名为 `lib` 的新文件夹。
+  - 将 `ElaWidgetTools\out\build\Release\ElaWidgetTools` 目录下的 `ElaWidgetTools.lib` 和 `ElaWidgetTools.exp` 文件移动到刚刚创建的 `GalTranslPP\lib` 文件夹中。
 
-- 1、 在VS选项卡中: `扩展` → `Qt VS Tools` → `Qt Versions`
-- 2、 添加Qt安装路径，如: `C:\Qt\6.9.2\msvc2022_64`，并设置为默认版本
+## 5. 编译 GalTranslPP (主项目)
 
-### 5.5 编译ElaWidgetTools
+此步骤涉及一次临时的平台工具集切换，以解决特定依赖的兼容性问题。
 
-在VS工具栏的第二个下拉选项栏把生成目标从`Qt-Debug`改为`Qt-Release`，  
-然后在选项卡的`生成`中点击`全部生成`即开始编译。
+- 1、  使用 Visual Studio 打开根目录下的 `GalTranslPP.sln` 解决方案文件。
 
-### 5.6 将编译产物移动到GalTranslPP项目
+- 2、  **步骤一：使用 v143 工具集编译依赖**
+  - 在 **解决方案资源管理器** 中，右键点击 `GalTranslPP` 模块，选择 `属性`。
+  - 在属性页中，导航至 `配置属性` → `常规`。
+  - 将 **平台工具集** 选项更改为 **`Visual Studio 2022 (v143)`**。
+  - 点击 `应用` 保存设置。
+  - 在菜单栏选择 `生成` → `批生成`勾选`GalTranslPP|Release|x64`并点击生成。
+    > **注意**: 此步骤专门用于编译 `mecab:x64-windows` 等依赖。编译到最后会出现乱码和报错，**这属于正常现象**，此时依赖库已成功生成。
 
-ElaWidgetTools的编译产物在ElaWidgetTools根目录下的out\build\release\ElaWidgetTools内，  
-将其中的ElaWidgetTools.lib和ElaWidgetTools.exp移动到GalTranslPP根目录的lib文件夹(没有则自行创建)，
-待会编译完GPPGUI后把ElaWidgetTools.dll复制到Release\GPPGUI
+- 3、  **步骤二：使用 v145 工具集编译主程序**
+  - 再次打开 `GalTranslPP` 项目的属性页。
+  - 将 **平台工具集** 切换回 **`Visual Studio v18 (v145)`**。
+  - 点击 `应用` 并关闭属性窗口。
+  - 为确保所有模块都被正确编译，在`生成` → `批生成`编译目标模块时应选择`全部重新生成`。
 
-## 6. 编译GalTranslPP项目
+## 6. 完成与运行
 
-用Visual Studio 2026打开`GalTranslPP.sln`  
+编译成功后，所有可执行文件将生成于 `GalTranslPP\Release` 目录下。  
 
-如[README.md](README.md)所示：  
+还需将一些文件复制到文件夹内程序才可正常运行。  
 
-> **其它注意事项**
->
->由于我的开发环境基本绑定 windows系统，我自己也没有linux设备，所以即使在项目中使用的winapi数量很少也很好替换，  
->但是跨平台的事我自己是不会主动考虑的。  
->另外由于我所使用的环境较新，也可能会有一些比较罕见的问题。  
->目前已知项目依赖 `mecab:x64-windows` 在VS2026(工具集 v145)下不过编，但是VS2022(工具集 v143)能过，安装依赖可能需要切回VS2022  
+### 6.1 GPPCLI
 
-故目前编译项目依赖需要在三个模块的属性中临时切换工具集为v143，  
-然后在选项卡的`生成`-`批生成`中任意编译一个模块比如GPPGUI，  
-依赖编译完成后进入正式编译时会乱码报错，  
-此时将工具集切换回v145即可正常编译。
+只需将项目根目录的`Example`文件夹内的`BaseConfig`和`sampleProject`文件夹复制到`GalTranslPP\Release\GPPCLI`即可
+
+### 6.2 GPPGUI
+
+与GPPCLI相比有所不同，步骤较多：
+
+- 1、  将`BaseConfig`文件夹复制到`GalTranslPP\Release\GPPGUI`
+- 2、  在`GalTranslPP\Release\GPPGUI`新建`Projects`文件夹并将`sampleProject`文件夹整体复制进去
+- 3、  去Qt工具链复制以下内容
+  - `C:\Qt\6.9.2\msvc2022_64\plugins\generic`
+  - `C:\Qt\6.9.2\msvc2022_64\plugins\iconengines`
+  - `C:\Qt\6.9.2\msvc2022_64\plugins\imageformats`
+  - `C:\Qt\6.9.2\msvc2022_64\plugins\networkinformation`
+  - `C:\Qt\6.9.2\msvc2022_64\plugins\platforms`
+  - `C:\Qt\6.9.2\msvc2022_64\plugins\styles`
+  - `C:\Qt\6.9.2\msvc2022_64\plugins\tls`
+  - `C:\Qt\6.9.2\msvc2022_64\bin\d3dcompiler_47.dll`
+  - `C:\Qt\6.9.2\msvc2022_64\bin\opengl32sw.dll`
+  - `C:\Qt\6.9.2\msvc2022_64\bin\Qt6Core.dll`
+  - `C:\Qt\6.9.2\msvc2022_64\bin\Qt6Gui.dll`
+  - `C:\Qt\6.9.2\msvc2022_64\bin\Qt6Network.dll`
+  - `C:\Qt\6.9.2\msvc2022_64\bin\Qt6Svg.dll`
+  - `C:\Qt\6.9.2\msvc2022_64\bin\Qt6Widgets.dll`
+- 4、去ElaWidgetTools复制
+  - `ElaWidgetTools\out\build\Release\ElaWidgetTools\ElaWidgetTools.dll`
+
+至此所有步骤均已完成。
