@@ -143,8 +143,7 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 	QWidget* tipButtonWidget = new QWidget(centerWidget);
 	QHBoxLayout* tipLayout = new QHBoxLayout(tipButtonWidget);
 	tipLayout->addStretch();
-	ElaPushButton* tipButton = new ElaPushButton(centerWidget);
-	tipButton->setText("说明");
+	ElaPushButton* tipButton = new ElaPushButton("说明", centerWidget);
 	tipLayout->addWidget(tipButton);
 	connect(tipButton, &ElaPushButton::clicked, this, [=]()
 		{

@@ -3,6 +3,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFileDialog>
+#include <QDesktopServices>
 
 #include "ElaScrollPageArea.h"
 #include "ElaToggleSwitch.h"
@@ -57,6 +58,17 @@ PDFCfgPage::PDFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 			}
 		});
 	mainLayout->addWidget(converterArea);
+
+	QWidget* tipButtonWidget = new QWidget(centerWidget);
+	QHBoxLayout* tipLayout = new QHBoxLayout(tipButtonWidget);
+	tipLayout->addStretch();
+	ElaPushButton* tipButton = new ElaPushButton("说明", tipButtonWidget);
+	tipLayout->addWidget(tipButton);
+	connect(tipButton, &ElaPushButton::clicked, this, [=]()
+		{
+			QDesktopServices::openUrl(QUrl::fromLocalFile("BaseConfig/illustration/pdf.html"));
+		});
+	mainLayout->addWidget(tipButtonWidget);
 
 	_applyFunc = [=]()
 		{

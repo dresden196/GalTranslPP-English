@@ -33,11 +33,15 @@
 ### GalTransl++ 翻译流程与替换型字典介绍
 
 对于熟悉GalTransl的人来说，过渡到GalTransl++ CLI版本可谓易如反掌，所以接下来主要讲GUI。
+
 这里还是再稍微谈一下翻译流程吧(默认你已经读过GalTransl的使用说明，翻译接口什么的就略过了)。
 
 GalTransl++无论处理哪种文件格式，最后都是统一化为json来读取。
+
 每个json文件是一个对象列表，每个对象代表一个『句子』，这是喂给AI进行翻译的基本单位。
+
 读取json时主要关注两个键，分别为 `name` 和 `message`，不同的翻译模式(`transEngine`)就是对这两个键进行各种不同的处理：
+
 
 #### 翻译模式 (transEngine)
 
@@ -58,17 +62,24 @@ GalTransl++无论处理哪种文件格式，最后都是统一化为json来读�
 > **⚠️ 特别注意**：在使用单文件分割功能的情况下，由于缓存命中结合了上下文，所以当你改变文件本身，或者分割数/分割方式时，会有一部分无关的句子不能命中缓存。理论上文件切的越碎，最终分割出的文件份数比最大线程数超过的更多，则不能命中缓存的句子越多。GalTransl++会尽可能在这种情况下保证原有缓存的命中，不过如果希望达到更好的缓存命中，最好还是不改变分割方式和分割数。为此也可以使用 `ShowNormal` 模式观察切割后的文件。
 
 `retranslKey`指的是重翻关键字，`problem`指的是缓存中的问题。
+
 GalTransl++会在翻译时自动分析翻译时常见问题，并将问题输出到缓存中。
+
 一般情况下，如果 `problem` 或 `orig_text`(一个缓存键，存储的是原始message) 中包含设定的`retranslKey`，则即使在实际翻译模式下命中缓存，这个句子依然会被重翻。所以如果只想重建缓存，要么得删除所有`retranslKey`，要么使用 `Rebuild` 模式忽略翻译。
 
 ### 字典系统
 
 GalTransl++的字典分为 **译前字典**，**GPT字典**，**译后字典** 三大类。每类字典都有 **通用** 和 **项目** 两种。
+
 顾名思义，通用字典可以被所有项目所见，项目字典只能被当前项目所见。
+
 具体一个项目要用哪些字典，可以在项目的 `翻译设置->字典设置` 中找到对应的选项进行选择。
 
+
 这三类字典中，译前和译后字典为 **替换型字典**，GPT字典为 **提示型字典**。
+
 即译前和译后字典执行的是搜索替换，而GPT字典的作用仅在于当原文中出现字典里的词时，将该条字典作为附加部分一并喂给AI以规范翻译，那至于AI想不想用，用成什么样，就不是程序能管得到的了。
+
 
 #### GUI中的字典处理
 
@@ -145,12 +156,15 @@ GalTransl++的缓存中可能包含如下键:
 > **正则引擎说明**
 >
 > 虽然GalTransl++的核心为C++编写，但由于正则引擎采用`icu::Regex`，所以可自定义编辑的所有正则依然是以字符为单位的。比如即使emoji表情'😪' 在UTF-8中占用4个字节，在正则中依然是以一个`.`来匹配的。
+>
 > 同时也支持icu扩展正则语法，如可以使用`\p{P}`来匹配任意标点符号，`\p{Hangul}`来匹配任意韩文字符等。
 
 ## 其它翻译说明
 
+<details>
+  <summary>
 ### retranslKey语法示例:
-
+  </summary>
 ```
 retranslKeys = [
   "翻译失败",
@@ -178,17 +192,31 @@ overwriteCompareObj = [
     { base = 'preproc_text', check = 'trans_preview', problemKey = '语言不通' }
 ]
 ```
-如 `{ base = 'orig_text', check = 'trans_preview', problemKey = '比原文长严格' }`，  
+如 `{ base = 'orig_text', check = 'trans_preview', problemKey = '比原文长严格' }`， 
+
 意思是当 trans\_preview 比 orig\_text 严格长时，在 problem 中留下对应的问题。
+</details>
 
+<details>
+  <summary>
 ### 📘 Epub 提取与正则自定义
+  </summary>
 
-鉴于Epub的多样性以及GalTransl++以项目为本的理念，GalTransl++的Epub提取并不像其它翻译器一样有固定的解析/拼装模式。GalTransl++将仅使用GUMBO库遍历Epub中的HTML/XHTML文件 (epub文件本身只是一个zip包，你可以使用任何解压软件打开它并浏览其中的文件)，每个文本标签提取出的字符串都将作为一个msg。但仅仅这样会有一些明显的问题，如下面这个句子:
+鉴于Epub的多样性以及GalTransl++以项目为本的理念，GalTransl++的Epub提取并不像其它翻译器一样有固定的解析/拼装模式。
+
+GalTransl++将仅使用GUMBO库遍历Epub中的HTML/XHTML文件
+(epub文件本身只是一个zip包，你可以使用任何解压软件打开它并浏览其中的文件)，
+
+每个文本标签提取出的字符串都将作为一个msg。
+
+但仅仅这样会有一些明显的问题，如下面这个句子:
 ```
 <p class="class_s2C-0">「モテる男は<ruby><rb>辛</rb><rt>つら</rt></ruby>いね」</p>
 ```
 它会被拆解为「モテる男は 辛 つら いね」四个部分，作为4个msg喂给AI，这显然不是我们想要的。如果使用固定的html解析方法/固定的正则组进行提取，要么会丢失信息，要么无法兼顾所有情况，总之自定义程度极低，最后输出的效果理想与否完全取决于程序的解析与拼装模式是否正好符合用户的预期。所以GalTransl++选择让用户根据自己的项目自行利用正则构建解析模式，这显然增长了一些门槛，不过作为回报大幅提升了自由度。
+
 Epub正则设置依然使用toml语法解析配置，并支持两种正则写法: **一般正则**和**回调正则**。
+
 
 #### 一般正则
 
@@ -246,16 +274,24 @@ callback = [ { group = 2, org = '<[^>]*>', rep = '' } ]
 对于第二组文本，程序找到了 `group = 2` 的正则，则对第二组文本使用 `org = '<[^>]*>', rep = ''` 进行替换，替换后得到 `「うっ、レナ!?」` ，则现在的替换字符串暂定为 `<p class="class_s2C-0">「うっ、レナ!?」`
 
 第三组文本与第一组文本同理，则最终的替换字符串为 `<p class="class_s2C-0">「うっ、レナ!?」</p>` ，与预期相符。
+</details>
 
+<details>
+  <summary>
 ### PDF翻译说明
+  </summary>
 与Epub不同，GalTransl++将PDF转为NormalJson是通过调用外部脚本完成的，因为目前能较好重建PDF的只有python库。
+
 此脚本需要能通过CLI参数对指定pdf执行提取/回注操作，具体参数详见[PDFTranslator](GalTranslPP/PDFTranslator.ixx)
+
 示例脚本为 (Example/)BaseConfig/PDFConverter/PDFConverter.py
+
 显而易见地，运行此脚本需要python环境(推荐3.12)并安装 `babeldoc` 库，
 ```cmd
 pip install babeldoc
 ```
 Release里也提供了此脚本打包后的exe，如果不想或者不会配置环境的可以[点此下载](https://github.com/julixian/GalTranslPP/releases/download/v1.0.2/PDFConverter.zip)(不过非常大就是了)。
+</details>
 
 
 ## ⚙️ 编译指南
@@ -269,13 +305,19 @@ GalTransl++在文件支持和插件支持上仍处于起步阶段，也不排除
 ### 添加文件处理器 (Translator)
 
 如你所见，GalTransl++的核心代码文件数量不超过二十个，接口也十分简单。
+
 由于所有的文件处理器需直接/间接继承自 `ITranslator`，如无特殊情况，一般直接继承 `NormalJsonTranslator` 即可。
+
 这样只需要将相应文件提取为json，并重设提取文件夹为 `NormalJsonTranlator` 的 `inputDir` 文件夹，
+
 重设期望获取译后json的文件夹为其 `outputDir` 文件夹即可。
+
 每当其翻译完一个文件时(如果有单文件分割则只在文件合并后)，其会调用成员变量中的函数对象 `m_onFileProcessed`(线程安全)，
+
 可以借此来判断文件的写回时机，具体示例可见 `EpubTranslator`。
 
 需要注册的工厂函数为 `createTranslator`。
+
 
 ### 添加插件处理器 (Plugin)
 
@@ -287,13 +329,18 @@ GalTransl++在文件支持和插件支持上仍处于起步阶段，也不排除
 * **对于译后插件**：原则上只允许修改 `translated_preview`。
 
 任意插件均可在 `other_info` 中插入键以在缓存中附带信息。
+
 具体示例可见 `TextLinebreakFix` 和 `TextPostFull2Half`。
 
 需要注册的工厂函数为 `registerPlugins`。
 
+
 ### 其它注意事项
 
-由于我的开发环境基本绑定 windows系统，我自己也没有linux设备，所以即使在项目中使用的winapi数量很少也很好替换，  
-但是跨平台的事我自己是不会主动考虑的。  
-另外由于我所使用的环境较新，也可能会有一些比较罕见的问题。  
+由于我的开发环境基本绑定 windows系统，我自己也没有linux设备，所以即使在项目中使用的winapi数量很少也很好替换，
+
+但是跨平台的事我自己是不会主动考虑的。
+
+另外由于我所使用的环境较新，也可能会有一些比较罕见的问题。
+
 目前已知项目依赖 `mecab:x64-windows` 在VS2026(工具集 v145)下不过编，但是VS2022(工具集 v143)能过，安装依赖可能需要切回VS2022  
