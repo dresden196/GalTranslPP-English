@@ -43,9 +43,15 @@ AboutDialog::AboutDialog(QWidget* parent)
 
     ElaMenuBar* menuBar = new ElaMenuBar(this);
     QAction* checkUpdateAction = menuBar->addElaIconAction(ElaIconType::CheckToSlot, "检查更新");
+    _downloadUpdateAction = menuBar->addElaIconAction(ElaIconType::Download, "下载更新");
+    _downloadUpdateAction->setEnabled(false);
     connect(checkUpdateAction, &QAction::triggered, this, [=]()
         {
             Q_EMIT checkUpdateSignal();
+        });
+    connect(_downloadUpdateAction, &QAction::triggered, this, [=]()
+        {
+            Q_EMIT downloadUpdateSignal();
         });
     QHBoxLayout* checkUpdateLayout = new QHBoxLayout();
     checkUpdateLayout->addStretch();
@@ -68,6 +74,11 @@ AboutDialog::AboutDialog(QWidget* parent)
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 25, 0, 0);
     mainLayout->addLayout(contentLayout);
+}
+
+void AboutDialog::setDownloadButtonEnabled(bool enabled)
+{
+    _downloadUpdateAction->setEnabled(enabled);
 }
 
 AboutDialog::~AboutDialog()

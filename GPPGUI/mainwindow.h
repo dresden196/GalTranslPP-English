@@ -45,7 +45,7 @@ private:
     void initContent();
 
     HomePage* _homePage{nullptr};
-    AboutDialog* _aboutPage{nullptr};
+    AboutDialog* _aboutDialog{nullptr};
     DefaultPromptPage* _defaultPromptPage{nullptr};
     CommonNormalDictPage* _commonPreDictPage{nullptr};
     CommonGptDictPage* _commonGptDictPage{nullptr};

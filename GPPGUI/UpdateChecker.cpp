@@ -34,7 +34,8 @@ QString calculateFileSha256(const QString& filePath)
     return hash.result().toHex();
 }
 
-UpdateChecker::UpdateChecker(ElaText* statusText, QObject* parent) : QObject(parent), m_statusText(statusText)
+UpdateChecker::UpdateChecker(toml::table& globalConfig, ElaText* statusText, QObject* parent) : 
+    QObject(parent), m_statusText(statusText), m_globalConfig(globalConfig)
 {
     m_checkManager = new QNetworkAccessManager(this);
     connect(m_checkManager, &QNetworkAccessManager::finished, this, &UpdateChecker::onReplyFinished);
@@ -60,7 +61,7 @@ UpdateChecker::UpdateChecker(ElaText* statusText, QObject* parent) : QObject(par
     connect(m_downloadTimer, &QTimer::timeout, this, &UpdateChecker::onDownloadTimeout);
 }
 
-void UpdateChecker::check()
+void UpdateChecker::check(bool forDownload)
 {
     // GitHub API for the latest release
     QUrl url("https://api.github.com/repos/" + m_repoOwner + "/" + m_repoName + "/releases/latest");
@@ -68,6 +69,7 @@ void UpdateChecker::check()
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     m_checkReply = m_checkManager->get(request);
+    m_isForDownloadMap[m_checkReply] = forDownload;
     m_checkTimer->start(10000);
 }
 
@@ -81,6 +83,8 @@ void UpdateChecker::onReplyTimeout()
 void UpdateChecker::onReplyFinished(QNetworkReply* reply)
 {
     m_checkTimer->stop();
+    bool forDownload = m_isForDownloadMap[reply];
+    m_isForDownloadMap.erase(m_isForDownloadMap.find(reply));
     m_checkReply = nullptr;
 
     if (reply->error() != QNetworkReply::NoError) {
@@ -100,11 +104,15 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
 
     QJsonObject jsonObj = jsonDoc.object();
     std::string latestVersion = jsonObj["tag_name"].toString().toStdString();
+    bool canUpdate = forDownload ? true : m_globalConfig["autoDownloadUpdate"].value_or(true);
+    bool hasNewVersion = cmpVer(latestVersion, GPPVERSION);
 
-    if (hasNewVersion(latestVersion, GPPVERSION)) {
-        ElaMessageBar::information(ElaMessageBarType::TopLeft, "检测到新版本", "最新版本: " + QString::fromStdString(latestVersion), 5000);
-        // 开启新一轮下载: 没有已经下载成功 或 正在下载
-        if (!m_downloadSuccess && !m_downloadReply) {
+    if (hasNewVersion) {
+        if (!forDownload) {
+            ElaMessageBar::information(ElaMessageBarType::TopLeft, "检测到新版本", "最新版本: " + QString::fromStdString(latestVersion), 5000);
+        }
+        // 开启新一轮下载: 没有 正在下载 或 下载被禁用
+        if (!m_downloadReply && canUpdate) {
             bool hasUpdateFile = false;
             if (fs::exists(L"GUICORE.zip")) {
                 QString currentFileHash = "sha256:" + calculateFileSha256("GUICORE.zip");
@@ -135,7 +143,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
                     if (assets[i].toObject()["name"] != "GUICORE.zip") {
                         continue;
                     }
-                    ElaMessageBar::information(ElaMessageBarType::TopLeft, "自动更新", "正在下载更新包...", 5000);
+                    ElaMessageBar::information(ElaMessageBarType::TopLeft, "下载更新", "正在下载更新包...", 5000);
                     m_statusText->setText("下载更新...");
                     downloadUpdate(assets[i].toObject()["browser_download_url"].toString());
                     break;
@@ -147,6 +155,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
         ElaMessageBar::success(ElaMessageBarType::TopLeft, "版本检测", "当前已是最新的版本", 5000);
     }
     reply->deleteLater();
+    Q_EMIT checkCompleteSignal(hasNewVersion);
 }
 
 void UpdateChecker::downloadUpdate(const QString& url)
@@ -211,7 +220,12 @@ bool UpdateChecker::getIsDownloadSucceed()
     return m_downloadSuccess;
 }
 
-bool UpdateChecker::hasNewVersion(std::string latestVer, std::string currentVer)
+bool UpdateChecker::getIsDownloading()
+{
+    return m_downloadReply != nullptr;
+}
+
+bool UpdateChecker::cmpVer(std::string latestVer, std::string currentVer)
 {
     bool isCurrentVerPre = false;
     auto removePostfix = [&](std::string& v)

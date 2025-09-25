@@ -167,6 +167,10 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     autoRefreshLayout->addStretch();
     ElaToggleSwitch* autoRefreshSwitch = new ElaToggleSwitch(autoRefreshArea);
     autoRefreshSwitch->setIsToggled(_globalConfig["autoRefreshAfterTranslate"].value_or(true));
+    connect(autoRefreshSwitch, &ElaToggleSwitch::toggled, this, [=](bool isChecked) 
+        {
+            insertToml(_globalConfig, "autoRefreshAfterTranslate", isChecked);
+        });
     autoRefreshLayout->addWidget(autoRefreshSwitch);
 
     // 默认以纯文本/表模式打开人名表
@@ -190,6 +194,13 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     {
         abstractButton->setChecked(true);
     }
+    connect(nameTableOpenModeGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), this, [=](QAbstractButton* button, bool isToggled)
+        {
+            if (isToggled)
+            {
+                insertToml(_globalConfig, "defaultNameTableOpenMode", nameTableOpenModeGroup->id(button));
+            }
+        });
 
     // 默认以纯文本/表模式打开字典
     ElaScrollPageArea* dictOpenModeArea = new ElaScrollPageArea(this);
@@ -212,6 +223,13 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     {
         abstractButton->setChecked(true);
     }
+    connect(dictOpenModeGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), this, [=](QAbstractButton* button, bool isToggled)
+        {
+            if (isToggled)
+            {
+                insertToml(_globalConfig, "defaultDictOpenMode", dictOpenModeGroup->id(button));
+            }
+        });
 
     // 允许在项目仍在运行的情况下关闭程序(危险)
     ElaScrollPageArea* allowCloseWhenRunningArea = new ElaScrollPageArea(this);
@@ -224,6 +242,26 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     allowCloseWhenRunningLayout->addWidget(allowCloseWhenRunningText);
     allowCloseWhenRunningLayout->addStretch();
     allowCloseWhenRunningLayout->addWidget(allowCloseWhenRunningSwitch);
+    connect(allowCloseWhenRunningSwitch, &ElaToggleSwitch::toggled, this, [=](bool isChecked)
+        {
+            insertToml(_globalConfig, "allowCloseWhenRunning", isChecked);
+        });
+
+    // 检测到更新后自动下载
+    ElaScrollPageArea* autoDownloadArea = new ElaScrollPageArea(this);
+    QHBoxLayout* autoDownloadLayout = new QHBoxLayout(autoDownloadArea);
+    ElaText* autoDownloadText = new ElaText("检测到更新后自动下载", autoDownloadArea);
+    autoDownloadText->setWordWrap(false);
+    autoDownloadText->setTextPixelSize(15);
+    ElaToggleSwitch* autoDownloadSwitch = new ElaToggleSwitch(autoDownloadArea);
+    autoDownloadSwitch->setIsToggled(_globalConfig["autoDownloadUpdate"].value_or(true));
+    autoDownloadLayout->addWidget(autoDownloadText);
+    autoDownloadLayout->addStretch();
+    autoDownloadLayout->addWidget(autoDownloadSwitch);
+    connect(autoDownloadSwitch, &ElaToggleSwitch::toggled, this, [=](bool isChecked)
+        {
+            insertToml(_globalConfig, "autoDownloadUpdate", isChecked);
+        });
 
     _applyFunc = [=]()
         {
@@ -239,6 +277,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
             insertToml(_globalConfig, "defaultNameTableOpenMode", nameTableOpenModeGroup->id(nameTableOpenModeGroup->checkedButton()));
             insertToml(_globalConfig, "defaultDictOpenMode", dictOpenModeGroup->id(dictOpenModeGroup->checkedButton()));
             insertToml(_globalConfig, "allowCloseWhenRunning", allowCloseWhenRunningSwitch->getIsToggled());
+            insertToml(_globalConfig, "autoDownloadUpdate", autoDownloadSwitch->getIsToggled());
         };
     
 
@@ -258,6 +297,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     centerLayout->addWidget(nameTableOpenModeArea);
     centerLayout->addWidget(dictOpenModeArea);
     centerLayout->addWidget(allowCloseWhenRunningArea);
+    centerLayout->addWidget(autoDownloadArea);
     centerLayout->addStretch();
     centerLayout->setContentsMargins(0, 0, 0, 0);
     addCentralWidget(centralWidget, true, true, 0);

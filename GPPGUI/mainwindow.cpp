@@ -101,9 +101,14 @@ MainWindow::MainWindow(QWidget* parent)
         {
             closeCallback(false);
         });
+
     connect(_updateChecker, &UpdateChecker::closeWindowSignal, this, [=]()
         {
             closeCallback(true);
+        });
+    connect(_updateChecker, &UpdateChecker::checkCompleteSignal, this, [=](bool hasNewVersion)
+        {
+            _aboutDialog->setDownloadButtonEnabled(hasNewVersion);
         });
 
     // 初始化提示
@@ -112,7 +117,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    delete this->_aboutPage;
+    delete this->_aboutDialog;
 }
 
 void MainWindow::initWindow()
@@ -176,7 +181,7 @@ void MainWindow::initEdgeLayout()
     statusBar->addWidget(statusText);
     this->setStatusBar(statusBar);
 
-    _updateChecker = new UpdateChecker(statusText, this);
+    _updateChecker = new UpdateChecker(_globalConfig, statusText, this);
 
     //停靠窗口
     ElaDockWidget* updateDockWidget = new ElaDockWidget("更新内容", this);
@@ -260,14 +265,23 @@ void MainWindow::initContent()
 
     addFooterNode("使用说明", nullptr, _transIllustrationKey, 0, ElaIconType::BookOpen);
     addFooterNode("关于", nullptr, _aboutKey, 0, ElaIconType::User);
-    _aboutPage = new AboutDialog();
-    _aboutPage->hide();
+    _aboutDialog = new AboutDialog();
+    _aboutDialog->hide();
     addFooterNode("设置", _settingPage, _settingKey, 0, ElaIconType::GearComplex);
 
-    connect(_aboutPage, &AboutDialog::checkUpdateSignal, this, [=]()
+    connect(_aboutDialog, &AboutDialog::checkUpdateSignal, this, [=]()
         {
             ElaMessageBar::information(ElaMessageBarType::TopLeft, "请稍候", "正在检查更新...", 3000);
             _updateChecker->check();
+        });
+    connect(_aboutDialog, &AboutDialog::downloadUpdateSignal, this, [=]()
+        {
+            if (_updateChecker->getIsDownloading()) {
+                ElaMessageBar::warning(ElaMessageBarType::TopLeft, "别急别急", "已经在下载更新了！", 3000);
+                return;
+            }
+            ElaMessageBar::information(ElaMessageBarType::TopLeft, "请稍候", "正在下载更新...", 3000);
+            _updateChecker->check(true);
         });
 
     connect(this, &MainWindow::navigationNodeClicked, this, [=](ElaNavigationType::NavigationNodeType nodeType, QString nodeKey) 
@@ -277,9 +291,9 @@ void MainWindow::initContent()
             }
             else if (_aboutKey == nodeKey)
             {
-                _aboutPage->setFixedSize(400, 400);
-                _aboutPage->moveToCenter();
-                _aboutPage->show();
+                _aboutDialog->setFixedSize(400, 400);
+                _aboutDialog->moveToCenter();
+                _aboutDialog->show();
             }
         });
 
