@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 
-#include <Windows.h>
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QFileDialog>

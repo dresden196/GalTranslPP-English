@@ -743,7 +743,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         if (pSentence->complete) {
             continue;
         }
-        pSentence->pre_translated_text = "(Failed to translate)" + pSentence->original_text;
+        pSentence->pre_translated_text = "(Failed to translate)" + pSentence->pre_processed_text;
         pSentence->complete = true;
         m_completedSentences++;
         m_controller->updateBar(); // 失败

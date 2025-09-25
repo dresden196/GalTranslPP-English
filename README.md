@@ -165,7 +165,7 @@ GalTransl++的缓存中可能包含如下键:
 
 <summary>
 
-### retranslKey语法示例:
+### retranslKey 语法示例:
 
 </summary>
 ```
@@ -204,7 +204,7 @@ overwriteCompareObj = [
 
 <summary>
 
-### 📘 Epub 提取与正则自定义
+### Epub 提取与正则自定义
 
 </summary>
 
@@ -286,7 +286,7 @@ callback = [ { group = 2, org = '<[^>]*>', rep = '' } ]
 
 <summary>
 
-### PDF翻译说明
+### PDF 翻译说明
 
 </summary>
 与Epub不同，GalTransl++将PDF转为NormalJson是通过调用外部脚本完成的，因为目前能较好重建PDF的只有python库。
