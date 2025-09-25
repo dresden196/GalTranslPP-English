@@ -1,6 +1,8 @@
 module;
 
+#ifdef _WIN32
 #include <Windows.h>
+#endif
 #include <spdlog/spdlog.h>
 #include <zip.h>
 #include <unicode/unistr.h>
@@ -23,6 +25,7 @@ namespace fs = std::filesystem;
 
 export {
 
+#ifdef _WIN32
     std::string wide2Ascii(const std::wstring& wide, UINT CodePage = 65001, LPBOOL usedDefaultChar = nullptr) {
         int len = WideCharToMultiByte
         (CodePage, 0, wide.c_str(), -1, nullptr, 0, nullptr, usedDefaultChar);
@@ -46,6 +49,60 @@ export {
     std::string ascii2Ascii(const std::string& ascii, UINT src, UINT dst, LPBOOL usedDefaultChar = nullptr) {
         return wide2Ascii(ascii2Wide(ascii, src), dst, usedDefaultChar);
     }
+
+    bool executeCommand(const std::string& utf8Command) {
+        std::wstring utf16Command = ascii2Wide("cmd.exe /c " + utf8Command);
+
+        STARTUPINFOW si;
+        PROCESS_INFORMATION pi;
+
+        ZeroMemory(&si, sizeof(si));
+        si.dwFlags |= STARTF_USESHOWWINDOW; // 指定 wShowWindow 成员有效
+        si.wShowWindow = SW_HIDE;          // 将窗口设置为隐藏
+        si.cb = sizeof(si);
+        ZeroMemory(&pi, sizeof(pi));
+
+        // CreateProcessW需要一个可写的命令行缓冲区
+        std::vector<wchar_t> commandLine(utf16Command.begin(), utf16Command.end());
+        commandLine.push_back(L'\0');
+
+        if (!CreateProcessW(NULL,           // lpApplicationName
+            &commandLine[0], // lpCommandLine (must be writable)
+            NULL,           // lpProcessAttributes
+            NULL,           // lpThreadAttributes
+            FALSE,          // bInheritHandles
+            0,              // dwCreationFlags
+            NULL,           // lpEnvironment
+            NULL,           // lpCurrentDirectory
+            &si,            // lpStartupInfo
+            &pi)) {         // lpProcessInformation
+            return false;
+        }
+
+        // 等待子进程结束
+        WaitForSingleObject(pi.hProcess, INFINITE);
+
+        // 清理句柄
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+
+        return true;
+    }
+
+    int getConsoleWidth() {
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (h == INVALID_HANDLE_VALUE) {
+            return 80;
+        }
+        // 获取控制台屏幕缓冲区信息
+        if (GetConsoleScreenBufferInfo(h, &csbi)) {
+            // 宽度 = 右坐标 - 左坐标 + 1
+            return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        }
+        return 80; // 获取失败，返回默认值
+    }
+#endif
 
     std::string names2String(const std::vector<std::string>& names) {
         std::string result;
@@ -117,20 +174,6 @@ export {
             parts.emplace_back(part_view.begin(), part_view.end());
         }
         return parts;
-    }
-
-    int getConsoleWidth() {
-        CONSOLE_SCREEN_BUFFER_INFO csbi;
-        HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-        if (h == INVALID_HANDLE_VALUE) {
-            return 80;
-        }
-        // 获取控制台屏幕缓冲区信息
-        if (GetConsoleScreenBufferInfo(h, &csbi)) {
-            // 宽度 = 右坐标 - 左坐标 + 1
-            return csbi.srWindow.Right - csbi.srWindow.Left + 1;
-        }
-        return 80; // 获取失败，返回默认值
     }
 
 

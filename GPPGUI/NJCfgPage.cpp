@@ -29,12 +29,12 @@ NJCfgPage::NJCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(par
 	ElaToggleSwitch* outputSwitch = new ElaToggleSwitch(outputArea);
 	outputSwitch->setIsToggled(outputWithSrc);
 	outputLayout->addWidget(outputSwitch);
-	insertToml(_projectConfig, "plugins.NormalJson.output_with_src", outputSwitch->getIsToggled());
-	connect(outputSwitch, &ElaToggleSwitch::toggled, this, [=](bool checked)
-		{
-			insertToml(_projectConfig, "plugins.NormalJson.output_with_src", checked);
-		});
 	mainLayout->addWidget(outputArea);
+
+	_applyFunc = [=]()
+		{
+			insertToml(_projectConfig, "plugins.NormalJson.output_with_src", outputSwitch->getIsToggled());
+		};
 
 	mainLayout->addStretch();
 	centerWidget->setWindowTitle("NormalJson 输出配置");

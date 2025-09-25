@@ -155,6 +155,7 @@
     <ClCompile Include="ITranslator.ixx" />
     <ClCompile Include="NJ_ImpTool.ixx" />
     <ClCompile Include="NormalJsonTranslator.ixx" />
+    <ClCompile Include="PDFTranslator.ixx" />
     <ClCompile Include="ProblemAnalyzer.ixx" />
     <ClCompile Include="TextPostFull2Half.ixx" />
     <ClCompile Include="TextLinebreakFix.ixx" />

@@ -1,7 +1,6 @@
 ﻿#include <Windows.h>
 #include <spdlog/spdlog.h>
 
-import std;
 import Tool;
 import TerminalController;
 

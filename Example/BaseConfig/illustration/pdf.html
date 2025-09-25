@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalTransl++ PDF 转换说明</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 25px 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+        }
+        p {
+            margin-top: 0;
+            margin-bottom: 1em;
+        }
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            background-color: #e9ecef;
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 6px;
+        }
+        pre {
+            background-color: #212529;
+            color: #f8f9fa;
+            padding: 1em;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            font-size: 100%;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <p>与<code>Epub</code>不同，<code>GalTransl++</code>将<code>PDF</code>转为<code>NormalJson</code>是通过调用外部脚本完成的，因为目前能较好重建PDF的只有python库。</p>
+        
+        <p>示例脚本为 <code>(Example/)BaseConfig/PDFConverter/PDFConverter.py</code></p>
+        
+        <p>显而易见地，运行此脚本需要<code>python</code>环境(推荐3.12)并安装 <code>babeldoc</code> 库：</p>
+        
+        <pre><code class="language-cmd">pip install babeldoc</code></pre>
+        
+        <p><code>Release</code>里也提供了此脚本打包后的<code>exe</code>，如果不想或者不会配置环境的可以<a href="https://github.com/julixian/GalTranslPP/releases/download/v1.0.2/PDFConverter.zip" target="_blank" rel="noopener noreferrer">点此下载</a>(不过非常大就是了)。</p>
+    </div>
+
+</body>
+</html>

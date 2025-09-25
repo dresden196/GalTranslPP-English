@@ -1,14 +1,15 @@
 module;
 
 #include <spdlog/spdlog.h>
+#include <toml++/toml.hpp>
 #include <spdlog/sinks/basic_file_sink.h>
 
 module ITranslator;
 
-import <toml++/toml.hpp>;
 import Tool;
 import NormalJsonTranslator;
 import EpubTranslator;
+import PDFTranslator;
 
 namespace fs = std::filesystem;
 
@@ -125,6 +126,10 @@ std::unique_ptr<ITranslator> createTranslator(const fs::path& projectDir, std::s
     }
     else if (filePlugin == "Epub") {
         std::unique_ptr<ITranslator> translator = std::make_unique<EpubTranslator>(projectDir, controller, logger);
+        return translator;
+    }
+    else if (filePlugin == "PDF") {
+        std::unique_ptr<ITranslator> translator = std::make_unique<PDFTranslator>(projectDir, controller, logger);
         return translator;
     }
 

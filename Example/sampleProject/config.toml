@@ -9,7 +9,7 @@ apiTimeout = 120 # 请求超时时间，单位秒
   stream = false
 
 [plugins]
-filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, i18n(尚未实现)...
+filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, i18n(尚未实现)...
 
 transEngine = "ForGalJson"
 # ForGalJson: 向AI输入json格式的对话并要求AI以json格式回复，使用 FORGALJSON_SYSTEM 和 FORGALJSON_TRANS_PROMPT_EN 作为提示词
@@ -47,6 +47,9 @@ textPostPlugins = [
     [[plugins.Epub.'后处理正则']]
     org = '\[([^/\[\]]+?)/([^/\[\]]+?)\]'
     rep = '<ruby><rb>$2</rb><rt>$1</rt></ruby>'
+
+  [plugins.PDF]
+  PDFConverterPath = "BaseConfig/PDFConverter/PDFConverter.exe"
 
   [plugins.TextLinebreakFix]
   "换行模式" = "优先标点"

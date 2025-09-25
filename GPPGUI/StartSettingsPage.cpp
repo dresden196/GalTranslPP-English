@@ -21,6 +21,7 @@
 
 #include "NJCfgPage.h"
 #include "EpubCfgPage.h"
+#include "PDFCfgPage.h"
 
 import Tool;
 
@@ -46,6 +47,7 @@ void StartSettingsPage::apply2Config()
 {
 	_njCfgPage->apply2Config();
 	_epubCfgPage->apply2Config();
+	_pdfCfgPage->apply2Config();
 	if (_applyFunc) {
 		_applyFunc();
 	}
@@ -84,6 +86,7 @@ void StartSettingsPage::_setupUI()
 	_fileFormatComboBox = new NoWheelComboBox(buttonArea);
 	_fileFormatComboBox->addItem("NormalJson");
 	_fileFormatComboBox->addItem("Epub");
+	_fileFormatComboBox->addItem("PDF");
 	if (!filePluginStr.isEmpty()) {
 		int index = _fileFormatComboBox->findText(filePluginStr);
 		if (index >= 0) {
@@ -118,9 +121,9 @@ void StartSettingsPage::_setupUI()
 	usedTimeLabelText->setTextPixelSize(14);
 	usedTimeLabelText->setText("已用时间:");
 	buttonLayout->addWidget(usedTimeLabelText);
-	ElaLCDNumber* usedTimeLabel = new ElaLCDNumber(buttonArea);
-	usedTimeLabel->display("00:00:00");
-	buttonLayout->addWidget(usedTimeLabel);
+	_usedTimeLabel = new ElaLCDNumber(buttonArea);
+	_usedTimeLabel->display("00:00:00");
+	buttonLayout->addWidget(_usedTimeLabel);
 
 	// 剩余时间
 	ElaText* remainTimeLabelText = new ElaText(buttonArea);
@@ -208,7 +211,7 @@ void StartSettingsPage::_setupUI()
 			_threadNumRing->setValue(0);
 			_progressBar->setFormat("%v/%m lines [%p%]");
 			_startTime = std::chrono::high_resolution_clock::now();
-			usedTimeLabel->display("00:00:00");
+			_usedTimeLabel->display("00:00:00");
 			_remainTimeLabel->display("--:--");
 			_estimator.reset();
 			
@@ -313,7 +316,7 @@ void StartSettingsPage::_setupUI()
 			_progressBar->setValue(_progressBar->value() + ticks);
 			std::chrono::seconds elapsedSeconds = std::chrono::duration_cast<std::chrono::seconds>
 				(std::chrono::high_resolution_clock::now() - _startTime);
-			usedTimeLabel->display(QString::fromStdString(
+			_usedTimeLabel->display(QString::fromStdString(
 				std::format("{:%T}", elapsedSeconds)
 			));
 			if (ticks <= 0) {
@@ -348,6 +351,8 @@ void StartSettingsPage::_setupUI()
 	addCentralWidget(_njCfgPage, true, true, 0);
 	_epubCfgPage = new EpubCfgPage(_projectConfig, this);
 	addCentralWidget(_epubCfgPage, true, true, 0);
+	_pdfCfgPage = new PDFCfgPage(_projectConfig, this);
+	addCentralWidget(_pdfCfgPage, true, true, 0);
 }
 
 void StartSettingsPage::_onOutputSettingClicked()
@@ -359,6 +364,9 @@ void StartSettingsPage::_onOutputSettingClicked()
 	else if (fileFormat == "Epub") {
 		this->navigation(2);
 	}
+	else if (fileFormat == "PDF") {
+		this->navigation(3);
+	}
 }
 
 
@@ -368,9 +376,10 @@ void StartSettingsPage::_onStartTranslatingClicked()
 {
 	Q_EMIT startTranslating();
 
+	_startTime = std::chrono::high_resolution_clock::now();
+	_usedTimeLabel->display("00:00:00");
 	_startTranslateButton->setEnabled(false);
 	_progressBar->setValue(0);
-	insertToml(_projectConfig, "GUIConfig.inRunning", true);
 
 	Q_EMIT startWork();
 	_transEngine = QString::fromStdString(_projectConfig["plugins"]["transEngine"].value_or(std::string{}));
@@ -388,7 +397,6 @@ void StartSettingsPage::_workFinished(int exitCode)
 {
 	_threadNumRing->setValue(0);
 	_remainTimeLabel->display("00:00:00");
-	insertToml(_projectConfig, "GUIConfig.inRunning", false);
 
 	// 创建一个托盘图标对象
 	static QSystemTrayIcon* trayIcon = new QSystemTrayIcon(this);

@@ -132,7 +132,7 @@ EpubTranslator::EpubTranslator(const fs::path& projectDir, std::shared_ptr<ICont
         auto projectConfig = toml::parse(ifs);
         ifs.close();
 
-        ifs.open(pluginConfigsPath / "filePlugins/Epub.toml");
+        ifs.open(pluginConfigsPath / L"filePlugins/Epub.toml");
         auto pluginConfig = toml::parse(ifs);
         ifs.close();
 

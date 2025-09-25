@@ -134,6 +134,7 @@
     <ClCompile Include="NormalDictModel.cpp" />
     <ClCompile Include="OtherSettingsPage.cpp" />
     <ClCompile Include="PASettingsPage.cpp" />
+    <ClCompile Include="PDFCfgPage.cpp" />
     <ClCompile Include="PluginItemWidget.cpp" />
     <ClCompile Include="PluginSettingsPage.cpp" />
     <ClCompile Include="PromptSettingsPage.cpp" />
@@ -247,7 +248,9 @@
     <QtMoc Include="CommonNormalDictPage.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ExponentialMovingAverageEstimator.hpp" />
     <ClInclude Include="NoWheelComboBox.h" />
+    <QtMoc Include="PDFCfgPage.h" />
     <QtMoc Include="CommonGptDictPage.h" />
     <QtMoc Include="DictExSettingsPage.h" />
     <ClInclude Include="NormalTabEntry.h" />

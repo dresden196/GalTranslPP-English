@@ -19,6 +19,12 @@ namespace fs = std::filesystem;
 
 int main(int argc, char* argv[])
 {
+
+#ifdef Q_OS_WIN
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+#endif
+
     try {
 
         if (fs::exists(L"Updater_new.exe")) {
