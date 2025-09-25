@@ -162,9 +162,12 @@ GalTransl++的缓存中可能包含如下键:
 ## 其它翻译说明
 
 <details>
-  <summary>
+
+<summary>
+
 ### retranslKey语法示例:
-  </summary>
+
+</summary>
 ```
 retranslKeys = [
   "翻译失败",
@@ -198,9 +201,12 @@ overwriteCompareObj = [
 </details>
 
 <details>
-  <summary>
+
+<summary>
+
 ### 📘 Epub 提取与正则自定义
-  </summary>
+
+</summary>
 
 鉴于Epub的多样性以及GalTransl++以项目为本的理念，GalTransl++的Epub提取并不像其它翻译器一样有固定的解析/拼装模式。
 
@@ -277,9 +283,12 @@ callback = [ { group = 2, org = '<[^>]*>', rep = '' } ]
 </details>
 
 <details>
-  <summary>
+
+<summary>
+
 ### PDF翻译说明
-  </summary>
+
+</summary>
 与Epub不同，GalTransl++将PDF转为NormalJson是通过调用外部脚本完成的，因为目前能较好重建PDF的只有python库。
 
 此脚本需要能通过CLI参数对指定pdf执行提取/回注操作，具体参数详见[PDFTranslator](GalTranslPP/PDFTranslator.ixx)
