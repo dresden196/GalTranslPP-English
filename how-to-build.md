@@ -100,10 +100,31 @@ cd GalTranslPP
 - 1、  将`BaseConfig`文件夹复制到`GalTranslPP\Release\GPPGUI`
 - 2、  在`GalTranslPP\Release\GPPGUI`新建`Projects`文件夹并将`sampleProject`文件夹整体复制进去
 - 3、  打开 Qt专属控制台，如 Qt 6.9.2(MSVC 2022 64-bit)，输入命令 
+
 ```cmd
 windeployqt path/to/GalTranslPP_GUI.exe
 ```
-- 4、去ElaWidgetTools复制
+
+- 4、复制ElaWidgetTools.dll
   - `3rdParty\ElaWidgetTools\out\build\Release\ElaWidgetTools\ElaWidgetTools.dll`
+
+### 6.3 私人部署（非必需）
+
+若你想将GPPCLI和GPPGUI移动到其它位置运行如`D:\GALGAME\GALGAMETOOLS\AIGC\GPPCLI`  
+和`D:\GALGAME\GALGAMETOOLS\AIGC\GPPGUI`则请在GalTranslPP\Release执行以下cmd命令创建软链接
+
+#### GPPCLI
+
+```cmd
+mklink .\GPPCLI_PRIVATE "D:\GALGAME\GALGAMETOOLS\AIGC\GPPCLI"
+```
+
+#### GPPGUI
+
+```cmd
+mklink .\GPPGUI_PRIVATE "D:\GALGAME\GALGAMETOOLS\AIGC\GPPGUI"
+```
+
+这样每次编译都会将最核心的文件`GalTranslPP_CLI.exe`、`GalTranslPP_GUI.exe`和`Updater_new.exe`复制到相应目录。  
 
 至此所有步骤均已完成。

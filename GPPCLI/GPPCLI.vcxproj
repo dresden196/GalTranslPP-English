@@ -135,7 +135,7 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "D:\GALGAME\GALGAMETOOLS\AIGC\GPPCLI\$(TargetName)$(TargetExt)"</Command>
+      <Command>if exist "$(TargetDir)..\GPPCLI_PRIVATE" copy "$(TargetPath)" "$(TargetDir)..\GPPCLI_PRIVATE\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
