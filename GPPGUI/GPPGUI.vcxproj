@@ -80,7 +80,8 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "D:\GALGAME\GALGAMETOOLS\AIGC\GPPGUI\$(TargetName)$(TargetExt)"
+      <Command>if not exist "$(TargetDir)..\GUICORE" mkdir "$(TargetDir)..\GUICORE"
+if exist "$(TargetDir)..\GPPGUI_PRIVATE" copy "$(TargetPath)" "$(TargetDir)..\GPPGUI_PRIVATE\$(TargetName)$(TargetExt)"
 copy "$(TargetPath)" "$(TargetDir)..\GUICORE\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
