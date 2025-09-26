@@ -16,9 +16,7 @@ UpdateWidget::UpdateWidget(QWidget* parent)
 
     ElaText* updateTitle = new ElaText("v" + QString::fromStdString(GPPVERSION) + " 更新", 15, this);
     QStringList updateList = {
-        "1. 为更新检查和更新下载增加超时处理",
-        "2. 增加了 PDF 处理(需下载PDF转换器，详见说明)",
-        "3. 添加检测到更新后自动下载选项",
+        "1. 换行修复优先标点设置增加仅标点选项",
     };
 
     mainLayout->addWidget(updateTitle);

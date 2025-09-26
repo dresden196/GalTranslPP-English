@@ -8,6 +8,7 @@
 #include "ElaComboBox.h"
 #include "ElaToggleSwitch.h"
 #include "ElaText.h"
+#include "ElaToolTip.h"
 
 import Tool;
 
@@ -41,11 +42,27 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	}
 	fixModeLayout->addWidget(fixModeComboBox);
 
+	// 仅在标点后添加
+	bool onlyAddAfterPunct = _projectConfig.at_path("plugins.TextLinebreakFix.仅在标点后添加").value_or(true);
+	ElaScrollPageArea* onlyAddAfterPunctArea = new ElaScrollPageArea(centerWidget);
+	QHBoxLayout* onlyAddAfterPunctLayout = new QHBoxLayout(onlyAddAfterPunctArea);
+	ElaText* onlyAddAfterPunctText = new ElaText("仅在标点后添加", onlyAddAfterPunctArea);
+	ElaToolTip* onlyAddAfterPunctTip = new ElaToolTip(onlyAddAfterPunctArea);
+	onlyAddAfterPunctTip->setToolTip("仅在优先标点模式有效");
+	onlyAddAfterPunctText->setTextPixelSize(16);
+	onlyAddAfterPunctLayout->addWidget(onlyAddAfterPunctText);
+	onlyAddAfterPunctLayout->addStretch();
+	ElaToggleSwitch* onlyAddAfterPunctToggleSwitch = new ElaToggleSwitch(onlyAddAfterPunctArea);
+	onlyAddAfterPunctToggleSwitch->setIsToggled(onlyAddAfterPunct);
+	onlyAddAfterPunctLayout->addWidget(onlyAddAfterPunctToggleSwitch);
+
 	// 分段字数阈值
 	int threshold = _projectConfig["plugins"]["TextLinebreakFix"]["分段字数阈值"].value_or(21);
 	ElaScrollPageArea* segmentThresholdArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* segmentThresholdLayout = new QHBoxLayout(segmentThresholdArea);
 	ElaText* segmentThresholdText = new ElaText("分段字数阈值", segmentThresholdArea);
+	ElaToolTip* segmentThresholdTip = new ElaToolTip(segmentThresholdArea);
+	segmentThresholdTip->setToolTip("仅在固定字数模式有效");
 	segmentThresholdText->setTextPixelSize(16);
 	segmentThresholdLayout->addWidget(segmentThresholdText);
 	segmentThresholdLayout->addStretch();
@@ -69,6 +86,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	_applyFunc = [=]()
 		{
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.换行模式", fixModeComboBox->currentText().toStdString());
+			insertToml(_projectConfig, "plugins.TextLinebreakFix.仅在标点后添加", onlyAddAfterPunctToggleSwitch->getIsToggled());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.分段字数阈值", segmentThresholdSpinBox->value());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.强制修复", forceFixToggleSwitch->getIsToggled());
 		};

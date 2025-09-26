@@ -53,6 +53,7 @@ textPostPlugins = [
 
   [plugins.TextLinebreakFix]
   "换行模式" = "优先标点"
+  "仅在标点后添加" = true # 仅在优先标点模式有效
 
   [plugins.TextPostFull2Half]
   "是否反向替换" = false  # false=全角->半角，true=半角->全角

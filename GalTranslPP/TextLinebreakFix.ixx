@@ -18,6 +18,7 @@ export {
 		std::string m_mode;
 		int m_segmentThreshold;
 		bool m_forceFix;
+		bool m_onlyAddAfterPunct;
 
 	public:
 
@@ -48,6 +49,7 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, std::shared_ptr<s
 		m_mode = parseToml<std::string>(projectConfig, pluginConfig, "plugins.TextLinebreakFix.换行模式");
 		m_segmentThreshold = parseToml<int>(projectConfig, pluginConfig, "plugins.TextLinebreakFix.分段字数阈值");
 		m_forceFix = parseToml<bool>(projectConfig, pluginConfig, "plugins.TextLinebreakFix.强制修复");
+		m_onlyAddAfterPunct = parseToml<bool>(projectConfig, pluginConfig, "plugins.TextLinebreakFix.仅在标点后添加");
 
 		if (m_segmentThreshold <= 0) {
 			throw std::runtime_error("分段字数阈值必须大于0");
@@ -190,23 +192,25 @@ void TextLinebreakFix::run(Sentence* se)
 			for (auto& pos : punctPositions) {
 				positionsToAddLinebreak.push_back(pos.second);
 			}
-			for (size_t pos : positionsToAddLinebreak) {
-				auto nearestIterator = std::min_element(linebreakPositions.begin(), linebreakPositions.end(), [&](size_t a, size_t b)
-					{
-						return calculateAbs(a, pos) < calculateAbs(b, pos);
-					});
-				linebreakPositions.erase(nearestIterator);
-			}
-			for (size_t pos : linebreakPositions) {
-				size_t currentPos = 0;
-				for (size_t i = 0; i < graphemes.size(); i++) {
-					currentPos += graphemes[i].length();
-					if (currentPos >= pos) {
-						break;
-					}
+			if (!m_onlyAddAfterPunct) {
+				for (size_t pos : positionsToAddLinebreak) {
+					auto nearestIterator = std::min_element(linebreakPositions.begin(), linebreakPositions.end(), [&](size_t a, size_t b)
+						{
+							return calculateAbs(a, pos) < calculateAbs(b, pos);
+						});
+					linebreakPositions.erase(nearestIterator);
 				}
-				if (currentPos < textToModify.length() && std::find(positionsToAddLinebreak.begin(), positionsToAddLinebreak.end(), currentPos) == positionsToAddLinebreak.end()) {
-					positionsToAddLinebreak.push_back(currentPos);
+				for (size_t pos : linebreakPositions) {
+					size_t currentPos = 0;
+					for (size_t i = 0; i < graphemes.size(); i++) {
+						currentPos += graphemes[i].length();
+						if (currentPos >= pos) {
+							break;
+						}
+					}
+					if (currentPos < textToModify.length() && std::find(positionsToAddLinebreak.begin(), positionsToAddLinebreak.end(), currentPos) == positionsToAddLinebreak.end()) {
+						positionsToAddLinebreak.push_back(currentPos);
+					}
 				}
 			}
 		}
