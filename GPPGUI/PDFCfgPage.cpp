@@ -52,7 +52,7 @@ PDFCfgPage::PDFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	connect(converterButton, &ElaPushButton::clicked, this, [=]()
 		{
 			// 打开文件选择对话框
-			QString filePath = QFileDialog::getOpenFileName(this, "选择PDF转换器", "BaseConfig/PDFConverter", "可执行文件或脚本 (*.exe *.bat *.sh *.py)");
+			QString filePath = QFileDialog::getOpenFileName(this, "选择PDF转换器", "BaseConfig/PDFConverter", "executable files (*.exe *.bat *.sh *.py);; All files (*.*)");
 			if (!filePath.isEmpty()) {
 				converterEdit->setText(filePath);
 			}

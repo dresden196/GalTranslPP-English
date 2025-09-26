@@ -25,8 +25,8 @@ public:
 
 private:
 
-    QList<DictionaryEntry> readGptDicts();
-    QString readGptDictsStr();
+    QList<DictionaryEntry> readGptDicts(std::optional<fs::path> dictPathOpt = std::nullopt);
+    QString readGptDictsStr(std::optional<fs::path> dictPathOpt = std::nullopt);
     QList<NormalDictEntry> readNormalDicts(const fs::path& dictPath);
     QString readNormalDictsStr(const fs::path& dictPath);
 

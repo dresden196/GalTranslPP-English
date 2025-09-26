@@ -21,7 +21,6 @@ export import ITranslator;
 
 using json = nlohmann::json;
 using ordered_json = nlohmann::ordered_json;
-using nameType = std::variant<std::string, std::vector<std::string>>;
 namespace fs = std::filesystem;
 
 export {

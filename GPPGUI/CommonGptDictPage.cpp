@@ -2,8 +2,9 @@
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QDebug>
 #include <QHeaderView>
+#include <QFileDialog>
+#include <nlohmann/json.hpp>
 
 #include "ElaText.h"
 #include "ElaLineEdit.h"
@@ -21,6 +22,7 @@
 
 import Tool;
 namespace fs = std::filesystem;
+using json = nlohmann::json;
 
 CommonGptDictPage::CommonGptDictPage(toml::table& globalConfig, QWidget* parent) :
 	BasePage(parent), _globalConfig(globalConfig), _mainWindow(parent)
@@ -41,33 +43,91 @@ QList<DictionaryEntry> CommonGptDictPage::readGptDicts(const fs::path& dictPath)
 {
 	QList<DictionaryEntry> result;
 	std::ifstream ifs(dictPath);
-	toml::table tbl;
-	try {
-		tbl = toml::parse(ifs);
-	}
-	catch (...) {
-		ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-			QString(dictPath.filename().wstring()) + " 不符合规范", 3000);
-		return result;
-	}
-	ifs.close();
-	auto dictArr = tbl["gptDict"].as_array();
-	if (!dictArr) {
-		return result;
-	}
-	for (const auto& elem : *dictArr) {
-		auto dict = elem.as_table();
-		if (!dict) {
-			continue;
+
+	if (isSameExtension(dictPath, L".toml")) {
+		toml::table tbl;
+		try {
+			tbl = toml::parse(ifs);
 		}
-		DictionaryEntry entry;
-		entry.original = dict->contains("org") ? (*dict)["org"].value_or("") :
-			(*dict)["searchStr"].value_or("");
-		entry.translation = dict->contains("rep") ? (*dict)["rep"].value_or("") :
-			(*dict)["replaceStr"].value_or("");
-		entry.description = dict->contains("note") ? (*dict)["note"].value_or("") : QString{};
-		result.push_back(entry);
+		catch (...) {
+			ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
+				QString(dictPath.filename().wstring()) + " 不符合 toml 规范", 3000);
+			return result;
+		}
+		ifs.close();
+		auto dictArr = tbl["gptDict"].as_array();
+		if (!dictArr) {
+			return result;
+		}
+		for (const auto& elem : *dictArr) {
+			auto dict = elem.as_table();
+			if (!dict) {
+				continue;
+			}
+			DictionaryEntry entry;
+			entry.original = dict->contains("org") ? (*dict)["org"].value_or("") :
+				(*dict)["searchStr"].value_or("");
+			entry.translation = dict->contains("rep") ? (*dict)["rep"].value_or("") :
+				(*dict)["replaceStr"].value_or("");
+			entry.description = dict->contains("note") ? (*dict)["note"].value_or("") : QString{};
+			result.push_back(entry);
+		}
+		return result;
 	}
+	else if (isSameExtension(dictPath, L".json")) {
+		try {
+			json j = json::parse(ifs);
+			ifs.close();
+			if (!j.is_array()) {
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
+					QString(dictPath.filename().wstring()) + " 不是预期的 json 格式", 3000);
+				return result;
+			}
+			for (const auto& elem : j) {
+				if (!elem.is_object()) {
+					continue;
+				}
+				DictionaryEntry entry;
+				entry.original = QString::fromStdString(elem.value("src", ""));
+				entry.translation = QString::fromStdString(elem.value("dst", ""));
+				entry.description = QString::fromStdString(elem.value("info", ""));
+				result.push_back(entry);
+			}
+			return result;
+		}
+		catch (...) {
+			ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
+				QString(dictPath.filename().wstring()) + " 不符合 json 规范", 3000);
+			return result;
+		}
+	}
+	else if (isSameExtension(dictPath, L".txt") || isSameExtension(dictPath, L".tsv")) {
+		std::string line;
+		while (std::getline(ifs, line)) {
+			if (line.starts_with("//")) {
+				continue;
+			}
+			std::vector<std::string> tokens = splitTsvLine(line, { "\t", "    " }); // GalTransl支持4空格分割
+			if (tokens.size() < 2) {
+				continue;
+			}
+			DictionaryEntry entry;
+			entry.original = QString::fromStdString(tokens[0]);
+			entry.translation = QString::fromStdString(tokens[1]);
+			if (tokens.size() > 2) {
+				entry.description = QString::fromStdString(tokens[2]);
+			}
+			result.push_back(entry);
+		}
+		ifs.close();
+		return result;
+	}
+	else {
+		ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
+			QString(dictPath.filename().wstring()) + " 不是支持的格式", 3000);
+		return result;
+	}
+	
 	return result;
 }
 
@@ -82,8 +142,6 @@ QString CommonGptDictPage::readGptDictsStr(const fs::path& dictPath)
 				tbl = toml::parse(ifs);
 			}
 			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-					QString(dictPath.filename().wstring()) + " 不符合规范", 3000);
 				return false;
 			}
 			ifs.close();
@@ -108,8 +166,7 @@ QString CommonGptDictPage::readGptDictsStr(const fs::path& dictPath)
 			return true;
 		};
 
-	bool gptOk = readDict();
-	if (gptOk) {
+	if (readDict()) {
 		result += "]\n";
 	}
 	else {
@@ -129,6 +186,8 @@ void CommonGptDictPage::_setupUI()
 	QHBoxLayout* mainButtonLayout = new QHBoxLayout(mainButtonWidget);
 	ElaText* dictNameLabel = new ElaText("通用GPT字典", mainButtonWidget);
 	dictNameLabel->setTextPixelSize(18);
+	ElaPushButton* importButton = new ElaPushButton(mainButtonWidget);
+	importButton->setText("导入字典页");
 	ElaPushButton* addNewTabButton = new ElaPushButton(mainButtonWidget);
 	addNewTabButton->setText("添加新字典页");
 	ElaPushButton* removeTabButton = new ElaPushButton(mainButtonWidget);
@@ -136,6 +195,7 @@ void CommonGptDictPage::_setupUI()
 	mainButtonLayout->addSpacing(10);
 	mainButtonLayout->addWidget(dictNameLabel);
 	mainButtonLayout->addStretch();
+	mainButtonLayout->addWidget(importButton);
 	mainButtonLayout->addWidget(addNewTabButton);
 	mainButtonLayout->addWidget(removeTabButton);
 	mainLayout->addWidget(mainButtonWidget, 0, Qt::AlignTop);
@@ -144,9 +204,10 @@ void CommonGptDictPage::_setupUI()
 	tabWidget->setTabsClosable(false);
 	tabWidget->setIsTabTransparent(true);
 
-	auto createGptTab = [=](const fs::path& dictPath) -> QWidget*
+	auto createGptTab = [=](const fs::path& orgDictPath) -> QWidget*
 		{
-			std::string dictName = wide2Ascii(dictPath.stem().wstring());
+			fs::path dictPath = L"BaseConfig/Dict/gpt" / fs::path(orgDictPath.filename()).replace_extension(".toml");
+			std::string dictName = wide2Ascii(orgDictPath.stem().wstring());
 			GptTabEntry gptTabEntry;
 
 			QWidget* pageMainWidget = new QWidget(tabWidget);
@@ -203,7 +264,7 @@ void CommonGptDictPage::_setupUI()
 			QFont plainTextFont = plainTextEdit->font();
 			plainTextFont.setPixelSize(15);
 			plainTextEdit->setFont(plainTextFont);
-			plainTextEdit->setPlainText(readGptDictsStr(dictPath));
+			plainTextEdit->setPlainText(readGptDictsStr(orgDictPath));
 			stackedWidget->addWidget(plainTextEdit);
 			ElaTableView* tableView = new ElaTableView(stackedWidget);
 			QFont tableHeaderFont = tableView->horizontalHeader()->font();
@@ -213,7 +274,7 @@ void CommonGptDictPage::_setupUI()
 			tableView->setAlternatingRowColors(true);
 			tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 			DictionaryModel* model = new DictionaryModel(tableView);
-			QList<DictionaryEntry> gptData = readGptDicts(dictPath);
+			QList<DictionaryEntry> gptData = readGptDicts(orgDictPath);
 			model->loadData(gptData);
 			tableView->setModel(model);
 			stackedWidget->addWidget(tableView);
@@ -257,7 +318,8 @@ void CommonGptDictPage::_setupUI()
 				});
 
 			connect(saveAllButton, &ElaPushButton::clicked, this, &CommonGptDictPage::apply2Config);
-			connect(saveButton, &ElaPushButton::clicked, this, [=]()
+
+			auto saveFunc = [=](bool forceSaveInTableModeToInit)
 				{
 					std::ofstream ofs(dictPath);
 					if (!ofs.is_open()) {
@@ -266,13 +328,13 @@ void CommonGptDictPage::_setupUI()
 						return;
 					}
 
-					if (stackedWidget->currentIndex() == 0) {
+					if (stackedWidget->currentIndex() == 0 && !forceSaveInTableModeToInit) {
 						ofs << plainTextEdit->toPlainText().toStdString();
 						ofs.close();
 						QList<DictionaryEntry> newDictEntries = readGptDicts(dictPath);
 						model->loadData(newDictEntries);
 					}
-					else if (stackedWidget->currentIndex() == 1) {
+					else if (stackedWidget->currentIndex() == 1 || forceSaveInTableModeToInit) {
 						QList<DictionaryEntry> dictEntries = model->getEntries();
 						toml::array dictArr;
 						for (const auto& entry : dictEntries) {
@@ -300,9 +362,15 @@ void CommonGptDictPage::_setupUI()
 							newDictNames->push_back(dictName);
 						}
 					}
-					Q_EMIT commonDictsChanged();
-					ElaMessageBar::success(ElaMessageBarType::TopLeft, "保存成功", "字典 " +
-						QString::fromStdString(dictName) + " 已保存", 3000);
+					if (!forceSaveInTableModeToInit) {
+						Q_EMIT commonDictsChanged();
+						ElaMessageBar::success(ElaMessageBarType::TopLeft, "保存成功", "字典 " +
+							QString::fromStdString(dictName) + " 已保存", 3000);
+					}
+				};
+			connect(saveButton, &ElaPushButton::clicked, this, [=]()
+				{
+					saveFunc(false);
 				});
 
 			connect(addDictButton, &ElaPushButton::clicked, this, [=]()
@@ -363,6 +431,9 @@ void CommonGptDictPage::_setupUI()
 			gptTabEntry.dictPath = dictPath;
 			_gptTabEntries.push_back(gptTabEntry);
 
+			if (!fs::exists(dictPath)) {
+				saveFunc(true);
+			}
 			return pageMainWidget;
 		};
 
@@ -412,6 +483,33 @@ void CommonGptDictPage::_setupUI()
 		});
 	
 
+	connect(importButton, &ElaPushButton::clicked, this, [=]()
+		{
+			QString dictPathStr = QFileDialog::getOpenFileName(this, "选择字典文件", "./",
+				"TOML files (*.toml);;JSON files (*.json);;TSV files (*.tsv *.txt)");
+			if (dictPathStr.isEmpty()) {
+				return;
+			}
+			fs::path dictPath = dictPathStr.toStdWString();
+			fs::path newDictPath = L"BaseConfig/Dict/gpt" / fs::path(dictPath.filename()).replace_extension(".toml");
+			if (fs::exists(newDictPath) && !fs::equivalent(dictPath, newDictPath)) {
+				fs::remove(newDictPath);
+			}
+			bool hasSameNameTab = std::ranges::any_of(_gptTabEntries, [=](const GptTabEntry& entry)
+				{
+					return entry.dictPath.stem().wstring() == dictPath.stem().wstring();
+				});
+			if (hasSameNameTab) {
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, "导入失败", "字典 " +
+					QString(dictPath.stem().wstring()) + " 已存在", 3000);
+				return;
+			}
+			QWidget* pageMainWidget = createGptTab(dictPath);
+			tabWidget->addTab(pageMainWidget, QString(dictPath.stem().wstring()));
+			tabWidget->setCurrentIndex(tabWidget->count() - 1);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, "创建成功", "字典页 " + QString(dictPath.stem().wstring()) + " 已创建", 3000);
+		});
+
 	connect(addNewTabButton, &ElaPushButton::clicked, this, [=]()
 		{
 			QString dictName;
@@ -429,16 +527,20 @@ void CommonGptDictPage::_setupUI()
 			}
 
 			fs::path newDictPath = L"BaseConfig/Dict/gpt/" + dictName.toStdWString() + L".toml";
-			if (fs::exists(newDictPath) || dictName == "项目GPT字典") {
+			bool hasSameNameTab = std::ranges::any_of(_gptTabEntries, [=](const GptTabEntry& entry)
+				{
+					return entry.dictPath.stem().wstring() == dictName.toStdWString();
+				});
+			if (hasSameNameTab || dictName == "项目GPT字典") {
 				ElaMessageBar::error(ElaMessageBarType::TopLeft, "新建失败", "字典 " +
-					QString(newDictPath.filename().wstring()) + " 已存在", 3000);
+					QString(newDictPath.stem().wstring()) + " 已存在", 3000);
 				return;
 			}
 
 			std::ofstream ofs(newDictPath);
 			if (!ofs.is_open()) {
 				ElaMessageBar::error(ElaMessageBarType::TopLeft, "新建失败", "无法创建 " +
-					QString(newDictPath.wstring()) + " 字典", 3000);
+					QString(newDictPath.wstring()) + " 文件", 3000);
 				return;
 			}
 			ofs.close();
@@ -446,6 +548,7 @@ void CommonGptDictPage::_setupUI()
 			QWidget* pageMainWidget = createGptTab(newDictPath);
 			tabWidget->addTab(pageMainWidget, dictName);
 			tabWidget->setCurrentIndex(tabWidget->count() - 1);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, "创建成功", "字典页 " + QString(newDictPath.stem().wstring()) + " 已创建", 3000);
 		});
 
 	connect(removeTabButton, &ElaPushButton::clicked, this, [=]()

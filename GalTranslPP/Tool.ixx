@@ -176,6 +176,42 @@ export {
         return parts;
     }
 
+    std::vector<std::string> splitTsvLine(const std::string& line, const std::vector<std::string>& delimiters) {
+        std::vector<std::string> parts;
+        size_t currentPos = 0;
+
+        if (
+            std::ranges::any_of(delimiters, [](const std::string& delimiter)
+                {
+                    return delimiter.empty();
+                })
+            )
+        {
+            throw std::runtime_error("Empty delimiter is not allowed in TSV line splitting");
+        }
+
+        while (currentPos < line.length()) {
+            size_t splitPos = std::string::npos;
+            size_t delimiterLength = 0;
+            for (const auto& delimiter : delimiters) {
+                size_t pos = line.find(delimiter, currentPos);
+                if (pos != std::string::npos && pos < splitPos) {
+                    splitPos = pos;
+                    delimiterLength = delimiter.length();
+                }
+            }
+            std::string part = line.substr(currentPos, splitPos - currentPos);
+            parts.push_back(part);
+
+            if (splitPos == std::string::npos) {
+                break;
+            }
+            currentPos = splitPos + delimiterLength;
+        }
+
+        return parts;
+    }
+
 
     const std::string& chooseStringRef(const Sentence* sentence, CachePart tar) {
         switch (tar) {
