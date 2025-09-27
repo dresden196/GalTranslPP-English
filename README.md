@@ -309,7 +309,7 @@ Release里也提供了此脚本打包后的exe，如果不想或者不会配置�
 
 <summary>
 
-自定义主页Popular卡片
+### 自定义主页Popular卡片
 
 </summary>
 具体示例详见 (Example/)BaseConfig/globalConfig.toml 中的 [[popularCards]] 数组。
@@ -337,7 +337,7 @@ call ./要运行文件的文件名
 
 <summary>
 
-可在新窗口打开的标签页
+### 可在新窗口打开的标签页
 
 </summary>
 
