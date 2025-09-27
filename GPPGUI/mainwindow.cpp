@@ -218,7 +218,7 @@ void MainWindow::initEdgeLayout()
 
 void MainWindow::initContent()
 {
-    _homePage = new HomePage(this);
+    _homePage = new HomePage(_globalConfig, this);
     _defaultPromptPage = new DefaultPromptPage(this);
 
     _commonPreDictPage = new CommonNormalDictPage("pre", _globalConfig, this);
@@ -299,7 +299,7 @@ void MainWindow::initContent()
 
     /*connect(this, &MainWindow::navigationNodeClicked, this, [=](ElaNavigationType::NavigationNodeType nodeType, QString nodeKey)
         {
-            auto it = std::find_if(_projectPages.begin(), _projectPages.end(), [&](auto& page)
+            auto it = std::ranges::find_if(_projectPages, [&](auto& page)
                 {
                     return page->property("ElaPageKey").toString() == nodeKey;
                 });

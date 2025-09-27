@@ -168,6 +168,7 @@ GalTransl++的缓存中可能包含如下键:
 ### retranslKey 语法示例:
 
 </summary>
+
 ```
 retranslKeys = [
   "翻译失败",

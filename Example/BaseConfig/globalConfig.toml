@@ -1,4 +1,5 @@
 allowCloseWhenRunning = false
+autoDownloadUpdate = true
 autoRefreshAfterTranslate = true
 defaultDictOpenMode = 0
 defaultNameTableOpenMode = 0
@@ -6,9 +7,9 @@ navigationMode = 0
 projects = []
 themeMode = 0
 windowDisplayMode = 1
-windowHeight = 718
-windowPosX = 48
-windowPosY = 12
+windowHeight = 699
+windowPosX = 36
+windowPosY = 43
 windowWidth = 1308
 
 [commonGptDicts]
@@ -87,4 +88,64 @@ dictNames = [ '译前H统一', '译前H口吃矫正' ]
         5 = 60
 
 [showDockWidget]
-100 = true
+104P = true
+
+[[popularCards]]
+cardFloatPixmap = ':/GPPGUI/Resource/Image/IARC_7+.svg.png'
+cardPixmap = ':/GPPGUI/Resource/Image/satan53x.jpg'
+detailedText = '从GalGame脚本提取和导入文本'
+fromLocal = false
+interactiveTips = 'Satan53x'
+pathOrUrl = 'https://github.com/satan53x/SExtractor'
+subTitle = '草佬味大，无需多盐'
+title = 'SExTractor'
+
+[[popularCards]]
+cardFloatPixmap = ':/GPPGUI/Resource/Image/IARC_7+.svg.png'
+cardPixmap = ':/GPPGUI/Resource/Image/gar.png'
+detailedText = '神一样的解封包工具'
+fromLocal = false
+interactiveTips = 'morkt'
+pathOrUrl = 'https://github.com/crskycode/GARbro'
+subTitle = '无敌了'
+title = 'GARbro'
+
+[[popularCards]]
+cardFloatPixmap = ':/GPPGUI/Resource/Image/IARC_7+.svg.png'
+cardPixmap = ':/GPPGUI/Resource/Image/vnt.png'
+detailedText = '萌新拯救者一般的文本提取与回封工具'
+fromLocal = false
+interactiveTips = 'arcusmaximus'
+pathOrUrl = 'https://github.com/arcusmaximus/VNTranslationTools'
+subTitle = '能少用就少用'
+title = 'VNTranslationTools'
+
+[[popularCards]]
+cardFloatPixmap = ':/GPPGUI/Resource/Image/IARC_7+.svg.png'
+cardPixmap = ':/GPPGUI/Resource/Image/crass.png'
+detailedText = '早期Galgame解包工具，多看看它的说明文档'
+fromLocal = false
+interactiveTips = '痴漢公賊'
+pathOrUrl = 'https://github.com/shangjiaxuan/Crass-source'
+subTitle = '专治老游戏'
+title = 'Crass'
+
+[[popularCards]]
+cardFloatPixmap = ':/GPPGUI/Resource/Image/IARC_7+.svg.png'
+cardPixmap = ':/GPPGUI/Resource/Image/sublime.png'
+detailedText = '高亮很好使，但编码转换不如emeditor'
+fromLocal = false
+interactiveTips = 'Sublime HQ'
+pathOrUrl = 'https://www.sublimetext.com'
+subTitle = '和Em互补长短'
+title = 'Sublime'
+
+[[popularCards]]
+cardFloatPixmap = ':/GPPGUI/Resource/Image/IARC_7+.svg.png'
+cardPixmap = ':/GPPGUI/Resource/Image/revn.png'
+detailedText = '别说你是搞机翻的'
+fromLocal = false
+interactiveTips = 'Dir-A'
+pathOrUrl = 'https://github.com/ZQF-ReVN'
+subTitle = '拜见祖师爷'
+title = 'ReVN'

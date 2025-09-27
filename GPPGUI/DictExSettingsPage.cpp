@@ -229,7 +229,7 @@ void DictExSettingsPage::_setupUI()
 			for (int i = 0; i < preDictNamesComboBox->count(); i++) {
 				if (
 					preDictNamesComboBox->itemText(i) != "项目字典_译前" &&
-					std::find_if(commonPreDictsArr.begin(), commonPreDictsArr.end(), [=](const auto& elem)
+					std::ranges::find_if(commonPreDictsArr, [=](const auto& elem)
 						{
 							return elem.value_or(std::string{}) == preDictNamesComboBox->itemText(i).toStdString();
 						}) == commonPreDictsArr.end()
@@ -261,7 +261,7 @@ void DictExSettingsPage::_setupUI()
 			for (int i = 0; i < gptDictNamesComboBox->count(); i++) {
 				if (
 					gptDictNamesComboBox->itemText(i) != "项目GPT字典" &&
-					std::find_if(commonGptDictsArr.begin(), commonGptDictsArr.end(), [=](const auto& elem)
+					std::ranges::find_if(commonGptDictsArr, [=](const auto& elem)
 						{
 							return elem.value_or(std::string{}) == gptDictNamesComboBox->itemText(i).toStdString();
 						}) == commonGptDictsArr.end()
@@ -293,7 +293,7 @@ void DictExSettingsPage::_setupUI()
 			for (int i = 0; i < postDictNamesComboBox->count(); i++) {
 				if (
 					postDictNamesComboBox->itemText(i) != "项目字典_译后" &&
-					std::find_if(commonPostDictsArr.begin(), commonPostDictsArr.end(), [=](const auto& elem)
+					std::ranges::find_if(commonPostDictsArr, [=](const auto& elem)
 						{
 							return elem.value_or(std::string{}) == postDictNamesComboBox->itemText(i).toStdString();
 						}) == commonPostDictsArr.end()

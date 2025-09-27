@@ -2,9 +2,12 @@
 
 #include <QDesktopServices>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QVBoxLayout>
+#include <QFileIconProvider>
+#include <QFileInfo>
+#include <QIcon>
 
 #include "ElaAcrylicUrlCard.h"
 #include "ElaFlowLayout.h"
@@ -17,8 +20,8 @@
 #include "ElaText.h"
 #include "ElaToolTip.h"
 
-HomePage::HomePage(QWidget* parent)
-    : BasePage(parent)
+HomePage::HomePage(toml::table& globalConfig, QWidget* parent)
+    : BasePage(parent), _globalConfig(globalConfig)
 {
     // 预览窗口标题
     setWindowTitle("主页");
@@ -99,82 +102,181 @@ HomePage::HomePage(QWidget* parent)
     QHBoxLayout* flowTextLayout = new QHBoxLayout();
     flowTextLayout->setContentsMargins(33, 0, 0, 0);
     flowTextLayout->addWidget(flowText);
+
     // ElaFlowLayout
-    ElaPopularCard* homeCard = new ElaPopularCard(this);
-    connect(homeCard, &ElaPopularCard::popularCardButtonClicked, this, [=]() {
-        QDesktopServices::openUrl(QUrl("https://github.com/satan53x/SExtractor"));
-    });
-    homeCard->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/satan53x.jpg"));
-    homeCard->setTitle("SExTractor");
-    homeCard->setSubTitle("草佬味大，无需多盐");
-    homeCard->setInteractiveTips("Satan53x");
-    homeCard->setDetailedText("从GalGame脚本提取和导入文本");
-    homeCard->setCardFloatPixmap(QPixmap(":/Resource/Image/IARC_7+.svg.png"));
+    auto popularCardsArr = _globalConfig["popularCards"].as_array();
+    auto getPopularCardInConfig = [&](size_t index) -> std::optional<toml::table>
+        {
+            if (!popularCardsArr || index >= popularCardsArr->size()) {
+                return std::nullopt;
+            }
+            auto pCard = popularCardsArr->get(index)->as_table();
+            if (!pCard) {
+                return std::nullopt;
+            }
+            return *pCard;
+        };
+
+    auto applyPopularCardInConfig = [&](const std::optional<toml::table>& cardOpt, ElaPopularCard* homeCard)
+        {
+            const toml::table& card = *cardOpt;
+            QString pathOrUrl = card["pathOrUrl"].value_or("");
+            bool fromLocal = card["fromLocal"].value_or(false);
+            if (fromLocal) {
+                homeCard->setCardButtonText("启动");
+            }
+            if (!pathOrUrl.isEmpty()) {
+                QUrl url = fromLocal? QUrl::fromLocalFile(pathOrUrl) : QUrl(pathOrUrl);
+                connect(homeCard, &ElaPopularCard::popularCardButtonClicked, this, [=]()
+                    {
+                        QDesktopServices::openUrl(url);
+                    });
+            }
+            homeCard->setTitle(card["title"].value_or(""));
+            homeCard->setSubTitle(card["subTitle"].value_or(""));
+
+            if (QString pixmapPath = card["cardPixmap"].value_or(""); !pixmapPath.isEmpty()) {
+                homeCard->setCardPixmap(QPixmap(pixmapPath));
+            }
+            else if (fromLocal) {
+                QFileIconProvider iconProvider;
+                QFileInfo fileInfo(pathOrUrl);
+                QIcon icon = iconProvider.icon(fileInfo);
+                if (!icon.isNull()) {
+                    homeCard->setCardPixmap(icon.pixmap(128, 128));
+                }
+            }
+            homeCard->setInteractiveTips(card["interactiveTips"].value_or(""));
+            homeCard->setDetailedText(card["detailedText"].value_or(""));
+            homeCard->setCardFloatPixmap(QPixmap(card["cardFloatPixmap"].value_or("")));
+        };
+
+    auto applyRestPopularCardsInConfig = [&](ElaFlowLayout* flowLayout)
+        {
+            if (!popularCardsArr) {
+                return;
+            }
+            for (size_t i = (size_t)flowLayout->count(); i < popularCardsArr->size(); ++i) {
+                if (auto cardOpt = getPopularCardInConfig(i)) {
+                    ElaPopularCard* popularCard = new ElaPopularCard(this);
+                    applyPopularCardInConfig(cardOpt, popularCard);
+                    flowLayout->addWidget(popularCard);
+                }
+            }
+        };
+
+    ElaPopularCard* homeCard0 = new ElaPopularCard(this);
+    if (auto cardOpt = getPopularCardInConfig(0)) {
+        applyPopularCardInConfig(cardOpt, homeCard0);
+    }
+    else {
+        connect(homeCard0, &ElaPopularCard::popularCardButtonClicked, this, [=]() 
+            {
+                QDesktopServices::openUrl(QUrl("https://github.com/satan53x/SExtractor"));
+            });
+        homeCard0->setTitle("SExTractor");
+        homeCard0->setSubTitle("草佬味大，无需多盐");
+        homeCard0->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/satan53x.jpg"));
+        homeCard0->setInteractiveTips("Satan53x");
+        homeCard0->setDetailedText("从GalGame脚本提取和导入文本");
+        homeCard0->setCardFloatPixmap(QPixmap(":/GPPGUI/Resource/Image/IARC_7+.svg.png"));
+    }
 
     ElaPopularCard* homeCard1 = new ElaPopularCard(this);
-    connect(homeCard1, &ElaPopularCard::popularCardButtonClicked, this, [=]() {
-        QDesktopServices::openUrl(QUrl("https://github.com/crskycode/GARbro"));
-    });
-    homeCard1->setTitle("GARbro");
-    homeCard1->setSubTitle("无敌了");
-    homeCard1->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/gar.png"));
-    homeCard1->setInteractiveTips("morkt");
-    homeCard1->setDetailedText("神一样的解封包工具");
-    homeCard1->setCardFloatPixmap(QPixmap(":/GPPGUI/Resource/Image/IARC_7+.svg.png"));
+    if (auto cardOpt = getPopularCardInConfig(1)) {
+        applyPopularCardInConfig(cardOpt, homeCard1);
+    }
+    else {
+        connect(homeCard1, &ElaPopularCard::popularCardButtonClicked, this, [=]() 
+            {
+                QDesktopServices::openUrl(QUrl("https://github.com/crskycode/GARbro"));
+            });
+        homeCard1->setTitle("GARbro");
+        homeCard1->setSubTitle("无敌了");
+        homeCard1->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/gar.png"));
+        homeCard1->setInteractiveTips("morkt");
+        homeCard1->setDetailedText("神一样的解封包工具");
+        homeCard1->setCardFloatPixmap(QPixmap(":/GPPGUI/Resource/Image/IARC_7+.svg.png"));
+    }
 
     ElaPopularCard* homeCard2 = new ElaPopularCard(this);
-    connect(homeCard2, &ElaPopularCard::popularCardButtonClicked, this, [=]() {
-        QDesktopServices::openUrl(QUrl("https://github.com/arcusmaximus/VNTranslationTools"));
-    });
-    homeCard2->setTitle("VNTranslationTools");
-    homeCard2->setSubTitle("能少用就少用");
-    homeCard2->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/vnt.png"));
-    homeCard2->setInteractiveTips("arcusmaximus");
-    homeCard2->setDetailedText("萌新拯救者一般的文本提取与回封工具");
-    homeCard2->setCardFloatPixmap(QPixmap(":/GPPGUI/Resource/Image/IARC_7+.svg.png"));
-
+    if (auto cardOpt = getPopularCardInConfig(2)) {
+        applyPopularCardInConfig(cardOpt, homeCard2);
+    }
+    else {
+        connect(homeCard2, &ElaPopularCard::popularCardButtonClicked, this, [=]() 
+            {
+                QDesktopServices::openUrl(QUrl("https://github.com/arcusmaximus/VNTranslationTools"));
+            });
+        homeCard2->setTitle("VNTranslationTools");
+        homeCard2->setSubTitle("能少用就少用");
+        homeCard2->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/vnt.png"));
+        homeCard2->setInteractiveTips("arcusmaximus");
+        homeCard2->setDetailedText("萌新拯救者一般的文本提取与回封工具");
+        homeCard2->setCardFloatPixmap(QPixmap(":/GPPGUI/Resource/Image/IARC_7+.svg.png"));
+    }
+    
     ElaPopularCard* homeCard3 = new ElaPopularCard(this);
-    connect(homeCard3, &ElaPopularCard::popularCardButtonClicked, this, [=]() {
-        QDesktopServices::openUrl(QUrl("https://github.com/shangjiaxuan/Crass-source"));
-    });
-    homeCard3->setTitle("Crass");
-    homeCard3->setSubTitle("专治老游戏");
-    homeCard3->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/crass.png"));
-    homeCard3->setInteractiveTips("痴漢公賊");
-    homeCard3->setDetailedText("早期Galgame解包工具，多看看它的说明文档");
-    homeCard3->setCardFloatPixmap(QPixmap(":/GPPGUI/Resource/Image/IARC_7+.svg.png"));
+    if (auto cardOpt = getPopularCardInConfig(3)) {
+        applyPopularCardInConfig(cardOpt, homeCard3);
+    }
+    else {
+        connect(homeCard3, &ElaPopularCard::popularCardButtonClicked, this, [=]() 
+            {
+                QDesktopServices::openUrl(QUrl("https://github.com/shangjiaxuan/Crass-source"));
+            });
+        homeCard3->setTitle("Crass");
+        homeCard3->setSubTitle("专治老游戏");
+        homeCard3->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/crass.png"));
+        homeCard3->setInteractiveTips("痴漢公賊");
+        homeCard3->setDetailedText("早期Galgame解包工具，多看看它的说明文档");
+        homeCard3->setCardFloatPixmap(QPixmap(":/GPPGUI/Resource/Image/IARC_7+.svg.png"));
+    }
 
     ElaPopularCard* homeCard4 = new ElaPopularCard(this);
-    connect(homeCard4, &ElaPopularCard::popularCardButtonClicked, this, [=]() {
-        QDesktopServices::openUrl(QUrl("https://www.sublimetext.com/"));
-    });
-    homeCard4->setTitle("Sublime");
-    homeCard4->setSubTitle("和Em互补长短");
-    homeCard4->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/sublime.png"));
-    homeCard4->setInteractiveTips("Sublime HQ");
-    homeCard4->setDetailedText("高亮很好使，但编码转换不如emeditor");
-    homeCard4->setCardFloatPixmap(QPixmap(":/GPPGUI/Resource/Image/IARC_7+.svg.png"));
+    if (auto cardOpt = getPopularCardInConfig(4)) {
+        applyPopularCardInConfig(cardOpt, homeCard4);
+    }
+    else {
+        connect(homeCard4, &ElaPopularCard::popularCardButtonClicked, this, [=]() 
+            {
+                QDesktopServices::openUrl(QUrl("https://www.sublimetext.com"));
+            });
+        homeCard4->setTitle("Sublime");
+        homeCard4->setSubTitle("和Em互补长短");
+        homeCard4->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/sublime.png"));
+        homeCard4->setInteractiveTips("Sublime HQ");
+        homeCard4->setDetailedText("高亮很好使，但编码转换不如emeditor");
+        homeCard4->setCardFloatPixmap(QPixmap(":/GPPGUI/Resource/Image/IARC_7+.svg.png"));
+    }
 
     ElaPopularCard* homeCard5 = new ElaPopularCard(this);
-    connect(homeCard5, &ElaPopularCard::popularCardButtonClicked, this, [=]() {
-        QDesktopServices::openUrl(QUrl("https://github.com/ZQF-ReVN"));
-    });
-    homeCard5->setTitle("ReVN");
-    homeCard5->setSubTitle("拜见祖师爷");
-    homeCard5->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/revn.png"));
-    homeCard5->setInteractiveTips("Dir-A");
-    homeCard5->setDetailedText("别说你是搞机翻的");
-    homeCard5->setCardFloatPixmap(QPixmap(":/GPPGUI/Resource/Image/IARC_7+.svg.png"));
+    if (auto cardOpt = getPopularCardInConfig(5)) {
+        applyPopularCardInConfig(cardOpt, homeCard5);
+    }
+    else {
+        connect(homeCard5, &ElaPopularCard::popularCardButtonClicked, this, [=]() 
+            {
+                QDesktopServices::openUrl(QUrl("https://github.com/ZQF-ReVN"));
+            });
+        homeCard5->setTitle("ReVN");
+        homeCard5->setSubTitle("拜见祖师爷");
+        homeCard5->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/revn.png"));
+        homeCard5->setInteractiveTips("Dir-A");
+        homeCard5->setDetailedText("别说你是搞机翻的");
+        homeCard5->setCardFloatPixmap(QPixmap(":/GPPGUI/Resource/Image/IARC_7+.svg.png"));
+    }
 
     ElaFlowLayout* flowLayout = new ElaFlowLayout(0, 5, 5);
     flowLayout->setContentsMargins(30, 0, 0, 0);
     flowLayout->setIsAnimation(true);
-    flowLayout->addWidget(homeCard);
+    flowLayout->addWidget(homeCard0);
     flowLayout->addWidget(homeCard1);
     flowLayout->addWidget(homeCard2);
     flowLayout->addWidget(homeCard3);
     flowLayout->addWidget(homeCard4);
     flowLayout->addWidget(homeCard5);
+    applyRestPopularCardsInConfig(flowLayout);
 
     QWidget* centralWidget = new QWidget(this);
     centralWidget->setWindowTitle("主页");

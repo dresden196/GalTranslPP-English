@@ -1003,15 +1003,15 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
             }
             else if (se.nameType == NameType::Multiple) {
                 toml::array namesArr;
-                toml::array namePreviewsArr;
+                toml::array namesPreviewArr;
                 for (const auto& name : se.names) {
                     namesArr.push_back(name);
                 }
                 for (const auto& namePreview : se.names_preview) {
-                    namePreviewsArr.push_back(namePreview);
+                    namesPreviewArr.push_back(namePreview);
                 }
                 tbl.insert("names", namesArr);
-                tbl.insert("names_preview", namePreviewsArr);
+                tbl.insert("names_preview", namesPreviewArr);
             }
             tbl.insert("original_text", se.original_text);
             if (!se.other_info.empty()) {

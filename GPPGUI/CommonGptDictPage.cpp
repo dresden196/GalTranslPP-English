@@ -354,7 +354,7 @@ void CommonGptDictPage::_setupUI()
 						insertToml(_globalConfig, "commonGptDicts.dictNames", toml::array{ dictName });
 					}
 					else {
-						auto it = std::find_if(newDictNames->begin(), newDictNames->end(), [=](const auto& elem)
+						auto it = std::ranges::find_if(*newDictNames, [=](const auto& elem)
 							{
 								return elem.value_or(std::string{}) == dictName;
 							});
@@ -559,7 +559,7 @@ void CommonGptDictPage::_setupUI()
 				return;
 			}
 			QWidget* pageMainWidget = tabWidget->currentWidget();
-			auto it = std::find_if(_gptTabEntries.begin(), _gptTabEntries.end(), [=](const GptTabEntry& entry)
+			auto it = std::ranges::find_if(_gptTabEntries, [=](const GptTabEntry& entry)
 				{
 					return entry.pageMainWidget == pageMainWidget;
 				});
@@ -594,7 +594,7 @@ void CommonGptDictPage::_setupUI()
 					_gptTabEntries.erase(it);
 					auto dictNames = _globalConfig["commonGptDicts"]["dictNames"].as_array();
 					if (dictNames) {
-						auto it = std::find_if(dictNames->begin(), dictNames->end(), [=](const auto& elem)
+						auto it = std::ranges::find_if(*dictNames, [=](const auto& elem)
 							{
 								return elem.value_or(std::string{}) == dictName;
 							});
@@ -616,7 +616,7 @@ void CommonGptDictPage::_setupUI()
 			toml::array dictNamesArr;
 			for (int i = 0; i < tabCount; i++) {
 				QWidget* pageMainWidget = tabWidget->widget(i);
-				auto it = std::find_if(_gptTabEntries.begin(), _gptTabEntries.end(), [=](const GptTabEntry& entry)
+				auto it = std::ranges::find_if(_gptTabEntries, [=](const GptTabEntry& entry)
 					{
 						return entry.pageMainWidget == pageMainWidget;
 					});
@@ -667,7 +667,7 @@ void CommonGptDictPage::_setupUI()
 			if (spec) {
 				std::vector<std::string_view> keysToRemove;
 				for (const auto& [key, value] : *spec) {
-					if (std::find_if(dictNamesArr.begin(), dictNamesArr.end(), [=](const auto& elem)
+					if (std::ranges::find_if(dictNamesArr, [=](const auto& elem)
 						{
 							return elem.value_or(std::string{}) == key.str();
 						}) == dictNamesArr.end())

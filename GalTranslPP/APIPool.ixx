@@ -81,7 +81,7 @@ void APIPool::resortTokens() {
 void APIPool::reportProblem(const TranslationAPI& badAPI) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    auto it = std::find_if(m_apis.begin(), m_apis.end(), [&](const TranslationAPI& api)
+    auto it = std::ranges::find_if(m_apis, [&](const TranslationAPI& api)
         {
             return api.apikey == badAPI.apikey;
         });

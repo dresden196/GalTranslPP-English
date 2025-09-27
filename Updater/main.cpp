@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
 
     // 2. 解压并覆盖文件
     try {
-        extractZip(ascii2Wide(sourceZip.toStdString()), ascii2Wide(targetDir.toStdString()));
+        extractZip(sourceZip.toStdWString(), targetDir.toStdWString());
     }
     catch (const std::exception& e) {
         qCritical() << "Failed to extract update package:" << e.what();

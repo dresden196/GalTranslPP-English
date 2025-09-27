@@ -331,7 +331,7 @@ void CommonNormalDictPage::_setupUI()
 						insertToml(_globalConfig, _modeConfig + ".dictNames", toml::array{ dictName });
 					}
 					else {
-						auto it = std::find_if(newDictNames->begin(), newDictNames->end(), [=](const auto& elem)
+						auto it = std::ranges::find_if(*newDictNames, [=](const auto& elem)
 							{
 								return elem.value_or(std::string{}) == dictName;
 							});
@@ -538,7 +538,7 @@ void CommonNormalDictPage::_setupUI()
 				return;
 			}
 			QWidget* pageMainWidget = tabWidget->currentWidget();
-			auto it = std::find_if(_normalTabEntries.begin(), _normalTabEntries.end(), [=](const NormalTabEntry& entry)
+			auto it = std::ranges::find_if(_normalTabEntries, [=](const NormalTabEntry& entry)
 				{
 					return entry.pageMainWidget == pageMainWidget;
 				});
@@ -573,7 +573,7 @@ void CommonNormalDictPage::_setupUI()
 					_normalTabEntries.erase(it);
 					auto dictNames = _globalConfig[_modeConfig]["dictNames"].as_array();
 					if (dictNames) {
-						auto it = std::find_if(dictNames->begin(), dictNames->end(), [=](const auto& elem)
+						auto it = std::ranges::find_if(*dictNames, [=](const auto& elem)
 							{
 								return elem.value_or(std::string{}) == dictName;
 							});
@@ -595,7 +595,7 @@ void CommonNormalDictPage::_setupUI()
 			toml::array dictNamesArr;
 			for (int i = 0; i < tabCount; i++) {
 				QWidget* pageMainWidget = tabWidget->widget(i);
-				auto it = std::find_if(_normalTabEntries.begin(), _normalTabEntries.end(), [=](const NormalTabEntry& entry)
+				auto it = std::ranges::find_if(_normalTabEntries, [=](const NormalTabEntry& entry)
 					{
 						return entry.pageMainWidget == pageMainWidget;
 					});
@@ -651,7 +651,7 @@ void CommonNormalDictPage::_setupUI()
 			if (spec) {
 				std::vector<std::string_view> keysToRemove;
 				for (const auto& [key, value] : *spec) {
-					if (std::find_if(dictNamesArr.begin(), dictNamesArr.end(), [=](const auto& elem)
+					if (std::ranges::find_if(dictNamesArr, [=](const auto& elem)
 						{
 							return elem.value_or(std::string{}) == key.str();
 						}) == dictNamesArr.end())

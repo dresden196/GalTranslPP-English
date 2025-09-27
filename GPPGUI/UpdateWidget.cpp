@@ -18,6 +18,7 @@ UpdateWidget::UpdateWidget(QWidget* parent)
     QStringList updateList = {
         "1. 换行修复优先标点设置增加仅标点后添加选项",
         "2. 支持字典导入",
+        "3. 支持自定义popular卡片跳转链接",
     };
 
     mainLayout->addWidget(updateTitle);
