@@ -303,6 +303,35 @@ pip install babeldoc
 Release里也提供了此脚本打包后的exe，如果不想或者不会配置环境的可以[点此下载](https://github.com/julixian/GalTranslPP/releases/download/v1.0.2/PDFConverter.zip)(不过非常大就是了)。
 </details>
 
+## 其它程序说明
+
+<details>
+
+<summary>
+
+自定义主页Popular卡片
+
+</summary>
+具体示例详见 (Example/)BaseConfig/globalConfig.toml 中的 [[popularCards]] 数组。
+
+卡片数组至少六个，不足六个的将使用程序默认的卡片补齐，最高不限数量。
+
+当 `fromLocal` 为 `true` 且 `cardPixmap` 为空或不存在时，将自动获取本地文件的图标进行填充。
+
+当 `fromLocal` 为 `true` 时，卡片按钮文本将变为『启动』，同时自动将 `pathOrUrl` 中的路径进行 fromLocal 转化。
+
+不过不会改变工作目录，如果遇到一些没有给自己设定工作目录为『程序所在目录』的程序，可能就会出问题。
+
+这种情况可以写一个中转脚本，
+```cmd
+chcp 65001
+cd /d %~dp0
+call ./要运行文件的文件名
+```
+然后启动这个中转脚本就可以了。
+
+**注意:** 不要在程序运行的时候修改globalConfig，会被刷掉，请关闭程序后再进行修改。
+
 
 ## ⚙️ 编译指南
 
