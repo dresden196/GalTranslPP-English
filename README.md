@@ -333,6 +333,19 @@ call ./要运行文件的文件名
 **注意:** 不要在程序运行的时候修改globalConfig，会被刷掉，请关闭程序后再进行修改。
 </details>
 
+<details>
+
+<summary>
+
+可在新窗口打开的标签页
+
+</summary>
+
+GUI界面所有的以标签页形式呈现的字典、人名表、提示词等均可以拖出来在新窗口中打开，如下图所示:
+
+![tabView](img/tabView.png?raw=true)
+</details>
+
 
 ## ⚙️ 编译指南
 

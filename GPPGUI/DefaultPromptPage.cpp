@@ -52,6 +52,12 @@ void DefaultPromptPage::_setupUI()
 	ElaTabWidget* tabWidget = new ElaTabWidget(mainWidget);
 	tabWidget->setTabsClosable(false);
 	tabWidget->setIsTabTransparent(true);
+
+	auto saveAllButtonFunc = [=]()
+		{
+			this->apply2Config();
+			ElaMessageBar::success(ElaMessageBarType::TopRight, "保存成功", "所有默认提示词配置已保存。", 3000);
+		};
 	
 
 	QWidget* forgalJsonWidget = new QWidget(mainWidget);
@@ -106,7 +112,7 @@ void DefaultPromptPage::_setupUI()
 			forgalJsonUserModeButtom->setEnabled(true);
 			forgalJsonSystemModeButtom->setEnabled(false);
 		});
-	connect(forgalJsonSaveAllButton, &ElaPushButton::clicked, this, &DefaultPromptPage::apply2Config);
+	connect(forgalJsonSaveAllButton, &ElaPushButton::clicked, this, saveAllButtonFunc);
 	connect(forgalJsonSaveButton, &ElaPushButton::clicked, this, [=]()
 		{
 			insertToml(_promptConfig, "FORGALJSON_TRANS_PROMPT_EN", forgalJsonUserModeEdit->toPlainText().toStdString());
@@ -169,7 +175,7 @@ void DefaultPromptPage::_setupUI()
 			forgalTsvUserModeButtom->setEnabled(true);
 			forgalTsvSystemModeButtom->setEnabled(false);
 		});
-	connect(forgalTsvSaveAllButton, &ElaPushButton::clicked, this, &DefaultPromptPage::apply2Config);
+	connect(forgalTsvSaveAllButton, &ElaPushButton::clicked, this, saveAllButtonFunc);
 	connect(forgalTsvSaveButton, &ElaPushButton::clicked, this, [=]()
 		{
 			insertToml(_promptConfig, "FORGALTSV_TRANS_PROMPT_EN", forgalTsvUserModeEdit->toPlainText().toStdString());
@@ -232,7 +238,7 @@ void DefaultPromptPage::_setupUI()
 			forNovelTsvUserModeButtom->setEnabled(true);
 			forNovelTsvSystemModeButtom->setEnabled(false);
 		});
-	connect(forNovelTsvSaveAllButton, &ElaPushButton::clicked, this, &DefaultPromptPage::apply2Config);
+	connect(forNovelTsvSaveAllButton, &ElaPushButton::clicked, this, saveAllButtonFunc);
 	connect(forNovelTsvSaveButton, &ElaPushButton::clicked, this, [=]()
 		{
 			insertToml(_promptConfig, "FORNOVELTSV_TRANS_PROMPT_EN", forNovelTsvUserModeEdit->toPlainText().toStdString());
@@ -295,7 +301,7 @@ void DefaultPromptPage::_setupUI()
 			deepSeekUserModeButtom->setEnabled(true);
 			deepSeekSystemModeButtom->setEnabled(false);
 		});
-	connect(deepSeekSaveAllButton, &ElaPushButton::clicked, this, &DefaultPromptPage::apply2Config);
+	connect(deepSeekSaveAllButton, &ElaPushButton::clicked, this, saveAllButtonFunc);
 	connect(deepSeekSaveButton, &ElaPushButton::clicked, this, [=]()
 		{
 			insertToml(_promptConfig, "DEEPSEEKJSON_TRANS_PROMPT", deepSeekUserModeEdit->toPlainText().toStdString());
@@ -358,7 +364,7 @@ void DefaultPromptPage::_setupUI()
 			sakuraUserModeButtom->setEnabled(true);
 			sakuraSystemModeButtom->setEnabled(false);
 		});
-	connect(sakuraSaveAllButton, &ElaPushButton::clicked, this, &DefaultPromptPage::apply2Config);
+	connect(sakuraSaveAllButton, &ElaPushButton::clicked, this, saveAllButtonFunc);
 	connect(sakuraSaveButton, &ElaPushButton::clicked, this, [=]()
 		{
 			insertToml(_promptConfig, "SAKURA_TRANS_PROMPT", sakuraUserModeEdit->toPlainText().toStdString());
@@ -421,7 +427,7 @@ void DefaultPromptPage::_setupUI()
 			gendicUserModeButtom->setEnabled(true);
 			gendicSystemModeButtom->setEnabled(false);
 		});
-	connect(gendicSaveAllButton, &ElaPushButton::clicked, this, &DefaultPromptPage::apply2Config);
+	connect(gendicSaveAllButton, &ElaPushButton::clicked, this, saveAllButtonFunc);
 	connect(gendicSaveButton, &ElaPushButton::clicked, this, [=]()
 		{
 			insertToml(_promptConfig, "GENDIC_PROMPT", gendicUserModeEdit->toPlainText().toStdString());
@@ -450,7 +456,6 @@ void DefaultPromptPage::_setupUI()
 			std::ofstream ofs(L"BaseConfig/Prompt.toml");
 			ofs << _promptConfig;
 			ofs.close();
-			ElaMessageBar::success(ElaMessageBarType::TopRight, "保存成功", "所有默认提示词配置已保存。", 3000);
 		};
 
 

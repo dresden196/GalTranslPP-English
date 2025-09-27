@@ -25,8 +25,8 @@ namespace fs = std::filesystem;
 
 export {
 
-	class NormalJsonTranslator : public ITranslator {
-	protected:
+    class NormalJsonTranslator : public ITranslator {
+    protected:
 
         TransEngine m_transEngine;
         std::shared_ptr<IController> m_controller;
@@ -88,7 +88,7 @@ export {
         ProblemAnalyzer m_problemAnalyzer;
         std::vector<std::shared_ptr<IPlugin>> m_prePlugins;
         std::vector<std::shared_ptr<IPlugin>> m_postPlugins;
-        
+
 
     private:
         void preProcess(Sentence* se);
@@ -99,7 +99,7 @@ export {
 
         void processFile(const fs::path& inputPath, int threadId);
 
-	public:
+    public:
         NormalJsonTranslator(const fs::path& projectDir, std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger,
             std::optional<fs::path> inputDir = std::nullopt, std::optional<fs::path> inputCacheDir = std::nullopt,
             std::optional<fs::path> outputDir = std::nullopt, std::optional<fs::path> outputCacheDir = std::nullopt);
@@ -110,7 +110,7 @@ export {
         }
 
         virtual void run() override;
-	};
+    };
 }
 
 module :private;
@@ -194,7 +194,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                         else if (m_transEngine == TransEngine::Sakura) {
                             translationAPI.apikey = "sk-sakura";
                         }
-                        else{
+                        else {
                             return;
                         }
                         if (auto value = el["apiurl"].value<std::string>(); !((*value).empty())) {
@@ -209,7 +209,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                         else if (m_transEngine == TransEngine::Sakura) {
                             translationAPI.modelName = "sakura";
                         }
-                        else{
+                        else {
                             return;
                         }
                         translationAPI.stream = el["stream"].value_or(false);
@@ -640,10 +640,10 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
 
         m_logger->info("[线程 {}] [文件 {}] 开始翻译\nProblems:\n{}\nDict:\n{}\ninputBlock:\n{}", threadId, wide2Ascii(relInputPath), inputProblems, glossary, inputBlock);
         std::string promptReq = m_userPrompt;
-        promptReq = boost::regex_replace(promptReq, boost::regex(R"(\[Problem Description\])"), inputProblems);
-        promptReq = boost::regex_replace(promptReq, boost::regex(R"(\[Input\])"), inputBlock);
-        promptReq = boost::regex_replace(promptReq, boost::regex(R"(\[TargetLang\])"), m_targetLang);
-        promptReq = boost::regex_replace(promptReq, boost::regex(R"(\[Glossary\])"), glossary);
+        replaceStrInplace(promptReq, "[Problem Description]", inputProblems);
+        replaceStrInplace(promptReq, "[Input]", inputBlock);
+        replaceStrInplace(promptReq, "[TargetLang]", m_targetLang);
+        replaceStrInplace(promptReq, "[Glossary]", glossary);
 
         json messages = json::array({ {{"role", "system"}, {"content", m_systemPrompt}} });
         if (!contextHistory.empty()) {

@@ -41,6 +41,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 		}
 	}
 	fixModeLayout->addWidget(fixModeComboBox);
+	mainLayout->addWidget(fixModeArea);
 
 	// 仅在标点后添加
 	bool onlyAddAfterPunct = _projectConfig.at_path("plugins.TextLinebreakFix.仅在标点后添加").value_or(true);
@@ -55,6 +56,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	ElaToggleSwitch* onlyAddAfterPunctToggleSwitch = new ElaToggleSwitch(onlyAddAfterPunctArea);
 	onlyAddAfterPunctToggleSwitch->setIsToggled(onlyAddAfterPunct);
 	onlyAddAfterPunctLayout->addWidget(onlyAddAfterPunctToggleSwitch);
+	mainLayout->addWidget(onlyAddAfterPunctArea);
 
 	// 分段字数阈值
 	int threshold = _projectConfig["plugins"]["TextLinebreakFix"]["分段字数阈值"].value_or(21);
@@ -70,6 +72,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	segmentThresholdSpinBox->setRange(1, 999);
 	segmentThresholdSpinBox->setValue(threshold);
 	segmentThresholdLayout->addWidget(segmentThresholdSpinBox);
+	mainLayout->addWidget(segmentThresholdArea);
 
 	// 强制修复
 	bool forceFix = _projectConfig.at_path("plugins.TextLinebreakFix.强制修复").value_or(false);
@@ -82,6 +85,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	ElaToggleSwitch* forceFixToggleSwitch = new ElaToggleSwitch(forceFixArea);
 	forceFixToggleSwitch->setIsToggled(forceFix);
 	forceFixLayout->addWidget(forceFixToggleSwitch);
+	mainLayout->addWidget(forceFixArea);
 
 	_applyFunc = [=]()
 		{
@@ -91,9 +95,6 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.强制修复", forceFixToggleSwitch->getIsToggled());
 		};
 
-	mainLayout->addWidget(fixModeArea);
-	mainLayout->addWidget(segmentThresholdArea);
-	mainLayout->addWidget(forceFixArea);
 	mainLayout->addStretch();
 	centerWidget->setWindowTitle("换行修复设置");
 	addCentralWidget(centerWidget);
