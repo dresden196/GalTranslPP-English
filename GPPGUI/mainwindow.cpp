@@ -43,11 +43,11 @@ MainWindow::MainWindow(QWidget* parent)
             _globalConfig = toml::parse_file("BaseConfig/globalConfig.toml");
         }
         catch (...) {
-            QMessageBox::critical(this, "解析错误", "基本配置文件不符合规范！", QMessageBox::Ok);
+            QMessageBox::critical(this, tr("解析错误"), tr("基本配置文件不符合规范！"), QMessageBox::Ok);
         }
     }
     else {
-        QMessageBox::critical(this, "不是哥们", "有病吧，你把我软件的配置文件删了！？", QMessageBox::Ok);
+        QMessageBox::critical(this, tr("不是哥们"), tr("有病吧，你把我软件的配置文件删了！？"), QMessageBox::Ok);
     }
 
     setIsAllowPageOpenInNewWindow(false);
@@ -80,8 +80,8 @@ MainWindow::MainWindow(QWidget* parent)
                 std::any_of(_projectPages.begin(), _projectPages.end(), [](const auto& page)
                     {
                         if (page->getIsRunning()) {
-                            ElaMessageBar::warning(ElaMessageBarType::TopRight, "警告",
-                                "项目 " + page->getProjectName() + " 仍在运行，请先停止运行！", 3000);
+                            ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("警告"),
+                                tr("项目 ") + page->getProjectName() + tr(" 仍在运行，请先停止运行！"), 3000);
                             return true;
                         }
                         return false;
@@ -112,7 +112,7 @@ MainWindow::MainWindow(QWidget* parent)
         });
 
     // 初始化提示
-    ElaMessageBar::success(ElaMessageBarType::BottomRight, "Success", "初始化成功!", 2000);
+    ElaMessageBar::success(ElaMessageBarType::BottomRight, tr("成功"), tr("初始化成功!"), 2000);
 }
 
 MainWindow::~MainWindow()
@@ -161,11 +161,11 @@ void MainWindow::initEdgeLayout()
     this->setCustomWidget(ElaAppBarType::MiddleArea, customWidget);
     this->setCustomWidgetMaximumWidth(700);
 
-    QAction* newProjectAction = menuBar->addElaIconAction(ElaIconType::AtomSimple, "新建项目");
-    QAction* openProjectAction = menuBar->addElaIconAction(ElaIconType::FolderOpen, "打开项目");
-    QAction* saveProjectAction = menuBar->addElaIconAction(ElaIconType::FloppyDisk, "保存项目配置");
-    QAction* removeProjectAction = menuBar->addElaIconAction(ElaIconType::TrashCan, "移除项目");
-    QAction* deleteProjectAction = menuBar->addElaIconAction(ElaIconType::TrashXmark, "删除项目");
+    QAction* newProjectAction = menuBar->addElaIconAction(ElaIconType::AtomSimple, tr("新建项目"));
+    QAction* openProjectAction = menuBar->addElaIconAction(ElaIconType::FolderOpen, tr("打开项目"));
+    QAction* saveProjectAction = menuBar->addElaIconAction(ElaIconType::FloppyDisk, tr("保存项目配置"));
+    QAction* removeProjectAction = menuBar->addElaIconAction(ElaIconType::TrashCan, tr("移除项目"));
+    QAction* deleteProjectAction = menuBar->addElaIconAction(ElaIconType::TrashXmark, tr("删除项目"));
 
     connect(newProjectAction, &QAction::triggered, this, &MainWindow::_onNewProjectTriggered);
     connect(openProjectAction, &QAction::triggered, this, &MainWindow::_onOpenProjectTriggered);
@@ -175,7 +175,7 @@ void MainWindow::initEdgeLayout()
 
     //状态栏
     ElaStatusBar* statusBar = new ElaStatusBar(this);
-    ElaText* statusText = new ElaText("初始化成功！", this);
+    ElaText* statusText = new ElaText(tr("初始化成功！"), this);
     statusText->setTextPixelSize(14);
     statusText->setWordWrap(false);
     statusBar->addWidget(statusText);
@@ -184,7 +184,7 @@ void MainWindow::initEdgeLayout()
     _updateChecker = new UpdateChecker(_globalConfig, statusText, this);
 
     //停靠窗口
-    ElaDockWidget* updateDockWidget = new ElaDockWidget("更新内容", this);
+    ElaDockWidget* updateDockWidget = new ElaDockWidget(tr("更新内容"), this);
     updateDockWidget->setWidget(new UpdateWidget(this));
     this->addDockWidget(Qt::RightDockWidgetArea, updateDockWidget);
     resizeDocks({ updateDockWidget }, { 200 }, Qt::Horizontal);
@@ -203,14 +203,14 @@ void MainWindow::initEdgeLayout()
     ElaMenu* appBarMenu = new ElaMenu(this);
     appBarMenu->setMenuItemHeight(27);
     // 召唤停靠窗口
-    connect(appBarMenu->addElaIconAction(ElaIconType::BellConcierge, "召唤停靠窗口"), &QAction::triggered, this, [=]()
+    connect(appBarMenu->addElaIconAction(ElaIconType::BellConcierge, tr("召唤停靠窗口")), &QAction::triggered, this, [=]()
         {
             updateDockWidget->show();
         });
-    connect(appBarMenu->addElaIconAction(ElaIconType::GearComplex, "设置"), &QAction::triggered, this, [=]() {
+    connect(appBarMenu->addElaIconAction(ElaIconType::GearComplex, tr("设置")), &QAction::triggered, this, [=]() {
         navigation(_settingKey);
         });
-    connect(appBarMenu->addElaIconAction(ElaIconType::MoonStars, "更改程序主题"), &QAction::triggered, this, [=]() {
+    connect(appBarMenu->addElaIconAction(ElaIconType::MoonStars, tr("更改程序主题")), &QAction::triggered, this, [=]() {
         eTheme->setThemeMode(eTheme->getThemeMode() == ElaThemeType::Light ? ElaThemeType::Dark : ElaThemeType::Light);
         });
     setCustomMenu(appBarMenu);
@@ -227,25 +227,25 @@ void MainWindow::initContent()
     
     _settingPage = new SettingPage(_globalConfig, this);
 
-    addPageNode("主页", _homePage, ElaIconType::House);
+    addPageNode(tr("主页"), _homePage, ElaIconType::House);
 
-    addPageNode("默认提示词管理", _defaultPromptPage, ElaIconType::Text);
+    addPageNode(tr("默认提示词管理"), _defaultPromptPage, ElaIconType::Text);
 
-    addExpanderNode("通用字典管理", _commonDictExpanderKey, ElaIconType::FontCase);
+    addExpanderNode(tr("通用字典管理"), _commonDictExpanderKey, ElaIconType::FontCase);
     auto refreshCommonDicts = [=]()
         {
             for (auto& page : _projectPages) {
                 page->refreshCommonDicts();
             }
         };
-    addPageNode("通用译前字典", _commonPreDictPage, _commonDictExpanderKey, ElaIconType::OctagonDivide);
+    addPageNode(tr("通用译前字典"), _commonPreDictPage, _commonDictExpanderKey, ElaIconType::OctagonDivide);
     connect(_commonPreDictPage, &CommonNormalDictPage::commonDictsChanged, this, refreshCommonDicts);
-    addPageNode("通用GPT字典", _commonGptDictPage, _commonDictExpanderKey, ElaIconType::OctagonDivide);
+    addPageNode(tr("通用GPT字典"), _commonGptDictPage, _commonDictExpanderKey, ElaIconType::OctagonDivide);
     connect(_commonGptDictPage, &CommonGptDictPage::commonDictsChanged, this, refreshCommonDicts);
-    addPageNode("通用译后字典", _commonPostDictPage, _commonDictExpanderKey, ElaIconType::OctagonDivide);
+    addPageNode(tr("通用译后字典"), _commonPostDictPage, _commonDictExpanderKey, ElaIconType::OctagonDivide);
     connect(_commonPostDictPage, &CommonNormalDictPage::commonDictsChanged, this, refreshCommonDicts);
 
-    addExpanderNode("项目管理", _projectExpanderKey, ElaIconType::BriefcaseBlank);
+    addExpanderNode(tr("项目管理"), _projectExpanderKey, ElaIconType::BriefcaseBlank);
     auto projects = _globalConfig["projects"].as_array();
     if (projects) {
         for (const auto& elem : *projects) {
@@ -277,10 +277,10 @@ void MainWindow::initContent()
     connect(_aboutDialog, &AboutDialog::downloadUpdateSignal, this, [=]()
         {
             if (_updateChecker->getIsDownloading()) {
-                ElaMessageBar::warning(ElaMessageBarType::TopLeft, "别急别急", "已经在下载更新了！", 3000);
+                ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("别急别急"), tr("已经在下载更新了！"), 3000);
                 return;
             }
-            ElaMessageBar::information(ElaMessageBarType::TopLeft, "请稍候", "正在下载更新...", 3000);
+            ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("请稍候"), tr("正在下载更新..."), 3000);
             _updateChecker->check(true);
         });
 
@@ -314,14 +314,14 @@ void MainWindow::initContent()
 
 void MainWindow::_onNewProjectTriggered()
 {
-    QString parentPath = QFileDialog::getExistingDirectory(this, "选择新项目的存放位置", QDir::currentPath() + "/Projects");
+    QString parentPath = QFileDialog::getExistingDirectory(this, tr("选择新项目的存放位置"), QDir::currentPath() + "/Projects");
     if (parentPath.isEmpty()) {
         return;
     }
 
     QString projectName;
     bool ok;
-    ElaInputDialog inputDialog(this, "请输入项目名称", "新建项目", projectName, &ok);
+    ElaInputDialog inputDialog(this, tr("请输入项目名称"), tr("新建项目"), projectName, &ok);
     inputDialog.exec();
 
     if (!ok) {
@@ -333,19 +333,19 @@ void MainWindow::_onNewProjectTriggered()
             return projectName == page->getProjectName();
         }))
     {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "创建失败", "已存在同名项目！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("创建失败"), tr("已存在同名项目！"), 3000);
         return;
     }
 
     if (projectName.isEmpty() || projectName.contains("/") || projectName.contains("\\"))
     {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "创建失败", "项目名称不能为空，且不能包含斜杠或反斜杠！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("创建失败"), tr("项目名称不能为空，且不能包含斜杠或反斜杠！"), 3000);
         return;
     }
 
     fs::path newProjectDir = fs::path(parentPath.toStdWString()) / projectName.toStdWString();
     if (fs::exists(newProjectDir)) {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "创建失败", "目录下存在同名文件或文件夹！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("创建失败"), tr("目录下存在同名文件或文件夹！"), 3000);
         return;
     }
 
@@ -359,12 +359,12 @@ void MainWindow::_onNewProjectTriggered()
             newFile.close();
         }
         else {
-            ElaMessageBar::warning(ElaMessageBarType::TopRight, "创建失败", "无法创建新文件！", 3000);
+            ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("创建失败"), tr("无法创建新文件！"), 3000);
             return;
         }
     }
     else {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "创建失败", "无法读取模板文件！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("创建失败"), tr("无法读取模板文件！"), 3000);
         return;
     }
 
@@ -430,7 +430,7 @@ void MainWindow::_onNewProjectTriggered()
         ofs.close();
     }
     catch (...) {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "创建失败", "无法写入配置文件！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("创建失败"), tr("无法写入配置文件！"), 3000);
         return;
     }
 
@@ -442,19 +442,19 @@ void MainWindow::_onNewProjectTriggered()
 
     QUrl dirUrl = QUrl::fromLocalFile(QString(newProjectDir.wstring()));
     QDesktopServices::openUrl(dirUrl);
-    ElaMessageBar::success(ElaMessageBarType::TopRight, "创建成功", "请将待翻译的文件放入 gt_input 中！", 8000);
+    ElaMessageBar::success(ElaMessageBarType::TopRight, tr("创建成功"), tr("请将待翻译的文件放入 gt_input 中！"), 8000);
 }
 
 void MainWindow::_onOpenProjectTriggered()
 {
-    QString projectPath = QFileDialog::getExistingDirectory(this, "选择已有项目的文件夹路径", QDir::currentPath() + "/Projects");
+    QString projectPath = QFileDialog::getExistingDirectory(this, tr("选择已有项目的文件夹路径"), QDir::currentPath() + "/Projects");
     if (projectPath.isEmpty()) {
         return;
     }
 
     fs::path projectDir(projectPath.toStdWString());
     if (!fs::exists(projectDir / L"config.toml")) {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "打开失败", "目录下不存在 config.toml 文件！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("打开失败"), tr("目录下不存在 config.toml 文件！"), 3000);
         return;
     }
 
@@ -465,7 +465,7 @@ void MainWindow::_onOpenProjectTriggered()
             return page->getProjectName() == projectName;
         }))
     {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "打开失败", "已存在同名项目！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("打开失败"), tr("已存在同名项目！"), 3000);
         return;
     }
 
@@ -477,7 +477,7 @@ void MainWindow::_onOpenProjectTriggered()
 
     QUrl dirUrl = QUrl::fromLocalFile(QString(projectDir.wstring()));
     QDesktopServices::openUrl(dirUrl);
-    ElaMessageBar::success(ElaMessageBarType::TopRight, "打开成功", newPage->getProjectName() + " 已纳入项目管理！", 3000);
+    ElaMessageBar::success(ElaMessageBarType::TopRight, tr("打开成功"), newPage->getProjectName() + tr(" 已纳入项目管理！"), 3000);
 }
 
 void MainWindow::_onRemoveProjectTriggered()
@@ -488,23 +488,23 @@ void MainWindow::_onRemoveProjectTriggered()
             return page->property("ElaPageKey").toString() == pageKey;
         });
     if (it == _projectPages.end()) {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "移除失败", "当前页面不是项目页面！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("移除失败"), tr("当前页面不是项目页面！"), 3000);
         return;
     }
     if (it->get()->getIsRunning()) {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "移除失败", "当前项目正在运行，请先停止运行！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("移除失败"), tr("当前项目正在运行，请先停止运行！"), 3000);
         return;
     }
     ElaContentDialog helpDialog(this);
 
-    helpDialog.setRightButtonText("是");
-    helpDialog.setMiddleButtonText("思考人生");
-    helpDialog.setLeftButtonText("否");
+    helpDialog.setRightButtonText(tr("是"));
+    helpDialog.setMiddleButtonText(tr("思考人生"));
+    helpDialog.setLeftButtonText(tr("否"));
 
     QWidget* widget = new QWidget(&helpDialog);
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addWidget(new ElaText("你确定要移除当前项目吗？", widget));
-    ElaText* tip = new ElaText("从项目管理中移除该项目，但不会删除其项目文件夹", widget);
+    layout->addWidget(new ElaText(tr("你确定要移除当前项目吗？"), widget));
+    ElaText* tip = new ElaText(tr("从项目管理中移除该项目，但不会删除其项目文件夹"), widget);
     tip->setTextPixelSize(14);
     layout->addWidget(tip);
     helpDialog.setCentralWidget(widget);
@@ -523,7 +523,7 @@ void MainWindow::_onRemoveProjectTriggered()
                     this->navigation(_projectPages.back()->property("ElaPageKey").toString());
                 }
             }
-            ElaMessageBar::success(ElaMessageBarType::TopRight, "移除成功", "项目 " + projectName + " 已从项目管理中移除！", 3000);
+            ElaMessageBar::success(ElaMessageBarType::TopRight, tr("移除成功"), tr("项目 ") + projectName + tr(" 已从项目管理中移除！"), 3000);
         });
     helpDialog.exec();
 }
@@ -536,24 +536,24 @@ void MainWindow::_onDeleteProjectTriggered()
             return page->property("ElaPageKey").toString() == pageKey;
         });
     if (it == _projectPages.end()) {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "删除失败", "当前页面不是项目页面！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("删除失败"), tr("当前页面不是项目页面！"), 3000);
         return;
     }
     if (it->get()->getIsRunning()) {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "删除失败", "当前项目正在运行，请先停止运行！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("删除失败"), tr("当前项目正在运行，请先停止运行！"), 3000);
         return;
     }
     ElaContentDialog helpDialog(this);
 
-    helpDialog.setRightButtonText("是");
-    helpDialog.setMiddleButtonText("思考人生");
-    helpDialog.setLeftButtonText("否");
+    helpDialog.setRightButtonText(tr("是"));
+    helpDialog.setMiddleButtonText(tr("思考人生"));
+    helpDialog.setLeftButtonText(tr("否"));
 
     QWidget* widget = new QWidget(&helpDialog);
     widget->setFixedHeight(110);
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addWidget(new ElaText("你确定要删除当前项目吗？", widget));
-    ElaText* tip = new ElaText("将删除该项目的项目文件夹，如果不备份，再次翻译将必须从头开始！", widget);
+    layout->addWidget(new ElaText(tr("你确定要删除当前项目吗？"), widget));
+    ElaText* tip = new ElaText(tr("将删除该项目的项目文件夹，如果不备份，再次翻译将必须从头开始！"), widget);
     tip->setTextPixelSize(14);
     layout->addWidget(tip);
     helpDialog.setCentralWidget(widget);
@@ -566,7 +566,7 @@ void MainWindow::_onDeleteProjectTriggered()
                 fs::remove_all(projectDir);
             }
             catch (const fs::filesystem_error& e) {
-                ElaMessageBar::warning(ElaMessageBarType::TopRight, "删除失败", e.what(), 3000);
+                ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("删除失败"), e.what(), 3000);
                 return;
             }
             removeNavigationNode(pageKey);
@@ -579,7 +579,7 @@ void MainWindow::_onDeleteProjectTriggered()
                     this->navigation(_projectPages.back()->property("ElaPageKey").toString());
                 }
             }
-            ElaMessageBar::success(ElaMessageBarType::TopRight, "删除成功", "项目 " + projectName + " 已从项目管理和磁盘中移除！", 3000);
+            ElaMessageBar::success(ElaMessageBarType::TopRight, tr("删除成功"), tr("项目 ") + projectName + tr(" 已从项目管理和磁盘中移除！"), 3000);
         });
     helpDialog.exec();
 }
@@ -592,12 +592,12 @@ void MainWindow::_onSaveProjectTriggered()
             return page->property("ElaPageKey").toString() == pageKey;
         });
     if (it == _projectPages.end()) {
-        ElaMessageBar::warning(ElaMessageBarType::TopRight, "保存失败", "当前页面不是项目页面！", 3000);
+        ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("保存失败"), tr("当前页面不是项目页面！"), 3000);
         return;
     }
 
     it->get()->apply2Config();
-    ElaMessageBar::success(ElaMessageBarType::TopRight, "保存成功", "项目 " + it->get()->getProjectName() + " 配置信息已保存！", 3000);
+    ElaMessageBar::success(ElaMessageBarType::TopRight, tr("保存成功"), tr("项目 ") + it->get()->getProjectName() + tr(" 配置信息已保存！"), 3000);
 }
 
 void MainWindow::_onFinishTranslating(QString nodeKey)
@@ -631,7 +631,7 @@ void MainWindow::_onCloseWindowClicked(bool restart)
         arguments << "--source" << QApplication::applicationDirPath() + "/GUICORE.zip";
         arguments << "--target" << QApplication::applicationDirPath();
         if (restart) {
-            arguments << "--restart" << "true";
+            arguments << "--restart" << QApplication::applicationFilePath();
         }
         QProcess::startDetached("Updater.exe", arguments, QDir::currentPath());
     }

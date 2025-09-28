@@ -18,7 +18,7 @@ import Tool;
 
 EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
-	setWindowTitle("Epub 输出配置");
+	setWindowTitle(tr("Epub 输出配置"));
 	setContentsMargins(10, 0, 10, 0);
 
 	// 创建一个中心部件和布局
@@ -29,7 +29,7 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 	bool bilingual = _projectConfig["plugins"]["Epub"]["双语显示"].value_or(true);
 	ElaScrollPageArea* outputArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* outputLayout = new QHBoxLayout(outputArea);
-	ElaText* outputText = new ElaText("双语显示", outputArea);
+	ElaText* outputText = new ElaText(tr("双语显示"), outputArea);
 	outputText->setTextPixelSize(16);
 	outputLayout->addWidget(outputText);
 	outputLayout->addStretch();
@@ -43,7 +43,7 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 	QColor color = QColor(colorStr.c_str());
 	ElaScrollPageArea* colorArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* colorLayout = new QHBoxLayout(colorArea);
-	ElaText* colorDialogText = new ElaText("原文颜色", colorArea);
+	ElaText* colorDialogText = new ElaText(tr("原文颜色"), colorArea);
 	colorDialogText->setTextPixelSize(16);
 	colorLayout->addWidget(colorDialogText);
 	colorLayout->addStretch();
@@ -80,7 +80,7 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 	double scale = _projectConfig["plugins"]["Epub"]["缩小比例"].value_or(0.8);
 	ElaScrollPageArea* scaleArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* scaleLayout = new QHBoxLayout(scaleArea);
-	ElaText* scaleText = new ElaText("缩小比例", scaleArea);
+	ElaText* scaleText = new ElaText(tr("缩小比例"), scaleArea);
 	scaleText->setTextPixelSize(16);
 	scaleLayout->addWidget(scaleText);
 	scaleLayout->addStretch();
@@ -106,7 +106,7 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 	else {
 		preRegexTable.insert("预处理正则", toml::array{ toml::table{} });
 	}
-	ElaText* preRegexText = new ElaText("预处理正则", centerWidget);
+	ElaText* preRegexText = new ElaText(tr("预处理正则"), centerWidget);
 	preRegexText->setTextPixelSize(18);
 	mainLayout->addSpacing(10);
 	mainLayout->addWidget(preRegexText);
@@ -131,7 +131,7 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 	else {
 		postRegexTable.insert("后处理正则", toml::array{ toml::table{} });
 	}
-	ElaText* postRegexText = new ElaText("后处理正则", centerWidget);
+	ElaText* postRegexText = new ElaText(tr("后处理正则"), centerWidget);
 	postRegexText->setTextPixelSize(18);
 	mainLayout->addSpacing(10);
 	mainLayout->addWidget(postRegexText);
@@ -143,7 +143,7 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 	QWidget* tipButtonWidget = new QWidget(centerWidget);
 	QHBoxLayout* tipLayout = new QHBoxLayout(tipButtonWidget);
 	tipLayout->addStretch();
-	ElaPushButton* tipButton = new ElaPushButton("说明", centerWidget);
+	ElaPushButton* tipButton = new ElaPushButton(tr("说明"), centerWidget);
 	tipLayout->addWidget(tipButton);
 	connect(tipButton, &ElaPushButton::clicked, this, [=]()
 		{
@@ -168,7 +168,7 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 				}
 			}
 			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败", "Epub预处理正则格式错误", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("Epub预处理正则格式错误"), 3000);
 			}
 			try {
 				toml::table postTbl = toml::parse(postRegexEdit->toPlainText().toStdString());
@@ -181,12 +181,12 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 				}
 			}
 			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败", "Epub后处理正则格式错误", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("Epub后处理正则格式错误"), 3000);
 			}
 		};
 	
 	mainLayout->addStretch();
-	centerWidget->setWindowTitle("Epub 输出配置");
+	centerWidget->setWindowTitle(tr("Epub 输出配置"));
 	addCentralWidget(centerWidget, true, true, 0);
 }
 

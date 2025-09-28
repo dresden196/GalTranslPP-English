@@ -22,7 +22,7 @@ import Tool;
 
 CommonSettingsPage::CommonSettingsPage(toml::table& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
-	setWindowTitle("一般设置");
+	setWindowTitle(tr("一般设置"));
 	setTitleVisible(false);
 
 	_setupUI();
@@ -42,11 +42,11 @@ void CommonSettingsPage::_setupUI()
 	int requestNum = _projectConfig["common"]["numPerRequestTranslate"].value_or(8);
 	ElaScrollPageArea* requestNumArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* requestNumLayout = new QHBoxLayout(requestNumArea);
-	ElaText* requestNumText = new ElaText("单次请求翻译句子数量", requestNumArea);
+	ElaText* requestNumText = new ElaText(tr("单次请求翻译句子数量"), requestNumArea);
 	requestNumText->setWordWrap(false);
 	requestNumText->setTextPixelSize(16);
 	ElaToolTip* requestNumTip = new ElaToolTip(requestNumText);
-	requestNumTip->setToolTip("推荐值 < 15");
+	requestNumTip->setToolTip(tr("推荐值 < 15"));
 	requestNumLayout->addWidget(requestNumText);
 	requestNumLayout->addStretch();
 	ElaSpinBox* requestNumSpinBox = new ElaSpinBox(requestNumArea);
@@ -60,7 +60,7 @@ void CommonSettingsPage::_setupUI()
 	int maxThread = _projectConfig["common"]["threadsNum"].value_or(1);
 	ElaScrollPageArea* maxThreadArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* maxThreadLayout = new QHBoxLayout(maxThreadArea);
-	ElaText* maxThreadText = new ElaText("最大线程数", maxThreadArea);
+	ElaText* maxThreadText = new ElaText(tr("最大线程数"), maxThreadArea);
 	maxThreadText->setTextPixelSize(16);
 	maxThreadLayout->addWidget(maxThreadText);
 	maxThreadLayout->addStretch();
@@ -74,17 +74,17 @@ void CommonSettingsPage::_setupUI()
 	std::string order = _projectConfig["common"]["sortMethod"].value_or("size");
 	ElaScrollPageArea* orderArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* orderLayout = new QHBoxLayout(orderArea);
-	ElaText* orderText = new ElaText("翻译顺序", orderArea);
+	ElaText* orderText = new ElaText(tr("翻译顺序"), orderArea);
 	orderText->setTextPixelSize(16);
 	ElaToolTip* orderTip = new ElaToolTip(orderText);
-	orderTip->setToolTip("name为文件名，size为大文件优先，多线程时大文件优先可以提高整体速度");
+	orderTip->setToolTip(tr("name为文件名，size为大文件优先，多线程时大文件优先可以提高整体速度"));
 	orderLayout->addWidget(orderText);
 	orderLayout->addStretch();
 	QButtonGroup* orderGroup = new QButtonGroup(orderArea);
-	ElaRadioButton* orderNameRadio = new ElaRadioButton("文件名", orderArea);
+	ElaRadioButton* orderNameRadio = new ElaRadioButton(tr("文件名"), orderArea);
 	orderNameRadio->setChecked(order == "name");
 	orderLayout->addWidget(orderNameRadio);
-	ElaRadioButton* orderSizeRadio = new ElaRadioButton("文件大小", orderArea);
+	ElaRadioButton* orderSizeRadio = new ElaRadioButton(tr("文件大小"), orderArea);
 	orderSizeRadio->setChecked(order == "size");
 	orderLayout->addWidget(orderSizeRadio);
 	orderGroup->addButton(orderNameRadio, 0);
@@ -96,10 +96,10 @@ void CommonSettingsPage::_setupUI()
 	QString targetStr = QString::fromStdString(target);
 	ElaScrollPageArea* targetArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* targetLayout = new QHBoxLayout(targetArea);
-	ElaText* targetText = new ElaText("翻译到的目标语言", targetArea);
+	ElaText* targetText = new ElaText(tr("翻译到的目标语言"), targetArea);
 	targetText->setTextPixelSize(16);
 	ElaToolTip* targetTip = new ElaToolTip(targetText);
-	targetTip->setToolTip("包括但不限于[zh-cn/zh-tw/en/ja/ko/ru/fr]");
+	targetTip->setToolTip(tr("包括但不限于[zh-cn/zh-tw/en/ja/ko/ru/fr]"));
 	targetLayout->addWidget(targetText);
 	targetLayout->addStretch();
 	ElaLineEdit* targetLineEdit = new ElaLineEdit(targetArea);
@@ -114,10 +114,10 @@ void CommonSettingsPage::_setupUI()
 	QWidget* splitHeaderWidget = new QWidget(splitArea);
 	splitArea->setDrawerHeader(splitHeaderWidget);
 	QHBoxLayout* splitLayout = new QHBoxLayout(splitHeaderWidget);
-	ElaText* splitText = new ElaText("单文件分割", splitHeaderWidget);
+	ElaText* splitText = new ElaText(tr("单文件分割"), splitHeaderWidget);
 	splitText->setTextPixelSize(16);
 	ElaToolTip* splitTip = new ElaToolTip(splitText);
-	splitTip->setToolTip("Num: 每n条分割一次，Equal: 每个文件均分n份，No: 关闭单文件分割。");
+	splitTip->setToolTip(tr("Num: 每n条分割一次，Equal: 每个文件均分n份，No: 关闭单文件分割。"));
 	splitLayout->addWidget(splitText);
 	splitLayout->addStretch();
 	QButtonGroup* splitGroup = new QButtonGroup(splitHeaderWidget);
@@ -157,10 +157,10 @@ void CommonSettingsPage::_setupUI()
 	int splitNum = _projectConfig["common"]["splitFileNum"].value_or(1024);
 	QWidget* splitNumArea = new QWidget(splitArea);
 	QHBoxLayout* splitNumLayout = new QHBoxLayout(splitNumArea);
-	ElaText* splitNumText = new ElaText("分割数量", splitNumArea);
+	ElaText* splitNumText = new ElaText(tr("分割数量"), splitNumArea);
 	splitNumText->setTextPixelSize(16);
 	ElaToolTip* splitNumTip = new ElaToolTip(splitNumText);
-	splitNumTip->setToolTip("Num时，表示n句拆分一次；Equal时，表示每个文件均分拆成n部分。");
+	splitNumTip->setToolTip(tr("Num时，表示n句拆分一次；Equal时，表示每个文件均分拆成n部分。"));
 	splitNumLayout->addWidget(splitNumText);
 	splitNumLayout->addStretch();
 	ElaSpinBox* splitNumSpinBox = new ElaSpinBox(splitNumArea);
@@ -179,10 +179,10 @@ void CommonSettingsPage::_setupUI()
 	int saveInterval = _projectConfig["common"]["saveCacheInterval"].value_or(1);
 	ElaScrollPageArea* cacheArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* cacheLayout = new QHBoxLayout(cacheArea);
-	ElaText* cacheText = new ElaText("缓存保存间隔", cacheArea);
+	ElaText* cacheText = new ElaText(tr("缓存保存间隔"), cacheArea);
 	cacheText->setTextPixelSize(16);
 	ElaToolTip* cacheTip = new ElaToolTip(cacheText);
-	cacheTip->setToolTip("每翻译n次保存一次缓存");
+	cacheTip->setToolTip(tr("每翻译n次保存一次缓存"));
 	cacheLayout->addWidget(cacheText);
 	cacheLayout->addStretch();
 	ElaSpinBox* cacheSpinBox = new ElaSpinBox(cacheArea);
@@ -195,7 +195,7 @@ void CommonSettingsPage::_setupUI()
 	int maxRetries = _projectConfig["common"]["maxRetries"].value_or(5);
 	ElaScrollPageArea* retryArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* retryLayout = new QHBoxLayout(retryArea);
-	ElaText* retryText = new ElaText("最大重试次数", retryArea);
+	ElaText* retryText = new ElaText(tr("最大重试次数"), retryArea);
 	retryText->setTextPixelSize(16);
 	retryLayout->addWidget(retryText);
 	retryLayout->addStretch();
@@ -209,7 +209,7 @@ void CommonSettingsPage::_setupUI()
 	int contextNum = _projectConfig["common"]["contextHistorySize"].value_or(8);
 	ElaScrollPageArea* contextArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* contextLayout = new QHBoxLayout(contextArea);
-	ElaText* contextText = new ElaText("携带上文数量", contextArea);
+	ElaText* contextText = new ElaText(tr("携带上文数量"), contextArea);
 	contextText->setTextPixelSize(16);
 	contextLayout->addWidget(contextText);
 	contextLayout->addStretch();
@@ -223,10 +223,10 @@ void CommonSettingsPage::_setupUI()
 	bool smartRetry = _projectConfig["common"]["smartRetry"].value_or(true);
 	ElaScrollPageArea* smartRetryArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* smartRetryLayout = new QHBoxLayout(smartRetryArea);
-	ElaText* smartRetryText = new ElaText("智能重试", smartRetryArea);
+	ElaText* smartRetryText = new ElaText(tr("智能重试"), smartRetryArea);
 	smartRetryText->setTextPixelSize(16);
 	ElaToolTip* smartRetryTip = new ElaToolTip(smartRetryText);
-	smartRetryTip->setToolTip("解析结果失败时尝试折半重翻与清空上下文，避免无效重试。");
+	smartRetryTip->setToolTip(tr("解析结果失败时尝试折半重翻与清空上下文，避免无效重试。"));
 	smartRetryLayout->addWidget(smartRetryText);
 	smartRetryLayout->addStretch();
 	ElaToggleSwitch* smartRetryToggle = new ElaToggleSwitch(smartRetryArea);
@@ -238,10 +238,10 @@ void CommonSettingsPage::_setupUI()
 	bool checkQuota = _projectConfig["common"]["checkQuota"].value_or(true);
 	ElaScrollPageArea* checkQuotaArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* checkQuotaLayout = new QHBoxLayout(checkQuotaArea);
-	ElaText* checkQuotaText = new ElaText("额度检测", checkQuotaArea);
+	ElaText* checkQuotaText = new ElaText(tr("额度检测"), checkQuotaArea);
 	checkQuotaText->setTextPixelSize(16);
 	ElaToolTip* checkQuotaTip = new ElaToolTip(checkQuotaText);
-	checkQuotaTip->setToolTip("运行时动态检测key额度");
+	checkQuotaTip->setToolTip(tr("运行时动态检测key额度"));
 	checkQuotaLayout->addWidget(checkQuotaText);
 	checkQuotaLayout->addStretch();
 	ElaToggleSwitch* checkQuotaToggle = new ElaToggleSwitch(checkQuotaArea);
@@ -254,7 +254,7 @@ void CommonSettingsPage::_setupUI()
 	QString logLevelStr = QString::fromStdString(logLevel);
 	ElaScrollPageArea* logArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* logLayout = new QHBoxLayout(logArea);
-	ElaText* logText = new ElaText("日志级别", logArea);
+	ElaText* logText = new ElaText(tr("日志级别"), logArea);
 	logText->setTextPixelSize(16);
 	logLayout->addWidget(logText);
 	logLayout->addStretch();
@@ -278,7 +278,7 @@ void CommonSettingsPage::_setupUI()
 	bool saveLog = _projectConfig["common"]["saveLog"].value_or(true);
 	ElaScrollPageArea* saveLogArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* saveLogLayout = new QHBoxLayout(saveLogArea);
-	ElaText* saveLogText = new ElaText("保存项目日志", saveLogArea);
+	ElaText* saveLogText = new ElaText(tr("保存项目日志"), saveLogArea);
 	saveLogText->setTextPixelSize(16);
 	saveLogLayout->addWidget(saveLogText);
 	saveLogLayout->addStretch();
@@ -292,9 +292,9 @@ void CommonSettingsPage::_setupUI()
 	QString dictPathStr = QString::fromStdString(dictPath);
 	ElaScrollPageArea* dictArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* dictLayout = new QHBoxLayout(dictArea);
-	ElaText* dictText = new ElaText("分词器词典路径", dictArea);
+	ElaText* dictText = new ElaText(tr("分词器词典路径"), dictArea);
 	ElaToolTip* dictTip = new ElaToolTip(dictText);
-	dictTip->setToolTip("可以使用相对路径");
+	dictTip->setToolTip(tr("可以使用相对路径"));
 	dictText->setTextPixelSize(16);
 	dictLayout->addWidget(dictText);
 	dictLayout->addStretch();
@@ -303,13 +303,13 @@ void CommonSettingsPage::_setupUI()
 	dictLineEdit->setFixedWidth(400);
 	dictLineEdit->setText(dictPathStr);
 	dictLayout->addWidget(dictLineEdit);
-	ElaPushButton* dictButton = new ElaPushButton("浏览", dictArea);
+	ElaPushButton* dictButton = new ElaPushButton(tr("浏览"), dictArea);
 	dictLayout->addWidget(dictButton);
 
 	connect(dictButton, &QPushButton::clicked, this, [=](bool checked)
 		{
 			// 打开文件夹选择对话框
-			QString path = QFileDialog::getExistingDirectory(this, "选择词典文件夹", dictLineEdit->text());
+			QString path = QFileDialog::getExistingDirectory(this, tr("选择词典文件夹"), dictLineEdit->text());
 			if (!path.isEmpty()) {
 				dictLineEdit->setText(path);
 			}
@@ -325,10 +325,10 @@ void CommonSettingsPage::_setupUI()
 	ss << formatter;
 	QString linebreakSymbolStr = QString::fromStdString(ss.str());
 	mainLayout->addSpacing(10);
-	ElaText* linebreakText = new ElaText("本项目所使用的换行符", mainWidget);
+	ElaText* linebreakText = new ElaText(tr("本项目所使用的换行符"), mainWidget);
 	linebreakText->setTextPixelSize(18);
 	ElaToolTip* linebreakTip = new ElaToolTip(linebreakText);
-	linebreakTip->setToolTip("将换行符统一规范为 <br> 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行，具体替换时机详见使用说明，auto为自动检测");
+	linebreakTip->setToolTip(tr("将换行符统一规范为 <br> 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行，具体替换时机详见使用说明，auto为自动检测"));
 	mainLayout->addWidget(linebreakText);
 	ElaPlainTextEdit* linebreakEdit = new ElaPlainTextEdit(mainWidget);
 	linebreakEdit->setPlainText(linebreakSymbolStr);
@@ -340,14 +340,15 @@ void CommonSettingsPage::_setupUI()
 		{
 			insertToml(_projectConfig, "common.numPerRequestTranslate", requestNumSpinBox->value());
 			insertToml(_projectConfig, "common.threadsNum", maxThreadSpinBox->value());
-			QString orderValue = orderGroup->checkedButton()->text();
-			if (orderValue == "文件名") {
-				orderValue = "name";
+			int orderValue = orderGroup->id(orderGroup->checkedButton());
+			QString orderValueStr = "name";
+			if (orderValue == 0) {
+				orderValueStr = "name";
 			}
-			else if (orderValue == "文件大小") {
-				orderValue = "size";
+			else if (orderValue == 1) {
+				orderValueStr = "size";
 			}
-			insertToml(_projectConfig, "common.sortMethod", orderValue.toStdString());
+			insertToml(_projectConfig, "common.sortMethod", orderValueStr.toStdString());
 			insertToml(_projectConfig, "common.targetLang", targetLineEdit->text().toStdString());
 			insertToml(_projectConfig, "common.splitFile", splitGroup->checkedButton()->text().toStdString());
 			insertToml(_projectConfig, "common.splitFileNum", splitNumSpinBox->value());
@@ -365,7 +366,7 @@ void CommonSettingsPage::_setupUI()
 				insertToml(_projectConfig, "common.linebreakSymbol", newLinebreakSymbol);
 			}
 			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败", "linebreakSymbol格式错误", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("linebreakSymbol格式错误"), 3000);
 			}
 		};
 

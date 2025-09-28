@@ -18,7 +18,7 @@ import Tool;
 OtherSettingsPage::OtherSettingsPage(fs::path& projectDir, toml::table& projectConfig, QWidget* parent) : 
 	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir)
 {
-	setWindowTitle("其它设置");
+	setWindowTitle(tr("其它设置"));
 	setTitleVisible(false);
 
 	_setupUI();
@@ -41,7 +41,7 @@ void OtherSettingsPage::_setupUI()
 	pathArea->setFixedHeight(100);
 	QHBoxLayout* pathLayout = new QHBoxLayout(pathArea);
 	ElaText* pathLabel = new ElaText(pathArea);
-	pathLabel->setText("项目路径");
+	pathLabel->setText(tr("项目路径"));
 	pathLabel->setTextPixelSize(16);
 	pathLayout->addWidget(pathLabel);
 	pathLayout->addStretch();
@@ -51,7 +51,7 @@ void OtherSettingsPage::_setupUI()
 	pathEdit->setFixedWidth(550);
 	pathLayout->addWidget(pathEdit);
 	ElaPushButton* openButton = new ElaPushButton(pathArea);
-	openButton->setText("打开文件夹");
+	openButton->setText(tr("打开文件夹"));
 	connect(openButton, &ElaPushButton::clicked, this, [=]()
 		{
 			QUrl dirUrl = QUrl::fromLocalFile(QString(_projectDir.wstring()));
@@ -59,22 +59,22 @@ void OtherSettingsPage::_setupUI()
 		});
 	pathLayout->addWidget(openButton);
 	ElaPushButton* moveButton = new ElaPushButton(pathArea);
-	moveButton->setText("移动项目");
+	moveButton->setText(tr("移动项目"));
 	connect(moveButton, &ElaPushButton::clicked, this, [=]()
 		{
 			if (_projectConfig["GUIConfig"]["isRunning"].value_or(true)) {
-				ElaMessageBar::warning(ElaMessageBarType::TopRight, "移动失败", "项目仍在运行中，无法移动", 3000);
+				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("移动失败"), tr("项目仍在运行中，无法移动"), 3000);
 				return;
 			}
 
-			QString newProjectParentPath = QFileDialog::getExistingDirectory(this, "请选择要移动到的文件夹", QDir::currentPath() + "/Projects");
+			QString newProjectParentPath = QFileDialog::getExistingDirectory(this, tr("请选择要移动到的文件夹"), QDir::currentPath() + "/Projects");
 			if (newProjectParentPath.isEmpty()) {
 				return;
 			}
 
 			fs::path newProjectPath = fs::path(newProjectParentPath.toStdWString()) / _projectDir.filename();
 			if (fs::exists(newProjectPath)) {
-				ElaMessageBar::warning(ElaMessageBarType::TopRight, "移动失败", "目录下已有同名文件夹", 3000);
+				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("移动失败"), tr("目录下已有同名文件夹"), 3000);
 				return;
 			}
 
@@ -82,12 +82,12 @@ void OtherSettingsPage::_setupUI()
 				fs::rename(_projectDir, newProjectPath);
 			}
 			catch (const fs::filesystem_error& e) {
-				ElaMessageBar::warning(ElaMessageBarType::TopRight, "移动失败", QString(e.what()), 3000);
+				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("移动失败"), QString(e.what()), 3000);
 				return;
 			}
 			_projectDir = newProjectPath;
 			pathEdit->setText(QString(_projectDir.wstring()));
-			ElaMessageBar::success(ElaMessageBarType::TopRight, "移动成功", QString(_projectDir.filename().wstring()) + " 项目已移动到新文件夹", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopRight, tr("移动成功"), QString(_projectDir.filename().wstring()) + tr(" 项目已移动到新文件夹"), 3000);
 		});
 	pathLayout->addWidget(moveButton);
 	mainLayout->addWidget(pathArea);
@@ -98,17 +98,17 @@ void OtherSettingsPage::_setupUI()
 	QHBoxLayout* saveLayout = new QHBoxLayout(saveArea);
 	ElaText* saveLabel = new ElaText(saveArea);
 	ElaToolTip* saveTip = new ElaToolTip(saveLabel);
-	saveTip->setToolTip("开始翻译或关闭程序时会自动保存所有项目的配置，一般无需手动保存。");
-	saveLabel->setText("保存项目配置");
+	saveTip->setToolTip(tr("开始翻译或关闭程序时会自动保存所有项目的配置，一般无需手动保存。"));
+	saveLabel->setText(tr("保存项目配置"));
 	saveLabel->setTextPixelSize(16);
 	saveLayout->addWidget(saveLabel);
 	saveLayout->addStretch();
 	ElaPushButton* saveButton = new ElaPushButton(saveArea);
-	saveButton->setText("保存");
+	saveButton->setText(tr("保存"));
 	connect(saveButton, &ElaPushButton::clicked, this, [=]()
 		{
 			Q_EMIT saveConfigSignal();
-			ElaMessageBar::success(ElaMessageBarType::TopRight, "保存成功", "项目 " + QString(_projectDir.filename().wstring()) + " 配置信息已保存", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopRight, tr("保存成功"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 配置信息已保存"), 3000);
 		});
 	saveLayout->addWidget(saveButton);
 	mainLayout->addWidget(saveArea);
@@ -117,15 +117,15 @@ void OtherSettingsPage::_setupUI()
 	// 刷新项目配置
 	ElaScrollPageArea* refreshArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* refreshLayout = new QHBoxLayout(refreshArea);
-	ElaText* refreshLabel = new ElaText("刷新项目配置", refreshArea);
+	ElaText* refreshLabel = new ElaText(tr("刷新项目配置"), refreshArea);
 	refreshLabel->setTextPixelSize(16);
 	refreshLabel->setWordWrap(false);
 	ElaToolTip* refreshTip = new ElaToolTip(refreshLabel);
-	refreshTip->setToolTip("将刷新现有配置和字典，谨慎使用。");
+	refreshTip->setToolTip(tr("将刷新现有配置和字典，谨慎使用。"));
 	refreshLayout->addWidget(refreshLabel);
 	refreshLayout->addStretch();
 	ElaPushButton* refreshButton = new ElaPushButton(refreshArea);
-	refreshButton->setText("刷新");
+	refreshButton->setText(tr("刷新"));
 	connect(refreshButton, &ElaPushButton::clicked, this, [=]()
 		{
 			Q_EMIT refreshProjectConfigSignal();

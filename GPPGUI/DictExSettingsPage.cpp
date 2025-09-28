@@ -14,7 +14,7 @@ import Tool;
 DictExSettingsPage::DictExSettingsPage(toml::table& globalConfig, toml::table& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _globalConfig(globalConfig)
 {
-	setWindowTitle("项目字典设置");
+	setWindowTitle(tr("项目字典设置"));
 	setTitleVisible(false);
 
 	_setupUI();
@@ -40,7 +40,7 @@ void DictExSettingsPage::_setupUI()
 	ElaScrollPageArea* preDictNamesArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* preDictNamesLayout = new QHBoxLayout(preDictNamesArea);
 	ElaText* preDictNamesText = new ElaText(preDictNamesArea);
-	preDictNamesText->setText("选择要启用的译前字典");
+	preDictNamesText->setText(tr("选择要启用的译前字典"));
 	preDictNamesText->setWordWrap(false);
 	preDictNamesText->setTextPixelSize(16);
 	preDictNamesLayout->addWidget(preDictNamesText);
@@ -76,7 +76,7 @@ void DictExSettingsPage::_setupUI()
 	ElaScrollPageArea* gptDictNamesArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* gptDictNamesLayout = new QHBoxLayout(gptDictNamesArea);
 	ElaText* gptDictNamesText = new ElaText(gptDictNamesArea);
-	gptDictNamesText->setText("选择要启用的GPT字典");
+	gptDictNamesText->setText(tr("选择要启用的GPT字典"));
 	gptDictNamesText->setWordWrap(false);
 	gptDictNamesText->setTextPixelSize(16);
 	gptDictNamesLayout->addWidget(gptDictNamesText);
@@ -112,7 +112,7 @@ void DictExSettingsPage::_setupUI()
 	ElaScrollPageArea* postDictNamesArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* postDictNamesLayout = new QHBoxLayout(postDictNamesArea);
 	ElaText* postDictNamesText = new ElaText(postDictNamesArea);
-	postDictNamesText->setText("选择要启用的译后字典");
+	postDictNamesText->setText(tr("选择要启用的译后字典"));
 	postDictNamesText->setWordWrap(false);
 	postDictNamesText->setTextPixelSize(16);
 	postDictNamesLayout->addWidget(postDictNamesText);
@@ -149,7 +149,7 @@ void DictExSettingsPage::_setupUI()
 	ElaScrollPageArea* usePreDictInNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePreDictInNameLayout = new QHBoxLayout(usePreDictInNameArea);
 	ElaText* usePreDictInNameText = new ElaText(usePreDictInNameArea);
-	usePreDictInNameText->setText("将译前字典用在name字段");
+	usePreDictInNameText->setText(tr("将译前字典用在name字段"));
 	usePreDictInNameText->setWordWrap(false);
 	usePreDictInNameText->setTextPixelSize(16);
 	usePreDictInNameLayout->addWidget(usePreDictInNameText);
@@ -163,7 +163,7 @@ void DictExSettingsPage::_setupUI()
 	ElaScrollPageArea* usePostDictInNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePostDictInNameLayout = new QHBoxLayout(usePostDictInNameArea);
 	ElaText* usePostDictInNameText = new ElaText(usePostDictInNameArea);
-	usePostDictInNameText->setText("将译后字典用在name字段");
+	usePostDictInNameText->setText(tr("将译后字典用在name字段"));
 	usePostDictInNameText->setWordWrap(false);
 	usePostDictInNameText->setTextPixelSize(16);
 	usePostDictInNameLayout->addWidget(usePostDictInNameText);
@@ -177,7 +177,7 @@ void DictExSettingsPage::_setupUI()
 	ElaScrollPageArea* usePreDictInMsgArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePreDictInMsgLayout = new QHBoxLayout(usePreDictInMsgArea);
 	ElaText* usePreDictInMsgText = new ElaText(usePreDictInMsgArea);
-	usePreDictInMsgText->setText("将译前字典用在msg字段");
+	usePreDictInMsgText->setText(tr("将译前字典用在msg字段"));
 	usePreDictInMsgText->setWordWrap(false);
 	usePreDictInMsgText->setTextPixelSize(16);
 	usePreDictInMsgLayout->addWidget(usePreDictInMsgText);
@@ -191,7 +191,7 @@ void DictExSettingsPage::_setupUI()
 	ElaScrollPageArea* usePostDictInMsgArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePostDictInMsgLayout = new QHBoxLayout(usePostDictInMsgArea);
 	ElaText* usePostDictInMsgText = new ElaText(usePostDictInMsgArea);
-	usePostDictInMsgText->setText("将译后字典用在msg字段");
+	usePostDictInMsgText->setText(tr("将译后字典用在msg字段"));
 	usePostDictInMsgText->setWordWrap(false);
 	usePostDictInMsgText->setTextPixelSize(16);
 	usePostDictInMsgLayout->addWidget(usePostDictInMsgText);
@@ -205,7 +205,7 @@ void DictExSettingsPage::_setupUI()
 	ElaScrollPageArea* useGPTDictToReplaceNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* useGPTDictToReplaceNameLayout = new QHBoxLayout(useGPTDictToReplaceNameArea);
 	ElaText* useGPTDictToReplaceNameText = new ElaText(useGPTDictToReplaceNameArea);
-	useGPTDictToReplaceNameText->setText("启用GPT字典替换name字段");
+	useGPTDictToReplaceNameText->setText(tr("启用GPT字典替换name字段"));
 	useGPTDictToReplaceNameText->setWordWrap(false);
 	useGPTDictToReplaceNameText->setTextPixelSize(16);
 	useGPTDictToReplaceNameLayout->addWidget(useGPTDictToReplaceNameText);

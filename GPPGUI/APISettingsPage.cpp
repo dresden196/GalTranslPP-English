@@ -22,7 +22,7 @@ import Tool;
 APISettingsPage::APISettingsPage(toml::table& projectConfig, QWidget* parent)
     : BasePage(parent), _projectConfig(projectConfig)
 {
-    setWindowTitle("API 设置");
+    setWindowTitle(tr("API 设置"));
     setTitleVisible(false);
 
     _setupUI();
@@ -57,7 +57,7 @@ void APISettingsPage::_setupUI()
 {
 
     QWidget* centerWidget = new QWidget(this);
-    centerWidget->setWindowTitle("API 设置");
+    centerWidget->setWindowTitle(tr("API 设置"));
     _mainLayout = new QVBoxLayout(centerWidget);
     _mainLayout->setContentsMargins(5, 5, 5, 5);
     _mainLayout->setSpacing(15);
@@ -86,9 +86,9 @@ void APISettingsPage::_setupUI()
     bool isRandom = strategy == "random";
     ElaScrollPageArea* apiStrategyArea = new ElaScrollPageArea(this);
     QHBoxLayout* apiStrategyLayout = new QHBoxLayout(apiStrategyArea);
-    ElaText* apiStrategyTitle = new ElaText("API 使用策略", apiStrategyArea);
+    ElaText* apiStrategyTitle = new ElaText(tr("API 使用策略"), apiStrategyArea);
     ElaToolTip* apiStrategyTip = new ElaToolTip(apiStrategyTitle);
-    apiStrategyTip->setToolTip("令牌策略，random随机轮询，fallback优先第一个，出现[请求错误]时使用下一个");
+    apiStrategyTip->setToolTip(tr("令牌策略，random随机轮询，fallback优先第一个，出现[请求错误]时使用下一个"));
     apiStrategyTitle->setTextPixelSize(15);
     apiStrategyLayout->addWidget(apiStrategyTitle);
     apiStrategyLayout->addStretch();
@@ -108,9 +108,9 @@ void APISettingsPage::_setupUI()
     int timeout = _projectConfig["backendSpecific"]["OpenAI-Compatible"]["apiTimeout"].value_or(180);
     ElaScrollPageArea* apiTimeoutArea = new ElaScrollPageArea(this);
     QHBoxLayout* apiTimeoutLayout = new QHBoxLayout(apiTimeoutArea);
-    ElaText* apiTimeoutTitle = new ElaText("API 超时时间", apiTimeoutArea);
+    ElaText* apiTimeoutTitle = new ElaText(tr("API 超时时间"), apiTimeoutArea);
     ElaToolTip* apiTimeoutTip = new ElaToolTip(apiTimeoutTitle);
-    apiTimeoutTip->setToolTip("API 请求超时时间，单位为秒");
+    apiTimeoutTip->setToolTip(tr("API 请求超时时间，单位为秒"));
     apiTimeoutTitle->setWordWrap(false);
     apiTimeoutTitle->setTextPixelSize(15);
     apiTimeoutLayout->addWidget(apiTimeoutTitle);
@@ -122,7 +122,7 @@ void APISettingsPage::_setupUI()
     apiTimeoutLayout->addWidget(apiTimeoutSpinBox);
 
     // “增加新 API”按钮
-    ElaPushButton* addApiButton = new ElaPushButton("增加新 API", this);
+    ElaPushButton* addApiButton = new ElaPushButton(tr("增加新 API"), this);
     addApiButton->setFixedWidth(120);
     connect(addApiButton, &ElaPushButton::clicked, this, &APISettingsPage::_addApiInputRow);
 
@@ -179,7 +179,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
         keyEdit->setText(key);
     }
     else {
-        keyEdit->setPlaceholderText("请输入 API Key(Sakura引擎可不填)");
+        keyEdit->setPlaceholderText(tr("请输入 API Key(Sakura引擎可不填)"));
     }
     apiKeyLayout->addWidget(keyEdit);
     formLayout->addWidget(apiKeyContainer);
@@ -195,14 +195,14 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
         urlEdit->setText(url);
     }
     else {
-        urlEdit->setPlaceholderText("请输入 API Url");
+        urlEdit->setPlaceholderText(tr("请输入 API Url"));
     }
     apiSecretLayout->addWidget(urlEdit);
     formLayout->addWidget(apiUrlContainer);
 
     QWidget* modelContainer = new QWidget(formContainer);
     QHBoxLayout* modelLayout = new QHBoxLayout(modelContainer);
-    ElaText* modelLabel = new ElaText("模型名称", modelContainer);
+    ElaText* modelLabel = new ElaText(tr("模型名称"), modelContainer);
     modelLabel->setTextPixelSize(13);
     modelLabel->setFixedWidth(80);
     modelLayout->addWidget(modelLabel);
@@ -211,7 +211,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
         modelEdit->setText(model);
     }
     else {
-        modelEdit->setPlaceholderText("请输入模型名称(Sakura引擎可不填)");
+        modelEdit->setPlaceholderText(tr("请输入模型名称(Sakura引擎可不填)"));
     }
     modelLayout->addWidget(modelEdit);
     formLayout->addWidget(modelContainer);
@@ -229,7 +229,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     QWidget* streamContainer = new QWidget(rightContainer);
     QHBoxLayout* streamLayout = new QHBoxLayout(streamContainer);
     streamLayout->addStretch();
-    ElaText* streamLabel = new ElaText("流式", streamContainer);
+    ElaText* streamLabel = new ElaText(tr("流式"), streamContainer);
     streamLabel->setTextPixelSize(13);
     streamLayout->addWidget(streamLabel);
     ElaToggleSwitch* streamSwitch = new ElaToggleSwitch(streamContainer);

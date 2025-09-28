@@ -11,7 +11,7 @@ import Tool;
 
 NJCfgPage::NJCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
-	setWindowTitle("NormalJson 输出配置");
+	setWindowTitle(tr("NormalJson 输出配置"));
 	setContentsMargins(10, 0, 10, 0);
 
 	// 创建一个中心部件和布局
@@ -22,7 +22,7 @@ NJCfgPage::NJCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(par
 	bool outputWithSrc = _projectConfig["plugins"]["NormalJson"]["output_with_src"].value_or(true);
 	ElaScrollPageArea* outputArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* outputLayout = new QHBoxLayout(outputArea);
-	ElaText* outputText = new ElaText("输出带原文", outputArea);
+	ElaText* outputText = new ElaText(tr("输出带原文"), outputArea);
 	outputText->setTextPixelSize(16);
 	outputLayout->addWidget(outputText);
 	outputLayout->addStretch();
@@ -37,7 +37,7 @@ NJCfgPage::NJCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(par
 		};
 
 	mainLayout->addStretch();
-	centerWidget->setWindowTitle("NormalJson 输出配置");
+	centerWidget->setWindowTitle(tr("NormalJson 输出配置"));
 	addCentralWidget(centerWidget);
 }
 

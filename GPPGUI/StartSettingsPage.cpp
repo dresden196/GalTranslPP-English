@@ -28,7 +28,7 @@ import Tool;
 StartSettingsPage::StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::table& projectConfig, QWidget* parent) : 
 	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir), _mainWindow(mainWindow)
 {
-	setWindowTitle("启动设置");
+	setWindowTitle(tr("启动设置"));
 	setTitleVisible(false);
 
 	_setupUI();
@@ -67,7 +67,7 @@ void StartSettingsPage::_setupUI()
 	QFont font = logOutput->font();
 	font.setPixelSize(14);
 	logOutput->setFont(font);
-	logOutput->setPlaceholderText("日志输出");
+	logOutput->setPlaceholderText(tr("日志输出"));
 	topLayout->addWidget(logOutput);
 
 
@@ -81,7 +81,7 @@ void StartSettingsPage::_setupUI()
 	QString filePluginStr = QString::fromStdString(filePlugin);
 	ElaText* fileFormatLabel = new ElaText(buttonArea);
 	fileFormatLabel->setTextPixelSize(16);
-	fileFormatLabel->setText("文件格式:");
+	fileFormatLabel->setText(tr("文件格式:"));
 	buttonLayout->addWidget(fileFormatLabel);
 	_fileFormatComboBox = new NoWheelComboBox(buttonArea);
 	_fileFormatComboBox->addItem("NormalJson");
@@ -97,14 +97,14 @@ void StartSettingsPage::_setupUI()
 
 	// 针对文件格式的输出设置
 	ElaPushButton* outputSetting = new ElaPushButton(buttonArea);
-	outputSetting->setText("文件输出设置");
+	outputSetting->setText(tr("文件输出设置"));
 	buttonLayout->addWidget(outputSetting);
 	connect(outputSetting, &ElaPushButton::clicked, this, &StartSettingsPage::_onOutputSettingClicked);
 
 	// 线程数
 	ElaText* threadNumLabel = new ElaText(buttonArea);
 	threadNumLabel->setTextPixelSize(16);
-	threadNumLabel->setText("工作线程数:");
+	threadNumLabel->setText(tr("工作线程数:"));
 	buttonLayout->addWidget(threadNumLabel);
 	QWidget* threadNumWidget = new QWidget(buttonArea);
 	QHBoxLayout* threadNumLayout = new QHBoxLayout(threadNumWidget);
@@ -119,7 +119,7 @@ void StartSettingsPage::_setupUI()
 	// 已用时间
 	ElaText* usedTimeLabelText = new ElaText(buttonArea);
 	usedTimeLabelText->setTextPixelSize(14);
-	usedTimeLabelText->setText("已用时间:");
+	usedTimeLabelText->setText(tr("已用时间:"));
 	buttonLayout->addWidget(usedTimeLabelText);
 	_usedTimeLabel = new ElaLCDNumber(buttonArea);
 	_usedTimeLabel->display("00:00:00");
@@ -128,7 +128,7 @@ void StartSettingsPage::_setupUI()
 	// 剩余时间
 	ElaText* remainTimeLabelText = new ElaText(buttonArea);
 	remainTimeLabelText->setTextPixelSize(14);
-	remainTimeLabelText->setText("剩余时间:");
+	remainTimeLabelText->setText(tr("剩余时间:"));
 	buttonLayout->addWidget(remainTimeLabelText);
 	_remainTimeLabel = new ElaLCDNumber(buttonArea);
 	_remainTimeLabel->display("00:00:00");
@@ -139,7 +139,7 @@ void StartSettingsPage::_setupUI()
 	QString transEngineStr = QString::fromStdString(transEngine);
 	ElaText* translateModeLabel = new ElaText(buttonArea);
 	translateModeLabel->setTextPixelSize(16);
-	translateModeLabel->setText("翻译模式:");
+	translateModeLabel->setText(tr("翻译模式:"));
 	buttonLayout->addWidget(translateModeLabel);
 	ElaComboBox* translateMode = new NoWheelComboBox(buttonArea);
 	// TODO: 不要被鼠标滚轮的滚动改变选项
@@ -162,7 +162,7 @@ void StartSettingsPage::_setupUI()
 
 	// 开始翻译
 	_startTranslateButton = new ElaPushButton(buttonArea);
-	_startTranslateButton->setText("开始翻译");
+	_startTranslateButton->setText(tr("开始翻译"));
 	connect(_startTranslateButton, &ElaPushButton::clicked, this, &StartSettingsPage::_onStartTranslatingClicked);
 	connect(_startTranslateButton, &ElaPushButton::clicked, this, [=]()
 		{
@@ -179,7 +179,7 @@ void StartSettingsPage::_setupUI()
 
 	// 停止翻译
 	_stopTranslateButton = new ElaPushButton(buttonArea);
-	_stopTranslateButton->setText("停止翻译");
+	_stopTranslateButton->setText(tr("停止翻译"));
 	_stopTranslateButton->setEnabled(false);
 	connect(_stopTranslateButton, &ElaPushButton::clicked, this, &StartSettingsPage::_onStopTranslatingClicked);
 	buttonLayout->addWidget(_stopTranslateButton);
@@ -390,7 +390,7 @@ void StartSettingsPage::_onStopTranslatingClicked()
 {
 	_stopTranslateButton->setEnabled(false);
 	_worker->stopTranslation();
-	ElaMessageBar::information(ElaMessageBarType::BottomRight, "停止中", "正在等待最后一批翻译完成，请稍候...", 3000);
+	ElaMessageBar::information(ElaMessageBarType::BottomRight, tr("停止中"), tr("正在等待最后一批翻译完成，请稍候..."), 3000);
 }
 
 void StartSettingsPage::_workFinished(int exitCode)
@@ -408,50 +408,50 @@ void StartSettingsPage::_workFinished(int exitCode)
 	switch (exitCode)
 	{
 	case -2:
-		ElaMessageBar::error(ElaMessageBarType::BottomRight, "翻译失败", "项目 " + QString(_projectDir.filename().wstring()) + " 翻译任务失败，请检查日志输出。", 3000);
+		ElaMessageBar::error(ElaMessageBarType::BottomRight, tr("翻译失败"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 翻译任务失败，请检查日志输出。"), 3000);
 
 		// 显示通知消息
 		trayIcon->showMessage(
-			"翻译失败",                  // 标题
-			"项目 " + QString(_projectDir.filename().wstring()) + " 翻译任务失败，请检查日志输出。",      // 内容
+			tr("翻译失败"),                  // 标题
+				tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 翻译任务失败，请检查日志输出。"),      // 内容
 			QSystemTrayIcon::Critical, // 图标类型 (Information, Warning, Critical)
 			5000                          // 显示时长 (毫秒)
 		);
 		break;
 	case -1:
-		ElaMessageBar::error(ElaMessageBarType::BottomRight, "翻译失败", "项目 " + QString(_projectDir.filename().wstring()) + " 连工厂函数都失败了，玩毛啊", 3000);
+		ElaMessageBar::error(ElaMessageBarType::BottomRight, tr("翻译失败"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 连工厂函数都失败了，玩毛啊"), 3000);
 		break;
 	case 0:
 		if (_transEngine == "DumpName" || _transEngine == "GenDict") {
-			ElaMessageBar::success(ElaMessageBarType::BottomRight, "生成完成", "项目 " + QString(_projectDir.filename().wstring()) + " 的生成任务已完成。", 3000);
+			ElaMessageBar::success(ElaMessageBarType::BottomRight, tr("生成完成"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的生成任务已完成。"), 3000);
 			trayIcon->showMessage(
-				"生成完成",                  // 标题
-				"项目 " + QString(_projectDir.filename().wstring()) + " 的生成任务已完成。",      // 内容
+				tr("生成完成"),                  // 标题
+					tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的生成任务已完成。"),      // 内容
 				QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
 				5000                          // 显示时长 (毫秒)
 			);
 		}
 		else if (_transEngine == "ShowNormal") {
-			ElaMessageBar::success(ElaMessageBarType::BottomRight, "生成完成", "请在 show_normal 文件夹中查收项目 " + QString(_projectDir.filename().wstring()) + " 的预处理结果。", 3000);
+			ElaMessageBar::success(ElaMessageBarType::BottomRight, tr("生成完成"), tr("请在 show_normal 文件夹中查收项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的预处理结果。"), 3000);
 			trayIcon->showMessage(
-				"生成完成",                  // 标题
-				"请在 show_normal 文件夹中查收项目 " + QString(_projectDir.filename().wstring()) + " 的预处理结果。",      // 内容
+				tr("生成完成"),                  // 标题
+					tr("请在 show_normal 文件夹中查收项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的预处理结果。"),      // 内容
 				QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
 				5000                          // 显示时长 (毫秒)
 			);
 		}
 		else {
-			ElaMessageBar::success(ElaMessageBarType::BottomRight, "翻译完成", "请在 gt_output 文件夹中查收项目 " + QString(_projectDir.filename().wstring()) + " 的翻译结果。", 3000);
+			ElaMessageBar::success(ElaMessageBarType::BottomRight, tr("翻译完成"), tr("请在 gt_output 文件夹中查收项目 ") + QString(_projectDir.filename().wstring()) + " 的翻译结果。", 3000);
 			trayIcon->showMessage(
-				"翻译完成",                  // 标题
-				"请在 gt_output 文件夹中查收项目 " + QString(_projectDir.filename().wstring()) + " 的翻译结果。",      // 内容
+				tr("翻译完成"),                  // 标题
+					tr("请在 gt_output 文件夹中查收项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的翻译结果。"),      // 内容
 				QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
 				5000                          // 显示时长 (毫秒)
 			);
 		}
 		break;
 	case 1:
-		ElaMessageBar::information(ElaMessageBarType::BottomRight, "停止成功", "项目 " + QString(_projectDir.filename().wstring()) + " 的翻译任务已终止", 3000);
+		ElaMessageBar::information(ElaMessageBarType::BottomRight, tr("停止成功"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的翻译任务已终止"), 3000);
 		break;
 	default:
 		break;

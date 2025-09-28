@@ -24,7 +24,7 @@ import Tool;
 
 PASettingsPage::PASettingsPage(toml::table& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
-	setWindowTitle("问题分析");
+	setWindowTitle(tr("问题分析"));
 	setTitleVisible(false);
 
 	_setupUI();
@@ -52,7 +52,7 @@ void PASettingsPage::_setupUI()
 			}
 		}
 	}
-	ElaText* problemListTitle = new ElaText("要发现的问题清单", mainWidget);
+	ElaText* problemListTitle = new ElaText(tr("要发现的问题清单"), mainWidget);
 	problemListTitle->setTextPixelSize(18);
 	mainLayout->addWidget(problemListTitle);
 	ElaFlowLayout* problemListLayout = new ElaFlowLayout();
@@ -75,10 +75,10 @@ void PASettingsPage::_setupUI()
 	QString punctuationSetStr = QString::fromStdString(punctuationSet);
 	ElaScrollPageArea* punctuationListArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* punctuationListLayout = new QHBoxLayout(punctuationListArea);
-	ElaText* punctuationListTitle = new ElaText("标点查错", punctuationListArea);
+	ElaText* punctuationListTitle = new ElaText(tr("标点查错"), punctuationListArea);
 	punctuationListTitle->setTextPixelSize(16);
 	ElaToolTip* punctuationListTip = new ElaToolTip(punctuationListTitle);
-	punctuationListTip->setToolTip("规定标点错漏要查哪些标点");
+	punctuationListTip->setToolTip(tr("规定标点错漏要查哪些标点"));
 	punctuationListLayout->addWidget(punctuationListTitle);
 	punctuationListLayout->addStretch();
 	ElaLineEdit* punctuationList = new ElaLineEdit(punctuationListArea);
@@ -90,10 +90,10 @@ void PASettingsPage::_setupUI()
 	double languageProbability = _projectConfig["problemAnalyze"]["langProbability"].value_or(0.85);
 	ElaScrollPageArea* languageProbabilityArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* languageProbabilityLayout = new QHBoxLayout(languageProbabilityArea);
-	ElaText* languageProbabilityTitle = new ElaText("语言置信度", languageProbabilityArea);
+	ElaText* languageProbabilityTitle = new ElaText(tr("语言置信度"), languageProbabilityArea);
 	languageProbabilityTitle->setTextPixelSize(16);
 	ElaToolTip* languageProbabilityTip = new ElaToolTip(languageProbabilityTitle);
-	languageProbabilityTip->setToolTip("语言不通检测的语言置信度(0-1)，设置越高则检测越精准，但可能遗漏，反之亦然");
+	languageProbabilityTip->setToolTip(tr("语言不通检测的语言置信度(0-1)，设置越高则检测越精准，但可能遗漏，反之亦然"));
 	languageProbabilityLayout->addWidget(languageProbabilityTitle);
 	languageProbabilityLayout->addStretch();
 	ValueSliderWidget* languageProbabilitySlider = new ValueSliderWidget(languageProbabilityArea);
@@ -113,9 +113,9 @@ void PASettingsPage::_setupUI()
 	else {
 		retranslKeysTbl.insert("retranslKeys", toml::array{});
 	}
-	ElaText* retranslKeyHelperText = new ElaText("重翻关键字设定", mainWidget);
+	ElaText* retranslKeyHelperText = new ElaText(tr("重翻关键字设定"), mainWidget);
 	ElaToolTip* retranslKeyHelperTip = new ElaToolTip(retranslKeyHelperText);
-	retranslKeyHelperTip->setToolTip("重翻在缓存的problem或orig_text中包含对应 **关键字** 的句子，遵循toml格式");
+	retranslKeyHelperTip->setToolTip(tr("重翻在缓存的problem或orig_text中包含对应 **关键字** 的句子，遵循toml格式"));
 	retranslKeyHelperText->setTextPixelSize(18);
 	retranslKeyHelperText->setWordWrap(false);
 	mainLayout->addWidget(retranslKeyHelperText);
@@ -148,9 +148,9 @@ void PASettingsPage::_setupUI()
 	else {
 		compareObjTbl.insert("overwriteCompareObj", toml::array{});
 	}
-	ElaText* compareObjHelperText = new ElaText("问题比较对象设定", mainWidget);
+	ElaText* compareObjHelperText = new ElaText(tr("问题比较对象设定"), mainWidget);
 	ElaToolTip* compareObjHelperTip = new ElaToolTip(compareObjHelperText);
-	compareObjHelperTip->setToolTip("问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)，遵循toml格式");
+	compareObjHelperTip->setToolTip(tr("问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)，遵循toml格式"));
 	compareObjHelperText->setTextPixelSize(18);
 	compareObjHelperText->setWordWrap(false);
 	mainLayout->addWidget(compareObjHelperText);
@@ -164,9 +164,9 @@ void PASettingsPage::_setupUI()
 	QWidget* illusButtonWidget = new QWidget(mainWidget);
 	QHBoxLayout* illusButtonLayout = new QHBoxLayout(illusButtonWidget);
 	illusButtonLayout->addStretch();
-	ElaPushButton* illusButton = new ElaPushButton("语法示例", illusButtonWidget);
+	ElaPushButton* illusButton = new ElaPushButton(tr("语法示例"), illusButtonWidget);
 	ElaToolTip* illusButtonTip = new ElaToolTip(illusButton);
-	illusButtonTip->setToolTip("查看 重翻关键字 和 问题比较对象 设定的语法示例");
+	illusButtonTip->setToolTip(tr("查看 重翻关键字 和 问题比较对象 设定的语法示例"));
 	illusButtonLayout->addWidget(illusButton);
 	connect(illusButton, &ElaPushButton::clicked, this, [=]()
 		{
@@ -200,7 +200,7 @@ void PASettingsPage::_setupUI()
 				}
 			}
 			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析错误", "retranslKeys不符合toml格式", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析错误"), tr("retranslKeys不符合 toml 规范"), 3000);
 			}
 
 			try {
@@ -214,7 +214,7 @@ void PASettingsPage::_setupUI()
 				}
 			}
 			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析错误", "overwriteCompareObj不符合toml格式", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析错误"), tr("overwriteCompareObj不符合 toml 规范"), 3000);
 			}
 		};
 

@@ -26,7 +26,7 @@ using json = nlohmann::json;
 CommonNormalDictPage::CommonNormalDictPage(const std::string& mode, toml::table& globalConfig, QWidget* parent) :
 	BasePage(parent), _globalConfig(globalConfig), _mainWindow(parent)
 {
-	setWindowTitle("默认译前字典设置");
+	setWindowTitle(tr("默认译前字典设置"));
 	setTitleVisible(false);
 	setContentsMargins(5, 5, 5, 5);
 
@@ -39,7 +39,7 @@ CommonNormalDictPage::CommonNormalDictPage(const std::string& mode, toml::table&
 		_modePath = "post";
 	}
 	else {
-		QMessageBox::critical(parent, "错误", "未知通用字典模式", QMessageBox::Ok);
+		QMessageBox::critical(parent, tr("错误"), tr("未知通用字典模式"), QMessageBox::Ok);
 		exit(1);
 	}
 
@@ -65,8 +65,8 @@ QList<NormalDictEntry> CommonNormalDictPage::readNormalDicts(const fs::path& dic
 			tbl = toml::parse(ifs);
 		}
 		catch (...) {
-			ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-				QString(dictPath.filename().wstring()) + " 不符合 toml 规范", 3000);
+			ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+				QString(dictPath.filename().wstring()) + tr(" 不符合 toml 规范"), 3000);
 			return result;
 		}
 		ifs.close();
@@ -97,8 +97,8 @@ QList<NormalDictEntry> CommonNormalDictPage::readNormalDicts(const fs::path& dic
 			json j = json::parse(ifs);
 			ifs.close();
 			if (!j.is_array()) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-					QString(dictPath.filename().wstring()) + " 不是预期的 json 格式", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+					QString(dictPath.filename().wstring()) + tr(" 不是预期的 json 格式"), 3000);
 				return result;
 			}
 			for (const auto& elem : j) {
@@ -118,14 +118,14 @@ QList<NormalDictEntry> CommonNormalDictPage::readNormalDicts(const fs::path& dic
 			return result;
 		}
 		catch (...) {
-			ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-				QString(dictPath.filename().wstring()) + " 不符合 json 规范", 3000);
+			ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+				QString(dictPath.filename().wstring()) + tr(" 不符合 json 规范"), 3000);
 			return result;
 		}
 	}
 	else {
-		ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-			QString(dictPath.filename().wstring()) + " 不是支持的格式", 3000);
+		ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+			QString(dictPath.filename().wstring()) + tr(" 不是支持的格式"), 3000);
 	}
 	
 	return result;
@@ -152,18 +152,18 @@ void CommonNormalDictPage::_setupUI()
 	dictNameLabel->setTextPixelSize(18);
 	QString dictNameText;
 	if (_modePath == "pre") {
-		dictNameText = "通用译前字典";
+		dictNameText = tr("通用译前字典");
 	}
 	else if (_modePath == "post") {
-		dictNameText = "通用译后字典";
+		dictNameText = tr("通用译后字典");
 	}
 	dictNameLabel->setText(dictNameText);
 	ElaPushButton* importButton = new ElaPushButton(mainButtonWidget);
-	importButton->setText("导入字典页");
+	importButton->setText(tr("导入字典页"));
 	ElaPushButton* addNewTabButton = new ElaPushButton(mainButtonWidget);
-	addNewTabButton->setText("添加新字典页");
+	addNewTabButton->setText(tr("添加新字典页"));
 	ElaPushButton* removeTabButton = new ElaPushButton(mainButtonWidget);
-	removeTabButton->setText("移除当前页");
+	removeTabButton->setText(tr("移除当前页"));
 	mainButtonLayout->addSpacing(10);
 	mainButtonLayout->addWidget(dictNameLabel);
 	mainButtonLayout->addStretch();
@@ -188,36 +188,36 @@ void CommonNormalDictPage::_setupUI()
 			QWidget* pageButtonWidget = new QWidget(pageMainWidget);
 			QHBoxLayout* pageButtonLayout = new QHBoxLayout(pageButtonWidget);
 			ElaPushButton* plainTextModeButton = new ElaPushButton(mainButtonWidget);
-			plainTextModeButton->setText("纯文本模式");
+			plainTextModeButton->setText(tr("纯文本模式"));
 			ElaPushButton* tableModeButton = new ElaPushButton(mainButtonWidget);
-			tableModeButton->setText("表模式");
+			tableModeButton->setText(tr("表模式"));
 			ElaToggleButton* defaultOnButton = new ElaToggleButton(mainButtonWidget);
-			defaultOnButton->setText("默认启用");
+			defaultOnButton->setText(tr("默认启用"));
 			ElaIconButton* saveAllButton = new ElaIconButton(ElaIconType::CheckDouble, mainButtonWidget);
 			saveAllButton->setFixedWidth(30);
 			ElaToolTip* saveAllButtonToolTip = new ElaToolTip(saveAllButton);
-			saveAllButtonToolTip->setToolTip("保存所有页");
+			saveAllButtonToolTip->setToolTip(tr("保存所有页"));
 			ElaIconButton* saveButton = new ElaIconButton(ElaIconType::Check, mainButtonWidget);
 			saveButton->setFixedWidth(30);
 			ElaToolTip* saveButtonToolTip = new ElaToolTip(saveButton);
-			saveButtonToolTip->setToolTip("保存当前页");
+			saveButtonToolTip->setToolTip(tr("保存当前页"));
 			ElaIconButton* withdrawButton = new ElaIconButton(ElaIconType::ArrowLeft, mainButtonWidget);
 			withdrawButton->setFixedWidth(30);
 			ElaToolTip* withdrawButtonToolTip = new ElaToolTip(withdrawButton);
-			withdrawButtonToolTip->setToolTip("撤回删除行");
+			withdrawButtonToolTip->setToolTip(tr("撤回删除行"));
 			withdrawButton->setEnabled(false);
 			ElaIconButton* refreshButton = new ElaIconButton(ElaIconType::ArrowRotateRight, mainButtonWidget);
 			refreshButton->setFixedWidth(30);
 			ElaToolTip* refreshButtonToolTip = new ElaToolTip(refreshButton);
-			refreshButtonToolTip->setToolTip("刷新当前页");
+			refreshButtonToolTip->setToolTip(tr("刷新当前页"));
 			ElaIconButton* addDictButton = new ElaIconButton(ElaIconType::Plus, mainButtonWidget);
 			addDictButton->setFixedWidth(30);
 			ElaToolTip* addDictButtonToolTip = new ElaToolTip(addDictButton);
-			addDictButtonToolTip->setToolTip("添加词条");
+			addDictButtonToolTip->setToolTip(tr("添加词条"));
 			ElaIconButton* removeDictButton = new ElaIconButton(ElaIconType::Minus, mainButtonWidget);
 			removeDictButton->setFixedWidth(30);
 			ElaToolTip* removeDictButtonToolTip = new ElaToolTip(removeDictButton);
-			removeDictButtonToolTip->setToolTip("删除词条");
+			removeDictButtonToolTip->setToolTip(tr("删除词条"));
 			pageButtonLayout->addWidget(plainTextModeButton);
 			pageButtonLayout->addWidget(tableModeButton);
 			pageButtonLayout->addWidget(defaultOnButton);
@@ -294,14 +294,14 @@ void CommonNormalDictPage::_setupUI()
 			connect(saveAllButton, &ElaPushButton::clicked, this, [=]()
 				{
 					this->apply2Config();
-					ElaMessageBar::success(ElaMessageBarType::TopLeft, "保存成功", "所有默认字典配置均已保存", 3000);
+					ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("保存成功"), tr("所有默认字典配置均已保存"), 3000);
 				});
 
 			auto saveFunc = [=](bool forceSaveInTableModeToInit) // param 导入时先强制保存一下来给纯文本模式作初始化
 				{
 					std::ofstream ofs(dictPath);
 					if (!ofs.is_open()) {
-						ElaMessageBar::error(ElaMessageBarType::TopLeft, "保存失败", "无法打开字典: " +
+						ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("保存失败"), tr("无法打开字典: ") +
 							QString(dictPath.wstring()), 3000);
 						return;
 					}
@@ -345,8 +345,8 @@ void CommonNormalDictPage::_setupUI()
 					}
 					if (!forceSaveInTableModeToInit) {
 						Q_EMIT commonDictsChanged();
-						ElaMessageBar::success(ElaMessageBarType::TopLeft, "保存成功", "字典 " +
-							QString::fromStdString(dictName) + " 已保存", 3000);
+						ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("保存成功"), tr("字典 ") +
+							QString::fromStdString(dictName) + tr(" 已保存"), 3000);
 					}
 				};
 			connect(saveButton, &ElaPushButton::clicked, this, [=]()
@@ -401,8 +401,8 @@ void CommonNormalDictPage::_setupUI()
 				{
 					plainTextEdit->setPlainText(readNormalDictsStr(dictPath));
 					model->loadData(readNormalDicts(dictPath));
-					ElaMessageBar::success(ElaMessageBarType::TopLeft, "刷新成功", "字典 " +
-						QString::fromStdString(dictName) + " 已刷新", 3000);
+					ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("刷新成功"), tr("字典 ") +
+						QString::fromStdString(dictName) + tr(" 已刷新"), 3000);
 				});
 
 			normalTabEntry.pageMainWidget = pageMainWidget;
@@ -437,8 +437,8 @@ void CommonNormalDictPage::_setupUI()
 				tabWidget->addTab(pageMainWidget, QString::fromStdString(*dictNameOpt));
 			}
 			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败", "默认译前字典 " +
-					QString::fromStdString(*dictNameOpt) + " 不符合规范", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("默认译前字典 ") +
+					QString::fromStdString(*dictNameOpt) + tr(" 不符合规范"), 3000);
 				continue;
 			}
 		}
@@ -467,7 +467,7 @@ void CommonNormalDictPage::_setupUI()
 
 	connect(importButton, &ElaPushButton::clicked, this, [=]()
 		{
-			QString dictPathStr = QFileDialog::getOpenFileName(this, "选择字典文件", "./",
+			QString dictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), "./",
 				"TOML files (*.toml);;JSON files (*.json)");
 			if (dictPathStr.isEmpty()) {
 				return;
@@ -482,21 +482,21 @@ void CommonNormalDictPage::_setupUI()
 					return entry.dictPath.stem().wstring() == dictPath.stem().wstring();
 				});
 			if (hasSameNameTab) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "导入失败", "字典 " +
-					QString(dictPath.stem().wstring()) + " 已存在", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("导入失败"), tr("字典 ") +
+					QString(dictPath.stem().wstring()) + tr(" 已存在"), 3000);
 				return;
 			}
 			QWidget* pageMainWidget = createNormalTab(dictPath);
 			tabWidget->addTab(pageMainWidget, QString(dictPath.stem().wstring()));
 			tabWidget->setCurrentIndex(tabWidget->count() - 1);
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "创建成功", "字典页 " + QString(dictPath.stem().wstring()) + " 已创建", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("创建成功"), tr("字典页 ") + QString(dictPath.stem().wstring()) + tr(" 已创建"), 3000);
 		});
 
 	connect(addNewTabButton, &ElaPushButton::clicked, this, [=]()
 		{
 			QString dictName;
 			bool ok;
-			ElaInputDialog inputDialog(_mainWindow, "请输入字典表名称", "新建字典", dictName, &ok);
+			ElaInputDialog inputDialog(_mainWindow, tr("请输入字典表名称"), tr("新建字典"), dictName, &ok);
 			inputDialog.exec();
 
 			if (!ok) {
@@ -504,7 +504,7 @@ void CommonNormalDictPage::_setupUI()
 			}
 			if (dictName.isEmpty() || dictName.contains('/') || dictName.contains('\\') || dictName.contains('.')) {
 				ElaMessageBar::error(ElaMessageBarType::TopLeft,
-					"新建失败", "字典名称不能为空，且不能包含点号、斜杠或反斜杠！", 3000);
+					tr("新建失败"), tr("字典名称不能为空，且不能包含点号、斜杠或反斜杠！"), 3000);
 				return;
 			}
 
@@ -514,15 +514,15 @@ void CommonNormalDictPage::_setupUI()
 					return entry.dictPath.stem().wstring() == dictName.toStdWString();
 				});
 			if (hasSameNameTab || dictName == "项目字典_译前" || dictName == "项目字典_译后") {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "新建失败", "字典 " +
-					QString(newDictPath.stem().wstring()) + " 已存在", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("新建失败"), tr("字典 ") +
+					QString(newDictPath.stem().wstring()) + tr(" 已存在"), 3000);
 				return;
 			}
 
 			std::ofstream ofs(newDictPath);
 			if (!ofs.is_open()) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "新建失败", "无法创建 " +
-					QString(newDictPath.wstring()) + " 文件", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("新建失败"), tr("无法创建 ") +
+					QString(newDictPath.wstring()) + tr(" 文件"), 3000);
 				return;
 			}
 			ofs.close();
@@ -530,15 +530,15 @@ void CommonNormalDictPage::_setupUI()
 			QWidget* pageMainWidget = createNormalTab(newDictPath);
 			tabWidget->addTab(pageMainWidget, dictName);
 			tabWidget->setCurrentIndex(tabWidget->count() - 1);
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "新建成功", "字典页 " +
-				QString(newDictPath.stem().wstring()) + " 已创建", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("新建成功"), tr("字典页 ") +
+				QString(newDictPath.stem().wstring()) + tr(" 已创建"), 3000);
 		});
 
 	connect(removeTabButton, &ElaPushButton::clicked, this, [=]()
 		{
 			int index = tabWidget->currentIndex();
 			if (index < 0) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "移除失败", "请先选择一个字典页！", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("移除失败"), tr("请先选择一个字典页！"), 3000);
 				return;
 			}
 			QWidget* pageMainWidget = tabWidget->currentWidget();
@@ -556,17 +556,17 @@ void CommonNormalDictPage::_setupUI()
 			// 删除提示框
 			ElaContentDialog helpDialog(_mainWindow);
 
-			helpDialog.setRightButtonText("是");
-			helpDialog.setMiddleButtonText("思考人生");
-			helpDialog.setLeftButtonText("否");
+			helpDialog.setRightButtonText(tr("是"));
+			helpDialog.setMiddleButtonText(tr("思考人生"));
+			helpDialog.setLeftButtonText(tr("否"));
 
 			QWidget* widget = new QWidget(&helpDialog);
 			widget->setFixedHeight(110);
 			QVBoxLayout* layout = new QVBoxLayout(widget);
-			ElaText* confirmText = new ElaText("你确定要删除 " + QString::fromStdString(dictName) + " 吗？", 18, widget);
+			ElaText* confirmText = new ElaText(tr("你确定要删除 ") + QString::fromStdString(dictName) + " 吗？", 18, widget);
 			confirmText->setWordWrap(false);
 			layout->addWidget(confirmText);
-			layout->addWidget(new ElaText("将永久删除该字典文件，如有需要请先备份！", 16, widget));
+			layout->addWidget(new ElaText(tr("将永久删除该字典文件，如有需要请先备份！"), 16, widget));
 			helpDialog.setCentralWidget(widget);
 
 			connect(&helpDialog, &ElaContentDialog::rightButtonClicked, this, [=]()
@@ -586,8 +586,8 @@ void CommonNormalDictPage::_setupUI()
 						}
 					}
 					Q_EMIT commonDictsChanged();
-					ElaMessageBar::success(ElaMessageBarType::TopLeft, "删除成功", "字典 "
-						+ QString::fromStdString(dictName) + " 已从字典管理和磁盘中移除！", 3000);
+					ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("删除成功"), tr("字典 ")
+						+ QString::fromStdString(dictName) + tr(" 已从字典管理和磁盘中移除！"), 3000);
 				});
 			helpDialog.exec();
 		});
@@ -600,8 +600,8 @@ void CommonNormalDictPage::_setupUI()
 				
 				std::ofstream ofs(entry.dictPath);
 				if (!ofs.is_open()) {
-					ElaMessageBar::error(ElaMessageBarType::TopLeft, "保存失败", "无法打开字典: " +
-						QString(entry.dictPath.wstring()) + " ，将跳过该字典的保存", 3000);
+					ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("保存失败"), tr("无法打开字典: ") +
+						QString(entry.dictPath.wstring()) + tr(" ，将跳过该字典的保存"), 3000);
 					continue;
 				}
 

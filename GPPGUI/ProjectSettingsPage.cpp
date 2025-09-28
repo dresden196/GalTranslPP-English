@@ -30,7 +30,7 @@ import Tool;
 ProjectSettingsPage::ProjectSettingsPage(toml::table& globalConfig, const fs::path& projectDir, QWidget* parent)
     : BasePage(parent), _projectDir(projectDir), _globalConfig(globalConfig), _mainWindow(parent)
 {
-    setWindowTitle("项目设置主页");
+    setWindowTitle(tr("项目设置主页"));
     setTitleVisible(false);
     setContentsMargins(5, 10, 10, 10);
 
@@ -39,7 +39,7 @@ ProjectSettingsPage::ProjectSettingsPage(toml::table& globalConfig, const fs::pa
         _projectConfig = toml::parse(ifs);
     }
     catch (...) {
-        ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败", "项目 " + QString(_projectDir.filename().wstring()) + " 的配置文件不符合规范", 3000);
+        ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的配置文件不符合 toml 规范"), 3000);
     }
     ifs.close();
     insertToml(_projectConfig, "GUIConfig.isRunning", false);
@@ -96,7 +96,7 @@ void ProjectSettingsPage::_setupUI()
     QWidget* navigationWidget = new QWidget(this);
     navigationWidget->setContentsMargins(0, 0, 0, 0);
     QHBoxLayout* navigationLayout = new QHBoxLayout(navigationWidget);
-    _settingsTitle = new ElaText("API设置", navigationWidget);
+    _settingsTitle = new ElaText(tr("API设置"), navigationWidget);
     _settingsTitle->setContentsMargins(0, 10, 0, 0);
     _settingsTitle->setTextPixelSize(18);
     _settingsTitle->setFixedWidth(85);
@@ -105,33 +105,33 @@ void ProjectSettingsPage::_setupUI()
     navigationLayout->addStretch();
 
     ElaMenu* foundamentalSettingMenu = new ElaMenu(navigationWidget);
-    QAction* apiSettingAction = foundamentalSettingMenu->addElaIconAction(ElaIconType::MagnifyingGlassPlus, "API设置");
-    QAction* commonSettingAction = foundamentalSettingMenu->addElaIconAction(ElaIconType::BoxCheck, "一般设置");
-    QAction* paSettingAction = foundamentalSettingMenu->addElaIconAction(ElaIconType::Question, "问题分析");
+    QAction* apiSettingAction = foundamentalSettingMenu->addElaIconAction(ElaIconType::MagnifyingGlassPlus, tr("API设置"));
+    QAction* commonSettingAction = foundamentalSettingMenu->addElaIconAction(ElaIconType::BoxCheck, tr("一般设置"));
+    QAction* paSettingAction = foundamentalSettingMenu->addElaIconAction(ElaIconType::Question, tr("问题分析"));
 
     ElaToolButton* foundamentalSettingButton = new ElaToolButton(navigationWidget);
     foundamentalSettingButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     foundamentalSettingButton->setElaIcon(ElaIconType::Broom);
-    foundamentalSettingButton->setText("基本设置");
+    foundamentalSettingButton->setText(tr("基本设置"));
     foundamentalSettingButton->setMenu(foundamentalSettingMenu);
 
     ElaMenu* transMenu = new ElaMenu(navigationWidget);
-    QAction* nameTableSettingAction = transMenu->addElaIconAction(ElaIconType::User, "人名表");
-    QAction* dictSettingAction = transMenu->addElaIconAction(ElaIconType::Book, "项目字典");
-    QAction* dictExSettingAction = transMenu->addElaIconAction(ElaIconType::BookQuran, "字典设置");
-    QAction* promptSettingAction = transMenu->addElaIconAction(ElaIconType::Bell, "提示词");
+    QAction* nameTableSettingAction = transMenu->addElaIconAction(ElaIconType::User, tr("人名表"));
+    QAction* dictSettingAction = transMenu->addElaIconAction(ElaIconType::Book, tr("项目字典"));
+    QAction* dictExSettingAction = transMenu->addElaIconAction(ElaIconType::BookQuran, tr("字典设置"));
+    QAction* promptSettingAction = transMenu->addElaIconAction(ElaIconType::Bell, tr("提示词"));
 
     ElaToolButton* transButton = new ElaToolButton(navigationWidget);
     transButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     transButton->setElaIcon(ElaIconType::YenSign);
-    transButton->setText("翻译设置");
+    transButton->setText(tr("翻译设置"));
     transButton->setMenu(transMenu);
 
     ElaMenuBar* menuBar = new ElaMenuBar(navigationWidget);
     menuBar->setContentsMargins(0, 0, 0, 0);
-    QAction* pluginSettingAction = menuBar->addElaIconAction(ElaIconType::Plug, "插件管理");
-    QAction* startTransAction = menuBar->addElaIconAction(ElaIconType::Play, "开始翻译");
-    QAction* otherSettingAction = menuBar->addElaIconAction(ElaIconType::Copy, "其他设置");
+    QAction* pluginSettingAction = menuBar->addElaIconAction(ElaIconType::Plug, tr("插件管理"));
+    QAction* startTransAction = menuBar->addElaIconAction(ElaIconType::Play, tr("开始翻译"));
+    QAction* otherSettingAction = menuBar->addElaIconAction(ElaIconType::Copy, tr("其他设置"));
 
     navigationLayout->addWidget(foundamentalSettingButton);
     navigationLayout->addWidget(transButton);
@@ -155,37 +155,37 @@ void ProjectSettingsPage::_setupUI()
     connect(apiSettingAction, &QAction::triggered, this, [=]()
         {
             _stackedWidget->setCurrentIndex(0);
-            _settingsTitle->setText("API设置");
+            _settingsTitle->setText(tr("API设置"));
         });
     connect(commonSettingAction, &QAction::triggered, this, [=]()
         {
             _stackedWidget->setCurrentIndex(1);
-            _settingsTitle->setText("一般设置");
+            _settingsTitle->setText(tr("一般设置"));
         });
     connect(paSettingAction, &QAction::triggered, this, [=]()
         {
             _stackedWidget->setCurrentIndex(2);
-            _settingsTitle->setText("问题分析");
+            _settingsTitle->setText(tr("问题分析"));
         });
     connect(nameTableSettingAction, &QAction::triggered, this, [=]()
         {
             _stackedWidget->setCurrentIndex(3);
-            _settingsTitle->setText("人名表");
+            _settingsTitle->setText(tr("人名表"));
         });
     connect(dictSettingAction, &QAction::triggered, this, [=]()
         {
             _stackedWidget->setCurrentIndex(4);
-            _settingsTitle->setText("项目字典");
+            _settingsTitle->setText(tr("项目字典"));
         });
     connect(dictExSettingAction, &QAction::triggered, this, [=]()
         {
             _stackedWidget->setCurrentIndex(5);
-            _settingsTitle->setText("字典设置");
+            _settingsTitle->setText(tr("字典设置"));
         });
     connect(promptSettingAction, &QAction::triggered, this, [=]()
         {
             _stackedWidget->setCurrentIndex(6);
-            _settingsTitle->setText("提示词");
+            _settingsTitle->setText(tr("提示词"));
         });
     connect(pluginSettingAction, &QAction::triggered, this, [=]()
         {
@@ -193,7 +193,7 @@ void ProjectSettingsPage::_setupUI()
                 pageNavigation();
             }
             _stackedWidget->setCurrentIndex(7);
-            _settingsTitle->setText("插件管理");
+            _settingsTitle->setText(tr("插件管理"));
         });
     connect(startTransAction, &QAction::triggered, this, [=]()
         {
@@ -201,12 +201,12 @@ void ProjectSettingsPage::_setupUI()
                 pageNavigation();
             }
             _stackedWidget->setCurrentIndex(8);
-            _settingsTitle->setText("开始翻译");
+            _settingsTitle->setText(tr("开始翻译"));
         });
     connect(otherSettingAction, &QAction::triggered, this, [=]()
         {
             _stackedWidget->setCurrentIndex(9);
-            _settingsTitle->setText("其他设置");
+            _settingsTitle->setText(tr("其他设置"));
         });
 
     mainLayout->addWidget(navigationWidget);
@@ -249,7 +249,7 @@ void ProjectSettingsPage::_refreshProjectConfig()
 {
     bool isRunning = _projectConfig["GUIConfig"]["isRunning"].value_or(true);
     if (isRunning) {
-        ElaMessageBar::error(ElaMessageBarType::TopLeft, "正在翻译", "项目仍在运行中，无法刷新配置", 3000);
+        ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("正在翻译"), tr("项目仍在运行中，无法刷新配置"), 3000);
         return;
     }
     std::ifstream ifs(_projectDir / L"config.toml");
@@ -257,7 +257,7 @@ void ProjectSettingsPage::_refreshProjectConfig()
         _projectConfig = toml::parse(ifs);
     }
     catch (...) {
-        ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败", "项目 " + QString(_projectDir.filename().wstring()) + " 的配置文件不符合规范", 3000);
+        ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的配置文件不符合规范"), 3000);
         return;
     }
     ifs.close();
@@ -269,7 +269,7 @@ void ProjectSettingsPage::_refreshProjectConfig()
     }
     _createPages();
     _stackedWidget->setCurrentIndex(9);
-    ElaMessageBar::success(ElaMessageBarType::TopRight, "刷新成功", "项目配置刷新成功", 3000);
+    ElaMessageBar::success(ElaMessageBarType::TopRight, tr("刷新成功"), tr("项目配置刷新成功"), 3000);
 }
 
 void ProjectSettingsPage::_onStartTranslating()

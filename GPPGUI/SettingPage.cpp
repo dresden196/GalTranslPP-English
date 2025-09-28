@@ -23,19 +23,19 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     setWindowTitle("Setting");
     setContentsMargins(20, 10, 20, 10);
 
-    ElaText* themeText = new ElaText("主题设置", this);
+    ElaText* themeText = new ElaText(tr("主题设置"), this);
     themeText->setWordWrap(false);
     themeText->setTextPixelSize(18);
 
     int themeMode = _globalConfig["themeMode"].value_or(0);
     eTheme->setThemeMode((ElaThemeType::ThemeMode)themeMode);
     ElaComboBox* themeComboBox = new ElaComboBox(this);
-    themeComboBox->addItem("日间模式");
-    themeComboBox->addItem("夜间模式");
+    themeComboBox->addItem(tr("日间模式"));
+    themeComboBox->addItem(tr("夜间模式"));
     themeComboBox->setCurrentIndex((int)eTheme->getThemeMode());
     ElaScrollPageArea* themeSwitchArea = new ElaScrollPageArea(this);
     QHBoxLayout* themeSwitchLayout = new QHBoxLayout(themeSwitchArea);
-    ElaText* themeSwitchText = new ElaText("主题切换", this);
+    ElaText* themeSwitchText = new ElaText(tr("主题切换"), this);
     themeSwitchText->setWordWrap(false);
     themeSwitchText->setTextPixelSize(15);
     themeSwitchLayout->addWidget(themeSwitchText);
@@ -105,7 +105,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
 
     ElaScrollPageArea* micaSwitchArea = new ElaScrollPageArea(this);
     QHBoxLayout* micaSwitchLayout = new QHBoxLayout(micaSwitchArea);
-    ElaText* micaSwitchText = new ElaText("窗口效果", this);
+    ElaText* micaSwitchText = new ElaText(tr("窗口效果"), this);
     micaSwitchText->setWordWrap(false);
     micaSwitchText->setTextPixelSize(15);
     micaSwitchLayout->addWidget(micaSwitchText);
@@ -124,7 +124,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     ElaRadioButton* autoButton = new ElaRadioButton("Auto", this);
     ElaScrollPageArea* displayModeArea = new ElaScrollPageArea(this);
     QHBoxLayout* displayModeLayout = new QHBoxLayout(displayModeArea);
-    ElaText* displayModeText = new ElaText("导航栏模式选择", this);
+    ElaText* displayModeText = new ElaText(tr("导航栏模式选择"), this);
     displayModeText->setWordWrap(false);
     displayModeText->setTextPixelSize(15);
     displayModeLayout->addWidget(displayModeText);
@@ -153,14 +153,14 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
         }
     });
 
-    ElaText* helperText = new ElaText("应用程序设置", this);
+    ElaText* helperText = new ElaText(tr("应用程序设置"), this);
     helperText->setWordWrap(false);
     helperText->setTextPixelSize(18);
 
     // 任务完成后自动刷新人名表和字典
     ElaScrollPageArea* autoRefreshArea = new ElaScrollPageArea(this);
     QHBoxLayout* autoRefreshLayout = new QHBoxLayout(autoRefreshArea);
-    ElaText* autoRefreshText = new ElaText("DumpName/GenDict任务成功后自动刷新人名表/项目GPT字典", autoRefreshArea);
+    ElaText* autoRefreshText = new ElaText(tr("DumpName/GenDict任务成功后自动刷新人名表/项目GPT字典"), autoRefreshArea);
     autoRefreshText->setWordWrap(false);
     autoRefreshText->setTextPixelSize(15);
     autoRefreshLayout->addWidget(autoRefreshText);
@@ -176,11 +176,11 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     // 默认以纯文本/表模式打开人名表
     ElaScrollPageArea* nameTableOpenModeArea = new ElaScrollPageArea(this);
     QHBoxLayout* nameTableOpenModeLayout = new QHBoxLayout(nameTableOpenModeArea);
-    ElaText* nameTableOpenModeText = new ElaText("新项目人名表默认打开模式", nameTableOpenModeArea);
+    ElaText* nameTableOpenModeText = new ElaText(tr("新项目人名表默认打开模式"), nameTableOpenModeArea);
     nameTableOpenModeText->setWordWrap(false);
     nameTableOpenModeText->setTextPixelSize(15);
-    ElaRadioButton* nameTableOpenModeTextButton = new ElaRadioButton("纯文本模式", nameTableOpenModeArea);
-    ElaRadioButton* nameTableOpenModeTableButton = new ElaRadioButton("表格模式", nameTableOpenModeArea);
+    ElaRadioButton* nameTableOpenModeTextButton = new ElaRadioButton(tr("纯文本模式"), nameTableOpenModeArea);
+    ElaRadioButton* nameTableOpenModeTableButton = new ElaRadioButton(tr("表格模式"), nameTableOpenModeArea);
     nameTableOpenModeLayout->addWidget(nameTableOpenModeText);
     nameTableOpenModeLayout->addStretch();
     nameTableOpenModeLayout->addWidget(nameTableOpenModeTextButton);
@@ -205,11 +205,11 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     // 默认以纯文本/表模式打开字典
     ElaScrollPageArea* dictOpenModeArea = new ElaScrollPageArea(this);
     QHBoxLayout* dictOpenModeLayout = new QHBoxLayout(dictOpenModeArea);
-    ElaText* dictOpenModeText = new ElaText("新项目字典默认打开模式", dictOpenModeArea);
+    ElaText* dictOpenModeText = new ElaText(tr("新项目字典默认打开模式"), dictOpenModeArea);
     dictOpenModeText->setWordWrap(false);
     dictOpenModeText->setTextPixelSize(15);
-    ElaRadioButton* dictOpenModeTextButton = new ElaRadioButton("纯文本模式", dictOpenModeArea);
-    ElaRadioButton* dictOpenModeTableButton = new ElaRadioButton("表格模式", dictOpenModeArea);
+    ElaRadioButton* dictOpenModeTextButton = new ElaRadioButton(tr("纯文本模式"), dictOpenModeArea);
+    ElaRadioButton* dictOpenModeTableButton = new ElaRadioButton(tr("表格模式"), dictOpenModeArea);
     dictOpenModeLayout->addWidget(dictOpenModeText);
     dictOpenModeLayout->addStretch();
     dictOpenModeLayout->addWidget(dictOpenModeTextButton);
@@ -234,7 +234,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     // 允许在项目仍在运行的情况下关闭程序(危险)
     ElaScrollPageArea* allowCloseWhenRunningArea = new ElaScrollPageArea(this);
     QHBoxLayout* allowCloseWhenRunningLayout = new QHBoxLayout(allowCloseWhenRunningArea);
-    ElaText* allowCloseWhenRunningText = new ElaText("允许在项目仍在运行的情况下关闭程序(危险)", allowCloseWhenRunningArea);
+    ElaText* allowCloseWhenRunningText = new ElaText(tr("允许在项目仍在运行的情况下关闭程序(危险)"), allowCloseWhenRunningArea);
     allowCloseWhenRunningText->setWordWrap(false);
     allowCloseWhenRunningText->setTextPixelSize(15);
     ElaToggleSwitch* allowCloseWhenRunningSwitch = new ElaToggleSwitch(allowCloseWhenRunningArea);
@@ -250,7 +250,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     // 检测到更新后自动下载
     ElaScrollPageArea* autoDownloadArea = new ElaScrollPageArea(this);
     QHBoxLayout* autoDownloadLayout = new QHBoxLayout(autoDownloadArea);
-    ElaText* autoDownloadText = new ElaText("检测到更新后自动下载", autoDownloadArea);
+    ElaText* autoDownloadText = new ElaText(tr("检测到更新后自动下载"), autoDownloadArea);
     autoDownloadText->setWordWrap(false);
     autoDownloadText->setTextPixelSize(15);
     ElaToggleSwitch* autoDownloadSwitch = new ElaToggleSwitch(autoDownloadArea);

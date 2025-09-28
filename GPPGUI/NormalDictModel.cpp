@@ -7,7 +7,7 @@ NormalDictModel::NormalDictModel(QObject* parent)
     : QAbstractTableModel(parent)
 {
     // 初始化表头
-    _headerLabels << "原文" << "译文" << "条件对象" << "条件正则" << "启用正则" << "优先级";
+    _headerLabels << tr("原文") << tr("译文") << tr("条件对象") << tr("条件正则") << tr("启用正则") << tr("优先级");
     Q_ASSERT(_headerLabels.count() == Column::ColumnCount); // 确保枚举和表头数量一致
 }
 

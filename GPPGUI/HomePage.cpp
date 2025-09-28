@@ -24,7 +24,7 @@ HomePage::HomePage(toml::table& globalConfig, QWidget* parent)
     : BasePage(parent), _globalConfig(globalConfig)
 {
     // 预览窗口标题
-    setWindowTitle("主页");
+    setWindowTitle(tr("主页"));
 
     setTitleVisible(false);
     setContentsMargins(2, 2, 0, 0);
@@ -55,7 +55,7 @@ HomePage::HomePage(toml::table& globalConfig, QWidget* parent)
     urlCard1->setUrl("https://github.com/julixian/GalTranslPP");
     urlCard1->setCardPixmap(QPixmap(":/GPPGUI/Resource/Image/github.png"));
     urlCard1->setTitle("GalTransl++\nGithub");
-    urlCard1->setSubTitle("AI 自动化翻译解决方案");
+    urlCard1->setSubTitle(tr("AI 自动化翻译解决方案"));
     ElaToolTip* urlCard1ToolTip = new ElaToolTip(urlCard1);
     urlCard1ToolTip->setToolTip("https://github.com/julixian/GalTranslPP");
     ElaAcrylicUrlCard* urlCard2 = new ElaAcrylicUrlCard(this);
@@ -123,7 +123,10 @@ HomePage::HomePage(toml::table& globalConfig, QWidget* parent)
             QString pathOrUrl = card["pathOrUrl"].value_or("");
             bool fromLocal = card["fromLocal"].value_or(false);
             if (fromLocal) {
-                homeCard->setCardButtonText("启动");
+                homeCard->setCardButtonText(tr("启动"));
+            }
+            else {
+                homeCard->setCardButtonText(tr("获取"));
             }
             if (!pathOrUrl.isEmpty()) {
                 QUrl url = fromLocal? QUrl::fromLocalFile(pathOrUrl) : QUrl(pathOrUrl);

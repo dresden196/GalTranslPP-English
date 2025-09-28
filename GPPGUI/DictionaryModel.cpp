@@ -7,7 +7,7 @@ DictionaryModel::DictionaryModel(QObject* parent)
     : QAbstractTableModel(parent)
 {
     // 初始化表头
-    _headerLabels << "原文" << "译文" << "描述";
+    _headerLabels << tr("原文") << tr("译文") << tr("描述");
 }
 
 // 返回数据行数

@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
+#include <QApplication>
 #include <QProcess>
 #include <QDir>
 #include <QDebug>
@@ -41,6 +42,7 @@ int main(int argc, char* argv[]) {
     if (orgSetProcessDpiAwarenessContext) {
         FnCast(orgSetProcessDpiAwarenessContext, SetProcessDpiAwarenessContext)(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     }
+    FreeLibrary(hUser32);
 #endif
 
     QCoreApplication a(argc, argv);
@@ -57,7 +59,6 @@ int main(int argc, char* argv[]) {
     qint64 pid = parser.value("pid").toLongLong();
     QString sourceZip = parser.value("source");
     QString targetDir = parser.value("target");
-    bool restart = parser.isSet("restart");
 
     if (pid == 0 || sourceZip.isEmpty() || targetDir.isEmpty()) {
         qWarning() << "Invalid arguments provided.";
@@ -98,9 +99,11 @@ int main(int argc, char* argv[]) {
 #ifdef Q_OS_WIN
     MessageBoxW(NULL, L"更新成功", L"成功", MB_OK | MB_TOPMOST);
 #endif
-    if (restart) {
+    QStringList args;
+    args << "--pid" << QString::number(QApplication::applicationPid());
+    if (parser.isSet("restart")) {
         qDebug() << "Restarting main application...";
-        QProcess::startDetached("GalTranslPP_GUI.exe", QStringList(), targetDir);
+        QProcess::startDetached(parser.value("restart"), args, targetDir);
         qDebug() << "Main application restarted.";
     }
 

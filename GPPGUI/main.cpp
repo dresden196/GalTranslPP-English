@@ -1,5 +1,8 @@
 #include <QApplication>
 #include <QDir>
+#include <QCoreApplication>
+#include <QThread>
+#include <QCommandLineParser>
 #include <QSharedMemory>
 #include <QLocalServer>
 #include <QLocalSocket>
@@ -17,6 +20,18 @@
 import std;
 namespace fs = std::filesystem;
 
+void waitForProcessToExit(qint64 pid) {
+#ifdef Q_OS_WIN
+    HANDLE hProcess = OpenProcess(SYNCHRONIZE, FALSE, pid);
+    if (hProcess != NULL) {
+        WaitForSingleObject(hProcess, INFINITE);
+        CloseHandle(hProcess);
+    }
+#else
+
+#endif
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -27,15 +42,22 @@ int main(int argc, char* argv[])
 
     try {
 
+        QApplication a(argc, argv);
+        QDir::setCurrent(QApplication::applicationDirPath());
+
+        QCommandLineParser parser;
+        parser.addHelpOption();
+        parser.addOption({ {"p", "pid"}, "Process ID of the updater application.", "pid" });
+        parser.process(a);
+        if (parser.isSet("pid")) {
+            qint64 pid = parser.value("pid").toLongLong();
+            waitForProcessToExit(pid);
+        }
+
         if (fs::exists(L"Updater_new.exe")) {
             fs::remove(L"Updater.exe");
             fs::rename(L"Updater_new.exe", L"Updater.exe");
         }
-
-        QApplication a(argc, argv);
-
-        QString appDir = QApplication::applicationDirPath();
-        QDir::setCurrent(appDir);
 
         // 1. 使用 QSharedMemory 防止多实例运行
         // 使用一个唯一的key

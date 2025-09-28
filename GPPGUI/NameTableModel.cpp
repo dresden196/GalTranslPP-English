@@ -7,7 +7,7 @@ NameTableModel::NameTableModel(QObject* parent)
     : QAbstractTableModel(parent)
 {
     // 初始化表头
-    _headerLabels << "原名" << "译名" << "出现次数" ;
+    _headerLabels << tr("原名") << tr("译名") << tr("出现次数") ;
 }
 
 // 返回数据行数

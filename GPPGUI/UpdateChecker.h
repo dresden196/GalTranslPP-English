@@ -35,7 +35,7 @@ private Q_SLOTS:
 
 private:
 
-    bool cmpVer(std::string version1, std::string version2);
+    bool cmpVer(std::string version1, std::string version2, bool& isCompatible);
 
     bool m_downloadSuccess = false;
     ElaText* m_statusText = nullptr;

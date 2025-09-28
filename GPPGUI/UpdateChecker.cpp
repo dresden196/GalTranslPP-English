@@ -88,7 +88,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
     m_checkReply = nullptr;
 
     if (reply->error() != QNetworkReply::NoError) {
-        ElaMessageBar::warning(ElaMessageBarType::TopLeft, "更新检测失败", "网络连接失败，请检查网络设置。", 5000);
+        ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("更新检测失败"), tr("网络连接失败，请检查网络设置。"), 5000);
         reply->deleteLater();
         return;
     }
@@ -97,7 +97,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
     QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
 
     if (!jsonDoc.isObject()) {
-        ElaMessageBar::warning(ElaMessageBarType::TopLeft, "更新检测失败", "获取更新信息失败。", 5000);
+        ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("更新检测失败"), tr("获取更新信息失败。"), 5000);
         reply->deleteLater();
         return;
     }
@@ -105,54 +105,59 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
     QJsonObject jsonObj = jsonDoc.object();
     std::string latestVersion = jsonObj["tag_name"].toString().toStdString();
     bool canUpdate = forDownload ? true : m_globalConfig["autoDownloadUpdate"].value_or(true);
-    bool hasNewVersion = cmpVer(latestVersion, GPPVERSION);
+    bool isCompatible = true;
+    bool hasNewVersion = cmpVer(latestVersion, GPPVERSION, isCompatible);
 
     if (hasNewVersion) {
         if (!forDownload) {
-            ElaMessageBar::information(ElaMessageBarType::TopLeft, "检测到新版本", "最新版本: " + QString::fromStdString(latestVersion), 5000);
+            ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("检测到新版本"), tr("最新版本: ") + QString::fromStdString(latestVersion), 5000);
         }
-        // 开启新一轮下载: 没有 正在下载 或 下载被禁用
-        if (!m_downloadReply && canUpdate) {
-            bool hasUpdateFile = false;
-            if (fs::exists(L"GUICORE.zip")) {
-                QString currentFileHash = "sha256:" + calculateFileSha256("GUICORE.zip");
-                QJsonArray assets = jsonObj["assets"].toArray();
-                for (int i = 0; i < assets.size(); i++) {
-                    if (assets[i].toObject()["name"] != "GUICORE.zip") {
-                        continue;
-                    }
-                    QString updateFileHash = assets[i].toObject()["digest"].toString();
-                    if (updateFileHash == currentFileHash) {
-                        m_statusText->setText("更新下载已完成");
-                        m_downloadSuccess = true;
-                        hasUpdateFile = true;
-                        m_trayIcon->showMessage(
-                            "下载完成",                  // 标题
-                            "点击以关闭程序并安装更新",      // 内容
-                            QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
-                            5000                          // 显示时长 (毫秒)
-                        );
-                    }
-                    break;
-                }
+        if (canUpdate && !m_downloadReply) {
+            if (!forDownload && !isCompatible) {
+                ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("不兼容更新"), tr("最新版与含有当前版本不兼容内容，请前往github阅读更新日志后手动下载。"), 5000);
             }
-            if (!hasUpdateFile) {
-                m_statusText->setText("检测到新版本！");
-                QJsonArray assets = jsonObj["assets"].toArray();
-                for (int i = 0; i < assets.size(); i++) {
-                    if (assets[i].toObject()["name"] != "GUICORE.zip") {
-                        continue;
+            else {
+                bool hasUpdateFile = false;
+                if (fs::exists(L"GUICORE.zip")) {
+                    QString currentFileHash = "sha256:" + calculateFileSha256("GUICORE.zip");
+                    QJsonArray assets = jsonObj["assets"].toArray();
+                    for (int i = 0; i < assets.size(); i++) {
+                        if (assets[i].toObject()["name"] != "GUICORE.zip") {
+                            continue;
+                        }
+                        QString updateFileHash = assets[i].toObject()["digest"].toString();
+                        if (updateFileHash == currentFileHash) {
+                            m_statusText->setText(tr("更新下载已完成"));
+                            m_downloadSuccess = true;
+                            hasUpdateFile = true;
+                            m_trayIcon->showMessage(
+                                tr("下载完成"),                  // 标题
+                                    tr("点击以关闭程序并安装更新"),      // 内容
+                                QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
+                                5000                          // 显示时长 (毫秒)
+                            );
+                        }
+                        break;
                     }
-                    ElaMessageBar::information(ElaMessageBarType::TopLeft, "下载更新", "正在下载更新包...", 5000);
-                    m_statusText->setText("下载更新...");
-                    downloadUpdate(assets[i].toObject()["browser_download_url"].toString());
-                    break;
+                }
+                if (!hasUpdateFile) {
+                    m_statusText->setText(tr("检测到新版本！"));
+                    QJsonArray assets = jsonObj["assets"].toArray();
+                    for (int i = 0; i < assets.size(); i++) {
+                        if (assets[i].toObject()["name"] != "GUICORE.zip") {
+                            continue;
+                        }
+                        ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("下载更新"), tr("正在下载更新包..."), 5000);
+                        m_statusText->setText(tr("下载更新..."));
+                        downloadUpdate(assets[i].toObject()["browser_download_url"].toString());
+                        break;
+                    }
                 }
             }
         }
     }
     else {
-        ElaMessageBar::success(ElaMessageBarType::TopLeft, "版本检测", "当前已是最新的版本", 5000);
+        ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("版本检测"), tr("当前已是最新的版本"), 5000);
     }
     reply->deleteLater();
     Q_EMIT checkCompleteSignal(hasNewVersion);
@@ -189,8 +194,8 @@ void UpdateChecker::onDownloadFinished(QNetworkReply* reply)
     m_downloadReply = nullptr;
 
     if (reply->error() != QNetworkReply::NoError) {
-        ElaMessageBar::warning(ElaMessageBarType::TopLeft, "更新下载失败", "网络连接失败，请检查网络设置。", 5000);
-        m_statusText->setText("更新下载失败");
+        ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("更新下载失败"), tr("网络连接失败，请检查网络设置。"), 5000);
+        m_statusText->setText(tr("更新下载失败"));
         reply->deleteLater();
         return;
     }
@@ -200,14 +205,14 @@ void UpdateChecker::onDownloadFinished(QNetworkReply* reply)
     ofs.write(responseData.data(), responseData.size());
     ofs.close();
 
-    ElaMessageBar::success(ElaMessageBarType::TopLeft, "更新下载成功", "将在程序关闭后自动安装更新", 5000);
-    m_statusText->setText("更新下载成功");
+    ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("更新下载成功"), tr("将在程序关闭后自动安装更新"), 5000);
+    m_statusText->setText(tr("更新下载成功"));
     m_downloadSuccess = true;
 
     // 其实我有点想用 wintoast ...，QT这个taryIcon真有点丑
     m_trayIcon->showMessage(
-        "下载完成",                  // 标题
-        "点击以关闭程序并安装更新",      // 内容
+        tr("下载完成"),                  // 标题
+            tr("点击以关闭程序并安装更新"),      // 内容
         QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
         5000                          // 显示时长 (毫秒)
     );
@@ -225,7 +230,7 @@ bool UpdateChecker::getIsDownloading()
     return m_downloadReply != nullptr;
 }
 
-bool UpdateChecker::cmpVer(std::string latestVer, std::string currentVer)
+bool UpdateChecker::cmpVer(std::string latestVer, std::string currentVer, bool& isCompatible)
 {
     bool isCurrentVerPre = false;
     auto removePostfix = [&](std::string& v)
@@ -256,6 +261,9 @@ bool UpdateChecker::cmpVer(std::string latestVer, std::string currentVer)
     for (size_t i = 0; i < len; i++) {
         int lastVerPart = i < lastVerParts.size() ? std::stoi(lastVerParts[i]) : 0;
         int currentVerPart = i < currentVerParts.size() ? std::stoi(currentVerParts[i]) : 0;
+        if (i == 0 && lastVerPart > currentVerPart) {
+            isCompatible = false;
+        }
 
         if (lastVerPart > currentVerPart) {
             return true;

@@ -13,7 +13,7 @@ import Tool;
 AboutDialog::AboutDialog(QWidget* parent)
     : ElaDialog(parent)
 {
-    setWindowTitle("关于..");
+    setWindowTitle(tr("关于"));
     setWindowIcon(QIcon(":/GPPGUI/Resource/Image/webIcon.jpeg"));
     this->setIsFixedSize(true);
     setWindowModality(Qt::ApplicationModal);
@@ -37,13 +37,13 @@ AboutDialog::AboutDialog(QWidget* parent)
     ElaText* licenseText = new ElaText("Apache License 2.0", this);
     licenseText->setWordWrap(false);
     licenseText->setTextPixelSize(14);
-    ElaText* copyrightText = new ElaText("版权所有 © 2025 julixian", this);
+    ElaText* copyrightText = new ElaText(tr("版权所有 © 2025 julixian"), this);
     copyrightText->setWordWrap(false);
     copyrightText->setTextPixelSize(14);
 
     ElaMenuBar* menuBar = new ElaMenuBar(this);
-    QAction* checkUpdateAction = menuBar->addElaIconAction(ElaIconType::CheckToSlot, "检查更新");
-    _downloadUpdateAction = menuBar->addElaIconAction(ElaIconType::Download, "下载更新");
+    QAction* checkUpdateAction = menuBar->addElaIconAction(ElaIconType::CheckToSlot, tr("检查更新"));
+    _downloadUpdateAction = menuBar->addElaIconAction(ElaIconType::Download, tr("下载更新"));
     _downloadUpdateAction->setEnabled(false);
     connect(checkUpdateAction, &QAction::triggered, this, [=]()
         {

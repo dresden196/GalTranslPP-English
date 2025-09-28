@@ -18,7 +18,7 @@ import Tool;
 NameTableSettingsPage::NameTableSettingsPage(fs::path& projectDir, toml::table& globalConfig, toml::table& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _globalConfig(globalConfig), _projectDir(projectDir)
 {
-	setWindowTitle("人名表");
+	setWindowTitle(tr("人名表"));
 	setTitleVisible(false);
 	setContentsMargins(0, 0, 0, 0);
 
@@ -50,7 +50,7 @@ QList<NameTableEntry> NameTableSettingsPage::readNameTable()
 		tbl = toml::parse(ifs);
 	}
 	catch (...) {
-		ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败", "人名替换表 不符合规范", 3000);
+		ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("人名替换表 不符合 toml 规范"), 3000);
 		return result;
 	}
 	ifs.close();
@@ -99,30 +99,30 @@ void NameTableSettingsPage::_setupUI()
 
 	QWidget* buttonWidget = new QWidget(mainWidget);
 	QHBoxLayout* buttonLayout = new QHBoxLayout(buttonWidget);
-	ElaPushButton* plainTextModeButton = new ElaPushButton("纯文本模式", buttonWidget);
-	ElaPushButton* TableModeButton = new ElaPushButton("表模式", buttonWidget);
+	ElaPushButton* plainTextModeButton = new ElaPushButton(tr("纯文本模式"), buttonWidget);
+	ElaPushButton* TableModeButton = new ElaPushButton(tr("表模式"), buttonWidget);
 
 	ElaIconButton* saveDictButton = new ElaIconButton(ElaIconType::Check, buttonWidget);
 	saveDictButton->setFixedWidth(30);
 	ElaToolTip* saveDictButtonToolTip = new ElaToolTip(saveDictButton);
-	saveDictButtonToolTip->setToolTip("保存当前页");
+	saveDictButtonToolTip->setToolTip(tr("保存当前页"));
 	ElaIconButton* withdrawButton = new ElaIconButton(ElaIconType::ArrowLeft, buttonWidget);
 	withdrawButton->setFixedWidth(30);
 	ElaToolTip* withdrawButtonToolTip = new ElaToolTip(withdrawButton);
-	withdrawButtonToolTip->setToolTip("撤回删除行");
+	withdrawButtonToolTip->setToolTip(tr("撤回删除行"));
 	withdrawButton->setEnabled(false);
 	ElaIconButton* refreshButton = new ElaIconButton(ElaIconType::ArrowRotateRight, buttonWidget);
 	refreshButton->setFixedWidth(30);
 	ElaToolTip* refreshButtonToolTip = new ElaToolTip(refreshButton);
-	refreshButtonToolTip->setToolTip("刷新当前页");
+	refreshButtonToolTip->setToolTip(tr("刷新当前页"));
 	ElaIconButton* addNameButton = new ElaIconButton(ElaIconType::Plus, buttonWidget);
 	addNameButton->setFixedWidth(30);
 	ElaToolTip* addNameButtonToolTip = new ElaToolTip(addNameButton);
-	addNameButtonToolTip->setToolTip("添加词条");
+	addNameButtonToolTip->setToolTip(tr("添加词条"));
 	ElaIconButton* delNameButton = new ElaIconButton(ElaIconType::Minus, buttonWidget);
 	delNameButton->setFixedWidth(30);
 	ElaToolTip* delNameButtonToolTip = new ElaToolTip(delNameButton);
-	delNameButtonToolTip->setToolTip("删除词条");
+	delNameButtonToolTip->setToolTip(tr("删除词条"));
 	
 	buttonLayout->addWidget(plainTextModeButton);
 	buttonLayout->addWidget(TableModeButton);
@@ -187,7 +187,7 @@ void NameTableSettingsPage::_setupUI()
 		{
 			plainTextEdit->setPlainText(readNameTableStr());
 			nameTableModel->loadData(readNameTable());
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "刷新成功", "重新载入了人名表", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("刷新成功"), tr("重新载入了人名表"), 3000);
 		};
 	connect(refreshButton, &ElaPushButton::clicked, this, refreshFunc);
 	connect(addNameButton, &ElaPushButton::clicked, this, [=]()
@@ -222,7 +222,7 @@ void NameTableSettingsPage::_setupUI()
 			if (_applyFunc) {
 				_applyFunc();
 			}
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "保存成功", "已保存人名替换表", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("保存成功"), tr("已保存人名替换表"), 3000);
 		});
 	connect(withdrawButton, &ElaPushButton::clicked, this, [=]()
 		{
@@ -273,6 +273,6 @@ void NameTableSettingsPage::_setupUI()
 
 	_refreshFunc = refreshFunc;
 
-	tabWidget->addTab(mainWidget, "人名表");
+	tabWidget->addTab(mainWidget, tr("人名表"));
 	addCentralWidget(tabWidget, true, true, 0);
 }

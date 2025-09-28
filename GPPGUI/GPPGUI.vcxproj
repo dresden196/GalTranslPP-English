@@ -84,6 +84,9 @@
 if exist "$(TargetDir)..\GPPGUI_PRIVATE" copy "$(TargetPath)" "$(TargetDir)..\GPPGUI_PRIVATE\$(TargetName)$(TargetExt)"
 copy "$(TargetPath)" "$(TargetDir)..\GUICORE\$(TargetName)$(TargetExt)"</Command>
     </PostBuildEvent>
+    <QtTranslation>
+      <BuildAction>lupdate_lrelease</BuildAction>
+    </QtTranslation>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -259,6 +262,9 @@ copy "$(TargetPath)" "$(TargetDir)..\GUICORE\$(TargetName)$(TargetExt)"</Command
     <QtMoc Include="CommonGptDictPage.h" />
     <QtMoc Include="DictExSettingsPage.h" />
     <ClInclude Include="NormalTabEntry.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtTranslation Include="Translation_en.ts" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

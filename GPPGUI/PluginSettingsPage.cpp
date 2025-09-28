@@ -16,7 +16,7 @@ import Tool;
 PluginSettingsPage::PluginSettingsPage(QWidget* mainWindow, toml::table& projectConfig, QWidget* parent) :
     BasePage(parent), _projectConfig(projectConfig), _mainWindow(mainWindow)
 {
-    setWindowTitle("插件设置");
+    setWindowTitle(tr("插件设置"));
     setTitleVisible(false);
 
     _setupUI();
@@ -50,7 +50,7 @@ void PluginSettingsPage::_setupUI()
 
     // 后处理插件列表
     ElaText* postTitle = new ElaText(mainWidget);
-    postTitle->setText("后处理插件设置(由上至下执行)");
+    postTitle->setText(tr("后处理插件设置(由上至下执行)"));
     postTitle->setTextPixelSize(18);
 
     // 创建一个容器用于放置列表

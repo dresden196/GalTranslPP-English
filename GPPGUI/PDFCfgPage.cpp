@@ -15,7 +15,7 @@ import Tool;
 
 PDFCfgPage::PDFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
-	setWindowTitle("PDF 输出配置");
+	setWindowTitle(tr("PDF 输出配置"));
 	setContentsMargins(10, 0, 10, 0);
 
 	// 创建一个中心部件和布局
@@ -26,7 +26,7 @@ PDFCfgPage::PDFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	bool outputDual = _projectConfig["plugins"]["PDF"]["输出双语翻译文件"].value_or(true);
 	ElaScrollPageArea* outputArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* outputLayout = new QHBoxLayout(outputArea);
-	ElaText* outputText = new ElaText("输出双语翻译文件", outputArea);
+	ElaText* outputText = new ElaText(tr("输出双语翻译文件"), outputArea);
 	outputText->setTextPixelSize(16);
 	outputLayout->addWidget(outputText);
 	outputLayout->addStretch();
@@ -39,7 +39,7 @@ PDFCfgPage::PDFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	std::string pdfConverterPath = _projectConfig["plugins"]["PDF"]["PDFConverterPath"].value_or("BaseConfig/PDFConverter/PDFConverter.exe");
 	ElaScrollPageArea* converterArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* converterLayout = new QHBoxLayout(converterArea);
-	ElaText* converterText = new ElaText("PDF转换器路径", converterArea);
+	ElaText* converterText = new ElaText(tr("PDF转换器路径"), converterArea);
 	converterText->setTextPixelSize(16);
 	converterLayout->addWidget(converterText);
 	converterLayout->addStretch();
@@ -47,12 +47,12 @@ PDFCfgPage::PDFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	converterEdit->setText(QString::fromStdString(pdfConverterPath));
 	converterEdit->setFixedWidth(600);
 	converterLayout->addWidget(converterEdit);
-	ElaPushButton* converterButton = new ElaPushButton("浏览", converterArea);
+	ElaPushButton* converterButton = new ElaPushButton(tr("浏览"), converterArea);
 	converterLayout->addWidget(converterButton);
 	connect(converterButton, &ElaPushButton::clicked, this, [=]()
 		{
 			// 打开文件选择对话框
-			QString filePath = QFileDialog::getOpenFileName(this, "选择PDF转换器", "BaseConfig/PDFConverter", "executable files (*.exe *.bat *.sh *.py);; All files (*.*)");
+			QString filePath = QFileDialog::getOpenFileName(this, tr("选择PDF转换器"), "BaseConfig/PDFConverter", "executable files (*.exe *.bat *.sh *.py);; All files (*.*)");
 			if (!filePath.isEmpty()) {
 				converterEdit->setText(filePath);
 			}
@@ -62,7 +62,7 @@ PDFCfgPage::PDFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	QWidget* tipButtonWidget = new QWidget(centerWidget);
 	QHBoxLayout* tipLayout = new QHBoxLayout(tipButtonWidget);
 	tipLayout->addStretch();
-	ElaPushButton* tipButton = new ElaPushButton("说明", tipButtonWidget);
+	ElaPushButton* tipButton = new ElaPushButton(tr("说明"), tipButtonWidget);
 	tipLayout->addWidget(tipButton);
 	connect(tipButton, &ElaPushButton::clicked, this, [=]()
 		{
@@ -77,7 +77,7 @@ PDFCfgPage::PDFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 		};
 
 	mainLayout->addStretch();
-	centerWidget->setWindowTitle("PDF 输出配置");
+	centerWidget->setWindowTitle(tr("PDF 输出配置"));
 	addCentralWidget(centerWidget, true, true, 0);
 }
 

@@ -14,7 +14,7 @@ import Tool;
 
 TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
-	setWindowTitle("换行修复设置");
+	setWindowTitle(tr("换行修复设置"));
 	setContentsMargins(10, 0, 10, 0);
 
 	// 创建一个中心部件和布局
@@ -25,7 +25,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	QString fixMode = QString::fromStdString(_projectConfig["plugins"]["TextLinebreakFix"]["换行模式"].value_or(std::string{}));
 	ElaScrollPageArea* fixModeArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* fixModeLayout = new QHBoxLayout(fixModeArea);
-	ElaText* fixModeText = new ElaText("换行模式", fixModeArea);
+	ElaText* fixModeText = new ElaText(tr("换行模式"), fixModeArea);
 	fixModeText->setTextPixelSize(16);
 	fixModeLayout->addWidget(fixModeText);
 	fixModeLayout->addStretch();
@@ -62,9 +62,9 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	int threshold = _projectConfig["plugins"]["TextLinebreakFix"]["分段字数阈值"].value_or(21);
 	ElaScrollPageArea* segmentThresholdArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* segmentThresholdLayout = new QHBoxLayout(segmentThresholdArea);
-	ElaText* segmentThresholdText = new ElaText("分段字数阈值", segmentThresholdArea);
+	ElaText* segmentThresholdText = new ElaText(tr("分段字数阈值"), segmentThresholdArea);
 	ElaToolTip* segmentThresholdTip = new ElaToolTip(segmentThresholdArea);
-	segmentThresholdTip->setToolTip("仅在固定字数模式有效");
+	segmentThresholdTip->setToolTip(tr("仅在固定字数模式有效"));
 	segmentThresholdText->setTextPixelSize(16);
 	segmentThresholdLayout->addWidget(segmentThresholdText);
 	segmentThresholdLayout->addStretch();
@@ -78,7 +78,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	bool forceFix = _projectConfig.at_path("plugins.TextLinebreakFix.强制修复").value_or(false);
 	ElaScrollPageArea* forceFixArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* forceFixLayout = new QHBoxLayout(forceFixArea);
-	ElaText* forceFixText = new ElaText("强制修复", forceFixArea);
+	ElaText* forceFixText = new ElaText(tr("强制修复"), forceFixArea);
 	forceFixText->setTextPixelSize(16);
 	forceFixLayout->addWidget(forceFixText);
 	forceFixLayout->addStretch();
@@ -96,7 +96,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 		};
 
 	mainLayout->addStretch();
-	centerWidget->setWindowTitle("换行修复设置");
+	centerWidget->setWindowTitle(tr("换行修复设置"));
 	addCentralWidget(centerWidget);
 }
 

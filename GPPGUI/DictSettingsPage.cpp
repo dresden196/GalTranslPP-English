@@ -26,7 +26,7 @@ using json = nlohmann::json;
 DictSettingsPage::DictSettingsPage(fs::path& projectDir, toml::table& globalConfig, toml::table& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _globalConfig(globalConfig), _projectDir(projectDir)
 {
-	setWindowTitle("项目字典设置");
+	setWindowTitle(tr("项目字典设置"));
 	setTitleVisible(false);
 	setContentsMargins(0, 0, 0, 0);
 
@@ -59,8 +59,8 @@ QList<DictionaryEntry> DictSettingsPage::readGptDicts(std::optional<fs::path> di
 					tbl = toml::parse(ifs);
 				}
 				catch (...) {
-					ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-						QString(dictPath.filename().wstring()) + "不符合 toml 规范", 3000);
+					ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+						QString(dictPath.filename().wstring()) + tr("不符合 toml 规范"), 3000);
 					return;
 				}
 				ifs.close();
@@ -87,8 +87,8 @@ QList<DictionaryEntry> DictSettingsPage::readGptDicts(std::optional<fs::path> di
 					json j = json::parse(ifs);
 					ifs.close();
 					if (!j.is_array()) {
-						ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-							QString(dictPath.filename().wstring()) + "不是预期的 json 格式", 3000);
+						ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+							QString(dictPath.filename().wstring()) + tr("不是预期的 json 格式"), 3000);
 						return;
 					}
 					for (const auto& elem : j) {
@@ -103,8 +103,8 @@ QList<DictionaryEntry> DictSettingsPage::readGptDicts(std::optional<fs::path> di
 					}
 				}
 				catch (...) {
-					ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-						QString(dictPath.filename().wstring()) + "不符合 json 规范", 3000);
+					ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+						QString(dictPath.filename().wstring()) + tr("不符合 json 规范"), 3000);
 					return;
 				}
 			}
@@ -129,8 +129,8 @@ QList<DictionaryEntry> DictSettingsPage::readGptDicts(std::optional<fs::path> di
 				ifs.close();
 			}
 			else {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-					QString(dictPath.filename().wstring()) + " 不是支持的格式", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+					QString(dictPath.filename().wstring()) + tr(" 不是支持的格式"), 3000);
 				return;
 			}
 		};
@@ -160,8 +160,8 @@ QString DictSettingsPage::readGptDictsStr(std::optional<fs::path> dictPathOpt)
 				tbl = toml::parse(ifs);
 			}
 			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-					QString(dictPath.filename().wstring()) + "不符合规范", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+					QString(dictPath.filename().wstring()) + tr("不符合规范"), 3000);
 				return false;
 			}
 			ifs.close();
@@ -216,8 +216,8 @@ QList<NormalDictEntry> DictSettingsPage::readNormalDicts(const fs::path& dictPat
 			tbl = toml::parse(ifs);
 		}
 		catch (...) {
-			ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-				QString(dictPath.filename().wstring()) + " 不符合 toml 规范", 3000);
+			ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+				QString(dictPath.filename().wstring()) + tr(" 不符合 toml 规范"), 3000);
 			return result;
 		}
 		ifs.close();
@@ -247,8 +247,8 @@ QList<NormalDictEntry> DictSettingsPage::readNormalDicts(const fs::path& dictPat
 			json j = json::parse(ifs);
 			ifs.close();
 			if (!j.is_array()) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-					QString(dictPath.filename().wstring()) + " 不是预期的 json 格式", 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+					QString(dictPath.filename().wstring()) + tr(" 不是预期的 json 格式"), 3000);
 				return result;
 			}
 			for (const auto& elem : j) {
@@ -268,14 +268,14 @@ QList<NormalDictEntry> DictSettingsPage::readNormalDicts(const fs::path& dictPat
 			return result;
 		}
 		catch (...) {
-			ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-				QString(dictPath.filename().wstring()) + " 不符合 json 规范", 3000);
+			ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+				QString(dictPath.filename().wstring()) + tr(" 不符合 json 规范"), 3000);
 			return result;
 		}
 	}
 	else {
-		ElaMessageBar::error(ElaMessageBarType::TopLeft, "解析失败",
-			QString(dictPath.filename().wstring()) + " 不是支持的格式", 3000);
+		ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"),
+			QString(dictPath.filename().wstring()) + tr(" 不是支持的格式"), 3000);
 		return result;
 	}
 	
@@ -310,35 +310,35 @@ void DictSettingsPage::_setupUI()
 	QWidget* gptButtonWidget = new QWidget(mainWidget);
 	QHBoxLayout* gptButtonLayout = new QHBoxLayout(gptButtonWidget);
 	ElaPushButton* gptPlainTextModeButtom = new ElaPushButton(gptButtonWidget);
-	gptPlainTextModeButtom->setText("纯文本模式");
+	gptPlainTextModeButtom->setText(tr("纯文本模式"));
 	ElaPushButton* gptTableModeButtom = new ElaPushButton(gptButtonWidget);
-	gptTableModeButtom->setText("表模式");
+	gptTableModeButtom->setText(tr("表模式"));
 
 	ElaIconButton* saveGptDictButton = new ElaIconButton(ElaIconType::Check, gptButtonWidget);
 	saveGptDictButton->setFixedWidth(30);
 	ElaToolTip* saveGptDictButtonToolTip = new ElaToolTip(saveGptDictButton);
-	saveGptDictButtonToolTip->setToolTip("保存当前页");
+	saveGptDictButtonToolTip->setToolTip(tr("保存当前页"));
 	ElaIconButton* importGptDictButton = new ElaIconButton(ElaIconType::ArrowDownFromLine, gptButtonWidget);
 	importGptDictButton->setFixedWidth(30);
 	ElaToolTip* importGptDictButtonToolTip = new ElaToolTip(importGptDictButton);
-	importGptDictButtonToolTip->setToolTip("导入字典页");
+	importGptDictButtonToolTip->setToolTip(tr("导入字典页"));
 	ElaIconButton* withdrawGptDictButton = new ElaIconButton(ElaIconType::ArrowLeft, gptButtonWidget);
 	withdrawGptDictButton->setFixedWidth(30);
 	ElaToolTip* withdrawGptDictButtonToolTip = new ElaToolTip(withdrawGptDictButton);
-	withdrawGptDictButtonToolTip->setToolTip("撤回删除行");
+	withdrawGptDictButtonToolTip->setToolTip(tr("撤回删除行"));
 	withdrawGptDictButton->setEnabled(false);
 	ElaIconButton* refreshGptDictButton = new ElaIconButton(ElaIconType::ArrowRotateRight, gptButtonWidget);
 	refreshGptDictButton->setFixedWidth(30);
 	ElaToolTip* refreshGptDictButtonToolTip = new ElaToolTip(refreshGptDictButton);
-	refreshGptDictButtonToolTip->setToolTip("刷新当前页");
+	refreshGptDictButtonToolTip->setToolTip(tr("刷新当前页"));
 	ElaIconButton* addGptDictButton = new ElaIconButton(ElaIconType::Plus, gptButtonWidget);
 	addGptDictButton->setFixedWidth(30);
 	ElaToolTip* addGptDictButtonToolTip = new ElaToolTip(addGptDictButton);
-	addGptDictButtonToolTip->setToolTip("添加词条");
+	addGptDictButtonToolTip->setToolTip(tr("添加词条"));
 	ElaIconButton* delGptDictButton = new ElaIconButton(ElaIconType::Minus, gptButtonWidget);
 	delGptDictButton->setFixedWidth(30);
 	ElaToolTip* delGptDictButtonToolTip = new ElaToolTip(delGptDictButton);
-	delGptDictButtonToolTip->setToolTip("删除词条");
+	delGptDictButtonToolTip->setToolTip(tr("删除词条"));
 	gptButtonLayout->addWidget(gptPlainTextModeButtom);
 	gptButtonLayout->addWidget(gptTableModeButtom);
 	gptButtonLayout->addStretch();
@@ -390,7 +390,7 @@ void DictSettingsPage::_setupUI()
 		{
 			gptPlainTextEdit->setPlainText(readGptDictsStr());
 			gptDictModel->loadData(readGptDicts());
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "刷新成功", "重新载入了项目GPT字典", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("刷新成功"), tr("重新载入了项目GPT字典"), 3000);
 		};
 	auto saveGptDictFunc = [=](bool forceSaveInTableModeToInit)
 		{
@@ -426,20 +426,20 @@ void DictSettingsPage::_setupUI()
 		};
 	connect(importGptDictButton, &ElaIconButton::clicked, this, [=]()
 		{
-			QString dictPathStr = QFileDialog::getOpenFileName(this, "选择字典文件", QString(_projectDir.wstring()), "TOML files (*.toml);;JSON files (*.json);;TSV files (*.tsv *.txt)");
+			QString dictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), QString(_projectDir.wstring()), "TOML files (*.toml);;JSON files (*.json);;TSV files (*.tsv *.txt)");
 			if (dictPathStr.isEmpty()) {
 				return;
 			}
 			fs::path dictPath = dictPathStr.toStdWString();
 			QList<DictionaryEntry> entries = readGptDicts(dictPath);
 			if (entries.isEmpty()) {
-				ElaMessageBar::warning(ElaMessageBarType::TopLeft, "导入失败", "字典文件中没有词条", 3000);
+				ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("导入失败"), tr("字典文件中没有词条"), 3000);
 				return;
 			}
 			gptDictModel->loadData(entries);
 			saveGptDictFunc(true);
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "导入成功", "从文件 " + 
-				QString(dictPath.filename().wstring()) + " 中导入了 " + QString::number(entries.size()) + " 个词条", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("导入成功"), tr("从文件 ") +
+				QString(dictPath.filename().wstring()) + tr(" 中导入了 ") + QString::number(entries.size()) + tr(" 个词条"), 3000);
 		});
 	connect(gptPlainTextModeButtom, &ElaPushButton::clicked, this, [=]()
 		{
@@ -463,7 +463,7 @@ void DictSettingsPage::_setupUI()
 	connect(saveGptDictButton, &ElaPushButton::clicked, this, [=]()
 		{
 			saveGptDictFunc(false);
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "保存成功", "已保存项目GPT字典", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("保存成功"), tr("已保存项目GPT字典"), 3000);
 		});
 	connect(addGptDictButton, &ElaPushButton::clicked, this, [=]()
 		{
@@ -506,41 +506,41 @@ void DictSettingsPage::_setupUI()
 				withdrawGptDictButton->setEnabled(false);
 			}
 		});
-	tabWidget->addTab(gptDictWidget, "项目GPT字典");
+	tabWidget->addTab(gptDictWidget, tr("项目GPT字典"));
 
 	QWidget* preDictWidget = new QWidget(mainWidget);
 	QVBoxLayout* preDictLayout = new QVBoxLayout(preDictWidget);
 	QWidget* preButtonWidget = new QWidget(mainWidget);
 	QHBoxLayout* preButtonLayout = new QHBoxLayout(preButtonWidget);
 	ElaPushButton* prePlainTextModeButtom = new ElaPushButton(preButtonWidget);
-	prePlainTextModeButtom->setText("纯文本模式");
+	prePlainTextModeButtom->setText(tr("纯文本模式"));
 	ElaPushButton* preTableModeButtom = new ElaPushButton(preButtonWidget);
-	preTableModeButtom->setText("表模式");
+	preTableModeButtom->setText(tr("表模式"));
 	ElaIconButton* savePreDictButton = new ElaIconButton(ElaIconType::Check, preButtonWidget);
 	savePreDictButton->setFixedWidth(30);
 	ElaToolTip* savePreDictButtonToolTip = new ElaToolTip(savePreDictButton);
-	savePreDictButtonToolTip->setToolTip("保存当前页");
+	savePreDictButtonToolTip->setToolTip(tr("保存当前页"));
 	ElaIconButton* importPreDictButton = new ElaIconButton(ElaIconType::ArrowDownFromLine, preButtonWidget);
 	importPreDictButton->setFixedWidth(30);
 	ElaToolTip* importPreDictButtonToolTip = new ElaToolTip(importPreDictButton);
-	importPreDictButtonToolTip->setToolTip("导入字典页");
+	importPreDictButtonToolTip->setToolTip(tr("导入字典页"));
 	ElaIconButton* withdrawPreDictButton = new ElaIconButton(ElaIconType::ArrowLeft, preButtonWidget);
 	withdrawPreDictButton->setFixedWidth(30);
 	ElaToolTip* withdrawPreDictButtonToolTip = new ElaToolTip(withdrawPreDictButton);
-	withdrawPreDictButtonToolTip->setToolTip("撤回删除行");
+	withdrawPreDictButtonToolTip->setToolTip(tr("撤回删除行"));
 	withdrawPreDictButton->setEnabled(false);
 	ElaIconButton* refreshPreDictButton = new ElaIconButton(ElaIconType::ArrowRotateRight, preButtonWidget);
 	refreshPreDictButton->setFixedWidth(30);
 	ElaToolTip* refreshPreDictButtonToolTip = new ElaToolTip(refreshPreDictButton);
-	refreshPreDictButtonToolTip->setToolTip("刷新当前页");
+	refreshPreDictButtonToolTip->setToolTip(tr("刷新当前页"));
 	ElaIconButton* addPreDictButton = new ElaIconButton(ElaIconType::Plus, preButtonWidget);
 	addPreDictButton->setFixedWidth(30);
 	ElaToolTip* addPreDictButtonToolTip = new ElaToolTip(addPreDictButton);
-	addPreDictButtonToolTip->setToolTip("添加词条");
+	addPreDictButtonToolTip->setToolTip(tr("添加词条"));
 	ElaIconButton* delPreDictButton = new ElaIconButton(ElaIconType::Minus, preButtonWidget);
 	delPreDictButton->setFixedWidth(30);
 	ElaToolTip* delPreDictButtonToolTip = new ElaToolTip(delPreDictButton);
-	delPreDictButtonToolTip->setToolTip("删除词条");
+	delPreDictButtonToolTip->setToolTip(tr("删除词条"));
 	preButtonLayout->addWidget(prePlainTextModeButtom);
 	preButtonLayout->addWidget(preTableModeButtom);
 	preButtonLayout->addStretch();
@@ -588,7 +588,7 @@ void DictSettingsPage::_setupUI()
 		{
 			prePlainTextEdit->setPlainText(readNormalDictsStr(_projectDir / L"项目字典_译前.toml"));
 			preDictModel->loadData(readNormalDicts(_projectDir / L"项目字典_译前.toml"));
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "刷新成功", "重新载入了项目译前字典", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("刷新成功"), tr("重新载入了项目译前字典"), 3000);
 		};
 	auto savePreDictFunc = [=](bool forceSaveInTableModeToInit)
 		{
@@ -624,20 +624,20 @@ void DictSettingsPage::_setupUI()
 		};
 	connect(importPreDictButton, &ElaIconButton::clicked, this, [=]()
 		{
-			QString dictPathStr = QFileDialog::getOpenFileName(this, "选择字典文件", QString(_projectDir.wstring()), "TOML files (*.toml);;JSON files (*.json)");
+			QString dictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), QString(_projectDir.wstring()), "TOML files (*.toml);;JSON files (*.json)");
 			if (dictPathStr.isEmpty()) {
 				return;
 			}
 			fs::path dictPath = dictPathStr.toStdWString();
 			QList<NormalDictEntry> entries = readNormalDicts(dictPath);
 			if (entries.isEmpty()) {
-				ElaMessageBar::warning(ElaMessageBarType::TopLeft, "导入失败", "字典文件中没有词条", 3000);
+				ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("导入失败"), tr("字典文件中没有词条"), 3000);
 				return;
 			}
 			preDictModel->loadData(entries);
 			savePreDictFunc(true);
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "导入成功", "从文件 " +
-				QString(dictPath.filename().wstring()) + " 中导入了 " + QString::number(entries.size()) + " 个词条", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("导入成功"), tr("从文件 ") +
+				QString(dictPath.filename().wstring()) + tr(" 中导入了 ") + QString::number(entries.size()) + tr(" 个词条"), 3000);
 		});
 	connect(prePlainTextModeButtom, &ElaPushButton::clicked, this, [=]()
 		{
@@ -661,7 +661,7 @@ void DictSettingsPage::_setupUI()
 	connect(savePreDictButton, &ElaPushButton::clicked, this, [=]()
 		{
 			savePreDictFunc(false);
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "保存成功", "已保存项目译前字典", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("保存成功"), tr("已保存项目译前字典"), 3000);
 		});
 	connect(addPreDictButton, &ElaPushButton::clicked, this, [=]()
 		{
@@ -704,41 +704,41 @@ void DictSettingsPage::_setupUI()
 				withdrawPreDictButton->setEnabled(false);
 			}
 		});
-	tabWidget->addTab(preDictWidget, "项目译前字典");
+	tabWidget->addTab(preDictWidget, tr("项目译前字典"));
 
 	QWidget* postDictWidget = new QWidget(mainWidget);
 	QVBoxLayout* postDictLayout = new QVBoxLayout(postDictWidget);
 	QWidget* postButtonWidget = new QWidget(mainWidget);
 	QHBoxLayout* postButtonLayout = new QHBoxLayout(postButtonWidget);
 	ElaPushButton* postPlainTextModeButtom = new ElaPushButton(postButtonWidget);
-	postPlainTextModeButtom->setText("纯文本模式");
+	postPlainTextModeButtom->setText(tr("纯文本模式"));
 	ElaPushButton* postTableModeButtom = new ElaPushButton(postButtonWidget);
-	postTableModeButtom->setText("表模式");
+	postTableModeButtom->setText(tr("表模式"));
 	ElaIconButton* savePostDictButton = new ElaIconButton(ElaIconType::Check, postButtonWidget);
 	savePostDictButton->setFixedWidth(30);
 	ElaToolTip* savePostDictButtonToolTip = new ElaToolTip(savePostDictButton);
-	savePostDictButtonToolTip->setToolTip("保存当前页");
+	savePostDictButtonToolTip->setToolTip(tr("保存当前页"));
 	ElaIconButton* importPostDictButton = new ElaIconButton(ElaIconType::ArrowDownFromLine, postButtonWidget);
 	importPostDictButton->setFixedWidth(30);
 	ElaToolTip* importPostDictButtonToolTip = new ElaToolTip(importPostDictButton);
-	importPostDictButtonToolTip->setToolTip("导入字典页");
+	importPostDictButtonToolTip->setToolTip(tr("导入字典页"));
 	ElaIconButton* withdrawPostDictButton = new ElaIconButton(ElaIconType::ArrowLeft, postButtonWidget);
 	withdrawPostDictButton->setFixedWidth(30);
 	ElaToolTip* withdrawPostDictButtonToolTip = new ElaToolTip(withdrawPostDictButton);
-	withdrawPostDictButtonToolTip->setToolTip("撤回删除行");
+	withdrawPostDictButtonToolTip->setToolTip(tr("撤回删除行"));
 	withdrawPostDictButton->setEnabled(false);
 	ElaIconButton* refreshPostDictButton = new ElaIconButton(ElaIconType::ArrowRotateRight, postButtonWidget);
 	refreshPostDictButton->setFixedWidth(30);
 	ElaToolTip* refreshPostDictButtonToolTip = new ElaToolTip(refreshPostDictButton);
-	refreshPostDictButtonToolTip->setToolTip("刷新当前页");
+	refreshPostDictButtonToolTip->setToolTip(tr("刷新当前页"));
 	ElaIconButton* addPostDictButton = new ElaIconButton(ElaIconType::Plus, postButtonWidget);
 	addPostDictButton->setFixedWidth(30);
 	ElaToolTip* addPostDictButtonToolTip = new ElaToolTip(addPostDictButton);
-	addPostDictButtonToolTip->setToolTip("添加词条");
+	addPostDictButtonToolTip->setToolTip(tr("添加词条"));
 	ElaIconButton* delPostDictButton = new ElaIconButton(ElaIconType::Minus, postButtonWidget);
 	delPostDictButton->setFixedWidth(30);
 	ElaToolTip* delPostDictButtonToolTip = new ElaToolTip(delPostDictButton);
-	delPostDictButtonToolTip->setToolTip("删除词条");
+	delPostDictButtonToolTip->setToolTip(tr("删除词条"));
 	postButtonLayout->addWidget(postPlainTextModeButtom);
 	postButtonLayout->addWidget(postTableModeButtom);
 	postButtonLayout->addStretch();
@@ -786,7 +786,7 @@ void DictSettingsPage::_setupUI()
 		{
 			postPlainTextEdit->setPlainText(readNormalDictsStr(_projectDir / L"项目字典_译后.toml"));
 			postDictModel->loadData(readNormalDicts(_projectDir / L"项目字典_译后.toml"));
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "刷新成功", "重新载入了项目译后字典", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("刷新成功"), tr("重新载入了项目译后字典"), 3000);
 		};
 	auto savePostDictFunc = [=](bool forceSaveInTableModeToInit)
 		{
@@ -822,20 +822,20 @@ void DictSettingsPage::_setupUI()
 		};
 	connect(importPostDictButton, &ElaIconButton::clicked, this, [=]()
 		{
-			QString dictPathStr = QFileDialog::getOpenFileName(this, "选择字典文件", QString(_projectDir.wstring()), "TOML files (*.toml);;JSON files (*.json)");
+			QString dictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), QString(_projectDir.wstring()), "TOML files (*.toml);;JSON files (*.json)");
 			if (dictPathStr.isEmpty()) {
 				return;
 			}
 			fs::path dictPath = dictPathStr.toStdWString();
 			QList<NormalDictEntry> entries = readNormalDicts(dictPath);
 			if (entries.isEmpty()) {
-				ElaMessageBar::warning(ElaMessageBarType::TopLeft, "导入失败", "字典文件中没有词条", 3000);
+				ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("导入失败"), tr("字典文件中没有词条"), 3000);
 				return;
 			}
 			postDictModel->loadData(entries);
 			savePostDictFunc(true);
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "导入成功", "从文件 " +
-				QString(dictPath.filename().wstring()) + " 中导入了 " + QString::number(entries.size()) + " 个词条", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("导入成功"), tr("从文件 ") +
+				QString(dictPath.filename().wstring()) + tr(" 中导入了 ") + QString::number(entries.size()) + tr(" 个词条"), 3000);
 		});
 	connect(postPlainTextModeButtom, &ElaPushButton::clicked, this, [=]()
 		{
@@ -859,7 +859,7 @@ void DictSettingsPage::_setupUI()
 	connect(savePostDictButton, &ElaPushButton::clicked, this, [=]()
 		{
 			savePostDictFunc(false);
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, "保存成功", "已保存项目译后字典", 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("保存成功"), tr("已保存项目译后字典"), 3000);
 		});
 	connect(addPostDictButton, &ElaPushButton::clicked, this, [=]()
 		{
@@ -904,7 +904,7 @@ void DictSettingsPage::_setupUI()
 				withdrawPostDictButton->setEnabled(false);
 			}
 		});
-	tabWidget->addTab(postDictWidget, "项目译后字典");
+	tabWidget->addTab(postDictWidget, tr("项目译后字典"));
 
 	_refreshFunc = [=]()
 		{
