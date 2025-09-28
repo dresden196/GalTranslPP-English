@@ -48,7 +48,7 @@ UpdateChecker::UpdateChecker(toml::table& globalConfig, ElaText* statusText, QOb
 
     connect(m_trayIcon, &QSystemTrayIcon::messageClicked, this, [=]()
         {
-            Q_EMIT closeWindowSignal();
+            Q_EMIT applyUpdateAndRestartSignal();
         });
 
     m_checkTimer = new QTimer(this);
@@ -63,6 +63,20 @@ UpdateChecker::UpdateChecker(toml::table& globalConfig, ElaText* statusText, QOb
 void UpdateChecker::check(bool forDownload)
 {
     // GitHub API for the latest release
+    if (m_downloadReply) {
+        ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("别急别急"), tr("正在下载更新包..."), 5000);
+        return;
+    }
+    if (m_downloadSuccess) {
+        ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("下载已完成"), tr("点击卡片以关闭程序并安装更新"), 5000);
+        m_trayIcon->showMessage(
+            tr("下载已完成"),                  // 标题
+                tr("点击以关闭程序并安装更新"),      // 内容
+            QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
+            5000                          // 显示时长 (毫秒)
+        );
+        return;
+    }
     QUrl url("https://api.github.com/repos/" + m_repoOwner + "/" + m_repoName + "/releases/latest");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");

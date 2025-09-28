@@ -24,7 +24,7 @@ public:
 
 Q_SIGNALS:
     void checkCompleteSignal(bool hasNewVersion);
-    void closeWindowSignal();
+    void applyUpdateAndRestartSignal();
 
 private Q_SLOTS:
     void onReplyFinished(QNetworkReply* reply);

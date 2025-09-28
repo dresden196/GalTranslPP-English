@@ -1287,9 +1287,9 @@
     </message>
     <message>
         <location filename="mainwindow.cpp" line="84"/>
-        <location filename="mainwindow.cpp" line="526"/>
-        <location filename="mainwindow.cpp" line="582"/>
-        <location filename="mainwindow.cpp" line="600"/>
+        <location filename="mainwindow.cpp" line="523"/>
+        <location filename="mainwindow.cpp" line="579"/>
+        <location filename="mainwindow.cpp" line="597"/>
         <source>项目 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -1310,7 +1310,7 @@
     </message>
     <message>
         <location filename="mainwindow.cpp" line="164"/>
-        <location filename="mainwindow.cpp" line="324"/>
+        <location filename="mainwindow.cpp" line="321"/>
         <source>新建项目</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1396,207 +1396,197 @@
     </message>
     <message>
         <location filename="mainwindow.cpp" line="280"/>
-        <source>别急别急</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.cpp" line="280"/>
-        <source>已经在下载更新了！</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="mainwindow.cpp" line="283"/>
         <source>请稍候</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="283"/>
+        <location filename="mainwindow.cpp" line="280"/>
         <source>正在下载更新...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="317"/>
+        <location filename="mainwindow.cpp" line="314"/>
         <source>选择新项目的存放位置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="324"/>
+        <location filename="mainwindow.cpp" line="321"/>
         <source>请输入项目名称</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="336"/>
-        <location filename="mainwindow.cpp" line="342"/>
-        <location filename="mainwindow.cpp" line="348"/>
-        <location filename="mainwindow.cpp" line="362"/>
-        <location filename="mainwindow.cpp" line="367"/>
-        <location filename="mainwindow.cpp" line="433"/>
+        <location filename="mainwindow.cpp" line="333"/>
+        <location filename="mainwindow.cpp" line="339"/>
+        <location filename="mainwindow.cpp" line="345"/>
+        <location filename="mainwindow.cpp" line="359"/>
+        <location filename="mainwindow.cpp" line="364"/>
+        <location filename="mainwindow.cpp" line="430"/>
         <source>创建失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="336"/>
-        <location filename="mainwindow.cpp" line="468"/>
+        <location filename="mainwindow.cpp" line="333"/>
+        <location filename="mainwindow.cpp" line="465"/>
         <source>已存在同名项目！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="342"/>
+        <location filename="mainwindow.cpp" line="339"/>
         <source>项目名称不能为空，且不能包含斜杠或反斜杠！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="348"/>
+        <location filename="mainwindow.cpp" line="345"/>
         <source>目录下存在同名文件或文件夹！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="362"/>
+        <location filename="mainwindow.cpp" line="359"/>
         <source>无法创建新文件！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="367"/>
+        <location filename="mainwindow.cpp" line="364"/>
         <source>无法读取模板文件！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="433"/>
+        <location filename="mainwindow.cpp" line="430"/>
         <source>无法写入配置文件！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="445"/>
+        <location filename="mainwindow.cpp" line="442"/>
         <source>创建成功</source>
         <translation type="unfinished">created successfully</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="445"/>
+        <location filename="mainwindow.cpp" line="442"/>
         <source>请将待翻译的文件放入 gt_input 中！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="450"/>
+        <location filename="mainwindow.cpp" line="447"/>
         <source>选择已有项目的文件夹路径</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="457"/>
-        <location filename="mainwindow.cpp" line="468"/>
+        <location filename="mainwindow.cpp" line="454"/>
+        <location filename="mainwindow.cpp" line="465"/>
         <source>打开失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="457"/>
+        <location filename="mainwindow.cpp" line="454"/>
         <source>目录下不存在 config.toml 文件！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="480"/>
+        <location filename="mainwindow.cpp" line="477"/>
         <source>打开成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="480"/>
+        <location filename="mainwindow.cpp" line="477"/>
         <source> 已纳入项目管理！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="491"/>
-        <location filename="mainwindow.cpp" line="495"/>
+        <location filename="mainwindow.cpp" line="488"/>
+        <location filename="mainwindow.cpp" line="492"/>
         <source>移除失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="491"/>
-        <location filename="mainwindow.cpp" line="539"/>
-        <location filename="mainwindow.cpp" line="595"/>
+        <location filename="mainwindow.cpp" line="488"/>
+        <location filename="mainwindow.cpp" line="536"/>
+        <location filename="mainwindow.cpp" line="592"/>
         <source>当前页面不是项目页面！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="495"/>
-        <location filename="mainwindow.cpp" line="543"/>
+        <location filename="mainwindow.cpp" line="492"/>
+        <location filename="mainwindow.cpp" line="540"/>
         <source>当前项目正在运行，请先停止运行！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="500"/>
-        <location filename="mainwindow.cpp" line="548"/>
+        <location filename="mainwindow.cpp" line="497"/>
+        <location filename="mainwindow.cpp" line="545"/>
         <source>是</source>
         <translation type="unfinished">Yes</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="501"/>
-        <location filename="mainwindow.cpp" line="549"/>
+        <location filename="mainwindow.cpp" line="498"/>
+        <location filename="mainwindow.cpp" line="546"/>
         <source>思考人生</source>
         <translation type="unfinished">Thinking of life</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="502"/>
-        <location filename="mainwindow.cpp" line="550"/>
+        <location filename="mainwindow.cpp" line="499"/>
+        <location filename="mainwindow.cpp" line="547"/>
         <source>否</source>
         <translation type="unfinished">No</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="506"/>
+        <location filename="mainwindow.cpp" line="503"/>
         <source>你确定要移除当前项目吗？</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="507"/>
+        <location filename="mainwindow.cpp" line="504"/>
         <source>从项目管理中移除该项目，但不会删除其项目文件夹</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="526"/>
+        <location filename="mainwindow.cpp" line="523"/>
         <source>移除成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="526"/>
+        <location filename="mainwindow.cpp" line="523"/>
         <source> 已从项目管理中移除！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="539"/>
-        <location filename="mainwindow.cpp" line="543"/>
-        <location filename="mainwindow.cpp" line="569"/>
+        <location filename="mainwindow.cpp" line="536"/>
+        <location filename="mainwindow.cpp" line="540"/>
+        <location filename="mainwindow.cpp" line="566"/>
         <source>删除失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="555"/>
+        <location filename="mainwindow.cpp" line="552"/>
         <source>你确定要删除当前项目吗？</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="556"/>
+        <location filename="mainwindow.cpp" line="553"/>
         <source>将删除该项目的项目文件夹，如果不备份，再次翻译将必须从头开始！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="582"/>
+        <location filename="mainwindow.cpp" line="579"/>
         <source>删除成功</source>
         <translation type="unfinished">delete successfully</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="582"/>
+        <location filename="mainwindow.cpp" line="579"/>
         <source> 已从项目管理和磁盘中移除！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="595"/>
+        <location filename="mainwindow.cpp" line="592"/>
         <source>保存失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="600"/>
+        <location filename="mainwindow.cpp" line="597"/>
         <source>保存成功</source>
         <translation type="unfinished">saved successfully</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="600"/>
+        <location filename="mainwindow.cpp" line="597"/>
         <source> 配置信息已保存！</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2579,103 +2569,121 @@
 <context>
     <name>UpdateChecker</name>
     <message>
-        <location filename="UpdateChecker.cpp" line="90"/>
-        <location filename="UpdateChecker.cpp" line="99"/>
+        <location filename="UpdateChecker.cpp" line="104"/>
+        <location filename="UpdateChecker.cpp" line="113"/>
         <source>更新检测失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="90"/>
-        <location filename="UpdateChecker.cpp" line="196"/>
+        <location filename="UpdateChecker.cpp" line="104"/>
+        <location filename="UpdateChecker.cpp" line="210"/>
         <source>网络连接失败，请检查网络设置。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="99"/>
+        <location filename="UpdateChecker.cpp" line="113"/>
         <source>获取更新信息失败。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="112"/>
+        <location filename="UpdateChecker.cpp" line="126"/>
         <source>检测到新版本</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="112"/>
+        <location filename="UpdateChecker.cpp" line="126"/>
         <source>最新版本: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="116"/>
+        <location filename="UpdateChecker.cpp" line="130"/>
         <source>不兼容更新</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="116"/>
+        <location filename="UpdateChecker.cpp" line="130"/>
         <source>最新版含有不兼容当前版本的内容，请在确认 github 发布页更新日志后再酌情下载。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="129"/>
+        <location filename="UpdateChecker.cpp" line="143"/>
         <source>更新下载已完成</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="133"/>
-        <location filename="UpdateChecker.cpp" line="213"/>
+        <location filename="UpdateChecker.cpp" line="147"/>
+        <location filename="UpdateChecker.cpp" line="227"/>
         <source>下载完成</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="134"/>
-        <location filename="UpdateChecker.cpp" line="214"/>
+        <location filename="UpdateChecker.cpp" line="74"/>
+        <location filename="UpdateChecker.cpp" line="148"/>
+        <location filename="UpdateChecker.cpp" line="228"/>
         <source>点击以关闭程序并安装更新</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="143"/>
+        <location filename="UpdateChecker.cpp" line="157"/>
         <source>检测到新版本！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="149"/>
+        <location filename="UpdateChecker.cpp" line="163"/>
         <source>下载更新</source>
         <translation type="unfinished">Download update</translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="149"/>
+        <location filename="UpdateChecker.cpp" line="67"/>
+        <location filename="UpdateChecker.cpp" line="163"/>
         <source>正在下载更新包...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="150"/>
+        <location filename="UpdateChecker.cpp" line="67"/>
+        <source>别急别急</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="UpdateChecker.cpp" line="71"/>
+        <location filename="UpdateChecker.cpp" line="73"/>
+        <source>下载已完成</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="UpdateChecker.cpp" line="71"/>
+        <source>点击卡片以关闭程序并安装更新</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="UpdateChecker.cpp" line="164"/>
         <source>下载更新...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="159"/>
+        <location filename="UpdateChecker.cpp" line="173"/>
         <source>版本检测</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="159"/>
+        <location filename="UpdateChecker.cpp" line="173"/>
         <source>当前已是最新的版本</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="196"/>
-        <location filename="UpdateChecker.cpp" line="197"/>
+        <location filename="UpdateChecker.cpp" line="210"/>
+        <location filename="UpdateChecker.cpp" line="211"/>
         <source>更新下载失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="207"/>
-        <location filename="UpdateChecker.cpp" line="208"/>
+        <location filename="UpdateChecker.cpp" line="221"/>
+        <location filename="UpdateChecker.cpp" line="222"/>
         <source>更新下载成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="207"/>
+        <location filename="UpdateChecker.cpp" line="221"/>
         <source>将在程序关闭后自动安装更新</source>
         <translation type="unfinished"></translation>
     </message>

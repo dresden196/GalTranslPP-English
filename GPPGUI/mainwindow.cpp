@@ -102,13 +102,13 @@ MainWindow::MainWindow(QWidget* parent)
             closeCallback(false);
         });
 
-    connect(_updateChecker, &UpdateChecker::closeWindowSignal, this, [=]()
+    connect(_updateChecker, &UpdateChecker::applyUpdateAndRestartSignal, this, [=]()
         {
             closeCallback(true);
         });
     connect(_updateChecker, &UpdateChecker::checkCompleteSignal, this, [=](bool hasNewVersion)
         {
-            _aboutDialog->setDownloadButtonEnabled(hasNewVersion);
+            _aboutDialog->setDownloadButtonEnabled(hasNewVersion && !_updateChecker->getIsDownloading() && !_updateChecker->getIsDownloadSucceed());
         });
 
     // 初始化提示
@@ -276,10 +276,7 @@ void MainWindow::initContent()
         });
     connect(_aboutDialog, &AboutDialog::downloadUpdateSignal, this, [=]()
         {
-            if (_updateChecker->getIsDownloading()) {
-                ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("别急别急"), tr("已经在下载更新了！"), 3000);
-                return;
-            }
+            _aboutDialog->setDownloadButtonEnabled(false);
             ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("请稍候"), tr("正在下载更新..."), 3000);
             _updateChecker->check(true);
         });
