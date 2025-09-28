@@ -2,6 +2,7 @@
 
 #include <QHBoxLayout>
 #include <QIcon>
+#include <QDesktopServices>
 #include <QVBoxLayout>
 
 #include "ElaImageCard.h"
@@ -18,6 +19,7 @@ AboutDialog::AboutDialog(QWidget* parent)
     this->setIsFixedSize(true);
     setWindowModality(Qt::ApplicationModal);
     setWindowButtonFlags(ElaAppBarType::CloseButtonHint);
+
     ElaImageCard* pixCard = new ElaImageCard(this);
     pixCard->setFixedSize(60, 60);
     pixCard->setIsPreserveAspectCrop(false);
@@ -42,9 +44,15 @@ AboutDialog::AboutDialog(QWidget* parent)
     copyrightText->setTextPixelSize(14);
 
     ElaMenuBar* menuBar = new ElaMenuBar(this);
-    QAction* checkUpdateAction = menuBar->addElaIconAction(ElaIconType::CheckToSlot, tr("检查更新"));
-    _downloadUpdateAction = menuBar->addElaIconAction(ElaIconType::Download, tr("下载更新"));
+    ElaMenuBar* menuBar2 = new ElaMenuBar(this);
+    QAction* jumpToGithubAction = menuBar->addElaIconAction(ElaIconType::Warehouse, tr("查看发布页"));
+    QAction* checkUpdateAction = menuBar2->addElaIconAction(ElaIconType::CheckToSlot, tr("检查更新"));
+    _downloadUpdateAction = menuBar2->addElaIconAction(ElaIconType::Download, tr("下载更新"));
     _downloadUpdateAction->setEnabled(false);
+    connect(jumpToGithubAction, &QAction::triggered, this, [=]()
+        {
+            QDesktopServices::openUrl(QUrl("https://github.com/julixian/GalTranslPP/releases"));
+        });
     connect(checkUpdateAction, &QAction::triggered, this, [=]()
         {
             Q_EMIT checkUpdateSignal();
@@ -56,12 +64,16 @@ AboutDialog::AboutDialog(QWidget* parent)
     QHBoxLayout* checkUpdateLayout = new QHBoxLayout();
     checkUpdateLayout->addStretch();
     checkUpdateLayout->addWidget(menuBar);
+    QHBoxLayout* checkUpdateLayout2 = new QHBoxLayout();
+    checkUpdateLayout2->addStretch();
+    checkUpdateLayout2->addWidget(menuBar2);
 
     QVBoxLayout* textLayout = new QVBoxLayout();
     textLayout->setSpacing(15);
     textLayout->addWidget(versionText);
     textLayout->addWidget(licenseText);
     textLayout->addWidget(copyrightText);
+    textLayout->addLayout(checkUpdateLayout2);
     textLayout->addLayout(checkUpdateLayout);
     textLayout->addStretch();
 

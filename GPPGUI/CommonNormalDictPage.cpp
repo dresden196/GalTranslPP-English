@@ -561,7 +561,6 @@ void CommonNormalDictPage::_setupUI()
 			helpDialog.setLeftButtonText(tr("否"));
 
 			QWidget* widget = new QWidget(&helpDialog);
-			widget->setFixedHeight(110);
 			QVBoxLayout* layout = new QVBoxLayout(widget);
 			ElaText* confirmText = new ElaText(tr("你确定要删除 ") + QString::fromStdString(dictName) + " 吗？", 18, widget);
 			confirmText->setWordWrap(false);

@@ -263,6 +263,37 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
             insertToml(_globalConfig, "autoDownloadUpdate", isChecked);
         });
 
+
+    // 自动检查更新
+    ElaScrollPageArea* checkUpdateArea = new ElaScrollPageArea(this);
+    QHBoxLayout* checkUpdateLayout = new QHBoxLayout(checkUpdateArea);
+    ElaText* checkUpdateText = new ElaText(tr("自动检查更新"), checkUpdateArea);
+    checkUpdateText->setWordWrap(false);
+    checkUpdateText->setTextPixelSize(15);
+    ElaToggleSwitch* checkUpdateSwitch = new ElaToggleSwitch(checkUpdateArea);
+    checkUpdateSwitch->setIsToggled(_globalConfig["autoCheckUpdate"].value_or(true));
+    checkUpdateLayout->addWidget(checkUpdateText);
+    checkUpdateLayout->addStretch();
+    checkUpdateLayout->addWidget(checkUpdateSwitch);
+
+    
+    // 语言设置
+    ElaScrollPageArea* languageArea = new ElaScrollPageArea(this);
+    QHBoxLayout* languageLayout = new QHBoxLayout(languageArea);
+    ElaText* languageText = new ElaText(tr("语言设置(重启生效)"), languageArea);
+    languageText->setWordWrap(false);
+    languageText->setTextPixelSize(15);
+    languageLayout->addWidget(languageText);
+    languageLayout->addStretch();
+    ElaComboBox* languageComboBox = new ElaComboBox(languageArea);
+    languageComboBox->addItem(tr("zh_CN"));
+    languageComboBox->addItem(tr("en"));
+    if (int languageIndex = languageComboBox->findText(_globalConfig["language"].value_or("zh_CN")); languageIndex >= 0) {
+        languageComboBox->setCurrentIndex(languageIndex);
+    }
+    languageLayout->addWidget(languageComboBox);
+
+
     _applyFunc = [=]()
         {
             QRect rect = window->frameGeometry();
@@ -278,6 +309,8 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
             insertToml(_globalConfig, "defaultDictOpenMode", dictOpenModeGroup->id(dictOpenModeGroup->checkedButton()));
             insertToml(_globalConfig, "allowCloseWhenRunning", allowCloseWhenRunningSwitch->getIsToggled());
             insertToml(_globalConfig, "autoDownloadUpdate", autoDownloadSwitch->getIsToggled());
+            insertToml(_globalConfig, "autoCheckUpdate", checkUpdateSwitch->getIsToggled());
+            insertToml(_globalConfig, "language", languageComboBox->currentText().toStdString());
         };
     
 
@@ -298,6 +331,8 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     centerLayout->addWidget(dictOpenModeArea);
     centerLayout->addWidget(allowCloseWhenRunningArea);
     centerLayout->addWidget(autoDownloadArea);
+    centerLayout->addWidget(checkUpdateArea);
+    centerLayout->addWidget(languageArea);
     centerLayout->addStretch();
     centerLayout->setContentsMargins(0, 0, 0, 0);
     addCentralWidget(centralWidget, true, true, 0);

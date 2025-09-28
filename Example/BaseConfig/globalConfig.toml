@@ -1,8 +1,10 @@
 allowCloseWhenRunning = false
+autoCheckUpdate = true
 autoDownloadUpdate = true
 autoRefreshAfterTranslate = true
 defaultDictOpenMode = 0
 defaultNameTableOpenMode = 0
+language = 'zh_CN'
 navigationMode = 0
 projects = []
 themeMode = 0

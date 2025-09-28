@@ -203,6 +203,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     QWidget* modelContainer = new QWidget(formContainer);
     QHBoxLayout* modelLayout = new QHBoxLayout(modelContainer);
     ElaText* modelLabel = new ElaText(tr("模型名称"), modelContainer);
+    modelLabel->setWordWrap(false);
     modelLabel->setTextPixelSize(13);
     modelLabel->setFixedWidth(80);
     modelLayout->addWidget(modelLabel);

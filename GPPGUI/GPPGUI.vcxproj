@@ -81,11 +81,15 @@
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(TargetDir)..\GUICORE" mkdir "$(TargetDir)..\GUICORE"
+if not exist "$(TargetDir)..\GUICORE\translations" mkdir "$(TargetDir)..\GUICORE\translations"
 if exist "$(TargetDir)..\GPPGUI_PRIVATE" copy "$(TargetPath)" "$(TargetDir)..\GPPGUI_PRIVATE\$(TargetName)$(TargetExt)"
-copy "$(TargetPath)" "$(TargetDir)..\GUICORE\$(TargetName)$(TargetExt)"</Command>
+if exist "$(TargetDir)..\GPPGUI_PRIVATE" copy "$(TargetDir)translations\Translation_*.*" "$(TargetDir)..\GPPGUI_PRIVATE\translations\"
+copy "$(TargetPath)" "$(TargetDir)..\GUICORE\$(TargetName)$(TargetExt)"
+copy "$(TargetDir)translations\Translation_*.*" "$(TargetDir)..\GUICORE\translations\"</Command>
     </PostBuildEvent>
     <QtTranslation>
       <BuildAction>lupdate_lrelease</BuildAction>
+      <QmOutputDir>$(OutDir)translations\</QmOutputDir>
     </QtTranslation>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

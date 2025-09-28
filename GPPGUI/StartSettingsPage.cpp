@@ -403,7 +403,6 @@ void StartSettingsPage::_workFinished(int exitCode)
 
 	// 设置图标
 	trayIcon->setIcon(QIcon(":/GPPGUI/Resource/Image/julixian_s.ico"));
-	trayIcon->show();
 
 	switch (exitCode)
 	{

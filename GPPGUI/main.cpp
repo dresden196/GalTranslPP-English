@@ -1,12 +1,14 @@
-#include <QApplication>
 #include <QDir>
+#include <QApplication>
+#include <QTranslator>
 #include <QCoreApplication>
 #include <QThread>
 #include <QCommandLineParser>
 #include <QSharedMemory>
 #include <QLocalServer>
 #include <QLocalSocket>
-#include <QMessageBox>
+#include <toml++/toml.hpp>
+
 #ifdef Q_OS_WIN
 #include <Windows.h>
 #endif
@@ -40,10 +42,29 @@ int main(int argc, char* argv[])
     SetConsoleCP(CP_UTF8);
 #endif
 
-    try {
+    QApplication a(argc, argv);
+    QDir::setCurrent(QApplication::applicationDirPath());
 
-        QApplication a(argc, argv);
-        QDir::setCurrent(QApplication::applicationDirPath());
+    try {
+        bool checkUpdate = true;
+        QTranslator translator;
+        QTranslator qtBaseTranslator; // 用于翻译 Qt 内置对话框，如 QMessageBox 的按钮
+        try {
+            toml::table config = toml::parse_file("BaseConfig/globalConfig.toml");
+            checkUpdate = config["autoCheckUpdate"].value_or(true);
+            std::string language = config["language"].value_or("zh_CN");
+            if (language == "en") {
+                if (qtBaseTranslator.load("qt_en.qm", "translations")) {
+                    a.installTranslator(&qtBaseTranslator);
+                }
+                if (translator.load("Translation_en.qm", "translations")) {
+                    a.installTranslator(&translator);
+                }
+            }
+        }
+        catch (...) {
+
+        }
 
         QCommandLineParser parser;
         parser.addHelpOption();
@@ -139,7 +160,9 @@ int main(int argc, char* argv[])
         }
 
         w.show();
-        w.checkUpdate();
+        if (checkUpdate) {
+            w.checkUpdate();
+        }
         int result = a.exec();
 
         // 程序退出前，确保服务器关闭

@@ -176,8 +176,8 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
         const std::string& origText = chooseStringRef(sentence, m_problems.notTargetLang.base);
         const std::string& transView = chooseStringRef(sentence, m_problems.notTargetLang.check);
         std::string simplifiedTargetLang = targetLang;
-        if (targetLang.find('-') != std::string::npos) {
-            simplifiedTargetLang = targetLang.substr(0, targetLang.find('-'));
+        if (size_t pos = targetLang.find('-'); pos != std::string::npos) {
+            simplifiedTargetLang = targetLang.substr(0, pos);
         }
         std::string origTextToCheck = removePunctuation(origText);
         std::string transTextToCheck = removePunctuation(transView);
@@ -221,6 +221,10 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
             }
         }
         
+    }
+
+    if (sentence->other_info.contains("tlbf_overflow_error")) {
+        problemList.push_back("换行修复错误(字数超阈值)");
     }
 
     // 组合所有问题

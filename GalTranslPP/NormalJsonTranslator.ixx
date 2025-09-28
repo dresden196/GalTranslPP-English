@@ -1099,68 +1099,77 @@ void NormalJsonTranslator::run() {
     std::ifstream ifs;
     std::ofstream ofs;
 
-    std::map<std::string, int> nameTableMap;
-    bool needGenerateNameTable = m_transEngine == TransEngine::DumpName || !fs::exists(m_projectDir / L"人名替换表.toml");
+    
+    {
+        std::map<std::string, int> nameTableMap;
+        Sentence se;
 
-    Sentence se;
-    auto insertNameTable = [&](const std::string& name)
-        {
-            if (name.empty()) {
-                return;
+        auto insertNameTable = [&](const std::string& name)
+            {
+                if (name.empty()) {
+                    return;
+                }
+                auto it = nameTableMap.find(name);
+                if (it == nameTableMap.end()) {
+                    nameTableMap.insert(std::make_pair(name, 1));
+                }
+                else {
+                    it->second++;
+                }
+            };
+        for (const auto& entry : fs::recursive_directory_iterator(m_inputDir)) {
+            if (!entry.is_regular_file() || !isSameExtension(entry.path(), L".json")) {
+                continue;
             }
-            auto it = nameTableMap.find(name);
-            if (it == nameTableMap.end()) {
-                nameTableMap.insert(std::make_pair(name, 1));
-            }
-            else {
-                it->second++;
-            }
-        };
-    for (const auto& entry : fs::recursive_directory_iterator(m_inputDir)) {
-        if (!entry.is_regular_file() || !isSameExtension(entry.path(), L".json")) {
-            continue;
-        }
-        try {
-            ifs.open(entry.path());
-            json data = json::parse(ifs);
-            ifs.close();
+            try {
+                ifs.open(entry.path());
+                json data = json::parse(ifs);
+                ifs.close();
 
-            for (const auto& item : data) {
-                m_totalSentences++;
-                if (!needGenerateNameTable) {
-                    continue;
-                }
-                if (item.contains("name")) {
-                    se.name = item["name"].get<std::string>();
-                    if (m_usePreDictInName) {
-                        se.name = m_preDictionary.doReplace(&se, CachePart::Name);
-                    }
-                    insertNameTable(se.name);
-                }
-                else if (item.contains("names")) {
-                    for (const auto& name : item["names"]) {
-                        se.name = name.get<std::string>();
+                for (const auto& item : data) {
+                    m_totalSentences++;
+                    if (item.contains("name")) {
+                        se.name = item["name"].get<std::string>();
                         if (m_usePreDictInName) {
                             se.name = m_preDictionary.doReplace(&se, CachePart::Name);
                         }
                         insertNameTable(se.name);
                     }
-                }
+                    else if (item.contains("names")) {
+                        for (const auto& name : item["names"]) {
+                            se.name = name.get<std::string>();
+                            if (m_usePreDictInName) {
+                                se.name = m_preDictionary.doReplace(&se, CachePart::Name);
+                            }
+                            insertNameTable(se.name);
+                        }
+                    }
 
+                }
+            }
+            catch (const json::exception& e) {
+                m_logger->critical("读取文件 {} 时出错", wide2Ascii(entry.path()));
+                throw std::runtime_error(e.what());
             }
         }
-        catch (const json::exception& e) {
-            m_logger->critical("读取文件 {} 时出错", wide2Ascii(entry.path()));
-            throw std::runtime_error(e.what());
+
+        if (m_totalSentences == 0) {
+            throw std::runtime_error("未找到有效的 json 文件");
         }
-    }
+        m_controller->makeBar(m_totalSentences, m_threadsNum);
 
-    if (m_totalSentences == 0) {
-        throw std::runtime_error("未找到有效的 json 文件");
-    }
-    m_controller->makeBar(m_totalSentences, m_threadsNum);
 
-    if (needGenerateNameTable) {
+        toml::table orgNameTable;
+        try {
+            ifs.open(m_projectDir / L"人名替换表.toml");
+            orgNameTable = toml::parse(ifs);
+            ifs.close();
+        }
+        catch (...) {
+            ifs.close();
+            m_logger->error("解析原人名表失败");
+        }
+
         std::vector<std::string> nameTableKeys;
         for (const auto& [name, count] : nameTableMap) {
             nameTableKeys.push_back(name);
@@ -1168,7 +1177,7 @@ void NormalJsonTranslator::run() {
         std::ranges::sort(nameTableKeys, [&](const std::string& a, const std::string& b)
             {
                 if (nameTableMap[a] == nameTableMap[b]) {
-                    return a > b;
+                    return a.length() > b.length();
                 }
                 return nameTableMap[a] > nameTableMap[b];
             });
@@ -1176,17 +1185,20 @@ void NormalJsonTranslator::run() {
         ofs.open(m_projectDir / L"人名替换表.toml");
         ofs << "# '原名' = [ '译名', 出现次数 ]" << std::endl;
         for (const auto& key : nameTableKeys) {
-            auto nameTable = toml::table{ {key, toml::array{ "", nameTableMap[key] }} };
+            auto nameTable = toml::table{ {key, toml::array{ orgNameTable[key].value_or(""), nameTableMap[key]}}};
             ofs << nameTable << std::endl;
         }
         ofs.close();
-        m_logger->info("已生成 人名替换表.toml 文件");
+        m_logger->info("已更新 人名替换表.toml 文件");
         if (m_transEngine == TransEngine::DumpName) {
             m_completedSentences += m_totalSentences;
             m_controller->updateBar(m_totalSentences);
             return;
         }
     }
+    // 人名表处理完毕
+
+
 
     if (m_transEngine == TransEngine::GenDict) {
         DictionaryGenerator generator(m_controller, m_logger, m_apiPool, ascii2Wide(m_dictDir), m_systemPrompt, m_userPrompt, m_apiStrategy,

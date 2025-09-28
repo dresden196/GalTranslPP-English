@@ -47,9 +47,9 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	bool onlyAddAfterPunct = _projectConfig.at_path("plugins.TextLinebreakFix.仅在标点后添加").value_or(true);
 	ElaScrollPageArea* onlyAddAfterPunctArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* onlyAddAfterPunctLayout = new QHBoxLayout(onlyAddAfterPunctArea);
-	ElaText* onlyAddAfterPunctText = new ElaText("仅在标点后添加", onlyAddAfterPunctArea);
+	ElaText* onlyAddAfterPunctText = new ElaText(tr("仅在标点后添加"), onlyAddAfterPunctArea);
 	ElaToolTip* onlyAddAfterPunctTip = new ElaToolTip(onlyAddAfterPunctArea);
-	onlyAddAfterPunctTip->setToolTip("仅在优先标点模式有效");
+	onlyAddAfterPunctTip->setToolTip(tr("仅在优先标点模式有效"));
 	onlyAddAfterPunctText->setTextPixelSize(16);
 	onlyAddAfterPunctLayout->addWidget(onlyAddAfterPunctText);
 	onlyAddAfterPunctLayout->addStretch();
@@ -87,12 +87,27 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	forceFixLayout->addWidget(forceFixToggleSwitch);
 	mainLayout->addWidget(forceFixArea);
 
+	// 报错阈值
+	int errorThreshold = _projectConfig["plugins"]["TextLinebreakFix"]["报错阈值"].value_or(35);
+	ElaScrollPageArea* errorThresholdArea = new ElaScrollPageArea(centerWidget);
+	QHBoxLayout* errorThresholdLayout = new QHBoxLayout(errorThresholdArea);
+	ElaText* errorThresholdText = new ElaText(tr("报错阈值"), errorThresholdArea);
+	errorThresholdText->setTextPixelSize(16);
+	errorThresholdLayout->addWidget(errorThresholdText);
+	errorThresholdLayout->addStretch();
+	ElaSpinBox* errorThresholdSpinBox = new ElaSpinBox(errorThresholdArea);
+	errorThresholdSpinBox->setRange(1, 999);
+	errorThresholdSpinBox->setValue(errorThreshold);
+	errorThresholdLayout->addWidget(errorThresholdSpinBox);
+	mainLayout->addWidget(errorThresholdArea);
+
 	_applyFunc = [=]()
 		{
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.换行模式", fixModeComboBox->currentText().toStdString());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.仅在标点后添加", onlyAddAfterPunctToggleSwitch->getIsToggled());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.分段字数阈值", segmentThresholdSpinBox->value());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.强制修复", forceFixToggleSwitch->getIsToggled());
+			insertToml(_projectConfig, "plugins.TextLinebreakFix.报错阈值", errorThresholdSpinBox->value());
 		};
 
 	mainLayout->addStretch();

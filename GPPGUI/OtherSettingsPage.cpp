@@ -12,6 +12,8 @@
 #include "ElaPushButton.h"
 #include "ElaMessageBar.h"
 #include "ElaToolTip.h"
+#include "ElaContentDialog.h"
+#include "ElaInputDialog.h"
 
 import Tool;
 
@@ -93,6 +95,54 @@ void OtherSettingsPage::_setupUI()
 	mainLayout->addWidget(pathArea);
 
 
+	// 项目更名
+	ElaScrollPageArea* renameArea = new ElaScrollPageArea(mainWidget);
+	QHBoxLayout* renameLayout = new QHBoxLayout(renameArea);
+	ElaText* renameLabel = new ElaText(renameArea);
+	renameLabel->setText(tr("项目更名"));
+	renameLabel->setTextPixelSize(16);
+	renameLayout->addWidget(renameLabel);
+	renameLayout->addStretch();
+	ElaPushButton* renameButton = new ElaPushButton(renameArea);
+	renameButton->setText(tr("更名"));
+	connect(renameButton, &ElaPushButton::clicked, this, [=]()
+		{
+			if (_projectConfig["GUIConfig"]["isRunning"].value_or(true)) {
+				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("更名失败"), tr("项目仍在运行中，无法更名"), 3000);
+				return;
+			}
+
+			bool ok;
+			QString newProjectName;
+			ElaInputDialog inputDialog(this, tr("请输入新的项目名称"), tr("新的项目名"), newProjectName, &ok);
+			if (!ok) {
+				return;
+			}
+			if(newProjectName.isEmpty() || newProjectName.contains("\\") || newProjectName.contains("/")){
+				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("更名失败"), tr("项目名不能为空且不能包含斜杠"), 3000);
+				return;
+			}
+
+			fs::path newProjectPath = _projectDir.parent_path() / newProjectName.toStdWString();
+			if (fs::exists(newProjectPath)) {
+				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("更名失败"), tr("目录下已有同名文件夹"), 3000);
+				return;
+			}
+
+			try {
+				fs::rename(_projectDir, newProjectPath);
+			}
+			catch (const fs::filesystem_error& e) {
+				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("更名失败"), QString(e.what()), 3000);
+				return;
+			}
+			_projectDir = newProjectPath;
+			ElaMessageBar::success(ElaMessageBarType::TopRight, tr("更名成功"), tr("项目已更名为 ") + newProjectName, 3000);
+		});
+	renameLayout->addWidget(renameButton);
+	mainLayout->addWidget(renameArea);
+
+
 	// 保存配置
 	ElaScrollPageArea* saveArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* saveLayout = new QHBoxLayout(saveArea);
@@ -108,7 +158,7 @@ void OtherSettingsPage::_setupUI()
 	connect(saveButton, &ElaPushButton::clicked, this, [=]()
 		{
 			Q_EMIT saveConfigSignal();
-			ElaMessageBar::success(ElaMessageBarType::TopRight, tr("保存成功"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 配置信息已保存"), 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopRight, tr("保存成功"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的配置信息已保存"), 3000);
 		});
 	saveLayout->addWidget(saveButton);
 	mainLayout->addWidget(saveArea);
@@ -132,6 +182,52 @@ void OtherSettingsPage::_setupUI()
 		});
 	refreshLayout->addWidget(refreshButton);
 	mainLayout->addWidget(refreshArea);
+
+
+	// 删除翻译缓存
+	ElaScrollPageArea* cacheArea = new ElaScrollPageArea(mainWidget);
+	QHBoxLayout* cacheLayout = new QHBoxLayout(cacheArea);
+	ElaText* cacheLabel = new ElaText(cacheArea);
+	cacheLabel->setText(tr("删除翻译缓存"));
+	cacheLabel->setTextPixelSize(16);
+	cacheLayout->addWidget(cacheLabel);
+	cacheLayout->addStretch();
+	ElaPushButton* cacheButton = new ElaPushButton(cacheArea);
+	cacheButton->setText(tr("删除"));
+	connect(cacheButton, &ElaPushButton::clicked, this, [=]()
+		{
+			if (_projectConfig["GUIConfig"]["isRunning"].value_or(true)) {
+				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("删除失败"), tr("项目仍在运行中，无法删除缓存"), 3000);
+				return;
+			}
+
+			ElaContentDialog helpDialog(this);
+			helpDialog.setLeftButtonText(tr("否"));
+			helpDialog.setMiddleButtonText(tr("思考人生"));
+			helpDialog.setRightButtonText(tr("是"));
+			QWidget* widget = new QWidget(&helpDialog);
+			QVBoxLayout* layout = new QVBoxLayout(widget);
+			ElaText* confirmText = new ElaText(tr("你确定要删除项目翻译缓存吗？"), 18, widget);
+			confirmText->setWordWrap(false);
+			layout->addWidget(confirmText);
+			layout->addWidget(new ElaText(tr("再次翻译将会重新从头开始！"), 16, widget));
+			helpDialog.setCentralWidget(widget);
+			connect(&helpDialog, &ElaContentDialog::rightButtonClicked, this, [=]()
+				{
+					try {
+						fs::remove_all(_projectDir / L"transl_cache");
+					}
+					catch (const fs::filesystem_error& e) {
+						ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("删除失败"), QString(e.what()), 3000);
+						return;
+					}
+					ElaMessageBar::success(ElaMessageBarType::TopRight, tr("删除成功"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的翻译缓存已删除"), 3000);
+
+				});
+			helpDialog.exec();
+		});
+	cacheLayout->addWidget(cacheButton);
+	mainLayout->addWidget(cacheArea);
 	
 	mainLayout->addStretch();
 	addCentralWidget(mainWidget, true, true, 0);

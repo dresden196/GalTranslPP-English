@@ -45,7 +45,6 @@ UpdateChecker::UpdateChecker(toml::table& globalConfig, ElaText* statusText, QOb
 
     m_trayIcon = new QSystemTrayIcon(this);
     m_trayIcon->setIcon(QIcon(":/GPPGUI/Resource/Image/julixian_s.ico"));
-    m_trayIcon->show();
 
     connect(m_trayIcon, &QSystemTrayIcon::messageClicked, this, [=]()
         {
@@ -114,7 +113,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
         }
         if (canUpdate && !m_downloadReply) {
             if (!forDownload && !isCompatible) {
-                ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("不兼容更新"), tr("最新版与含有当前版本不兼容内容，请前往github阅读更新日志后手动下载。"), 5000);
+                ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("不兼容更新"), tr("最新版含有不兼容当前版本的内容，请在确认 github 发布页更新日志后再酌情下载。"), 5000);
             }
             else {
                 bool hasUpdateFile = false;
