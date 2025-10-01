@@ -198,7 +198,7 @@ void PASettingsPage::_setupUI()
 				auto& newCompareObjArr = newCompareObjTbl["overwriteCompareObj"];
 				if (newCompareObjArr.is_array()) {
 					newCompareObjArr.as_array_fmt().fmt = toml::array_format::multiline;
-					insertToml(_projectConfig, "problemAnalyze.overwriteCompareObj", newCompareObjArr.as_array());
+					insertToml(_projectConfig, "problemAnalyze.overwriteCompareObj", newCompareObjArr);
 				}
 				else {
 					insertToml(_projectConfig, "problemAnalyze.overwriteCompareObj", toml::array{});

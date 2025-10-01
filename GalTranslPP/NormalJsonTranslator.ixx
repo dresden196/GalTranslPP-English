@@ -1272,8 +1272,18 @@ void NormalJsonTranslator::run() {
         m_logger->debug("已生成 翻译问题概览.json 和 翻译问题概览.toml 文件");
 
         std::map<std::string, std::set<std::string>> problemMap;
-        for (const auto& elem : m_problemOverview.as_array()) {
-            problemMap[elem.at("problems").as_string()].insert(elem.at("filename").as_string());
+        for (const auto& [problem, filename] : m_problemOverview.as_array()
+            | std::views::transform([](const auto& tbl)
+                {
+                    const auto& problemsArr = tbl.at("problems").as_array();
+                    const auto problemsWithFileNameView = problemsArr | std::views::transform([&](const auto& prob)
+                        {
+                            return std::make_pair(prob.as_string(), tbl.at("filename").as_string());
+                        });
+                    return problemsWithFileNameView;
+                }) | std::views::join)
+        {
+            problemMap[problem].insert(filename);
         }
 
         std::string problemOverviewStr = "\n\n```\n问题概览:\n";
