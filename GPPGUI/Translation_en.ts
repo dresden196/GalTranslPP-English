@@ -401,7 +401,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="496"/>
+        <location filename="CommonNormalDictPage.cpp" line="500"/>
         <source>解析失败</source>
         <translation type="unfinished">Fail to analyze</translation>
     </message>
@@ -486,7 +486,7 @@
     </message>
     <message>
         <location filename="CommonNormalDictPage.cpp" line="212"/>
-        <location filename="CommonNormalDictPage.cpp" line="294"/>
+        <location filename="CommonNormalDictPage.cpp" line="298"/>
         <source>保存成功</source>
         <translation type="unfinished">saved successfully</translation>
     </message>
@@ -506,150 +506,150 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="294"/>
-        <location filename="CommonNormalDictPage.cpp" line="350"/>
-        <location filename="CommonNormalDictPage.cpp" line="382"/>
-        <location filename="CommonNormalDictPage.cpp" line="408"/>
+        <location filename="CommonNormalDictPage.cpp" line="298"/>
+        <location filename="CommonNormalDictPage.cpp" line="354"/>
+        <location filename="CommonNormalDictPage.cpp" line="386"/>
         <location filename="CommonNormalDictPage.cpp" line="412"/>
-        <location filename="CommonNormalDictPage.cpp" line="462"/>
-        <location filename="CommonNormalDictPage.cpp" line="529"/>
-        <location filename="CommonNormalDictPage.cpp" line="561"/>
+        <location filename="CommonNormalDictPage.cpp" line="416"/>
+        <location filename="CommonNormalDictPage.cpp" line="466"/>
+        <location filename="CommonNormalDictPage.cpp" line="533"/>
+        <location filename="CommonNormalDictPage.cpp" line="565"/>
         <source>字典 </source>
         <translation type="unfinished">dict</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="295"/>
+        <location filename="CommonNormalDictPage.cpp" line="299"/>
         <source> 已保存</source>
         <translation type="unfinished">is saved</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="350"/>
+        <location filename="CommonNormalDictPage.cpp" line="354"/>
         <source>刷新成功</source>
         <translation type="unfinished">refreshed successfully</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="351"/>
+        <location filename="CommonNormalDictPage.cpp" line="355"/>
         <source> 已刷新</source>
         <translation type="unfinished">is refreshed</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="365"/>
+        <location filename="CommonNormalDictPage.cpp" line="369"/>
         <source>请输入新名称</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="365"/>
+        <location filename="CommonNormalDictPage.cpp" line="369"/>
         <source>重命名字典</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="373"/>
-        <location filename="CommonNormalDictPage.cpp" line="412"/>
+        <location filename="CommonNormalDictPage.cpp" line="377"/>
+        <location filename="CommonNormalDictPage.cpp" line="416"/>
         <source>重命名失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="408"/>
+        <location filename="CommonNormalDictPage.cpp" line="412"/>
         <source>重命名成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="409"/>
+        <location filename="CommonNormalDictPage.cpp" line="413"/>
         <source> 已重命名为 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="413"/>
+        <location filename="CommonNormalDictPage.cpp" line="417"/>
         <source> 重命名失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="496"/>
+        <location filename="CommonNormalDictPage.cpp" line="500"/>
         <source>默认译前字典 </source>
         <translation type="unfinished">common preDict</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="497"/>
+        <location filename="CommonNormalDictPage.cpp" line="501"/>
         <source> 不符合 toml 规范</source>
         <oldsource> 不符合规范</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="508"/>
+        <location filename="CommonNormalDictPage.cpp" line="512"/>
         <source>选择字典文件</source>
         <translation type="unfinished">choose dict file</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="520"/>
-        <location filename="CommonNormalDictPage.cpp" line="529"/>
+        <location filename="CommonNormalDictPage.cpp" line="524"/>
+        <location filename="CommonNormalDictPage.cpp" line="533"/>
         <source>导入失败</source>
         <translation type="unfinished">Fail to import</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="520"/>
+        <location filename="CommonNormalDictPage.cpp" line="524"/>
         <source>文件删除失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="383"/>
-        <location filename="CommonNormalDictPage.cpp" line="530"/>
-        <location filename="CommonNormalDictPage.cpp" line="562"/>
+        <location filename="CommonNormalDictPage.cpp" line="387"/>
+        <location filename="CommonNormalDictPage.cpp" line="534"/>
+        <location filename="CommonNormalDictPage.cpp" line="566"/>
         <source> 已存在</source>
         <translation type="unfinished">already existed</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="536"/>
+        <location filename="CommonNormalDictPage.cpp" line="540"/>
         <source>创建成功</source>
         <translation type="unfinished">created successfully</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="536"/>
-        <location filename="CommonNormalDictPage.cpp" line="577"/>
+        <location filename="CommonNormalDictPage.cpp" line="540"/>
+        <location filename="CommonNormalDictPage.cpp" line="581"/>
         <source>字典页 </source>
         <translation type="unfinished">dict page</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="536"/>
-        <location filename="CommonNormalDictPage.cpp" line="578"/>
+        <location filename="CommonNormalDictPage.cpp" line="540"/>
+        <location filename="CommonNormalDictPage.cpp" line="582"/>
         <source> 已创建</source>
         <translation type="unfinished">created successfully</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="543"/>
+        <location filename="CommonNormalDictPage.cpp" line="547"/>
         <source>请输入字典表名称</source>
         <translation type="unfinished">please type in dict name</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="543"/>
+        <location filename="CommonNormalDictPage.cpp" line="547"/>
         <source>新建字典</source>
         <translation type="unfinished">create a new dict</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="382"/>
-        <location filename="CommonNormalDictPage.cpp" line="551"/>
-        <location filename="CommonNormalDictPage.cpp" line="561"/>
-        <location filename="CommonNormalDictPage.cpp" line="568"/>
+        <location filename="CommonNormalDictPage.cpp" line="386"/>
+        <location filename="CommonNormalDictPage.cpp" line="555"/>
+        <location filename="CommonNormalDictPage.cpp" line="565"/>
+        <location filename="CommonNormalDictPage.cpp" line="572"/>
         <source>新建失败</source>
         <translation type="unfinished">Fail to create</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="373"/>
-        <location filename="CommonNormalDictPage.cpp" line="551"/>
+        <location filename="CommonNormalDictPage.cpp" line="377"/>
+        <location filename="CommonNormalDictPage.cpp" line="555"/>
         <source>字典名称不能为空，且不能包含点号、斜杠或反斜杠！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="568"/>
+        <location filename="CommonNormalDictPage.cpp" line="572"/>
         <source>无法创建 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="569"/>
+        <location filename="CommonNormalDictPage.cpp" line="573"/>
         <source> 文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="577"/>
+        <location filename="CommonNormalDictPage.cpp" line="581"/>
         <source>新建成功</source>
         <translation type="unfinished"></translation>
     </message>
@@ -658,37 +658,37 @@
         <translation type="obsolete">Choose a dict page first!</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="432"/>
+        <location filename="CommonNormalDictPage.cpp" line="436"/>
         <source>是</source>
         <translation type="unfinished">Yes</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="433"/>
+        <location filename="CommonNormalDictPage.cpp" line="437"/>
         <source>思考人生</source>
         <translation type="unfinished">Thinking of life</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="434"/>
+        <location filename="CommonNormalDictPage.cpp" line="438"/>
         <source>否</source>
         <translation type="unfinished">No</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="438"/>
+        <location filename="CommonNormalDictPage.cpp" line="442"/>
         <source>你确定要删除 </source>
         <translation type="unfinished">Are you sure to delete</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="441"/>
+        <location filename="CommonNormalDictPage.cpp" line="445"/>
         <source>将永久删除该字典文件，如有需要请先备份！</source>
         <translation type="unfinished">The dict file will be removed forever, make a backup if you need.</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="462"/>
+        <location filename="CommonNormalDictPage.cpp" line="466"/>
         <source>删除成功</source>
         <translation type="unfinished">delete successfully</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="463"/>
+        <location filename="CommonNormalDictPage.cpp" line="467"/>
         <source> 已从字典管理和磁盘中移除！</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1045,62 +1045,62 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="240"/>
+        <location filename="DictSettingsPage.cpp" line="244"/>
         <source>选择字典文件</source>
         <translation type="unfinished">choose dict file</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="253"/>
+        <location filename="DictSettingsPage.cpp" line="257"/>
         <source>导入失败</source>
         <translation type="unfinished">Fail to import</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="253"/>
+        <location filename="DictSettingsPage.cpp" line="257"/>
         <source>字典文件中没有词条</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="258"/>
+        <location filename="DictSettingsPage.cpp" line="262"/>
         <source>导入成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="258"/>
+        <location filename="DictSettingsPage.cpp" line="262"/>
         <source>从文件 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="259"/>
+        <location filename="DictSettingsPage.cpp" line="263"/>
         <source> 中导入了 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="259"/>
+        <location filename="DictSettingsPage.cpp" line="263"/>
         <source> 个词条</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="283"/>
+        <location filename="DictSettingsPage.cpp" line="287"/>
         <source>保存成功</source>
         <translation type="unfinished">saved successfully</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="283"/>
+        <location filename="DictSettingsPage.cpp" line="287"/>
         <source> 已保存</source>
         <translation type="unfinished">is saved</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="332"/>
+        <location filename="DictSettingsPage.cpp" line="336"/>
         <source>项目GPT字典.toml</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="344"/>
+        <location filename="DictSettingsPage.cpp" line="348"/>
         <source>项目译前字典.toml</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="356"/>
+        <location filename="DictSettingsPage.cpp" line="360"/>
         <source>项目译后字典.toml</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2104,120 +2104,120 @@
 <context>
     <name>ProjectSettingsPage</name>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="33"/>
+        <location filename="ProjectSettingsPage.cpp" line="36"/>
         <source>项目设置主页</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="41"/>
-        <location filename="ProjectSettingsPage.cpp" line="257"/>
+        <location filename="ProjectSettingsPage.cpp" line="44"/>
+        <location filename="ProjectSettingsPage.cpp" line="268"/>
         <source>解析失败</source>
         <translation type="unfinished">Fail to analyze</translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="41"/>
+        <location filename="ProjectSettingsPage.cpp" line="44"/>
         <source> 的配置文件不符合 toml 规范</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="41"/>
-        <location filename="ProjectSettingsPage.cpp" line="257"/>
+        <location filename="ProjectSettingsPage.cpp" line="44"/>
+        <location filename="ProjectSettingsPage.cpp" line="268"/>
         <source>项目 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="97"/>
-        <location filename="ProjectSettingsPage.cpp" line="106"/>
-        <location filename="ProjectSettingsPage.cpp" line="156"/>
+        <location filename="ProjectSettingsPage.cpp" line="108"/>
+        <location filename="ProjectSettingsPage.cpp" line="117"/>
+        <location filename="ProjectSettingsPage.cpp" line="167"/>
         <source>API设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="107"/>
-        <location filename="ProjectSettingsPage.cpp" line="161"/>
+        <location filename="ProjectSettingsPage.cpp" line="118"/>
+        <location filename="ProjectSettingsPage.cpp" line="172"/>
         <source>一般设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="108"/>
-        <location filename="ProjectSettingsPage.cpp" line="166"/>
+        <location filename="ProjectSettingsPage.cpp" line="119"/>
+        <location filename="ProjectSettingsPage.cpp" line="177"/>
         <source>问题分析</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="113"/>
+        <location filename="ProjectSettingsPage.cpp" line="124"/>
         <source>基本设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="117"/>
-        <location filename="ProjectSettingsPage.cpp" line="171"/>
+        <location filename="ProjectSettingsPage.cpp" line="128"/>
+        <location filename="ProjectSettingsPage.cpp" line="182"/>
         <source>人名表</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="118"/>
-        <location filename="ProjectSettingsPage.cpp" line="176"/>
+        <location filename="ProjectSettingsPage.cpp" line="129"/>
+        <location filename="ProjectSettingsPage.cpp" line="187"/>
         <source>项目字典</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="119"/>
-        <location filename="ProjectSettingsPage.cpp" line="181"/>
+        <location filename="ProjectSettingsPage.cpp" line="130"/>
+        <location filename="ProjectSettingsPage.cpp" line="192"/>
         <source>字典设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="120"/>
-        <location filename="ProjectSettingsPage.cpp" line="186"/>
+        <location filename="ProjectSettingsPage.cpp" line="131"/>
+        <location filename="ProjectSettingsPage.cpp" line="197"/>
         <source>提示词</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="125"/>
+        <location filename="ProjectSettingsPage.cpp" line="136"/>
         <source>翻译设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="130"/>
-        <location filename="ProjectSettingsPage.cpp" line="194"/>
+        <location filename="ProjectSettingsPage.cpp" line="141"/>
+        <location filename="ProjectSettingsPage.cpp" line="205"/>
         <source>插件管理</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="131"/>
-        <location filename="ProjectSettingsPage.cpp" line="202"/>
+        <location filename="ProjectSettingsPage.cpp" line="142"/>
+        <location filename="ProjectSettingsPage.cpp" line="213"/>
         <source>开始翻译</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="132"/>
-        <location filename="ProjectSettingsPage.cpp" line="207"/>
+        <location filename="ProjectSettingsPage.cpp" line="143"/>
+        <location filename="ProjectSettingsPage.cpp" line="218"/>
         <source>其他设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="250"/>
+        <location filename="ProjectSettingsPage.cpp" line="261"/>
         <source>正在翻译</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="250"/>
+        <location filename="ProjectSettingsPage.cpp" line="261"/>
         <source>项目仍在运行中，无法刷新配置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="257"/>
+        <location filename="ProjectSettingsPage.cpp" line="268"/>
         <source> 的配置文件不符合规范</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="268"/>
+        <location filename="ProjectSettingsPage.cpp" line="279"/>
         <source>刷新成功</source>
         <translation type="unfinished">refreshed successfully</translation>
     </message>
     <message>
-        <location filename="ProjectSettingsPage.cpp" line="268"/>
+        <location filename="ProjectSettingsPage.cpp" line="279"/>
         <source>项目配置刷新成功</source>
         <translation type="unfinished"></translation>
     </message>

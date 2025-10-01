@@ -5,6 +5,9 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QStackedWidget>
+#ifdef Q_OS_WIN
+#include <Windows.h>
+#endif
 
 #include "ElaToggleButton.h"
 #include "ElaToolButton.h"
@@ -63,9 +66,17 @@ void ProjectSettingsPage::apply2Config()
     _otherSettingsPage->apply2Config();
     _promptSettingsPage->apply2Config();
 
-    std::ofstream ofs(_projectDir / L"config.toml");
-    ofs << _projectConfig;
-    ofs.close();
+    try {
+        std::string configStr = toml::format(_projectConfig);
+        std::ofstream ofs(_projectDir / L"config.toml");
+        ofs << configStr;
+        ofs.close();
+    }
+    catch (const toml::exception& e) {
+#ifdef Q_OS_WIN
+        MessageBoxW(nullptr, ascii2Wide(e.what()).c_str(), L"toml 格式化错误", MB_ICONERROR | MB_OK);
+#endif
+    }
 }
 
 void ProjectSettingsPage::refreshCommonDicts()

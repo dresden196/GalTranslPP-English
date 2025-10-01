@@ -213,6 +213,10 @@ void DictSettingsPage::_setupUI()
 							dictTbl.insert({ "conditionReg", entry.conditionReg.toStdString() });
 							dictTbl.insert({ "isReg", entry.isReg });
 							dictTbl.insert({ "priority", entry.priority });
+							dictTbl["org"].as_string_fmt().fmt = toml::string_format::literal;
+							dictTbl["rep"].as_string_fmt().fmt = toml::string_format::literal;
+							dictTbl["conditionTarget"].as_string_fmt().fmt = toml::string_format::literal;
+							dictTbl["conditionReg"].as_string_fmt().fmt = toml::string_format::literal;
 							dictArr.push_back(dictTbl);
 						}
 						ofs << toml::format(toml::ordered_value{ toml::ordered_table{{"normalDict", dictArr}} });

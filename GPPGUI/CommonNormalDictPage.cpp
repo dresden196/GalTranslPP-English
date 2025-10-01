@@ -240,14 +240,18 @@ void CommonNormalDictPage::_setupUI()
 						QList<NormalDictEntry> dictEntries = model->getEntries();
 						toml::ordered_value dictArr= toml::array{};
 						for (const auto& entry : dictEntries) {
-							toml::ordered_table dictTable;
-							dictTable.insert({ "org", entry.original.toStdString() });
-							dictTable.insert({ "rep", entry.translation.toStdString() });
-							dictTable.insert({ "conditionTarget", entry.conditionTar.toStdString() });
-							dictTable.insert({ "conditionReg", entry.conditionReg.toStdString() });
-							dictTable.insert({ "isReg", entry.isReg });
-							dictTable.insert({ "priority", entry.priority });
-							dictArr.push_back(dictTable);
+							toml::ordered_table dictTbl;
+							dictTbl.insert({ "org", entry.original.toStdString() });
+							dictTbl.insert({ "rep", entry.translation.toStdString() });
+							dictTbl.insert({ "conditionTarget", entry.conditionTar.toStdString() });
+							dictTbl.insert({ "conditionReg", entry.conditionReg.toStdString() });
+							dictTbl.insert({ "isReg", entry.isReg });
+							dictTbl.insert({ "priority", entry.priority });
+							dictTbl["org"].as_string_fmt().fmt = toml::string_format::literal;
+							dictTbl["rep"].as_string_fmt().fmt = toml::string_format::literal;
+							dictTbl["conditionTarget"].as_string_fmt().fmt = toml::string_format::literal;
+							dictTbl["conditionReg"].as_string_fmt().fmt = toml::string_format::literal;
+							dictArr.push_back(dictTbl);
 						}
 						ofs << toml::format(toml::ordered_value{ toml::ordered_table{{"normalDict", dictArr}} });
 						ofs.close();
