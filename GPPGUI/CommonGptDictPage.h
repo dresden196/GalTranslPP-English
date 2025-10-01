@@ -23,6 +23,7 @@ struct GptTabEntry {
     ElaTableView* tableView;
     DictionaryModel* dictModel;
     fs::path dictPath;
+    std::function<bool(bool)>saveFunc;
     QSharedPointer<QList<DictionaryEntry>> withdrawList;
     GptTabEntry() : withdrawList(new QList<DictionaryEntry>){}
 };

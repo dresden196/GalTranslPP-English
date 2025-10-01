@@ -180,7 +180,7 @@ void PASettingsPage::_setupUI()
 			insertToml(_projectConfig, "problemAnalyze.langProbability", languageProbabilitySlider->value());
 
 			try {
-				toml::ordered_value newRetranslKeysTbl = toml::parse_str(retranslKeyEdit->toPlainText().toStdString());
+				toml::ordered_value newRetranslKeysTbl = toml::parse_str<toml::ordered_type_config>(retranslKeyEdit->toPlainText().toStdString());
 				auto& newRetranslKeysArr = newRetranslKeysTbl["retranslKeys"];
 				if (newRetranslKeysArr.is_array()) {
 					insertToml(_projectConfig, "problemAnalyze.retranslKeys", newRetranslKeysArr.as_array());
@@ -194,7 +194,7 @@ void PASettingsPage::_setupUI()
 			}
 
 			try {
-				toml::ordered_value newCompareObjTbl = toml::parse_str(compareObjEdit->toPlainText().toStdString());
+				toml::ordered_value newCompareObjTbl = toml::parse_str<toml::ordered_type_config>(compareObjEdit->toPlainText().toStdString());
 				auto& newCompareObjArr = newCompareObjTbl["overwriteCompareObj"];
 				if (newCompareObjArr.is_array()) {
 					insertToml(_projectConfig, "problemAnalyze.overwriteCompareObj", newCompareObjArr.as_array());

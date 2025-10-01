@@ -17,8 +17,8 @@
 
 import Tool;
 
-OtherSettingsPage::OtherSettingsPage(fs::path& projectDir, toml::ordered_value& projectConfig, QWidget* parent) :
-	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir)
+OtherSettingsPage::OtherSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::ordered_value& projectConfig, QWidget* parent) :
+	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir), _mainWindow(mainWindow)
 {
 	setWindowTitle(tr("其它设置"));
 	setTitleVisible(false);
@@ -114,7 +114,8 @@ void OtherSettingsPage::_setupUI()
 
 			bool ok;
 			QString newProjectName;
-			ElaInputDialog inputDialog(this, tr("请输入新的项目名称"), tr("新的项目名"), newProjectName, &ok);
+			ElaInputDialog inputDialog(_mainWindow, tr("请输入新的项目名称"), tr("新的项目名"), newProjectName, &ok);
+			inputDialog.exec();
 			if (!ok) {
 				return;
 			}
@@ -125,7 +126,7 @@ void OtherSettingsPage::_setupUI()
 
 			fs::path newProjectPath = _projectDir.parent_path() / newProjectName.toStdWString();
 			if (fs::exists(newProjectPath)) {
-				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("更名失败"), tr("目录下已有同名文件夹"), 3000);
+				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("更名失败"), tr("目录下已有同名文件或文件夹"), 3000);
 				return;
 			}
 

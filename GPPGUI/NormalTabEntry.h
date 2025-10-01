@@ -21,6 +21,7 @@ struct NormalTabEntry {
     ElaTableView* tableView;
     NormalDictModel* dictModel;
     fs::path dictPath;
+    std::function<bool(bool)> saveFunc;
     QSharedPointer<QList<NormalDictEntry>> withdrawList;
     NormalTabEntry() : withdrawList(new QList<NormalDictEntry>) {}
 };

@@ -190,9 +190,9 @@ EpubTranslator::EpubTranslator(const fs::path& projectDir, std::shared_ptr<ICont
                 }
             };
 
-        const auto& preRegexArr = parseToml<toml::array>(projectConfig, pluginConfig, "plugins.Epub.预处理正则");
+        const auto& preRegexArr = parseToml<toml::array>(projectConfig, pluginConfig, "plugins.Epub.preprocRegex");
         readRegexArr(preRegexArr, m_preRegexPatterns);
-        const auto& postRegexArr = parseToml<toml::array>(projectConfig, pluginConfig, "plugins.Epub.后处理正则");
+        const auto& postRegexArr = parseToml<toml::array>(projectConfig, pluginConfig, "plugins.Epub.postprocRegex");
         readRegexArr(postRegexArr, m_postRegexPatterns);
     }
     catch (const toml::exception& e) {

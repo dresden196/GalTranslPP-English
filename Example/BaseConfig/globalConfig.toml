@@ -90,7 +90,7 @@ dictNames = [ '译前H统一', '译前H口吃矫正' ]
         5 = 60
 
 [showDockWidget]
-104P = true
+200P = true
 
 [[popularCards]]
 cardFloatPixmap = ':/GPPGUI/Resource/Image/IARC_7+.svg.png'

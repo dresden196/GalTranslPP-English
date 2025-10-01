@@ -5,7 +5,6 @@
 #include <QHeaderView>
 #include <QStackedWidget>
 #include <QFileDialog>
-#include <nlohmann/json.hpp>
 
 #include "ElaText.h"
 #include "ElaLineEdit.h"
@@ -22,7 +21,6 @@
 #include "ReadDicts.h"
 
 import Tool;
-using json = nlohmann::json;
 
 DictSettingsPage::DictSettingsPage(fs::path& projectDir, toml::ordered_value& globalConfig, toml::ordered_value& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _globalConfig(globalConfig), _projectDir(projectDir)
@@ -58,10 +56,11 @@ void DictSettingsPage::_setupUI()
 
 
 	auto createDictTabFunc =
-		[=]<typename ModelType, typename EntryType>(std::function<QString()> readPlainTextFunc, std::function<QList<EntryType>()> readEntriesFunc,
-			QList<EntryType>& withdrawList, const std::string& configKey,
-			const QString& tabName, const ModelType& dummy) -> std::pair<std::function<void()>, std::function<void(bool)>>
+		[=]<typename EntryType>(std::function<QString()> readPlainTextFunc, std::function<QList<EntryType>()> readEntriesFunc,
+			QList<EntryType>& withdrawList, const std::string& configKey, const QString& tabName) 
+		-> std::pair<std::function<void()>, std::function<void(bool)>>
 	{
+		using ModelType = typename std::conditional<std::is_same_v<EntryType, DictionaryEntry>, DictionaryModel, NormalDictModel>::type;
 		QWidget* dictWidget = new QWidget(mainWidget);
 		QVBoxLayout* dictLayout = new QVBoxLayout(dictWidget);
 		QWidget* buttonWidget = new QWidget(mainWidget);
@@ -164,7 +163,12 @@ void DictSettingsPage::_setupUI()
 				if constexpr (std::is_same_v<EntryType, DictionaryEntry>) {
 					std::ofstream ofs(_projectDir / (tabName.toStdWString() + L".toml"));
 					if (fs::exists(_projectDir / L"项目GPT字典-生成.toml")) {
-						fs::remove(_projectDir / L"项目GPT字典-生成.toml");
+						try {
+							fs::remove(_projectDir / L"项目GPT字典-生成.toml");
+						}
+						catch (const fs::filesystem_error& e) {
+							ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("生成字典删除失败"), e.what(), 3000);
+						}
 					}
 					if (stackedWidget->currentIndex() == 0 && !forceSaveInTableModeToInit) {
 						ofs << plainTextEdit->toPlainText().toStdString();
@@ -237,8 +241,14 @@ void DictSettingsPage::_setupUI()
 				if (dictPathStr.isEmpty()) {
 					return;
 				}
-				fs::path dictPath = dictPathStr.toStdWString();
-				QList<EntryType> entries = readEntriesFunc();
+				fs::path importDictPath = dictPathStr.toStdWString();
+				QList<EntryType> entries;
+				if constexpr (std::is_same_v<EntryType, DictionaryEntry>) {
+					entries = ReadDicts::readGptDicts(importDictPath);
+				}
+				else {
+					entries = ReadDicts::readNormalDicts(importDictPath);
+				}
 				if (entries.isEmpty()) {
 					ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("导入失败"), tr("字典文件中没有词条"), 3000);
 					return;
@@ -246,7 +256,7 @@ void DictSettingsPage::_setupUI()
 				dictModel->loadData(entries);
 				saveDictFunc(true);
 				ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("导入成功"), tr("从文件 ") +
-					QString(dictPath.filename().wstring()) + tr(" 中导入了 ") + QString::number(entries.size()) + tr(" 个词条"), 3000);
+					QString(importDictPath.filename().wstring()) + tr(" 中导入了 ") + QString::number(entries.size()) + tr(" 个词条"), 3000);
 			});
 		connect(plainTextModeButtom, &ElaPushButton::clicked, this, [=]()
 			{
@@ -270,7 +280,7 @@ void DictSettingsPage::_setupUI()
 		connect(saveDictButton, &ElaPushButton::clicked, this, [=]()
 			{
 				saveDictFunc(false);
-				ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("保存成功"), tr("已保存 ") + tabName, 3000);
+				ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("保存成功"), tabName + tr(" 已保存"), 3000);
 			});
 		connect(addDictButton, &ElaPushButton::clicked, this, [=]()
 			{
@@ -328,7 +338,7 @@ void DictSettingsPage::_setupUI()
 		{
 			return ReadDicts::readGptDicts(gptDictPaths);
 		};
-	auto refreshAndSaveGptDictFunc = createDictTabFunc(gptReadPlainTextFunc, gptReadEntriesFunc, _withdrawGptList, "gpt", QString(gptDictPaths.front().stem().wstring()), DictionaryModel{});
+	auto refreshAndSaveGptDictFunc = createDictTabFunc(gptReadPlainTextFunc, gptReadEntriesFunc, _withdrawGptList, "gpt", QString(gptDictPaths.front().stem().wstring()));
 
 
 	fs::path preDictPath = _projectDir / tr("项目译前字典.toml").toStdWString();
@@ -340,7 +350,7 @@ void DictSettingsPage::_setupUI()
 		{
 			return ReadDicts::readNormalDicts(preDictPath);
 		};
-	auto refreshAndSavePreDictFunc = createDictTabFunc(preReadPlainTextFunc, preReadEntriesFunc, _withdrawPreList, "pre", QString(preDictPath.stem().wstring()), NormalDictModel{});
+	auto refreshAndSavePreDictFunc = createDictTabFunc(preReadPlainTextFunc, preReadEntriesFunc, _withdrawPreList, "pre", QString(preDictPath.stem().wstring()));
 	
 
 	fs::path postDictPath = _projectDir / tr("项目译后字典.toml").toStdWString();
@@ -352,7 +362,7 @@ void DictSettingsPage::_setupUI()
 		{
 			return ReadDicts::readNormalDicts(postDictPath);
 		};
-	auto refreshAndSavePostDictFunc = createDictTabFunc(postReadPlainTextFunc, postReadEntriesFunc, _withdrawPostList, "post", QString(postDictPath.stem().wstring()), NormalDictModel{});
+	auto refreshAndSavePostDictFunc = createDictTabFunc(postReadPlainTextFunc, postReadEntriesFunc, _withdrawPostList, "post", QString(postDictPath.stem().wstring()));
 
 
 	_refreshFunc = [=]()

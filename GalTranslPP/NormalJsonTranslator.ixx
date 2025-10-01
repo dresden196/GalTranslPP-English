@@ -3,12 +3,12 @@ module;
 #ifdef _WIN32
 #include <Windows.h>
 #include <Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
 #endif
 
 #include <ranges>
 #include <boost/regex.hpp>
 #include <spdlog/spdlog.h>
-#pragma comment(lib, "Shlwapi.lib")
 
 export module NormalJsonTranslator;
 
@@ -80,8 +80,8 @@ export {
         std::map<fs::path, std::map<fs::path, bool>> m_jsonToSplitFileParts;
 
         std::map<std::string, std::string> m_nameMap;
-        toml::value m_problemOverview = toml::array{};
-        json m_problemOverviewJson = json::array();
+        toml::ordered_value m_problemOverview = toml::array{};
+        ordered_json m_problemOverviewJson = ordered_json::array();
         std::function<void(fs::path)> m_onFileProcessed;
         std::mutex m_cacheMutex;
         std::mutex m_outputMutex;
@@ -830,7 +830,14 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
                 continue;
             }
             const auto& item = it->second;
-            se.problems = item["problems"].get<std::vector<std::string>>();
+            if (item.contains("problems")) {
+                if (item["problems"].is_array()) {
+                    se.problems = item["problems"].get<std::vector<std::string>>();
+                }
+                else if (item["problems"].is_string()) {
+                    se.problems.push_back(item["problems"].get<std::string>());
+                }
+            }
             if (m_transEngine != TransEngine::Rebuild && hasRetranslKey(m_retranslKeys, &se)) {
                 toTranslate.push_back(&se);
                 continue;
@@ -887,7 +894,7 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
             if (se.problems.empty()) {
                 continue;
             }
-            toml::table tbl; json j;
+            toml::ordered_table tbl; ordered_json j;
             tbl["filename"] = relInputPathStr; j["filename"] = relInputPathStr;
             tbl["index"] = se.index; j["index"] = se.index;
             if (se.nameType == NameType::Single) {

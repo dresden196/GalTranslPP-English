@@ -6,7 +6,7 @@
 #include <QFileDialog>
 #include <QScrollBar>
 #include <QTextBlock>
-#include <QSystemTrayIcon>
+#include <QDesktopServices>
 
 #include "ElaText.h"
 #include "ElaScrollPageArea.h"
@@ -30,6 +30,14 @@ StartSettingsPage::StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, 
 {
 	setWindowTitle(tr("启动设置"));
 	setTitleVisible(false);
+
+	_trayIcon = new QSystemTrayIcon(this);
+	_trayIcon->setIcon(QIcon(":/GPPGUI/Resource/Image/julixian_s.ico"));
+	connect(_trayIcon, &QSystemTrayIcon::messageClicked, this, [=]()
+		{
+			QUrl dirUrl = QUrl::fromLocalFile(QString(_projectDir.wstring()));
+			QDesktopServices::openUrl(dirUrl);
+		});
 
 	_setupUI();
 }
@@ -398,19 +406,13 @@ void StartSettingsPage::_workFinished(int exitCode)
 	_threadNumRing->setValue(0);
 	_remainTimeLabel->display("00:00:00");
 
-	// 创建一个托盘图标对象
-	static QSystemTrayIcon* trayIcon = new QSystemTrayIcon(this);
-
-	// 设置图标
-	trayIcon->setIcon(QIcon(":/GPPGUI/Resource/Image/julixian_s.ico"));
-
 	switch (exitCode)
 	{
 	case -2:
 		ElaMessageBar::error(ElaMessageBarType::BottomRight, tr("翻译失败"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 翻译任务失败，请检查日志输出。"), 3000);
 
 		// 显示通知消息
-		trayIcon->showMessage(
+		_trayIcon->showMessage(
 			tr("翻译失败"),                  // 标题
 				tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 翻译任务失败，请检查日志输出。"),      // 内容
 			QSystemTrayIcon::Critical, // 图标类型 (Information, Warning, Critical)
@@ -423,7 +425,7 @@ void StartSettingsPage::_workFinished(int exitCode)
 	case 0:
 		if (_transEngine == "DumpName" || _transEngine == "GenDict") {
 			ElaMessageBar::success(ElaMessageBarType::BottomRight, tr("生成完成"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的生成任务已完成。"), 3000);
-			trayIcon->showMessage(
+			_trayIcon->showMessage(
 				tr("生成完成"),                  // 标题
 					tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的生成任务已完成。"),      // 内容
 				QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
@@ -432,7 +434,7 @@ void StartSettingsPage::_workFinished(int exitCode)
 		}
 		else if (_transEngine == "ShowNormal") {
 			ElaMessageBar::success(ElaMessageBarType::BottomRight, tr("生成完成"), tr("请在 show_normal 文件夹中查收项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的预处理结果。"), 3000);
-			trayIcon->showMessage(
+			_trayIcon->showMessage(
 				tr("生成完成"),                  // 标题
 					tr("请在 show_normal 文件夹中查收项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的预处理结果。"),      // 内容
 				QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
@@ -441,7 +443,7 @@ void StartSettingsPage::_workFinished(int exitCode)
 		}
 		else {
 			ElaMessageBar::success(ElaMessageBarType::BottomRight, tr("翻译完成"), tr("请在 gt_output 文件夹中查收项目 ") + QString(_projectDir.filename().wstring()) + " 的翻译结果。", 3000);
-			trayIcon->showMessage(
+			_trayIcon->showMessage(
 				tr("翻译完成"),                  // 标题
 					tr("请在 gt_output 文件夹中查收项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的翻译结果。"),      // 内容
 				QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)

@@ -6,6 +6,7 @@
 #include <QThread>
 #include <toml.hpp>
 #include <filesystem>
+#include <QSystemTrayIcon>
 #include "BasePage.h"
 #include "TranslatorWorker.h"
 #include "ExponentialMovingAverageEstimator.hpp"
@@ -56,6 +57,7 @@ private:
     ElaProgressRing* _threadNumRing;
     ElaLCDNumber* _usedTimeLabel;
     ElaLCDNumber* _remainTimeLabel;
+    QSystemTrayIcon* _trayIcon;
     ExponentialMovingAverageEstimator _estimator;
     std::chrono::high_resolution_clock::time_point _startTime;
 

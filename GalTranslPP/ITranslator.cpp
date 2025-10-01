@@ -103,9 +103,6 @@ std::unique_ptr<ITranslator> createTranslator(const fs::path& projectDir, std::s
             if (!fs::exists(logFilePath)) {
                 continue;
             }
-            if (fs::exists(newLogFilePath)) {
-                fs::remove(newLogFilePath);
-            }
             fs::rename(logFilePath, newLogFilePath);
         }
         fs::path logFilePath = projectDir / L"logs" / (ascii2Wide(transEngine) + L"_0.log");

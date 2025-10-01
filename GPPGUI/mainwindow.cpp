@@ -373,7 +373,7 @@ void MainWindow::_onNewProjectTriggered()
     }
 
     try {
-        toml::ordered_value configData = toml::parse(newProjectDir / L"config.toml");
+        toml::ordered_value configData = toml::parse<toml::ordered_type_config>(newProjectDir / L"config.toml");
 
         auto addCommonDictsToProjectConfig = [&](const std::string& globalConfigKey, const std::string& projectConfigKey)
             {

@@ -357,7 +357,7 @@ void CommonSettingsPage::_setupUI()
 			insertToml(_projectConfig, "common.saveLog", saveLogToggle->getIsToggled());
 			insertToml(_projectConfig, "common.dictDir", dictLineEdit->text().toStdString());
 			try {
-				toml::ordered_value newTbl = toml::parse_str(linebreakEdit->toPlainText().toStdString());
+				toml::ordered_value newTbl = toml::parse_str<toml::ordered_type_config>(linebreakEdit->toPlainText().toStdString());
 				std::string newLinebreakSymbol = toml::get_or(newTbl["linebreakSymbol"], "auto");
 				insertToml(_projectConfig, "common.linebreakSymbol", newLinebreakSymbol);
 			}

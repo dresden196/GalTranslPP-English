@@ -224,7 +224,7 @@ void ProjectSettingsPage::_createPages()
     _promptSettingsPage = new PromptSettingsPage(_projectDir, _projectConfig, this);
     _pluginSettingsPage = new PluginSettingsPage(_mainWindow, _projectConfig, this);
     _startSettingsPage = new StartSettingsPage(_mainWindow, _projectDir, _projectConfig, this);
-    _otherSettingsPage = new OtherSettingsPage(_projectDir, _projectConfig, this);
+    _otherSettingsPage = new OtherSettingsPage(_mainWindow, _projectDir, _projectConfig, this);
 
     _stackedWidget->addWidget(_apiSettingsPage);
     _stackedWidget->addWidget(_commonSettingsPage);
@@ -240,10 +240,10 @@ void ProjectSettingsPage::_createPages()
     connect(_startSettingsPage, &StartSettingsPage::startTranslating, this, &ProjectSettingsPage::_onStartTranslating);
     connect(_startSettingsPage, &StartSettingsPage::finishTranslatingSignal, this, &ProjectSettingsPage::_onFinishTranslating);
     connect(_otherSettingsPage, &OtherSettingsPage::saveConfigSignal, this, &ProjectSettingsPage::apply2Config);
-    connect(_otherSettingsPage, &OtherSettingsPage::refreshProjectConfigSignal, this, &ProjectSettingsPage::_refreshProjectConfig);
+    connect(_otherSettingsPage, &OtherSettingsPage::refreshProjectConfigSignal, this, &ProjectSettingsPage::_onRefreshProjectConfig);
 }
 
-void ProjectSettingsPage::_refreshProjectConfig()
+void ProjectSettingsPage::_onRefreshProjectConfig()
 {
     bool isRunning = toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true);
     if (isRunning) {
@@ -251,7 +251,7 @@ void ProjectSettingsPage::_refreshProjectConfig()
         return;
     }
     try {
-        _projectConfig = toml::parse(_projectDir / L"config.toml");
+        _projectConfig = toml::parse<toml::ordered_type_config>(_projectDir / L"config.toml");
     }
     catch (...) {
         ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的配置文件不符合规范"), 3000);

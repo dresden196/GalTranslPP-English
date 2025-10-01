@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
         QTranslator translator;
         QTranslator qtBaseTranslator; // 用于翻译 Qt 内置对话框，如 QMessageBox 的按钮
         try {
-            toml::ordered_value config = toml::parse(fs::path(L"BaseConfig/globalConfig.toml"));
+            toml::value config = toml::parse(fs::path(L"BaseConfig/globalConfig.toml"));
             checkUpdate = toml::get_or(config["autoCheckUpdate"], true);
             std::string language = toml::get_or(config["language"], "zh_CN");
             if (language == "en") {
@@ -76,8 +76,14 @@ int main(int argc, char* argv[])
         }
 
         if (fs::exists(L"Updater_new.exe")) {
-            fs::remove(L"Updater.exe");
-            fs::rename(L"Updater_new.exe", L"Updater.exe");
+            try {
+                fs::rename(L"Updater_new.exe", L"Updater.exe");
+            }
+            catch (const fs::filesystem_error& e) {
+#ifdef Q_OS_WIN
+                MessageBoxW(nullptr, QString(e.what()).toStdWString().c_str(), L"Updater 更新错误", MB_ICONERROR);
+#endif
+            }
         }
 
         // 1. 使用 QSharedMemory 防止多实例运行
@@ -167,7 +173,14 @@ int main(int argc, char* argv[])
 
         // 程序退出前，确保服务器关闭
         server.close();
-        fs::remove_all(L"cache");
+        try {
+            fs::remove_all(L"cache");
+        }
+        catch (const fs::filesystem_error& e) {
+#ifdef Q_OS_WIN
+            MessageBoxW(nullptr, QString(e.what()).toStdWString().c_str(), L"缓存删除错误", MB_ICONERROR);
+#endif
+        }
         return result;
     }
     catch (const std::exception& e) {

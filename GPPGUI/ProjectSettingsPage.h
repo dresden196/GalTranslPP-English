@@ -70,7 +70,7 @@ private Q_SLOTS:
     // 槽函数，用于响应开始翻译按钮的点击
     void _onStartTranslating();
     void _onFinishTranslating(const QString& transEngine, int exitCode);
-    void _refreshProjectConfig();
+    void _onRefreshProjectConfig();
 };
 
 #endif // PROJECTSETTINGSPAGE_H
