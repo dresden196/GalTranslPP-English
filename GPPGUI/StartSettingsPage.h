@@ -26,7 +26,7 @@ class StartSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::value& projectConfig, QWidget* parent = nullptr);
+    explicit StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::ordered_value& projectConfig, QWidget* parent = nullptr);
     ~StartSettingsPage() override;
     virtual void apply2Config() override;
 
@@ -43,7 +43,7 @@ private:
     TranslatorWorker* _worker;
 
     void _setupUI();
-    toml::value& _projectConfig;
+    toml::ordered_value& _projectConfig;
     QWidget* _mainWindow;
 
     ElaPushButton* _startTranslateButton;

@@ -8,12 +8,12 @@ class SettingPage : public BasePage
 {
     Q_OBJECT
 public:
-    Q_INVOKABLE explicit SettingPage(toml::value& globalConfig, QWidget* parent = nullptr);
+    Q_INVOKABLE explicit SettingPage(toml::ordered_value& globalConfig, QWidget* parent = nullptr);
     ~SettingPage() override;
 
 private:
 
-    toml::value& _globalConfig;
+    toml::ordered_value& _globalConfig;
 };
 
 #endif // SETTINGPAGE_H

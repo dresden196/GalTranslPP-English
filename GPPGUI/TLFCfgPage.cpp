@@ -12,7 +12,7 @@
 
 import Tool;
 
-TLFCfgPage::TLFCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
+TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
 	setWindowTitle(tr("换行修复设置"));
 	setContentsMargins(10, 0, 10, 0);

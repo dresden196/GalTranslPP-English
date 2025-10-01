@@ -34,7 +34,7 @@ QString calculateFileSha256(const QString& filePath)
     return hash.result().toHex();
 }
 
-UpdateChecker::UpdateChecker(toml::value& globalConfig, ElaText* statusText, QObject* parent) : 
+UpdateChecker::UpdateChecker(toml::ordered_value& globalConfig, ElaText* statusText, QObject* parent) :
     QObject(parent), m_statusText(statusText), m_globalConfig(globalConfig)
 {
     m_checkManager = new QNetworkAccessManager(this);

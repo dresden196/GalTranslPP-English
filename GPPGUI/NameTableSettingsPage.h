@@ -16,7 +16,7 @@ class NameTableSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit NameTableSettingsPage(fs::path& projectDir, toml::value& globalConfig, toml::value& projectConfig, QWidget* parent = nullptr);
+    explicit NameTableSettingsPage(fs::path& projectDir, toml::ordered_value& globalConfig, toml::ordered_value& projectConfig, QWidget* parent = nullptr);
     ~NameTableSettingsPage() override;
     void refreshTable();
 
@@ -25,8 +25,8 @@ private:
     void _setupUI();
     QList<NameTableEntry> readNameTable();
     QString readNameTableStr();
-    toml::value& _projectConfig;
-    toml::value& _globalConfig;
+    toml::ordered_value& _projectConfig;
+    toml::ordered_value& _globalConfig;
     fs::path& _projectDir;
     std::function<void()> _refreshFunc;
 

@@ -15,7 +15,7 @@
 
 import Tool;
 
-SettingPage::SettingPage(toml::value& globalConfig, QWidget* parent)
+SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     : BasePage(parent), _globalConfig(globalConfig)
 {
     // 预览窗口标题

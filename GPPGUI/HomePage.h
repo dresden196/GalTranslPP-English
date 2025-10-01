@@ -9,12 +9,12 @@ class HomePage : public BasePage
     Q_OBJECT
 public:
 
-    Q_INVOKABLE explicit HomePage(toml::value& globalConfig, QWidget* parent = nullptr);
+    Q_INVOKABLE explicit HomePage(toml::ordered_value& globalConfig, QWidget* parent = nullptr);
     ~HomePage();
 
 private:
 
-    toml::value& _globalConfig;
+    toml::ordered_value& _globalConfig;
 };
 
 #endif // HOMEPAGE_H

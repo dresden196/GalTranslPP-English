@@ -24,7 +24,7 @@ import Tool;
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 
-CommonNormalDictPage::CommonNormalDictPage(const std::string& mode, toml::value& globalConfig, QWidget* parent) :
+CommonNormalDictPage::CommonNormalDictPage(const std::string& mode, toml::ordered_value& globalConfig, QWidget* parent) :
 	BasePage(parent), _globalConfig(globalConfig), _mainWindow(parent)
 {
 	setWindowTitle(tr("默认译前字典设置"));
@@ -225,7 +225,7 @@ void CommonNormalDictPage::_setupUI()
 					}
 					else if (stackedWidget->currentIndex() == 1 || forceSaveInTableModeToInit) {
 						QList<NormalDictEntry> dictEntries = model->getEntries();
-						toml::value dictArr= toml::array{};
+						toml::ordered_value dictArr= toml::array{};
 						for (const auto& entry : dictEntries) {
 							toml::ordered_table dictTable;
 							dictTable.insert({ "org", entry.original.toStdString() });
@@ -236,7 +236,7 @@ void CommonNormalDictPage::_setupUI()
 							dictTable.insert({ "priority", entry.priority });
 							dictArr.push_back(dictTable);
 						}
-						ofs << toml::format(toml::value{ toml::table{{"normalDict", dictArr}} });
+						ofs << toml::format(toml::ordered_value{ toml::ordered_table{{"normalDict", dictArr}} });
 						ofs.close();
 						plainTextEdit->setPlainText(ReadDicts::readDictsStr(dictPath));
 					}
@@ -247,7 +247,7 @@ void CommonNormalDictPage::_setupUI()
 					}
 					else {
 						if (
-							!std::ranges::any_of(newDictNames.as_array(), [=](const toml::value& name)
+							!std::ranges::any_of(newDictNames.as_array(), [=](const toml::ordered_value& name)
 							{
 								return name.is_string() && name.as_string() == dictName;
 							})
@@ -523,7 +523,7 @@ void CommonNormalDictPage::_setupUI()
 				}
 				else if (entry.stackedWidget->currentIndex() == 1) {
 					QList<NormalDictEntry> dictEntries = entry.dictModel->getEntries();
-					toml::value dictArr= toml::array{};
+					toml::ordered_value dictArr= toml::array{};
 					for (const auto& entry : dictEntries) {
 						toml::ordered_table dictTable;
 						dictTable.insert({ "org", entry.original.toStdString() });
@@ -534,7 +534,7 @@ void CommonNormalDictPage::_setupUI()
 						dictTable.insert({ "priority", entry.priority });
 						dictArr.push_back(dictTable);
 					}
-					ofs << toml::format(toml::value{ toml::table{{"normalDict", dictArr}} });
+					ofs << toml::format(toml::ordered_value{ toml::ordered_table{{"normalDict", dictArr}} });
 					ofs.close();
 					entry.plainTextEdit->setPlainText(ReadDicts::readDictsStr(entry.dictPath));
 				}

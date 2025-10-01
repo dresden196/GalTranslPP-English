@@ -18,7 +18,7 @@
 
 import Tool;
 
-PromptSettingsPage::PromptSettingsPage(fs::path& projectDir, toml::value& projectConfig, QWidget* parent) :
+PromptSettingsPage::PromptSettingsPage(fs::path& projectDir, toml::ordered_value& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir)
 {
 	setWindowTitle(tr("项目提示词设置"));
@@ -26,7 +26,7 @@ PromptSettingsPage::PromptSettingsPage(fs::path& projectDir, toml::value& projec
 
 	if (fs::exists(_projectDir / L"Prompt.toml")) {
 		try {
-			_promptConfig = toml::parse(_projectDir / L"Prompt.toml");
+			_promptConfig = toml::parse<toml::ordered_type_config>(_projectDir / L"Prompt.toml");
 		}
 		catch (...) {
 			ElaMessageBar::error(ElaMessageBarType::TopRight, tr("解析失败"), tr("项目 ") +

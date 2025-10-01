@@ -11,11 +11,11 @@ class EpubCfgPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit EpubCfgPage(toml::value& projectConfig, QWidget* parent = nullptr);
+    explicit EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent = nullptr);
     ~EpubCfgPage();
 
 private:
-    toml::value& _projectConfig;
+    toml::ordered_value& _projectConfig;
 };
 
 #endif // EPUBCFGPAGE_H

@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget* parent)
 {
     if (fs::exists(L"BaseConfig/globalConfig.toml")) {
         try {
-            _globalConfig = toml::parse(fs::path(L"BaseConfig/globalConfig.toml"));
+            _globalConfig = toml::parse<toml::ordered_type_config>(fs::path(L"BaseConfig/globalConfig.toml"));
         }
         catch (...) {
             QMessageBox::critical(this, tr("解析错误"), tr("基本配置文件不符合 toml 规范！"), QMessageBox::Ok);
@@ -191,11 +191,11 @@ void MainWindow::initEdgeLayout()
     std::string gppversion = GPPVERSION;
     std::erase_if(gppversion, [](char ch) { return ch == '.'; });
     updateDockWidget->setVisible(toml::get_or(_globalConfig["showDockWidget"][gppversion], true));
-    insertToml(_globalConfig, "showDockWidget", toml::value{});
+    insertToml(_globalConfig, "showDockWidget", toml::ordered_table{});
     insertToml(_globalConfig, "showDockWidget." + gppversion, updateDockWidget->isVisible());
     connect(updateDockWidget, &ElaDockWidget::visibilityChanged, this, [=](bool visible)
         {
-            insertToml(_globalConfig, "showDockWidget", toml::value{});
+            insertToml(_globalConfig, "showDockWidget", toml::ordered_table{});
             insertToml(_globalConfig, "showDockWidget." + gppversion, visible);
         });
 
@@ -373,7 +373,7 @@ void MainWindow::_onNewProjectTriggered()
     }
 
     try {
-        toml::value configData = toml::parse(newProjectDir / L"config.toml");
+        toml::ordered_value configData = toml::parse(newProjectDir / L"config.toml");
 
         auto addCommonDictsToProjectConfig = [&](const std::string& globalConfigKey, const std::string& projectConfigKey)
             {
@@ -588,7 +588,7 @@ void MainWindow::_onCloseWindowClicked(bool restart)
         page->apply2Config();
         projects.push_back(wide2Ascii(page->getProjectDir()));
     }
-    _globalConfig.as_table().insert_or_assign("projects", projects);
+    _globalConfig["projects"] = projects;
 
     _settingPage->apply2Config();
 

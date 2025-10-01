@@ -16,7 +16,7 @@
 
 import Tool;
 
-EpubCfgPage::EpubCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
+EpubCfgPage::EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
 	setWindowTitle(tr("Epub 输出配置"));
 	setContentsMargins(10, 0, 10, 0);
@@ -91,7 +91,7 @@ EpubCfgPage::EpubCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage
 	mainLayout->addWidget(scaleArea);
 
 	// 预处理正则
-	toml::value preRegexArr = toml::array{};
+	toml::ordered_value preRegexArr = toml::array{};
 	auto& preRegex = _projectConfig["plugins"]["Epub"]["preprocRegex"];
 	if (preRegex.is_array()) {
 		preRegexArr = preRegex;
@@ -103,11 +103,11 @@ EpubCfgPage::EpubCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage
 	mainLayout->addWidget(preRegexText);
 	ElaPlainTextEdit* preRegexEdit = new ElaPlainTextEdit(centerWidget);
 	preRegexEdit->setMinimumHeight(300);
-	preRegexEdit->setPlainText(QString::fromStdString(toml::format(toml::value{ toml::table{{ "preprocRegex", preRegexArr }} })));
+	preRegexEdit->setPlainText(QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ "preprocRegex", preRegexArr }} })));
 	mainLayout->addWidget(preRegexEdit);
 
 	// 后处理正则
-	toml::value postRegexArr = toml::array{};
+	toml::ordered_value postRegexArr = toml::array{};
 	auto& postRegex = _projectConfig["plugins"]["Epub"]["postprocRegex"];
 	if (postRegex.is_array()) {
 		postRegexArr = postRegex;
@@ -119,7 +119,7 @@ EpubCfgPage::EpubCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage
 	mainLayout->addWidget(postRegexText);
 	ElaPlainTextEdit* postRegexEdit = new ElaPlainTextEdit(centerWidget);
 	postRegexEdit->setMinimumHeight(300);
-	postRegexEdit->setPlainText(QString::fromStdString(toml::format(toml::value{ toml::table{{ "postprocRegex", postRegexArr }} })));
+	postRegexEdit->setPlainText(QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ "postprocRegex", postRegexArr }} })));
 	mainLayout->addWidget(postRegexEdit);
 
 	QWidget* tipButtonWidget = new QWidget(centerWidget);
@@ -140,7 +140,7 @@ EpubCfgPage::EpubCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage
 			insertToml(_projectConfig, "plugins.Epub.缩小比例", scaleSlider->value());
 
 			try {
-				toml::value preTbl = toml::parse_str(preRegexEdit->toPlainText().toStdString());
+				toml::ordered_value preTbl = toml::parse_str<toml::ordered_type_config>(preRegexEdit->toPlainText().toStdString());
 				auto& preArr = preTbl["preprocRegex"];
 				if (preArr.is_array()) {
 					insertToml(_projectConfig, "plugins.Epub.preprocRegex", preArr.as_array());
@@ -153,7 +153,7 @@ EpubCfgPage::EpubCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage
 				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("Epub预处理正则格式错误"), 3000);
 			}
 			try {
-				toml::value postTbl = toml::parse_str(postRegexEdit->toPlainText().toStdString());
+				toml::ordered_value postTbl = toml::parse_str<toml::ordered_type_config>(postRegexEdit->toPlainText().toStdString());
 				auto& postArr = postTbl["postprocRegex"];
 				if (postArr.is_array()) {
 					insertToml(_projectConfig, "plugins.Epub.postprocRegex", postArr.as_array());

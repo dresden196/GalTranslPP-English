@@ -10,7 +10,7 @@
 
 import Tool;
 
-PostFull2HalfCfgPage::PostFull2HalfCfgPage(toml::value& projectConfig, QWidget* parent) 
+PostFull2HalfCfgPage::PostFull2HalfCfgPage(toml::ordered_value& projectConfig, QWidget* parent)
     : BasePage(parent), _projectConfig(projectConfig)
 {
     setWindowTitle(tr("全角半角转换设置"));

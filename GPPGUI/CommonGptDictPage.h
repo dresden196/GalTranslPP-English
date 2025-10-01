@@ -32,7 +32,7 @@ class CommonGptDictPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit CommonGptDictPage(toml::value& globalConfig, QWidget* parent = nullptr);
+    explicit CommonGptDictPage(toml::ordered_value& globalConfig, QWidget* parent = nullptr);
     ~CommonGptDictPage() override;
 
 Q_SIGNALS:
@@ -42,7 +42,7 @@ private:
 
     void _setupUI();
 
-    toml::value& _globalConfig;
+    toml::ordered_value& _globalConfig;
 
     QList<GptTabEntry> _gptTabEntries;
     QWidget* _mainWindow;

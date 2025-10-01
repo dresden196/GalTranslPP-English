@@ -25,7 +25,7 @@
 
 import Tool;
 
-StartSettingsPage::StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::value& projectConfig, QWidget* parent) : 
+StartSettingsPage::StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::ordered_value& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir), _mainWindow(mainWindow)
 {
 	setWindowTitle(tr("启动设置"));

@@ -64,6 +64,6 @@ private:
     ElaContentDialog* _closeDialog{nullptr};
     UpdateChecker* _updateChecker{nullptr};
 
-    toml::value _globalConfig;
+    toml::ordered_value _globalConfig;
 };
 #endif // MAINWINDOW_H

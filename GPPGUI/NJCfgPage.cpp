@@ -9,7 +9,7 @@
 
 import Tool;
 
-NJCfgPage::NJCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
+NJCfgPage::NJCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
 	setWindowTitle(tr("NormalJson 输出配置"));
 	setContentsMargins(10, 0, 10, 0);

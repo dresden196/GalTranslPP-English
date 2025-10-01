@@ -19,7 +19,7 @@
 
 import Tool;
 
-APISettingsPage::APISettingsPage(toml::value& projectConfig, QWidget* parent)
+APISettingsPage::APISettingsPage(toml::ordered_value& projectConfig, QWidget* parent)
     : BasePage(parent), _projectConfig(projectConfig)
 {
     setWindowTitle(tr("API 设置"));
@@ -40,7 +40,7 @@ void APISettingsPage::apply2Config()
         {
             continue;
         }
-        toml::table apiTable;
+        toml::ordered_table apiTable;
         apiTable.insert({ "apikey", apiRow.keyEdit->text().toStdString() });
         apiTable.insert({ "apiurl", apiRow.urlEdit->text().toStdString() });
         apiTable.insert({ "modelName", apiRow.modelEdit->text().toStdString() });

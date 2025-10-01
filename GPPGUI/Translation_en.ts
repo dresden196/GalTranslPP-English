@@ -961,62 +961,62 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="235"/>
+        <location filename="DictSettingsPage.cpp" line="236"/>
         <source>选择字典文件</source>
         <translation type="unfinished">choose dict file</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="242"/>
+        <location filename="DictSettingsPage.cpp" line="243"/>
         <source>导入失败</source>
         <translation type="unfinished">Fail to import</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="242"/>
+        <location filename="DictSettingsPage.cpp" line="243"/>
         <source>字典文件中没有词条</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="247"/>
+        <location filename="DictSettingsPage.cpp" line="248"/>
         <source>导入成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="247"/>
+        <location filename="DictSettingsPage.cpp" line="248"/>
         <source>从文件 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="248"/>
+        <location filename="DictSettingsPage.cpp" line="249"/>
         <source> 中导入了 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="248"/>
+        <location filename="DictSettingsPage.cpp" line="249"/>
         <source> 个词条</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="272"/>
+        <location filename="DictSettingsPage.cpp" line="273"/>
         <source>保存成功</source>
         <translation type="unfinished">saved successfully</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="272"/>
+        <location filename="DictSettingsPage.cpp" line="273"/>
         <source>已保存 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="321"/>
+        <location filename="DictSettingsPage.cpp" line="322"/>
         <source>项目GPT字典.toml</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="333"/>
+        <location filename="DictSettingsPage.cpp" line="334"/>
         <source>项目译前字典.toml</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="345"/>
+        <location filename="DictSettingsPage.cpp" line="346"/>
         <source>项目译后字典.toml</source>
         <translation type="unfinished"></translation>
     </message>

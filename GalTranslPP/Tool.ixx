@@ -609,11 +609,13 @@ void extractZip(const fs::path& zipPath, const fs::path& outputDir) {
 }
 
 
-template toml::value& insertToml(toml::value& table, const std::string& path, const std::string& value);
-template toml::value& insertToml(toml::value& table, const std::string& path, const int& value);
-template toml::value& insertToml(toml::value& table, const std::string& path, const double& value);
-template toml::value& insertToml(toml::value& table, const std::string& path, const bool& value);
-template toml::value& insertToml(toml::value& table, const std::string& path, const toml::array& value);
-template toml::value& insertToml(toml::value& table, const std::string& path, const toml::table& value);
-template toml::value& insertToml(toml::value& table, const std::string& path, const toml::value& value);
 template toml::ordered_value& insertToml(toml::ordered_value& table, const std::string& path, const std::string& value);
+template toml::ordered_value& insertToml(toml::ordered_value& table, const std::string& path, const int& value);
+template toml::ordered_value& insertToml(toml::ordered_value& table, const std::string& path, const double& value);
+template toml::ordered_value& insertToml(toml::ordered_value& table, const std::string& path, const bool& value);
+template toml::ordered_value& insertToml(toml::ordered_value& table, const std::string& path, const toml::array& value);
+template toml::ordered_value& insertToml(toml::ordered_value& table, const std::string& path, const toml::table& value);
+template toml::ordered_value& insertToml(toml::ordered_value& table, const std::string& path, const toml::value& value);
+template toml::ordered_value& insertToml(toml::ordered_value& table, const std::string& path, const toml::ordered_array& value);
+template toml::ordered_value& insertToml(toml::ordered_value& table, const std::string& path, const toml::ordered_table& value);
+template toml::ordered_value& insertToml(toml::ordered_value& table, const std::string& path, const toml::ordered_value& value);

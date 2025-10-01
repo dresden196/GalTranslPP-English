@@ -20,7 +20,7 @@
 
 import Tool;
 
-CommonSettingsPage::CommonSettingsPage(toml::value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
+CommonSettingsPage::CommonSettingsPage(toml::ordered_value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
 	setWindowTitle(tr("一般设置"));
 	setTitleVisible(false);
@@ -319,7 +319,7 @@ void CommonSettingsPage::_setupUI()
 
 	// 项目所用的换行
 	std::string linebreakSymbol = toml::get_or(_projectConfig["common"]["linebreakSymbol"], "auto");
-	QString linebreakSymbolStr = QString::fromStdString(toml::format(toml::value{ toml::table{{"linebreakSymbol", linebreakSymbol}} }));
+	QString linebreakSymbolStr = QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{"linebreakSymbol", linebreakSymbol}} }));
 	mainLayout->addSpacing(10);
 	ElaText* linebreakText = new ElaText(tr("本项目所使用的换行符"), mainWidget);
 	linebreakText->setTextPixelSize(18);
@@ -357,7 +357,7 @@ void CommonSettingsPage::_setupUI()
 			insertToml(_projectConfig, "common.saveLog", saveLogToggle->getIsToggled());
 			insertToml(_projectConfig, "common.dictDir", dictLineEdit->text().toStdString());
 			try {
-				toml::value newTbl = toml::parse_str(linebreakEdit->toPlainText().toStdString());
+				toml::ordered_value newTbl = toml::parse_str(linebreakEdit->toPlainText().toStdString());
 				std::string newLinebreakSymbol = toml::get_or(newTbl["linebreakSymbol"], "auto");
 				insertToml(_projectConfig, "common.linebreakSymbol", newLinebreakSymbol);
 			}

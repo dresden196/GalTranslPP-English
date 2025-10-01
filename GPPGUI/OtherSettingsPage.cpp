@@ -17,7 +17,7 @@
 
 import Tool;
 
-OtherSettingsPage::OtherSettingsPage(fs::path& projectDir, toml::value& projectConfig, QWidget* parent) : 
+OtherSettingsPage::OtherSettingsPage(fs::path& projectDir, toml::ordered_value& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir)
 {
 	setWindowTitle(tr("其它设置"));

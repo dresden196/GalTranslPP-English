@@ -16,7 +16,7 @@
 
 import Tool;
 
-NameTableSettingsPage::NameTableSettingsPage(fs::path& projectDir, toml::value& globalConfig, toml::value& projectConfig, QWidget* parent) :
+NameTableSettingsPage::NameTableSettingsPage(fs::path& projectDir, toml::ordered_value& globalConfig, toml::ordered_value& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _globalConfig(globalConfig), _projectDir(projectDir)
 {
 	setWindowTitle(tr("人名替换表"));

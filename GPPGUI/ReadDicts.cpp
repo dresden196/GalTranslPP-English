@@ -122,7 +122,7 @@ QList<DictionaryEntry> ReadDicts::readGptDicts(const std::vector<fs::path>& dict
 
 QString ReadDicts::readGptDictsStr(const std::vector<fs::path>& dictPaths)
 {
-	toml::value newDictArr = toml::array{};
+	toml::ordered_value newDictArr = toml::array{};
 	for (const auto& dictPath : dictPaths) {
 		if (!isSameExtension(dictPath, L".toml") || !fs::exists(dictPath)) {
 			continue;
@@ -145,7 +145,7 @@ QString ReadDicts::readGptDictsStr(const std::vector<fs::path>& dictPaths)
 		}
 	}
 	newDictArr.as_array_fmt().fmt = toml::array_format::multiline;
-	return QString::fromStdString(toml::format(toml::value{ toml::table{{ "gptDict", newDictArr }} }));
+	return QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ "gptDict", newDictArr }} }));
 }
 
 QList<NormalDictEntry> ReadDicts::readNormalDicts(const fs::path& dictPath)

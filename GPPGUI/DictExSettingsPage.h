@@ -13,15 +13,15 @@ class DictExSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit DictExSettingsPage(toml::value& globalConfig, toml::value& projectConfig, QWidget* parent = nullptr);
+    explicit DictExSettingsPage(toml::ordered_value& globalConfig, toml::ordered_value& projectConfig, QWidget* parent = nullptr);
     ~DictExSettingsPage() override;
     void refreshCommonDictsList();
 
 private:
 
     void _setupUI();
-    toml::value& _globalConfig;
-    toml::value& _projectConfig;
+    toml::ordered_value& _globalConfig;
+    toml::ordered_value& _projectConfig;
 
     std::function<void()> _refreshCommonDictsListFunc;
 };

@@ -16,7 +16,7 @@ class UpdateChecker : public QObject
 {
     Q_OBJECT
 public:
-    explicit UpdateChecker(toml::value& globalConfig, ElaText* statusText, QObject* parent = nullptr);
+    explicit UpdateChecker(toml::ordered_value& globalConfig, ElaText* statusText, QObject* parent = nullptr);
     void check(bool forDownload = false);
     void downloadUpdate(const QString& url);
     bool getIsDownloadSucceed();
@@ -49,7 +49,7 @@ private:
     QTimer* m_downloadTimer = nullptr;
     QMap<QNetworkReply*, bool> m_isForDownloadMap;
 
-    toml::value& m_globalConfig;
+    toml::ordered_value& m_globalConfig;
     const QString m_repoOwner = "julixian";
     const QString m_repoName = "GalTranslPP";
 };

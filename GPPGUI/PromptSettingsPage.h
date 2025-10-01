@@ -17,14 +17,14 @@ class PromptSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit PromptSettingsPage(fs::path& projectDir, toml::value& projectConfig, QWidget* parent = nullptr);
+    explicit PromptSettingsPage(fs::path& projectDir, toml::ordered_value& projectConfig, QWidget* parent = nullptr);
     ~PromptSettingsPage() override;
 
 private:
 
     void _setupUI();
-    toml::value _promptConfig;
-    toml::value& _projectConfig;
+    toml::ordered_value _promptConfig;
+    toml::ordered_value& _projectConfig;
     fs::path& _projectDir;
 
 };

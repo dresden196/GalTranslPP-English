@@ -15,7 +15,7 @@ class CommonNormalDictPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit CommonNormalDictPage(const std::string& mode, toml::value& globalConfig, QWidget* parent = nullptr);
+    explicit CommonNormalDictPage(const std::string& mode, toml::ordered_value& globalConfig, QWidget* parent = nullptr);
     ~CommonNormalDictPage() override;
 
 Q_SIGNALS:
@@ -25,7 +25,7 @@ private:
 
     void _setupUI();
 
-    toml::value& _globalConfig;
+    toml::ordered_value& _globalConfig;
 
     QList<NormalTabEntry> _normalTabEntries;
     QWidget* _mainWindow;

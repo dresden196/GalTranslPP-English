@@ -11,11 +11,11 @@ class TLFCfgPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit TLFCfgPage(toml::value& projectConfig, QWidget* parent = nullptr);
+    explicit TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent = nullptr);
     ~TLFCfgPage();
 
 private:
-    toml::value& _projectConfig;
+    toml::ordered_value& _projectConfig;
 
 };
 

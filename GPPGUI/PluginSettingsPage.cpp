@@ -13,7 +13,7 @@
 
 import Tool;
 
-PluginSettingsPage::PluginSettingsPage(QWidget* mainWindow, toml::value& projectConfig, QWidget* parent) :
+PluginSettingsPage::PluginSettingsPage(QWidget* mainWindow, toml::ordered_value& projectConfig, QWidget* parent) :
     BasePage(parent), _projectConfig(projectConfig), _mainWindow(mainWindow)
 {
     setWindowTitle(tr("插件设置"));

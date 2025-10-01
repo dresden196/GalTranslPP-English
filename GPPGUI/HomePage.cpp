@@ -20,7 +20,7 @@
 #include "ElaText.h"
 #include "ElaToolTip.h"
 
-HomePage::HomePage(toml::value& globalConfig, QWidget* parent)
+HomePage::HomePage(toml::ordered_value& globalConfig, QWidget* parent)
     : BasePage(parent), _globalConfig(globalConfig)
 {
     // 预览窗口标题
@@ -105,7 +105,7 @@ HomePage::HomePage(toml::value& globalConfig, QWidget* parent)
 
     // ElaFlowLayout
     bool hasPopularCardsArr = _globalConfig["popularCards"].is_array();
-    auto getPopularCardInConfig = [&](size_t index) -> std::optional<toml::value>
+    auto getPopularCardInConfig = [&](size_t index) -> std::optional<toml::ordered_value>
         {
             if (!hasPopularCardsArr || index >= _globalConfig["popularCards"].size()) {
                 return std::nullopt;
@@ -117,9 +117,9 @@ HomePage::HomePage(toml::value& globalConfig, QWidget* parent)
             return popularCardsArr[index];
         };
 
-    auto applyPopularCardInConfig = [&](const std::optional<toml::value>& cardOpt, ElaPopularCard* homeCard)
+    auto applyPopularCardInConfig = [&](const std::optional<toml::ordered_value>& cardOpt, ElaPopularCard* homeCard)
         {
-            const toml::value& card = *cardOpt;
+            const toml::ordered_value& card = *cardOpt;
             QString pathOrUrl = QString::fromStdString(toml::find_or(card, "pathOrUrl", ""));
             bool fromLocal = toml::find_or(card, "fromLocal", false);
             if (fromLocal) {

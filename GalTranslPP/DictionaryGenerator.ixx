@@ -228,7 +228,14 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
         m_logger->info("[线程 {}] 开始从段落中生成术语表\ninputBlock: \n{}", threadId, text);
         ApiResponse response = performApiRequest(payload, currentAPI, threadId, m_controller, m_logger, m_apiTimeoutMs);
 
-        if (response.success) {
+        /*bool checkResponse(const ApiResponse & response, const TranslationAPI & currentAPI, int& retryCount, const std::filesystem::path & relInputPath,
+            int threadId, bool m_checkQuota, const std::string & m_apiStrategy, APIPool & m_apiPool, std::shared_ptr<spdlog::logger> m_logger);*/
+        if (!checkResponse(
+            response, currentAPI, retryCount, L"字典生成——段落输入", threadId, m_checkQuota, m_apiStrategy, m_apiPool, m_logger
+        )) {
+            continue;
+        }
+        else {
             m_logger->info("[线程 {}] AI 字典生成成功:\n {}", threadId, response.content);
             auto lines = splitString(response.content, '\n');
             for (const auto& line : lines) {
@@ -243,62 +250,6 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
                 m_finalDict.emplace_back(parts[0], parts[1], parts[2]);
             }
             break;
-        }
-        else {
-
-            std::string lowerErrorMsg = response.content;
-            std::transform(lowerErrorMsg.begin(), lowerErrorMsg.end(), lowerErrorMsg.begin(), ::tolower);
-
-            // 情况一：额度用尽 (Quota)
-            if (
-                m_checkQuota &&
-                (lowerErrorMsg.find("quota") != std::string::npos ||
-                    lowerErrorMsg.find("invalid tokens") != std::string::npos)
-                )
-            {
-                m_logger->error("[线程 {}] API Key [{}] 疑似额度用尽，短期内多次报告将从池中移除。", threadId, currentAPI.apikey);
-                m_apiPool.reportProblem(currentAPI);
-                // 不需要增加 retryCount
-                continue;
-            }
-            // key 没有这个模型
-            else if (lowerErrorMsg.find("no available") != std::string::npos) {
-                m_logger->error("[线程 {}] API Key [{}] 没有 [{}] 模型，短期内多次报告将从池中移除。", threadId, currentAPI.apikey, currentAPI.modelName);
-                m_apiPool.reportProblem(currentAPI);
-                continue;
-            }
-
-            // 情况二：频率限制 (429) 或其他可重试错误
-            // 状态码 429 是最明确的信号
-            if (response.statusCode == 429 || lowerErrorMsg.find("rate limit") != std::string::npos || lowerErrorMsg.find("try again") != std::string::npos) {
-                retryCount++;
-                m_logger->warn("[线程 {}] 遇到频率限制或可重试错误，进行第 {} 次退避等待...", threadId, retryCount);
-
-                // 实现指数退避与抖动
-                int sleepSeconds;
-                int maxSleepSeconds = static_cast<int>(std::pow(2, std::min(retryCount, 6)));
-                if (maxSleepSeconds > 0) {
-                    sleepSeconds = std::rand() % maxSleepSeconds;
-                }
-                else {
-                    sleepSeconds = 0;
-                }
-                m_logger->debug("将等待 {} 秒后重试...", sleepSeconds);
-                if (sleepSeconds > 0) {
-                    std::this_thread::sleep_for(std::chrono::seconds(sleepSeconds));
-                }
-                continue;
-            }
-
-            // 其他无法识别的硬性错误
-            retryCount++;
-            m_logger->warn("[线程 {}] 遇到未知API错误，进行第 {} 次重试...", threadId, retryCount);
-            if (m_apiStrategy == "fallback") {
-                m_logger->warn("[线程 {}] 将切换到下一个 API Key(如果有多个API Key的话)", threadId);
-                m_apiPool.resortTokens();
-            }
-            std::this_thread::sleep_for(std::chrono::seconds(2)); // 简单等待
-            continue;
         }
     }
     if (retryCount >= m_maxRetries) {

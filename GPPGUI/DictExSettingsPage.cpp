@@ -11,7 +11,7 @@
 
 import Tool;
 
-DictExSettingsPage::DictExSettingsPage(toml::value& globalConfig, toml::value& projectConfig, QWidget* parent) :
+DictExSettingsPage::DictExSettingsPage(toml::ordered_value& globalConfig, toml::ordered_value& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _globalConfig(globalConfig)
 {
 	setWindowTitle(tr("项目字典设置"));
@@ -161,7 +161,7 @@ void DictExSettingsPage::_setupUI()
 				[=](const QString& excludeName, const std::string& globalConfigKey, ElaMultiSelectComboBox* comboBox)
 				{
 					auto& commonDictsVal = _globalConfig[globalConfigKey]["dictNames"];
-					const toml::array& commonDictsArr = commonDictsVal.is_array() ? commonDictsVal.as_array() : toml::array{};
+					const toml::ordered_array& commonDictsArr = commonDictsVal.is_array() ? commonDictsVal.as_array() : toml::ordered_array{};
 					QList<int> dictIndexesToRemove;
 					for (int i = 0; i < comboBox->count(); i++) {
 						if (

@@ -11,12 +11,12 @@ class CommonSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit CommonSettingsPage(toml::value& projectConfig, QWidget* parent = nullptr);
+    explicit CommonSettingsPage(toml::ordered_value& projectConfig, QWidget* parent = nullptr);
     ~CommonSettingsPage() override;
 
 private:
     void _setupUI();
-    toml::value& _projectConfig;
+    toml::ordered_value& _projectConfig;
 };
 
 #endif // COMMONSETTINGSPAGE_H

@@ -27,7 +27,7 @@
 
 import Tool;
 
-ProjectSettingsPage::ProjectSettingsPage(toml::value& globalConfig, const fs::path& projectDir, QWidget* parent)
+ProjectSettingsPage::ProjectSettingsPage(toml::ordered_value& globalConfig, const fs::path& projectDir, QWidget* parent)
     : BasePage(parent), _projectDir(projectDir), _globalConfig(globalConfig), _mainWindow(parent)
 {
     setWindowTitle(tr("项目设置主页"));

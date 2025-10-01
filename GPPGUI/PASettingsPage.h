@@ -11,13 +11,13 @@ class PASettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit PASettingsPage(toml::value& projectConfig, QWidget* parent = nullptr);
+    explicit PASettingsPage(toml::ordered_value& projectConfig, QWidget* parent = nullptr);
     ~PASettingsPage() override;
 
 private:
 
     void _setupUI();
-    toml::value& _projectConfig;
+    toml::ordered_value& _projectConfig;
 };
 
 #endif // COMMONSETTINGSPAGE_H

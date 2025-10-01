@@ -9,11 +9,11 @@ class PostFull2HalfCfgPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit PostFull2HalfCfgPage(toml::value& projectConfig, QWidget* parent = nullptr);
+    explicit PostFull2HalfCfgPage(toml::ordered_value& projectConfig, QWidget* parent = nullptr);
     ~PostFull2HalfCfgPage();
 
 private:
-    toml::value& _projectConfig;
+    toml::ordered_value& _projectConfig;
 };
 
 #endif // ! POSTFULL2HALFCFGPAGE_H

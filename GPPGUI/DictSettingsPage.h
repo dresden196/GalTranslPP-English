@@ -19,15 +19,15 @@ class DictSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit DictSettingsPage(fs::path& projectDir, toml::value& globalConfig, toml::value& projectConfig, QWidget* parent = nullptr);
+    explicit DictSettingsPage(fs::path& projectDir, toml::ordered_value& globalConfig, toml::ordered_value& projectConfig, QWidget* parent = nullptr);
     ~DictSettingsPage() override;
     void refreshDicts();
 
 private:
 
     void _setupUI();
-    toml::value& _globalConfig;
-    toml::value& _projectConfig;
+    toml::ordered_value& _globalConfig;
+    toml::ordered_value& _projectConfig;
     fs::path& _projectDir;
 
     std::function<void()> _refreshFunc;

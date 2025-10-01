@@ -13,7 +13,7 @@
 
 import Tool;
 
-PDFCfgPage::PDFCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
+PDFCfgPage::PDFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
 	setWindowTitle(tr("PDF 输出配置"));
 	setContentsMargins(10, 0, 10, 0);
