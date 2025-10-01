@@ -9,7 +9,7 @@ module;
 export module EpubTranslator;
 
 import <nlohmann/json.hpp>;
-import <toml++/toml.hpp>;
+import <toml.hpp>;
 import Tool;
 import NormalJsonTranslator;
 
@@ -36,6 +36,16 @@ export {
         std::multimap<int, CallbackPattern> callbackPatterns;
     };
 
+    struct jsonInfo {
+        std::vector<EpubTextNodeInfo> metadata;
+        // 存储json文件相对路径到原始HTML完整路径的映射
+        fs::path htmlPath;
+        // 存储json文件相对路径到其所属epub完整路径的映射
+        fs::path epubPath;
+        // 存储json文件相对路径到 normal_post 完整路径的映射
+        fs::path normalPostPath;
+    };
+
     class EpubTranslator : public NormalJsonTranslator {
 
     private:
@@ -55,19 +65,8 @@ export {
         std::vector<RegexPattern> m_postRegexPatterns;
 
 
-        // 存储json文件相对路径到句子元数据的映射
-        // Key: json文件相对路径 (e.g., "dir1/book1/OEBPS/chapter1.json")
-        // Value: 元数据
-        std::map<fs::path, std::vector<EpubTextNodeInfo>> m_jsonToMetadataMap;
-
-        // 存储json文件相对路径到原始HTML完整路径的映射
-        std::map<fs::path, fs::path> m_jsonToHtmlPathMap;
-
-        // 存储json文件相对路径到其所属epub完整路径的映射
-        std::map<fs::path, fs::path> m_jsonToEpubPathMap;
-
-        // 存储json文件相对路径到 normal_post 完整路径的映射
-        std::map<fs::path, fs::path> m_jsonToNormalPostMap;
+        // 存储json文件相对路径到各种元数据的映射
+        std::map<fs::path, jsonInfo> m_jsonToInfoMap;
 
         // 每个epub完整路径对应的多个json文件相对路径以及有没有处理完毕
         std::map<fs::path, std::map<fs::path, bool>> m_epubToJsonsMap;
@@ -128,13 +127,8 @@ EpubTranslator::EpubTranslator(const fs::path& projectDir, std::shared_ptr<ICont
     std::ifstream ifs;
 
     try {
-        ifs.open(m_projectDir / L"config.toml");
-        auto projectConfig = toml::parse(ifs);
-        ifs.close();
-
-        ifs.open(pluginConfigsPath / L"filePlugins/Epub.toml");
-        auto pluginConfig = toml::parse(ifs);
-        ifs.close();
+        const auto projectConfig = toml::parse(m_projectDir / L"config.toml");
+        const auto pluginConfig = toml::parse(pluginConfigsPath / L"filePlugins/Epub.toml");
 
         m_bilingualOutput = parseToml<bool>(projectConfig, pluginConfig, "plugins.Epub.双语显示");
         m_originalTextColor = parseToml<std::string>(projectConfig, pluginConfig, "plugins.Epub.原文颜色");
@@ -142,13 +136,9 @@ EpubTranslator::EpubTranslator(const fs::path& projectDir, std::shared_ptr<ICont
 
         auto readRegexArr = [](const toml::array& regexArr, std::vector<RegexPattern>& patterns)
             {
-                for (const auto& elem : regexArr) {
-                    auto regexTbl = elem.as_table();
-                    if (!regexTbl) {
-                        continue;
-                    }
-                    std::string regexOrg = regexTbl->contains("org") ? (*regexTbl)["org"].value_or("") :
-                        (*regexTbl)["searchStr"].value_or("");
+                for (const auto& regexTbl : regexArr) {
+                    std::string regexOrg = regexTbl.contains("org") ? toml::find_or(regexTbl, "org", "") :
+                        toml::find_or(regexTbl, "searchStr", "");
                     if (regexOrg.empty()) {
                         continue;
                     }
@@ -160,30 +150,26 @@ EpubTranslator::EpubTranslator(const fs::path& projectDir, std::shared_ptr<ICont
                     if (U_FAILURE(status)) {
                         throw std::runtime_error("预处理正则编译失败: " + regexOrg);
                     }
-                    regexPattern.isCallback = regexTbl->contains("callback");
+                    regexPattern.isCallback = regexTbl.contains("callback");
 
                     if (regexPattern.isCallback) {
-                        auto callbackArr = (*regexTbl)["callback"].as_array();
-                        if (!callbackArr) {
-                            throw std::runtime_error("预处理正则回调配置错误: " + regexOrg);
-                        }
-                        for (const auto& callbackElem : *callbackArr) {
-                            auto callbackTbl = callbackElem.as_table();
-                            if (!callbackTbl) {
+                        const auto& callbackArr = toml::get<toml::array>(regexTbl.at("callback"));
+                        for (const auto& callbackTbl : callbackArr) {
+                            if (!callbackTbl.is_table()) {
                                 continue;
                             }
                             CallbackPattern callbackPattern;
-                            int group = (*callbackTbl)["group"].value_or(0);
+                            int group = toml::find_or(callbackTbl, "group", 0);
                             if (group == 0) {
                                 continue;
                             }
-                            std::string callbackOrg = callbackTbl->contains("org") ? (*callbackTbl)["org"].value_or("") :
-                                (*callbackTbl)["searchStr"].value_or("");
+                            const std::string& callbackOrg = callbackTbl.contains("org") ? toml::find_or(callbackTbl, "org", "") :
+                                toml::find_or(callbackTbl, "searchStr", "");
                             if (callbackOrg.empty()) {
                                 continue;
                             }
-                            std::string callbackRep = callbackTbl->contains("rep") ? (*callbackTbl)["rep"].value_or("") :
-                                (*callbackTbl)["replaceStr"].value_or("");
+                            const std::string& callbackRep = callbackTbl.contains("rep") ? toml::find_or(callbackTbl, "rep", "") :
+                                toml::find_or(callbackTbl, "replaceStr", "");
                             icu::UnicodeString callbackUStr = icu::UnicodeString::fromUTF8(callbackOrg);
                             callbackPattern.org = std::shared_ptr<icu::RegexPattern>(icu::RegexPattern::compile(callbackUStr, 0, status));
                             if (U_FAILURE(status)) {
@@ -194,8 +180,8 @@ EpubTranslator::EpubTranslator(const fs::path& projectDir, std::shared_ptr<ICont
                         }
                     }
                     else {
-                        std::string regexRep = regexTbl->contains("rep") ? (*regexTbl)["rep"].value_or("") :
-                            (*regexTbl)["replaceStr"].value_or("");
+                        const std::string& regexRep = regexTbl.contains("rep") ? toml::find_or(regexTbl, "rep", "") :
+                            toml::find_or(regexTbl, "replaceStr", "");
                         icu::UnicodeString repUStr = icu::UnicodeString::fromUTF8(regexRep);
                         regexPattern.rep = repUStr;
                     }
@@ -204,13 +190,13 @@ EpubTranslator::EpubTranslator(const fs::path& projectDir, std::shared_ptr<ICont
                 }
             };
 
-        auto preRegexArr = parseToml<toml::array>(projectConfig, pluginConfig, "plugins.Epub.预处理正则");
+        const auto& preRegexArr = parseToml<toml::array>(projectConfig, pluginConfig, "plugins.Epub.预处理正则");
         readRegexArr(preRegexArr, m_preRegexPatterns);
-        auto postRegexArr = parseToml<toml::array>(projectConfig, pluginConfig, "plugins.Epub.后处理正则");
+        const auto& postRegexArr = parseToml<toml::array>(projectConfig, pluginConfig, "plugins.Epub.后处理正则");
         readRegexArr(postRegexArr, m_postRegexPatterns);
     }
-    catch (const toml::parse_error& e) {
-        m_logger->critical("项目配置文件解析失败, 错误位置: {}, 错误信息: {}", stream2String(e.source().begin), e.description());
+    catch (const toml::exception& e) {
+        m_logger->critical("Epub 配置文件解析失败");
         throw std::runtime_error(e.what());
     }
 }
@@ -328,9 +314,10 @@ void EpubTranslator::run()
 
 
                 // 存储映射关系
-                m_jsonToHtmlPathMap[relJsonPath] = htmlEntry.path();
-                m_jsonToEpubPathMap[relJsonPath] = epubPath;
-                m_jsonToNormalPostMap[relJsonPath] = showNormalPostHtmlPath;
+                jsonInfo& info = m_jsonToInfoMap[relJsonPath];
+                info.htmlPath = htmlEntry.path();
+                info.epubPath = epubPath;
+                info.normalPostPath = showNormalPostHtmlPath;
                 m_epubToJsonsMap[epubPath].insert(std::make_pair(relJsonPath, false));
 
                 // 存储元数据
@@ -345,7 +332,7 @@ void EpubTranslator::run()
                     j.push_back({ {"name", ""}, {"message", p.first} });
                     metadata.push_back(p.second);
                 }
-                m_jsonToMetadataMap[relJsonPath] = metadata;
+                info.metadata = std::move(metadata);
 
                 createParent(m_inputDir / relJsonPath); // cache/myproject/epub_json_input/dir1/book1/OEBPS/chapter1.json
                 std::ofstream ofs;
@@ -363,11 +350,12 @@ void EpubTranslator::run()
 
     m_onFileProcessed = [this, &regexReplace](fs::path relProcessedFile)
         {
-            if (!m_jsonToEpubPathMap.count(relProcessedFile) || !m_epubToJsonsMap.count(m_jsonToEpubPathMap[relProcessedFile])) {
+            if (!m_jsonToInfoMap.contains(relProcessedFile)) {
                 m_logger->warn("未找到与 {} 对应的元数据，跳过", wide2Ascii(relProcessedFile));
                 return;
             }
-            fs::path epubPath = m_jsonToEpubPathMap[relProcessedFile];
+            const jsonInfo& info = m_jsonToInfoMap[relProcessedFile];
+            const fs::path& epubPath = info.epubPath;
             std::map<fs::path, bool>& jsonsMap = m_epubToJsonsMap[epubPath];
             jsonsMap[relProcessedFile] = true;
             if (
@@ -382,11 +370,10 @@ void EpubTranslator::run()
 
             // 这本epub的所有文件都翻译完毕，可以开始重组
             for (const auto& [relJsonPath, isProcessed] : jsonsMap) {
-                if (!m_jsonToHtmlPathMap.count(relJsonPath) || !m_jsonToMetadataMap.count(relJsonPath)) continue;
 
-                fs::path originalHtmlPath = m_jsonToHtmlPathMap[relJsonPath];
-                fs::path rebuiltHtmlPath = m_tempRebuildDir / fs::relative(originalHtmlPath, m_tempUnpackDir);
-                const auto& metadata = m_jsonToMetadataMap[relJsonPath];
+                const fs::path& originalHtmlPath = info.htmlPath;
+                const fs::path rebuiltHtmlPath = m_tempRebuildDir / fs::relative(originalHtmlPath, m_tempUnpackDir);
+                const auto& metadata = info.metadata;
 
                 // 替换 HTML 内容的逻辑
                 std::ifstream ifs(rebuiltHtmlPath, std::ios::binary);
@@ -430,7 +417,7 @@ void EpubTranslator::run()
                 ofs << newContent;
                 ofs.close();
 
-                fs::path showNormalPostHtmlPath = m_jsonToNormalPostMap[relJsonPath];
+                const fs::path& showNormalPostHtmlPath = info.normalPostPath;
                 createParent(showNormalPostHtmlPath);
                 ofs.open(showNormalPostHtmlPath, std::ios::binary);
                 ofs << newContent;

@@ -4,7 +4,7 @@
 #define APISETTINGSPAGE_H
 
 #include <QList>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include "BasePage.h"
 
 class QVBoxLayout;
@@ -17,7 +17,7 @@ class APISettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit APISettingsPage(toml::table& projectConfig, QWidget* parent = nullptr);
+    explicit APISettingsPage(toml::value& projectConfig, QWidget* parent = nullptr);
     ~APISettingsPage() override;
     virtual void apply2Config() override;
 
@@ -28,7 +28,7 @@ private Q_SLOTS:
 private:
     // 成员变量
     QVBoxLayout* _mainLayout; // 页面主布局(用来增删APIKEY输入控件)
-    toml::table& _projectConfig;
+    toml::value& _projectConfig;
 
     // 用于存储动态控件的列表
     struct ApiRowControls {

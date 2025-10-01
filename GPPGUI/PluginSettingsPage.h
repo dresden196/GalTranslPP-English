@@ -4,7 +4,7 @@
 #define PLUGINSETTINGSPAGE_H
 
 #include <QList>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include "BasePage.h"
 
 class QVBoxLayout;
@@ -17,7 +17,7 @@ class PluginSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit PluginSettingsPage(QWidget* mainWindow, toml::table& projectConfig, QWidget* parent = nullptr);
+    explicit PluginSettingsPage(QWidget* mainWindow, toml::value& projectConfig, QWidget* parent = nullptr);
     ~PluginSettingsPage();
     virtual void apply2Config() override;
 
@@ -40,7 +40,7 @@ private:
     QVBoxLayout* _postPluginListLayout; // 容纳所有译后 PluginItemWidget 的布局
     QList<PluginItemWidget*> _postPluginItems; // 按顺序存储所有项的指针
 
-    toml::table& _projectConfig;
+    toml::value& _projectConfig;
     QWidget* _mainWindow;
 
 private:

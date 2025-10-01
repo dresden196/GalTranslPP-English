@@ -1,7 +1,7 @@
 #ifndef DEFAULTPROMPTPAGE_H
 #define DEFAULTPROMPTPAGE_H
 
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include <QStackedWidget>
 #include "BasePage.h"
 
@@ -15,7 +15,7 @@ public:
 
 private:
 
-    toml::table _promptConfig;
+    toml::ordered_value _promptConfig;
 
     void _setupUI();
 };

@@ -148,6 +148,9 @@
     <ClCompile Include="PDFCfgPage.cpp">
       <Filter>Source Files\ToolWidgetsImp</Filter>
     </ClCompile>
+    <ClCompile Include="ReadDicts.cpp">
+      <Filter>Source Files\ToolWidgetsImp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mainwindow.h">
@@ -247,6 +250,9 @@
       <Filter>Header Files\ProjectSettingH</Filter>
     </QtMoc>
     <QtMoc Include="PDFCfgPage.h">
+      <Filter>Header Files\ToolWidgetsH</Filter>
+    </QtMoc>
+    <QtMoc Include="ReadDicts.h">
       <Filter>Header Files\ToolWidgetsH</Filter>
     </QtMoc>
   </ItemGroup>

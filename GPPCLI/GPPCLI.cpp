@@ -1,4 +1,7 @@
-﻿#include <Windows.h>
+﻿#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #include <spdlog/spdlog.h>
 
 import Tool;
@@ -10,8 +13,10 @@ namespace fs = std::filesystem;
 
 int main(int argc, char* argv[])
 {
+#ifdef _WIN32
     SetConsoleCP(CP_UTF8);
     SetConsoleOutputCP(CP_UTF8);
+#endif
 
     fs::path currentProjectPath;
 

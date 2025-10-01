@@ -3,7 +3,7 @@
 #ifndef NJCFGPAGE_H
 #define NJCFGPAGE_H
 
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include "BasePage.h"
 
 class NJCfgPage : public BasePage
@@ -11,11 +11,11 @@ class NJCfgPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit NJCfgPage(toml::table& projectConfig, QWidget* parent = nullptr);
+    explicit NJCfgPage(toml::value& projectConfig, QWidget* parent = nullptr);
     ~NJCfgPage();
 
 private:
-    toml::table& _projectConfig;
+    toml::value& _projectConfig;
 };
 
 #endif // NJCFGPAGE_H

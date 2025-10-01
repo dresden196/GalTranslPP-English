@@ -6,9 +6,9 @@ namespace fs = std::filesystem;
 
 export {
 
-    std::string GPPVERSION = "1.0.5P";
+    const std::string GPPVERSION = "2.0.0P";
 
-    fs::path pluginConfigsPath = L"BaseConfig/pluginConfigs";
+    const fs::path pluginConfigsPath = L"BaseConfig/pluginConfigs";
 
     enum  class NameType
     {
@@ -24,7 +24,7 @@ export {
         std::string original_text;
         std::string pre_processed_text;
         std::string pre_translated_text;
-        std::string problem;
+        std::vector<std::string> problems;
         std::string translated_by;
         std::string translated_preview;
         std::map<std::string, std::string> other_info;

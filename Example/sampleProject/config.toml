@@ -11,7 +11,6 @@ apiTimeout = 120 # 请求超时时间，单位秒
 [plugins]
 filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, i18n(尚未实现)...
 
-transEngine = "ForGalJson"
 # ForGalJson: 向AI输入json格式的对话并要求AI以json格式回复，使用 FORGALJSON_SYSTEM 和 FORGALJSON_TRANS_PROMPT_EN 作为提示词
 # ForGalTsv: 向AI输入TSV格式的对话并要求AI以TSV格式回复，使用 FORGALTSV_SYSTEM 和 FORGALTSV_TRANS_PROMPT_EN 作为提示词
 # ForNovelTsv: 和 ForGalTsv 的区别是输入不带name，使用 FORNOVELTSV_SYSTEM 和 FORNOVELTSV_TRANS_PROMPT_EN 作为提示词
@@ -22,11 +21,13 @@ transEngine = "ForGalJson"
 # Rebuild: 即使problem或orig_text中包含retranslKey也不会重翻，只根据缓存翻译重建结果
 # ShowNormal: 展示预处理后的内容及句子，如Epub格式下可生成预处理后的html/xhtml文件以及生成的json，可用于检查和排错
 # PS: 如果项目文件夹下有 Prompt.toml，会优先使用项目文件夹下的提示词，否则再去 BaseConfig 下寻找
+transEngine = "ForGalJson"
 
-textPostPlugins = [ 
-  #"TextLinebreakFix"
-  #"TextPostFull2Half"
-] # 文本译后处理插件列表，可以设置多个，按顺序执行
+#"TextLinebreakFix"
+#"TextPostFull2Half"
+# 文本译后处理插件列表，可以设置多个，按顺序执行
+textPostPlugins = [
+] 
 
   [plugins.NormalJson]
   output_with_src = true
@@ -34,17 +35,17 @@ textPostPlugins = [
   [plugins.Epub]
   "双语显示" = true
 
-    [[plugins.Epub.'预处理正则']]
+    [[plugins.Epub.preprocRegex]]
     org = '<ruby><rb>(.+?)</rb><rt>(.+?)</rt></ruby>'
     rep = '[$2/$1]'
 
-    [[plugins.Epub.'预处理正则']]
+    [[plugins.Epub.preprocRegex]]
     org = '(<p[^>/]*>)(.*?)(</p>)'
     callback = [
         { org = '<[^>]*>', rep = '', group = 2 },
     ]
 
-    [[plugins.Epub.'后处理正则']]
+    [[plugins.Epub.postprocRegex]]
     org = '\[([^/\[\]]+?)/([^/\[\]]+?)\]'
     rep = '<ruby><rb>$2</rb><rt>$1</rt></ruby>'
 
@@ -121,25 +122,25 @@ overwriteCompareObj = [
   { problemKey = "语言不通", base = "preproc_text", check = "trans_preview" },
 ]
 
-[dictionary]
-defaultDictFolder = "BaseConfig/Dict" 
 # 如果出现同名字典文件，则只读取项目文件夹中的
 # 否则读取defaultDictFolder中对应pre/gpt/post文件夹下的字典
+# 翻译执行顺序详见使用说明
+[dictionary]
+defaultDictFolder = "BaseConfig/Dict" 
 usePreDictInName = false   # 将译前字典用在name字段，可用于翻译name字段，会发送给翻译引擎替换后的name[true/false]
 usePostDictInName = false  # 将译后字典用在name字段，可用于翻译name字段[true/false]
 usePreDictInMsg = true   # 将译前字典用在message字段，可用于翻译message字段，会发送给翻译引擎替换后的message[true/false]
 usePostDictInMsg = true  # 将译后字典用在message字段，可用于翻译message字段[true/false]
 
 useGPTDictToReplaceName = false   # 将GPT字典用在name字段，可用于翻译name字段(直接搜索替换)[true/false]
-# 翻译执行顺序详见使用说明
 
 preDict = [
-  "项目字典_译前.toml"
+  "项目译前字典.toml"
 ]
 gptDict = [
   "项目GPT字典.toml",
   "项目GPT字典-生成.toml"
 ]
 postDict = [
-  "项目字典_译后.toml"
+  "项目译后字典.toml"
 ]

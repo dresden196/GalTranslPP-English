@@ -3,7 +3,7 @@
 #ifndef TLFCFGPAGE_H
 #define TLFCFGPAGE_H
 
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include "BasePage.h"
 
 class TLFCfgPage : public BasePage
@@ -11,11 +11,11 @@ class TLFCfgPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit TLFCfgPage(toml::table& projectConfig, QWidget* parent = nullptr);
+    explicit TLFCfgPage(toml::value& projectConfig, QWidget* parent = nullptr);
     ~TLFCfgPage();
 
 private:
-    toml::table& _projectConfig;
+    toml::value& _projectConfig;
 
 };
 

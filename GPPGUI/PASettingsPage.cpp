@@ -22,7 +22,7 @@
 
 import Tool;
 
-PASettingsPage::PASettingsPage(toml::table& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
+PASettingsPage::PASettingsPage(toml::value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
 	setWindowTitle(tr("问题分析"));
 	setTitleVisible(false);
@@ -43,12 +43,17 @@ void PASettingsPage::_setupUI()
 	mainLayout->setSpacing(5);
 
 	// 要发现的问题清单
+	QStringList problemList = { "词频过高","标点错漏","丢失换行","多加换行","比原文长","比原文长严格","字典未使用",
+		"残留日文","引入拉丁字母","引入韩文","语言不通", };
+	QStringList problemListToShow = { tr("词频过高"), tr("标点错漏"), tr("丢失换行"), tr("多加换行"), tr("比原文长"), tr("比原文长严格"),
+		tr("字典未使用"), tr("残留日文"), tr("引入拉丁字母"), tr("引入韩文"), tr("语言不通"), };
+
 	std::set<std::string> problemListSet;
-	auto problemListOrgArray = _projectConfig["problemAnalyze"]["problemList"].as_array();
-	if (problemListOrgArray) {
-		for (const auto& problem : *problemListOrgArray) {
-			if (auto optProblem = problem.value<std::string>()) {
-				problemListSet.insert(*optProblem);
+	auto& problemListOrgArray = _projectConfig["problemAnalyze"]["problemList"];
+	if (problemListOrgArray.is_array()) {
+		for (const auto& problem : problemListOrgArray.as_array()) {
+			if (problem.is_string()) {
+				problemListSet.insert(problem.as_string());
 			}
 		}
 	}
@@ -56,12 +61,11 @@ void PASettingsPage::_setupUI()
 	problemListTitle->setTextPixelSize(18);
 	mainLayout->addWidget(problemListTitle);
 	ElaFlowLayout* problemListLayout = new ElaFlowLayout();
-	QStringList problemList = { "词频过高","标点错漏","丢失换行","多加换行","比原文长","比原文长严格","字典未使用","残留日文","引入拉丁字母","引入韩文","语言不通", };
 	QList<ElaToggleButton*> problemListButtons;
-	for (const QString& problem : problemList) {
-		ElaToggleButton* button = new ElaToggleButton(problem, this);
+	for (size_t i = 0; i < problemList.size(); i++) {
+		ElaToggleButton* button = new ElaToggleButton(problemListToShow[i], this);
 		button->setFixedWidth(120);
-		if (problemListSet.count(problem.toStdString())) {
+		if (problemListSet.contains(problemList[i].toStdString())) {
 			button->setIsToggled(true);
 		}
 		problemListLayout->addWidget(button);
@@ -71,7 +75,7 @@ void PASettingsPage::_setupUI()
 	mainLayout->addSpacing(20);
 
 	// 规定标点错漏要查哪些标点
-	std::string punctuationSet = _projectConfig["problemAnalyze"]["punctSet"].value_or("");
+	std::string punctuationSet = toml::get_or(_projectConfig["problemAnalyze"]["punctSet"], "");
 	QString punctuationSetStr = QString::fromStdString(punctuationSet);
 	ElaScrollPageArea* punctuationListArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* punctuationListLayout = new QHBoxLayout(punctuationListArea);
@@ -87,7 +91,7 @@ void PASettingsPage::_setupUI()
 	mainLayout->addWidget(punctuationListArea);
 
 	// 语言不通检测的语言置信度，设置越高则检测越精准，但可能遗漏，反之亦然
-	double languageProbability = _projectConfig["problemAnalyze"]["langProbability"].value_or(0.85);
+	double languageProbability = toml::get_or(_projectConfig["problemAnalyze"]["langProbability"], 0.85);
 	ElaScrollPageArea* languageProbabilityArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* languageProbabilityLayout = new QHBoxLayout(languageProbabilityArea);
 	ElaText* languageProbabilityTitle = new ElaText(tr("语言置信度"), languageProbabilityArea);
@@ -105,14 +109,12 @@ void PASettingsPage::_setupUI()
 	mainLayout->addSpacing(20);
 
 	// 重翻在缓存的problem或pre_jp中包含对应**关键字**的句子，去掉下面列表中的#号注释来使用，也可添加自定义的关键字。
-	toml::table retranslKeysTbl;
-	auto retranslKeys = _projectConfig["problemAnalyze"]["retranslKeys"].as_array();
-	if (retranslKeys) {
-		retranslKeysTbl.insert("retranslKeys", *retranslKeys);
+	toml::value retranslKeysArr = toml::array{};
+	auto& retranslKeys = _projectConfig["problemAnalyze"]["retranslKeys"];
+	if (retranslKeys.is_array()) {
+		retranslKeysArr = retranslKeys.as_array();
 	}
-	else {
-		retranslKeysTbl.insert("retranslKeys", toml::array{});
-	}
+	retranslKeysArr.as_array_fmt().fmt = toml::array_format::multiline;
 	ElaText* retranslKeyHelperText = new ElaText(tr("重翻关键字设定"), mainWidget);
 	ElaToolTip* retranslKeyHelperTip = new ElaToolTip(retranslKeyHelperText);
 	retranslKeyHelperTip->setToolTip(tr("重翻在缓存的problem或orig_text中包含对应 **关键字** 的句子，遵循toml格式"));
@@ -123,31 +125,19 @@ void PASettingsPage::_setupUI()
 	QFont font = retranslKeyEdit->font();
 	font.setPixelSize(14);
 	retranslKeyEdit->setFont(font);
-	retranslKeyEdit->setPlainText(QString::fromStdString(stream2String(retranslKeysTbl)));
+	retranslKeyEdit->setPlainText(QString::fromStdString(toml::format(toml::value{ toml::table{{ "retranslKeys", retranslKeysArr }} })));
 	retranslKeyEdit->moveCursor(QTextCursor::End);
 	mainLayout->addWidget(retranslKeyEdit);
 
 	mainLayout->addSpacing(20);
 
 	// 问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)
-	toml::table compareObjTbl;
-	auto overwriteCompareObj = _projectConfig["problemAnalyze"]["overwriteCompareObj"].as_array();
-	if (overwriteCompareObj) {
-		toml::array compareObjArray;
-		for (const auto& elem : *overwriteCompareObj) {
-			auto pTbl = elem.as_table();
-			if (!pTbl) {
-				continue;
-			}
-			auto tbl = *pTbl;
-			tbl.is_inline(true);
-			compareObjArray.push_back(tbl);
-		}
-		compareObjTbl.insert("overwriteCompareObj", compareObjArray);
+	toml::value compareObjArr = toml::array{};
+	auto& overwriteCompareObj = _projectConfig["problemAnalyze"]["overwriteCompareObj"];
+	if (overwriteCompareObj.is_array()) {
+		compareObjArr = overwriteCompareObj.as_array();
 	}
-	else {
-		compareObjTbl.insert("overwriteCompareObj", toml::array{});
-	}
+	compareObjArr.as_array_fmt().fmt = toml::array_format::multiline;
 	ElaText* compareObjHelperText = new ElaText(tr("问题比较对象设定"), mainWidget);
 	ElaToolTip* compareObjHelperTip = new ElaToolTip(compareObjHelperText);
 	compareObjHelperTip->setToolTip(tr("问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)，遵循toml格式"));
@@ -157,7 +147,7 @@ void PASettingsPage::_setupUI()
 	ElaPlainTextEdit* compareObjEdit = new ElaPlainTextEdit(mainWidget);
 	compareObjEdit->setMinimumHeight(280);
 	compareObjEdit->setFont(font);
-	compareObjEdit->setPlainText(QString::fromStdString(stream2String(compareObjTbl)));
+	compareObjEdit->setPlainText(QString::fromStdString(toml::format(toml::value{ toml::table{{ "overwriteCompareObj", compareObjArr }} })));
 	compareObjEdit->moveCursor(QTextCursor::End);
 	mainLayout->addWidget(compareObjEdit);
 
@@ -190,10 +180,10 @@ void PASettingsPage::_setupUI()
 			insertToml(_projectConfig, "problemAnalyze.langProbability", languageProbabilitySlider->value());
 
 			try {
-				toml::table newRetranslKeysTbl = toml::parse(retranslKeyEdit->toPlainText().toStdString());
-				auto newRetranslKeysArr = newRetranslKeysTbl["retranslKeys"].as_array();
-				if (newRetranslKeysArr) {
-					insertToml(_projectConfig, "problemAnalyze.retranslKeys", *newRetranslKeysArr);
+				toml::value newRetranslKeysTbl = toml::parse_str(retranslKeyEdit->toPlainText().toStdString());
+				auto& newRetranslKeysArr = newRetranslKeysTbl["retranslKeys"];
+				if (newRetranslKeysArr.is_array()) {
+					insertToml(_projectConfig, "problemAnalyze.retranslKeys", newRetranslKeysArr.as_array());
 				}
 				else {
 					insertToml(_projectConfig, "problemAnalyze.retranslKeys", toml::array{});
@@ -204,10 +194,10 @@ void PASettingsPage::_setupUI()
 			}
 
 			try {
-				toml::table newCompareObjTbl = toml::parse(compareObjEdit->toPlainText().toStdString());
-				auto newCompareObjArr = newCompareObjTbl["overwriteCompareObj"].as_array();
-				if (newCompareObjArr) {
-					insertToml(_projectConfig, "problemAnalyze.overwriteCompareObj", *newCompareObjArr);
+				toml::value newCompareObjTbl = toml::parse_str(compareObjEdit->toPlainText().toStdString());
+				auto& newCompareObjArr = newCompareObjTbl["overwriteCompareObj"];
+				if (newCompareObjArr.is_array()) {
+					insertToml(_projectConfig, "problemAnalyze.overwriteCompareObj", newCompareObjArr.as_array());
 				}
 				else {
 					insertToml(_projectConfig, "problemAnalyze.overwriteCompareObj", toml::array{});

@@ -13,7 +13,7 @@
 
 import Tool;
 
-PluginSettingsPage::PluginSettingsPage(QWidget* mainWindow, toml::table& projectConfig, QWidget* parent) :
+PluginSettingsPage::PluginSettingsPage(QWidget* mainWindow, toml::value& projectConfig, QWidget* parent) :
     BasePage(parent), _projectConfig(projectConfig), _mainWindow(mainWindow)
 {
     setWindowTitle(tr("插件设置"));
@@ -60,18 +60,16 @@ void PluginSettingsPage::_setupUI()
     // 插件名称列表
     QStringList postPluginNames = { "TextPostFull2Half", "TextLinebreakFix" };
     // 先处理项目已经启用的插件
-    auto postPluginsArr = _projectConfig["plugins"]["textPostPlugins"].as_array();
-    if (postPluginsArr) {
-        for (const auto& elem : *postPluginsArr) {
-            auto pluginNameOpt = elem.value<std::string>();
-            if (!pluginNameOpt.has_value()) {
+    auto& postPluginsArr = _projectConfig["plugins"]["textPostPlugins"];
+    if (postPluginsArr.is_array()) {
+        for (const auto& pluginNameStr : postPluginsArr.as_array()) {
+            if (!pluginNameStr.is_string()) {
                 continue;
             }
-            QString pluginName = QString::fromStdString(pluginNameOpt.value());
+            QString pluginName = QString::fromStdString(pluginNameStr.as_string());
             if (!postPluginNames.contains(pluginName)) {
                 continue;
             }
-            postPluginNames.removeOne(pluginName);
             PluginItemWidget* item = new PluginItemWidget(pluginName, this);
             item->setIsToggled(true);
             _postPluginItems.append(item);
@@ -79,6 +77,8 @@ void PluginSettingsPage::_setupUI()
             connect(item, &PluginItemWidget::moveUpRequested, this, &PluginSettingsPage::_onPostMoveUp);
             connect(item, &PluginItemWidget::moveDownRequested, this, &PluginSettingsPage::_onPostMoveDown);
             connect(item, &PluginItemWidget::settingsRequested, this, &PluginSettingsPage::_onPostSettings);
+            // 防止重复添加
+            postPluginNames.removeOne(pluginName);
         }
     }
 

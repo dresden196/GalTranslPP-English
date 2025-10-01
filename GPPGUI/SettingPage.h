@@ -1,19 +1,19 @@
 #ifndef SETTINGPAGE_H
 #define SETTINGPAGE_H
 
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include "BasePage.h"
 
 class SettingPage : public BasePage
 {
     Q_OBJECT
 public:
-    Q_INVOKABLE explicit SettingPage(toml::table& globalConfig, QWidget* parent = nullptr);
+    Q_INVOKABLE explicit SettingPage(toml::value& globalConfig, QWidget* parent = nullptr);
     ~SettingPage() override;
 
 private:
 
-    toml::table& _globalConfig;
+    toml::value& _globalConfig;
 };
 
 #endif // SETTINGPAGE_H

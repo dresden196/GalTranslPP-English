@@ -19,7 +19,7 @@
 
 import Tool;
 
-APISettingsPage::APISettingsPage(toml::table& projectConfig, QWidget* parent)
+APISettingsPage::APISettingsPage(toml::value& projectConfig, QWidget* parent)
     : BasePage(parent), _projectConfig(projectConfig)
 {
     setWindowTitle(tr("API 设置"));
@@ -41,10 +41,10 @@ void APISettingsPage::apply2Config()
             continue;
         }
         toml::table apiTable;
-        apiTable.insert("apikey", apiRow.keyEdit->text().toStdString());
-        apiTable.insert("apiurl", apiRow.urlEdit->text().toStdString());
-        apiTable.insert("modelName", apiRow.modelEdit->text().toStdString());
-        apiTable.insert("stream", apiRow.streamSwitch->getIsToggled());
+        apiTable.insert({ "apikey", apiRow.keyEdit->text().toStdString() });
+        apiTable.insert({ "apiurl", apiRow.urlEdit->text().toStdString() });
+        apiTable.insert({ "modelName", apiRow.modelEdit->text().toStdString() });
+        apiTable.insert({ "stream", apiRow.streamSwitch->getIsToggled() });
         apiArray.push_back(apiTable);
     }
     insertToml(_projectConfig, "backendSpecific.OpenAI-Compatible.apis", apiArray);
@@ -62,27 +62,26 @@ void APISettingsPage::_setupUI()
     _mainLayout->setContentsMargins(5, 5, 5, 5);
     _mainLayout->setSpacing(15);
 
-    auto apis = _projectConfig["backendSpecific"]["OpenAI-Compatible"]["apis"].as_array();
-    if (apis) {
-        for (const auto& api : *apis) {
-            auto tbl = api.as_table();
-            if (!tbl) {
+    const auto& apis = _projectConfig["backendSpecific"]["OpenAI-Compatible"]["apis"];
+    if (apis.is_array()) {
+        for (const auto& api : apis.as_array()) {
+            if (!api.is_table()) {
                 continue;
             }
-            std::string key = (*tbl)["apikey"].value_or("");
-            std::string url = (*tbl)["apiurl"].value_or("");
-            std::string model = (*tbl)["modelName"].value_or("");
-            bool stream = (*tbl)["stream"].value_or(false);
+            const std::string& key = toml::find_or(api, "apikey", "");
+            const std::string& url = toml::find_or(api, "apiurl", "");
+            const std::string& model = toml::find_or(api, "modelName", "");
+            bool stream = toml::find_or(api, "stream", false);
             ElaScrollPageArea* newRowWidget = _createApiInputRowWidget(QString::fromStdString(key), QString::fromStdString(url), QString::fromStdString(model), stream);
             _mainLayout->addWidget(newRowWidget);
         }
-        if (apis->size() == 0) {
+        if (apis.size() == 0) {
             _addApiInputRow();
         }
     }
 
     // API 使用策略
-    std::string strategy = _projectConfig["backendSpecific"]["OpenAI-Compatible"]["apiStrategy"].value_or("");
+    std::string strategy = toml::get_or(_projectConfig["backendSpecific"]["OpenAI-Compatible"]["apiStrategy"], "");
     bool isRandom = strategy == "random";
     ElaScrollPageArea* apiStrategyArea = new ElaScrollPageArea(this);
     QHBoxLayout* apiStrategyLayout = new QHBoxLayout(apiStrategyArea);
@@ -105,7 +104,7 @@ void APISettingsPage::_setupUI()
     apiStrategyGroup->addButton(apiStrategyFallback, 1);
 
     // API 超时时间
-    int timeout = _projectConfig["backendSpecific"]["OpenAI-Compatible"]["apiTimeout"].value_or(180);
+    int timeout = toml::get_or(_projectConfig["backendSpecific"]["OpenAI-Compatible"]["apiTimeout"], 180);
     ElaScrollPageArea* apiTimeoutArea = new ElaScrollPageArea(this);
     QHBoxLayout* apiTimeoutLayout = new QHBoxLayout(apiTimeoutArea);
     ElaText* apiTimeoutTitle = new ElaText(tr("API 超时时间"), apiTimeoutArea);

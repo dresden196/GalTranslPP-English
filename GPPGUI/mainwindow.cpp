@@ -38,12 +38,12 @@ namespace fs = std::filesystem;
 MainWindow::MainWindow(QWidget* parent)
     : ElaWindow(parent)
 {
-    if (fs::exists("BaseConfig/globalConfig.toml")) {
+    if (fs::exists(L"BaseConfig/globalConfig.toml")) {
         try {
-            _globalConfig = toml::parse_file("BaseConfig/globalConfig.toml");
+            _globalConfig = toml::parse(fs::path(L"BaseConfig/globalConfig.toml"));
         }
         catch (...) {
-            QMessageBox::critical(this, tr("解析错误"), tr("基本配置文件不符合规范！"), QMessageBox::Ok);
+            QMessageBox::critical(this, tr("解析错误"), tr("基本配置文件不符合 toml 规范！"), QMessageBox::Ok);
         }
     }
     else {
@@ -76,7 +76,7 @@ MainWindow::MainWindow(QWidget* parent)
     auto closeCallback = [=](bool directlyClose)
         {
             if (
-                !(_globalConfig["allowCloseWhenRunning"].value_or(false)) &&
+                !(toml::get_or(_globalConfig["allowCloseWhenRunning"], false)) &&
                 std::any_of(_projectPages.begin(), _projectPages.end(), [](const auto& page)
                     {
                         if (page->getIsRunning()) {
@@ -126,11 +126,11 @@ void MainWindow::initWindow()
     setFocusPolicy(Qt::StrongFocus);
     setWindowIcon(QIcon(":/GPPGUI/Resource/Image/julixian_s.jpeg"));
 
-    int width = _globalConfig["windowWidth"].value_or(1450);
-    int height = _globalConfig["windowHeight"].value_or(770);
+    int width = toml::get_or(_globalConfig["windowWidth"], 1450);
+    int height = toml::get_or(_globalConfig["windowHeight"], 770);
     resize(width, height - 30);
-    int x = _globalConfig["windowPosX"].value_or(0);
-    int y = _globalConfig["windowPosY"].value_or(0);
+    int x = toml::get_or(_globalConfig["windowPosX"], 0);
+    int y = toml::get_or(_globalConfig["windowPosY"], 0);
     if (x < 0)x = 0;
     if (y < 0)y = 0;
     move(x, y);
@@ -190,12 +190,12 @@ void MainWindow::initEdgeLayout()
     resizeDocks({ updateDockWidget }, { 200 }, Qt::Horizontal);
     std::string gppversion = GPPVERSION;
     std::erase_if(gppversion, [](char ch) { return ch == '.'; });
-    updateDockWidget->setVisible(_globalConfig["showDockWidget"][gppversion].value_or(true));
-    insertToml(_globalConfig, "showDockWidget", toml::table{});
+    updateDockWidget->setVisible(toml::get_or(_globalConfig["showDockWidget"][gppversion], true));
+    insertToml(_globalConfig, "showDockWidget", toml::value{});
     insertToml(_globalConfig, "showDockWidget." + gppversion, updateDockWidget->isVisible());
     connect(updateDockWidget, &ElaDockWidget::visibilityChanged, this, [=](bool visible)
         {
-            insertToml(_globalConfig, "showDockWidget", toml::table{});
+            insertToml(_globalConfig, "showDockWidget", toml::value{});
             insertToml(_globalConfig, "showDockWidget." + gppversion, visible);
         });
 
@@ -246,11 +246,11 @@ void MainWindow::initContent()
     connect(_commonPostDictPage, &CommonNormalDictPage::commonDictsChanged, this, refreshCommonDicts);
 
     addExpanderNode(tr("项目管理"), _projectExpanderKey, ElaIconType::BriefcaseBlank);
-    auto projects = _globalConfig["projects"].as_array();
-    if (projects) {
-        for (const auto& elem : *projects) {
-            if (auto project = elem.value<std::string>()) {
-                fs::path projectDir(ascii2Wide(*project));
+    auto projects = _globalConfig["projects"];
+    if (projects.is_array()) {
+        for (const auto& project : projects.as_array()) {
+            if (project.is_string()) {
+                fs::path projectDir(ascii2Wide(project.as_string()));
                 if (!fs::exists(projectDir / L"config.toml")) {
                     continue;
                 }
@@ -373,57 +373,31 @@ void MainWindow::_onNewProjectTriggered()
     }
 
     try {
-        std::ifstream ifs(newProjectDir / L"config.toml");
-        toml::table configData = toml::parse(ifs);
-        ifs.close();
+        toml::value configData = toml::parse(newProjectDir / L"config.toml");
 
-        auto preDictNamesArr = _globalConfig["commonPreDicts"]["dictNames"].as_array();
-        auto preDictsArr = configData["dictionary"]["preDict"].as_array();
-        if (preDictNamesArr && preDictsArr) {
-            for (const auto& elem : *preDictNamesArr) {
-                auto preDictNameOpt = elem.value<std::string>();
-                if (!preDictNameOpt.has_value()) {
-                    continue;
+        auto addCommonDictsToProjectConfig = [&](const std::string& globalConfigKey, const std::string& projectConfigKey)
+            {
+                auto& globalDictNames = _globalConfig[globalConfigKey]["dictNames"];
+                auto& projectDictNames = configData["dictionary"][projectConfigKey];
+                if (globalDictNames.is_array() && projectDictNames.is_array()) {
+                    for (const auto& dictName : globalDictNames.as_array()) {
+                        if (!dictName.is_string()) {
+                            continue;
+                        }
+                        if (!toml::get_or(_globalConfig[globalConfigKey]["spec"][dictName.as_string()]["defaultOn"], true)) {
+                            continue;
+                        }
+                        projectDictNames.push_back(dictName.as_string() + ".toml");
+                    }
                 }
-                if (!_globalConfig["commonPreDicts"]["spec"][*preDictNameOpt]["defaultOn"].value_or(true)) {
-                    continue;
-                }
-                preDictsArr->push_back(*preDictNameOpt + ".toml");
-            }
-        }
+            };
 
-        auto gptDictNamesArr = _globalConfig["commonGptDicts"]["dictNames"].as_array();
-        auto gptDictsArr = configData["dictionary"]["gptDict"].as_array();
-        if (gptDictNamesArr && gptDictsArr) {
-            for (const auto& elem : *gptDictNamesArr) {
-                auto gptDictNameOpt = elem.value<std::string>();
-                if (!gptDictNameOpt.has_value()) {
-                    continue;
-                }
-                if (!_globalConfig["commonGptDicts"]["spec"][*gptDictNameOpt]["defaultOn"].value_or(true)) {
-                    continue;
-                }
-                gptDictsArr->push_back(*gptDictNameOpt + ".toml");
-            }
-        }
-
-        auto postDictNamesArr = _globalConfig["commonPostDicts"]["dictNames"].as_array();
-        auto postDictsArr = configData["dictionary"]["postDict"].as_array();
-        if (postDictNamesArr && postDictsArr) {
-            for (const auto& elem : *postDictNamesArr) {
-                auto postDictNameOpt = elem.value<std::string>();
-                if (!postDictNameOpt.has_value()) {
-                    continue;
-                }
-                if (!_globalConfig["commonPostDicts"]["spec"][*postDictNameOpt]["defaultOn"].value_or(true)) {
-                    continue;
-                }
-                postDictsArr->push_back(*postDictNameOpt + ".toml");
-            }
-        }
+        addCommonDictsToProjectConfig("commonPreDicts", "preDict");
+        addCommonDictsToProjectConfig("commonGptDicts", "gptDict");
+        addCommonDictsToProjectConfig("commonPostDicts", "postDict");
 
         std::ofstream ofs(newProjectDir / L"config.toml");
-        ofs << configData;
+        ofs << toml::format(configData);
         ofs.close();
     }
     catch (...) {
@@ -614,7 +588,7 @@ void MainWindow::_onCloseWindowClicked(bool restart)
         page->apply2Config();
         projects.push_back(wide2Ascii(page->getProjectDir()));
     }
-    _globalConfig.insert_or_assign("projects", projects);
+    _globalConfig.as_table().insert_or_assign("projects", projects);
 
     _settingPage->apply2Config();
 

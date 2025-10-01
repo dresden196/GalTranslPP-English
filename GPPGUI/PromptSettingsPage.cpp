@@ -18,7 +18,7 @@
 
 import Tool;
 
-PromptSettingsPage::PromptSettingsPage(fs::path& projectDir, toml::table& projectConfig, QWidget* parent) :
+PromptSettingsPage::PromptSettingsPage(fs::path& projectDir, toml::value& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir)
 {
 	setWindowTitle(tr("项目提示词设置"));
@@ -26,9 +26,7 @@ PromptSettingsPage::PromptSettingsPage(fs::path& projectDir, toml::table& projec
 
 	if (fs::exists(_projectDir / L"Prompt.toml")) {
 		try {
-			std::ifstream ifs(_projectDir / L"Prompt.toml");
-			_promptConfig = toml::parse(ifs);
-			ifs.close();
+			_promptConfig = toml::parse(_projectDir / L"Prompt.toml");
 		}
 		catch (...) {
 			ElaMessageBar::error(ElaMessageBarType::TopRight, tr("解析失败"), tr("项目 ") +
@@ -81,14 +79,14 @@ void PromptSettingsPage::_setupUI()
 			plainTextFont.setPixelSize(15);
 			forgalJsonUserModeEdit->setFont(plainTextFont);
 			forgalJsonUserModeEdit->setPlainText(
-				QString::fromStdString(_promptConfig[userPromptKey].value_or(std::string{}))
+				QString::fromStdString(toml::get_or(_promptConfig[userPromptKey], std::string{}))
 			);
 			forgalJsonStackedWidget->addWidget(forgalJsonUserModeEdit);
 			// 系统提示词
 			ElaPlainTextEdit* forgalJsonSystemModeEdit = new ElaPlainTextEdit(forgalJsonStackedWidget);
 			forgalJsonSystemModeEdit->setFont(plainTextFont);
 			forgalJsonSystemModeEdit->setPlainText(
-				QString::fromStdString(_promptConfig[systemPromptKey].value_or(std::string{}))
+				QString::fromStdString(toml::get_or(_promptConfig[systemPromptKey], std::string{}))
 			);
 			forgalJsonStackedWidget->addWidget(forgalJsonSystemModeEdit);
 			forgalJsonStackedWidget->setCurrentIndex(0);

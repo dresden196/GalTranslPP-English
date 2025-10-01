@@ -6,7 +6,7 @@
 #include <QList>
 #include <QStackedWidget>
 #include <QSharedPointer>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include <filesystem>
 #include "BasePage.h"
 #include "DictionaryModel.h"
@@ -32,7 +32,7 @@ class CommonGptDictPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit CommonGptDictPage(toml::table& globalConfig, QWidget* parent = nullptr);
+    explicit CommonGptDictPage(toml::value& globalConfig, QWidget* parent = nullptr);
     ~CommonGptDictPage() override;
 
 Q_SIGNALS:
@@ -40,12 +40,9 @@ Q_SIGNALS:
 
 private:
 
-    QList<DictionaryEntry> readGptDicts(const fs::path& dictPath);
-    QString readGptDictsStr(const fs::path& dictPath);
-
     void _setupUI();
 
-    toml::table& _globalConfig;
+    toml::value& _globalConfig;
 
     QList<GptTabEntry> _gptTabEntries;
     QWidget* _mainWindow;

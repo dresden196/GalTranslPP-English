@@ -1,7 +1,7 @@
 module;
 
 #include <spdlog/spdlog.h>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include <spdlog/sinks/basic_file_sink.h>
 
 module ITranslator;
@@ -59,20 +59,18 @@ private:
 
 std::unique_ptr<ITranslator> createTranslator(const fs::path& projectDir, std::shared_ptr<IController> controller)
 {
-    fs::path configFilePath = projectDir / L"config.toml";
+    const fs::path configFilePath = projectDir / L"config.toml";
     if (!fs::exists(configFilePath)) {
         throw std::runtime_error("Config file not found");
     }
-    std::ifstream ifs(configFilePath);
-    auto configData = toml::parse(ifs);
-    ifs.close();
+    const auto configData = toml::parse(configFilePath);
 
-    std::string filePlugin = configData["plugins"]["filePlugin"].value_or("NormalJson");
-    std::string transEngine = configData["plugins"]["transEngine"].value_or("ForGalJson");
+    const std::string& filePlugin = toml::find_or(configData, "plugins", "filePlugin", "NormalJson");
+    const std::string& transEngine = toml::find_or(configData, "plugins", "transEngine", "ForGalJson");
     // 日志配置
     spdlog::level::level_enum logLevel;
-    bool saveLog = configData["common"]["saveLog"].value_or(true);
-    std::string logLevelStr = configData["common"]["logLevel"].value_or("info");
+    bool saveLog = toml::find_or(configData, "common", "saveLog", true);
+    const std::string& logLevelStr = toml::find_or(configData, "common", "logLevel", "info");
     if (logLevelStr == "trace") {
         logLevel = spdlog::level::trace;
     }

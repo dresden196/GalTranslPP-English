@@ -124,6 +124,4 @@ inline void ProgressBar::update(int ticks, bool removeCurrentLine) {
     }
 
     std::cout << current_bar << std::flush;
-
-    return;
 }

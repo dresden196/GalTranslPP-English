@@ -10,7 +10,7 @@
 
 import Tool;
 
-PostFull2HalfCfgPage::PostFull2HalfCfgPage(toml::table& projectConfig, QWidget* parent) 
+PostFull2HalfCfgPage::PostFull2HalfCfgPage(toml::value& projectConfig, QWidget* parent) 
     : BasePage(parent), _projectConfig(projectConfig)
 {
     setWindowTitle(tr("全角半角转换设置"));
@@ -21,7 +21,7 @@ PostFull2HalfCfgPage::PostFull2HalfCfgPage(toml::table& projectConfig, QWidget* 
     QVBoxLayout* mainLayout = new QVBoxLayout(centerWidget);
 
     // 标点符号转换配置
-    bool convertPunctuation = _projectConfig["plugins"]["TextPostFull2Half"]["是否替换标点"].value_or(true);
+    bool convertPunctuation = toml::get_or(_projectConfig["plugins"]["TextPostFull2Half"]["是否替换标点"], true);
     ElaScrollPageArea* punctuationArea = new ElaScrollPageArea(centerWidget);
     QHBoxLayout* punctuationLayout = new QHBoxLayout(punctuationArea);
     ElaText* punctuationText = new ElaText(tr("转换标点符号"), punctuationArea);
@@ -34,7 +34,7 @@ PostFull2HalfCfgPage::PostFull2HalfCfgPage(toml::table& projectConfig, QWidget* 
     mainLayout->addWidget(punctuationArea);
 
     // 反向替换配置
-    bool reverseConvert = _projectConfig["plugins"]["TextPostFull2Half"]["是否反向替换"].value_or(false);
+    bool reverseConvert = toml::get_or(_projectConfig["plugins"]["TextPostFull2Half"]["是否反向替换"], false);
     ElaScrollPageArea* reverseArea = new ElaScrollPageArea(centerWidget);
     QHBoxLayout* reverseLayout = new QHBoxLayout(reverseArea);
     ElaText* reverseText = new ElaText(tr("反向替换"), reverseArea);

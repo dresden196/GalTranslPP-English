@@ -7,7 +7,7 @@
 #include <QSharedMemory>
 #include <QLocalServer>
 #include <QLocalSocket>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 
 #ifdef Q_OS_WIN
 #include <Windows.h>
@@ -50,9 +50,9 @@ int main(int argc, char* argv[])
         QTranslator translator;
         QTranslator qtBaseTranslator; // 用于翻译 Qt 内置对话框，如 QMessageBox 的按钮
         try {
-            toml::table config = toml::parse_file("BaseConfig/globalConfig.toml");
-            checkUpdate = config["autoCheckUpdate"].value_or(true);
-            std::string language = config["language"].value_or("zh_CN");
+            toml::value config = toml::parse(fs::path(L"BaseConfig/globalConfig.toml"));
+            checkUpdate = toml::get_or(config["autoCheckUpdate"], true);
+            std::string language = toml::get_or(config["language"], "zh_CN");
             if (language == "en") {
                 if (qtBaseTranslator.load("qt_en.qm", "translations")) {
                     a.installTranslator(&qtBaseTranslator);

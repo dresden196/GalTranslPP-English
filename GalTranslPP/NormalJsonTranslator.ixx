@@ -1,7 +1,11 @@
 module;
 
+#ifdef _WIN32
 #include <Windows.h>
 #include <Shlwapi.h>
+#endif
+
+#include <ranges>
 #include <boost/regex.hpp>
 #include <spdlog/spdlog.h>
 #pragma comment(lib, "Shlwapi.lib")
@@ -9,7 +13,7 @@ module;
 export module NormalJsonTranslator;
 
 import <nlohmann/json.hpp>;
-import <toml++/toml.hpp>;
+import <toml.hpp>;
 import <ctpl_stl.h>;
 import APIPool;
 import Dictionary;
@@ -76,7 +80,8 @@ export {
         std::map<fs::path, std::map<fs::path, bool>> m_jsonToSplitFileParts;
 
         std::map<std::string, std::string> m_nameMap;
-        toml::table m_problemOverview = toml::table{ {"problemOverview", toml::array{}} };
+        toml::value m_problemOverview = toml::array{};
+        json m_problemOverviewJson = json::array();
         std::function<void(fs::path)> m_onFileProcessed;
         std::mutex m_cacheMutex;
         std::mutex m_outputMutex;
@@ -127,17 +132,14 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
     m_outputCacheDir = outputCacheDir.value_or(L"cache" / m_projectDir.filename() / L"gt_output_cache");
     m_cacheDir = m_projectDir / L"transl_cache";
 
-    std::ifstream ifs;
     fs::path configPath = m_projectDir / L"config.toml";
     if (!fs::exists(configPath)) {
         throw std::runtime_error("找不到 config.toml 文件");
     }
     try {
-        ifs.open(configPath);
-        auto configData = toml::parse(ifs);
-        ifs.close();
-
-        std::string transEngineStr = configData["plugins"]["transEngine"].value_or("ForGalJson");
+        const auto configData = toml::parse<toml::ordered_type_config>(configPath);
+        
+        const std::string& transEngineStr = toml::find_or(configData, "plugins", "transEngine", "ForGalJson");
         if (transEngineStr == "ForGalJson") {
             m_transEngine = TransEngine::ForGalJson;
         }
@@ -170,151 +172,118 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         }
 
 
-        m_apiStrategy = configData["backendSpecific"]["OpenAI-Compatible"]["apiStrategy"].value_or("random");
+        m_apiStrategy = toml::find_or(configData, "backendSpecific", "OpenAI-Compatible", "apiStrategy", "random");
         if (m_apiStrategy != "random" && m_apiStrategy != "fallback") {
             throw std::invalid_argument("apiStrategy must be random or fallback in config.toml");
         }
-        int apiTimeOutSecond = configData["backendSpecific"]["OpenAI-Compatible"]["apiTimeout"].value_or(60);
+        int apiTimeOutSecond = toml::find_or(configData, "backendSpecific", "OpenAI-Compatible", "apiTimeout", 60);
         m_apiTimeOutMs = apiTimeOutSecond * 1000;
 
         // 需要API
         if (m_transEngine != TransEngine::DumpName && m_transEngine != TransEngine::Rebuild && m_transEngine != TransEngine::ShowNormal) {
-            auto translationAPIs = configData["backendSpecific"]["OpenAI-Compatible"]["apis"].as_array();
-            if (!translationAPIs) {
-                throw std::invalid_argument("OpenAI-Compatible apis not found in config.toml");
-            }
-            std::vector<TranslationAPI> m_translationAPIs;
-            translationAPIs->for_each([&](auto&& el)
-                {
-                    TranslationAPI translationAPI;
-                    if constexpr (toml::is_table<decltype(el)>) {
-                        if (auto value = el["apikey"].value<std::string>(); !((*value).empty())) {
-                            translationAPI.apikey = *value;
-                        }
-                        else if (m_transEngine == TransEngine::Sakura) {
-                            translationAPI.apikey = "sk-sakura";
-                        }
-                        else {
-                            return;
-                        }
-                        if (auto value = el["apiurl"].value<std::string>(); !((*value).empty())) {
-                            translationAPI.apiurl = cvt2StdApiUrl(value.value());
-                        }
-                        else {
-                            return;
-                        }
-                        if (auto value = el["modelName"].value<std::string>(); !((*value).empty())) {
-                            translationAPI.modelName = *value;
-                        }
-                        else if (m_transEngine == TransEngine::Sakura) {
-                            translationAPI.modelName = "sakura";
-                        }
-                        else {
-                            return;
-                        }
-                        translationAPI.stream = el["stream"].value_or(false);
-                        translationAPI.lastReportTime = std::chrono::steady_clock::now();
-                        m_translationAPIs.push_back(translationAPI);
-                    }
-                });
+            const auto& apisArr = toml::find<
+                std::vector<std::tuple<std::string, std::string, std::string, bool>>
+            >(configData, "backendSpecific", "OpenAI-Compatible", "apis");
 
-            if (m_translationAPIs.empty()) {
+            std::vector<TranslationAPI> apis;
+            for (const auto& el : apisArr) {
+                TranslationAPI api;
+                if (auto value = std::get<0>(el); !value.empty()) {
+                    api.apikey = value;
+                }
+                else if (m_transEngine == TransEngine::Sakura) {
+                    api.apikey = "sk-sakura";
+                }
+                else {
+                    continue;
+                }
+                if (auto value = std::get<1>(el); !value.empty()) {
+                    api.apiurl = cvt2StdApiUrl(value);
+                }
+                else {
+                    continue;
+                }
+                if (auto value = std::get<2>(el); !value.empty()) {
+                    api.modelName = value;
+                }
+                else if (m_transEngine == TransEngine::Sakura) {
+                    api.modelName = "sakura";
+                }
+                else {
+                    continue;
+                }
+                api.stream = std::get<3>(el);
+                apis.push_back(std::move(api));
+            }
+
+            if (apis.empty()) {
                 throw std::invalid_argument("config.toml 中找不到可用的 apikey ");
             }
             else {
-                m_apiPool.loadAPIs(m_translationAPIs);
+                m_apiPool.loadAPIs(apis);
             }
         }
 
-        auto textPrePlugins = configData["plugins"]["textPrePlugins"].as_array();
+        const auto& textPrePlugins = toml::find<
+            std::optional<std::vector<std::string>>
+        >(configData, "plugins", "textPrePlugins");
         if (textPrePlugins) {
-            std::vector<std::string> pluginNames;
-            textPrePlugins->for_each([&](auto&& el)
-                {
-                    if constexpr (toml::is_string<decltype(el)>) {
-                        pluginNames.push_back(*el);
-                    }
-                });
-            m_prePlugins = registerPlugins(pluginNames, m_projectDir, m_logger);
+            m_prePlugins = registerPlugins(*textPrePlugins, m_projectDir, m_logger);
         }
 
-        // 集中的插件配置
-        auto textPostPlugins = configData["plugins"]["textPostPlugins"].as_array();
+        const auto& textPostPlugins = toml::find<
+            std::optional<std::vector<std::string>>
+        >(configData, "plugins", "textPostPlugins");
         if (textPostPlugins) {
-            std::vector<std::string> pluginNames;
-            textPostPlugins->for_each([&](auto&& el)
-                {
-                    if constexpr (toml::is_string<decltype(el)>) {
-                        pluginNames.push_back(*el);
-                    }
-                });
-            m_postPlugins = registerPlugins(pluginNames, m_projectDir, m_logger);
+            m_postPlugins = registerPlugins(*textPostPlugins, m_projectDir, m_logger);
         }
 
-        ifs.open(pluginConfigsPath / L"filePlugins/NormalJson.toml");
-        auto pluginConfigData = toml::parse(ifs);
-        ifs.close();
-
+        const auto pluginConfigData = toml::parse(pluginConfigsPath / L"filePlugins/NormalJson.toml");
         m_outputWithSrc = parseToml<bool>(configData, pluginConfigData, "plugins.NormalJson.output_with_src");
 
-        m_batchSize = configData["common"]["numPerRequestTranslate"].value_or(8);
-        m_threadsNum = configData["common"]["threadsNum"].value_or(1);
-        m_sortMethod = configData["common"]["sortMethod"].value_or("name");
-        m_targetLang = configData["common"]["targetLang"].value_or("zh-cn");
-        m_splitFile = configData["common"]["splitFile"].value_or("no");
-        m_splitFileNum = configData["common"]["splitFileNum"].value_or(25);
-        m_saveCacheInterval = configData["common"]["saveCacheInterval"].value_or(1);
-        m_linebreakSymbol = configData["common"]["linebreakSymbol"].value_or("auto");
-        m_maxRetries = configData["common"]["maxRetries"].value_or(5);
-        m_contextHistorySize = configData["common"]["contextHistorySize"].value_or(8);
-        m_smartRetry = configData["common"]["smartRetry"].value_or(true);
-        m_checkQuota = configData["common"]["checkQuota"].value_or(true);
-        m_dictDir = configData["common"]["dictDir"].value_or("DictGenerator/mecab-ipadic-utf8");
+        m_batchSize = toml::find_or(configData, "common", "numPerRequestTranslate", 8);
+        m_threadsNum = toml::find_or(configData, "common", "threadsNum", 1);
+        m_sortMethod = toml::find_or(configData, "common", "sortMethod", "name");
+        m_targetLang = toml::find_or(configData, "common", "targetLang", "zh-cn");
+        m_splitFile = toml::find_or(configData, "common", "splitFile", "no");
+        m_splitFileNum = toml::find_or(configData, "common", "splitFileNum", 25);
+        m_saveCacheInterval = toml::find_or(configData, "common", "saveCacheInterval", 1);
+        m_linebreakSymbol = toml::find_or(configData, "common", "linebreakSymbol", "auto");
+        m_maxRetries = toml::find_or(configData, "common", "maxRetries", 5);
+        m_contextHistorySize = toml::find_or(configData, "common", "contextHistorySize", 8);
+        m_smartRetry = toml::find_or(configData, "common", "smartRetry", true);
+        m_checkQuota = toml::find_or(configData, "common", "checkQuota", true);
+        m_dictDir = toml::find_or(configData, "common", "dictDir", "DictGenerator/mecab-ipadic-utf8");
 
-        auto problemList = configData["problemAnalyze"]["problemList"].as_array();
+        const auto& problemList = toml::find<
+            std::optional<std::vector<std::string>>
+        >(configData, "problemAnalyze", "problemList");
         if (problemList) {
-            std::vector<std::string> problemsToCheck;
-            problemList->for_each([&](auto&& el)
-                {
-                    if constexpr (toml::is_string<decltype(el)>) {
-                        problemsToCheck.push_back(*el);
-                    }
-                });
-            std::string punctSet = configData["problemAnalyze"]["punctSet"].value_or("");
-            double langProbability = configData["problemAnalyze"]["langProbability"].value_or(0.85);
-            m_problemAnalyzer.loadProblems(problemsToCheck, punctSet, langProbability);
+            const std::string& punctSet = toml::find_or(configData, "problemAnalyze", "punctSet", "");
+            double langProbability = toml::find_or(configData, "problemAnalyze", "langProbability", 0.85);
+            m_problemAnalyzer.loadProblems(*problemList, punctSet, langProbability);
         }
 
-        auto retranslKeys = configData["problemAnalyze"]["retranslKeys"].as_array();
+        const auto& retranslKeys = toml::find<
+            std::optional<std::vector<std::string>>
+        >(configData, "problemAnalyze", "retranslKeys");
         if (retranslKeys) {
-            retranslKeys->for_each([&](auto&& el)
-                {
-                    if constexpr (toml::is_string<decltype(el)>) {
-                        if ((*el).empty()) {
-                            return;
-                        }
-                        m_retranslKeys.push_back(*el);
-                    }
-                });
+            m_retranslKeys = std::move(*retranslKeys);
         }
 
-        auto overwriteCompareObj = configData["problemAnalyze"]["overwriteCompareObj"].as_array();
+        
+        const auto& overwriteCompareObj = toml::find<std::optional<toml::array>>(configData, "problemAnalyze", "overwriteCompareObj");
         if (overwriteCompareObj) {
-            for (const auto& el : *overwriteCompareObj) {
-                auto pTbl = el.as_table();
-                if (!pTbl) {
-                    continue;
-                }
-                auto tbl = *pTbl;
-                std::string problemKey = tbl["problemKey"].value_or("");
+            for (const auto& tbl : *overwriteCompareObj) {
+                std::string problemKey = toml::find_or(tbl, "problemKey", "");
                 if (problemKey.empty()) {
                     continue;
                 }
-                std::string base = tbl["base"].value_or("");
+                std::string base = toml::find_or(tbl, "base", "");
                 if (base.empty()) {
                     base = "orig_text";
                 }
-                std::string check = tbl["check"].value_or("");
+                std::string check = toml::find_or(tbl, "check", "");
                 if (check.empty()) {
                     check = "trans_preview";
                 }
@@ -322,67 +291,44 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             }
         }
 
-        std::string defaultDictFolder = configData["dictionary"]["defaultDictFolder"].value_or("Dict");
-        fs::path defaultDictFolderPath = ascii2Wide(defaultDictFolder);
+        const std::string& defaultDictFolder = toml::find_or(configData, "dictionary", "defaultDictFolder", "Dict");
+        const fs::path defaultDictFolderPath = ascii2Wide(std::move(defaultDictFolder));
 
-        m_usePreDictInName = configData["dictionary"]["usePreDictInName"].value_or(false);
-        m_usePostDictInName = configData["dictionary"]["usePostDictInName"].value_or(false);
-        m_usePreDictInMsg = configData["dictionary"]["usePreDictInMsg"].value_or(true);
-        m_usePostDictInMsg = configData["dictionary"]["usePostDictInMsg"].value_or(true);
-        m_useGPTDictToReplaceName = configData["dictionary"]["useGPTDictInName"].value_or(false);
+        m_usePreDictInName = toml::find_or(configData, "dictionary", "usePreDictInName", false);
+        m_usePostDictInName = toml::find_or(configData, "dictionary", "usePostDictInName", false);
+        m_usePreDictInMsg = toml::find_or(configData, "dictionary", "usePreDictInMsg", true);
+        m_usePostDictInMsg = toml::find_or(configData, "dictionary", "usePostDictInMsg", true);
+        m_useGPTDictToReplaceName = toml::find_or(configData, "dictionary", "useGPTDictInName", false);
 
         m_gptDictionary.createTagger(ascii2Wide(m_dictDir));
-        auto gptDicts = configData["dictionary"]["gptDict"].as_array();
-        if (gptDicts) {
-            gptDicts->for_each([&](auto&& el)
-                {
-                    if constexpr (toml::is_string<decltype(el)>) {
-                        fs::path dictPath = m_projectDir / ascii2Wide(*el);
-                        if (!fs::exists(dictPath)) {
-                            dictPath = defaultDictFolderPath / L"gpt" / ascii2Wide(*el);
-                        }
+
+        auto loadDictsFunc = [&]<typename DictType>(const std::string& dictType, DictType& dict)
+            {
+                const auto& dictFileNames = toml::find<
+                    std::optional<std::vector<std::string>>
+                >(configData, "dictionary", dictType + "Dict");
+                if (!dictFileNames) {
+                    return;
+                }
+                for (const auto& dictFileName : *dictFileNames) {
+                    fs::path dictPath = m_projectDir / ascii2Wide(dictFileName);
+                    if (fs::exists(dictPath)) {
+                        dict.loadFromFile(dictPath);
+                        continue;
+                    }
+                    else {
+                        dictPath = defaultDictFolderPath / ascii2Wide(dictType) / ascii2Wide(dictFileName);
                         if (fs::exists(dictPath)) {
-                            m_gptDictionary.loadFromFile(dictPath);
+                            dict.loadFromFile(dictPath);
                         }
                     }
-                });
-        }
+                }
+                dict.sort();
+            };
 
-        auto preDicts = configData["dictionary"]["preDict"].as_array();
-        if (preDicts) {
-            preDicts->for_each([&](auto&& el)
-                {
-                    if constexpr (toml::is_string<decltype(el)>) {
-                        fs::path dictPath = m_projectDir / ascii2Wide(*el);
-                        if (!fs::exists(dictPath)) {
-                            dictPath = defaultDictFolderPath / L"pre" / ascii2Wide(*el);
-                        }
-                        if (fs::exists(dictPath)) {
-                            m_preDictionary.loadFromFile(dictPath);
-                        }
-                    }
-                });
-        }
-
-        auto postDicts = configData["dictionary"]["postDict"].as_array();
-        if (postDicts) {
-            postDicts->for_each([&](auto&& el)
-                {
-                    if constexpr (toml::is_string<decltype(el)>) {
-                        fs::path dictPath = m_projectDir / ascii2Wide(*el);
-                        if (!fs::exists(dictPath)) {
-                            dictPath = defaultDictFolderPath / L"post" / ascii2Wide(*el);
-                        }
-                        if (fs::exists(dictPath)) {
-                            m_postDictionary.loadFromFile(dictPath);
-                        }
-                    }
-                });
-        }
-
-        m_preDictionary.sort();
-        m_gptDictionary.sort();
-        m_postDictionary.sort();
+        loadDictsFunc("gpt", m_gptDictionary);
+        loadDictsFunc("pre", m_preDictionary);
+        loadDictsFunc("post", m_postDictionary);
 
         if (m_transEngine == TransEngine::DumpName || m_transEngine == TransEngine::Rebuild || m_transEngine == TransEngine::ShowNormal) {
             // 这几个不需要加载提示词
@@ -397,9 +343,8 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                 throw std::runtime_error("找不到 Prompt.toml 文件");
             }
         }
-        ifs.open(promptPath);
-        auto promptData = toml::parse(ifs);
-        ifs.close();
+
+        const auto promptData = toml::parse(promptPath);
 
         std::string systemKey;
         std::string userKey;
@@ -433,21 +378,21 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             throw std::invalid_argument("未知的 TransEngine");
         }
 
-        if (auto value = promptData[systemKey].value<std::string>()) {
-            m_systemPrompt = *value;
+        if (promptData.contains(systemKey) && promptData.at(systemKey).is_string()) {
+            m_systemPrompt = promptData.at(systemKey).as_string();
         }
         else {
             throw std::invalid_argument(std::format("Prompt.toml 中缺少 {} 键", systemKey));
         }
-        if (auto value = promptData[userKey].value<std::string>()) {
-            m_userPrompt = *value;
+        if (promptData.contains(userKey) && promptData.at(userKey).is_string()) {
+            m_userPrompt = promptData.at(userKey).as_string();
         }
         else {
             throw std::invalid_argument(std::format("Prompt.toml 中缺少 {} 键", userKey));
         }
     }
-    catch (const toml::parse_error& e) {
-        m_logger->critical("项目配置文件解析失败, 错误位置: {}, 错误信息: {}", stream2String(e.source().begin), e.description());
+    catch (const toml::exception& e) {
+        m_logger->critical("项目配置文件解析失败");
         throw std::runtime_error(e.what());
     }
 }
@@ -628,10 +573,10 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
 
 
         std::string inputProblems;
-        for (auto pSentence : batchToTransThisRound) {
-            if (!pSentence->problem.empty() && inputProblems.find(pSentence->problem) == std::string::npos) {
-                inputProblems += pSentence->problem + "\n";
-            }
+        for (const auto& problem : batchToTransThisRound
+            | std::views::transform([](const Sentence* pSentence) { return pSentence->problems; })
+            | std::views::join) {
+            inputProblems += problem + "\n";
         }
 
         std::string inputBlock;
@@ -890,7 +835,7 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
             if (fs::exists(m_cacheDir / m_splitFilePartsToJson[relInputPath])) {
                 cachePaths.push_back(m_cacheDir / m_splitFilePartsToJson[relInputPath]);
             }
-            // 这个逻辑还挺耗时的，将来可以考虑优化一下
+            // 这个逻辑还挺耗时的，我自己尝试优化结果大败而归
             size_t pos = relInputPath.filename().wstring().rfind(L"_part_");
             std::wstring orgStem = relInputPath.filename().wstring().substr(0, pos);
             std::wstring cacheSpec = orgStem + L"_part_*.json";
@@ -934,7 +879,7 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
                 continue;
             }
             const auto& item = it->second;
-            se.problem = item.value("problem", "");
+            se.problems = item["problems"].get<std::vector<std::string>>();
             if (m_transEngine != TransEngine::Rebuild && hasRetranslKey(m_retranslKeys, &se)) {
                 toTranslate.push_back(&se);
                 continue;
@@ -985,48 +930,33 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
         std::lock_guard<std::mutex> lock(m_cacheMutex);
         m_logger->debug("[线程 {}] [文件 {}] 翻译完成，正在进行最终保存...", threadId, wide2Ascii(inputPath));
         saveCache(sentences, cachePath);
-        auto overviewArr = m_problemOverview["problemOverview"].as_array();
-        if (!overviewArr) {
-            throw std::runtime_error("problemOverview 字段不是数组");
-        }
+
         std::string relInputPathStr = wide2Ascii(relInputPath);
         for (const auto& se : sentences) {
-            if (se.problem.empty()) {
+            if (se.problems.empty()) {
                 continue;
             }
-            toml::table tbl;
-            tbl.insert("filename", relInputPathStr);
-            tbl.insert("index", se.index);
+            toml::table tbl; json j;
+            tbl["filename"] = relInputPathStr; j["filename"] = relInputPathStr;
+            tbl["index"] = se.index; j["index"] = se.index;
             if (se.nameType == NameType::Single) {
-                tbl.insert("name", se.name);
-                tbl.insert("name_preview", se.name_preview);
+                tbl["name"] = se.name; j["name"] = se.name;
+                tbl["name_preview"] = se.name_preview; j["name_preview"] = se.name_preview;
             }
             else if (se.nameType == NameType::Multiple) {
-                toml::array namesArr;
-                toml::array namesPreviewArr;
-                for (const auto& name : se.names) {
-                    namesArr.push_back(name);
-                }
-                for (const auto& namePreview : se.names_preview) {
-                    namesPreviewArr.push_back(namePreview);
-                }
-                tbl.insert("names", namesArr);
-                tbl.insert("names_preview", namesPreviewArr);
+                tbl["names"] = se.names; j["names"] = se.names;
+                tbl["names_preview"] = se.names_preview; j["names_preview"] = se.names_preview;
             }
-            tbl.insert("original_text", se.original_text);
+            tbl["original_text"] = se.original_text; j["original_text"] = se.original_text;
             if (!se.other_info.empty()) {
-                toml::table otherInfoArr;
-                for (const auto& [k, v] : se.other_info) {
-                    otherInfoArr.insert(k, v);
-                }
-                tbl.insert("other_info", otherInfoArr);
+                tbl["other_info"] = se.other_info; j["other_info"] = se.other_info;
             }
-            tbl.insert("pre_processed_text", se.pre_processed_text);
-            tbl.insert("pre_translated_text", se.pre_translated_text);
-            tbl.insert("problem", se.problem);
-            tbl.insert("translated_by", se.translated_by);
-            tbl.insert("translated_preview", se.translated_preview);
-            overviewArr->push_back(tbl);
+            tbl["pre_processed_text"] = se.pre_processed_text; j["pre_processed_text"] = se.pre_processed_text;
+            tbl["pre_translated_text"] = se.pre_translated_text; j["pre_translated_text"] = se.pre_translated_text;
+            tbl["problems"] = se.problems; j["problems"] = se.problems;
+            tbl["translated_by"] = se.translated_by; j["translated_by"] = se.translated_by;
+            tbl["translated_preview"] = se.translated_preview; j["translated_preview"] = se.translated_preview;
+            m_problemOverview.push_back(tbl); m_problemOverviewJson.push_back(j);
         }
     }
 
@@ -1054,7 +984,7 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
     m_controller->reduceThreadNum();
 
     if (m_needsCombining) {
-        fs::path originalRelFilePath = m_splitFilePartsToJson[relInputPath];
+        const fs::path& originalRelFilePath = m_splitFilePartsToJson[relInputPath];
         auto& splitFileParts = m_jsonToSplitFileParts[originalRelFilePath];
         {
             std::lock_guard<std::mutex> lock(m_outputMutex);
@@ -1159,14 +1089,14 @@ void NormalJsonTranslator::run() {
         m_controller->makeBar(m_totalSentences, m_threadsNum);
 
 
-        toml::table orgNameTable;
+        const fs::path nameTablePath = m_projectDir / L"人名替换表.toml";
+        toml::value orgNameTable;
         try {
-            ifs.open(m_projectDir / L"人名替换表.toml");
-            orgNameTable = toml::parse(ifs);
-            ifs.close();
+            if (fs::exists(nameTablePath)) {
+                orgNameTable = toml::parse(nameTablePath);
+            }
         }
         catch (...) {
-            ifs.close();
             m_logger->error("解析原人名表失败");
         }
 
@@ -1182,12 +1112,13 @@ void NormalJsonTranslator::run() {
                 return nameTableMap[a] > nameTableMap[b];
             });
 
-        ofs.open(m_projectDir / L"人名替换表.toml");
-        ofs << "# '原名' = [ '译名', 出现次数 ]" << std::endl;
+        toml::ordered_value newNameTable;
+        newNameTable.comments().push_back("'原名' = [ '译名', 出现次数 ]");
         for (const auto& key : nameTableKeys) {
-            auto nameTable = toml::table{ {key, toml::array{ orgNameTable[key].value_or(""), nameTableMap[key]}}};
-            ofs << nameTable << std::endl;
+            newNameTable[key] = toml::array{ toml::find_or(orgNameTable, key, ""), nameTableMap[key] };
         }
+        ofs.open(nameTablePath);
+        ofs << toml::format(newNameTable);
         ofs.close();
         m_logger->info("已更新 人名替换表.toml 文件");
         if (m_transEngine == TransEngine::DumpName) {
@@ -1210,23 +1141,20 @@ void NormalJsonTranslator::run() {
     }
 
     try {
-        ifs.open(m_projectDir / L"人名替换表.toml");
-        auto nameTable = toml::parse(ifs);
-        ifs.close();
+        const auto nameTable = toml::parse(m_projectDir / L"人名替换表.toml");
 
-        for (const auto& [key, value] : nameTable) {
-            auto arr = value.as_array();
-            if (!arr || arr->size() < 1) {
+        for (const auto& [key, value] : nameTable.as_table()) {
+            if (!value.is_array() || value.size() == 0) {
                 continue;
             }
-            std::string transName = arr->get(0)->value_or("");
+            const std::string& transName = toml::find_or(value, 0, "");
             if (!transName.empty()) {
-                m_logger->trace("发现原名 '{}' 的译名 '{}'", key.str(), transName);
-                m_nameMap.insert(std::make_pair(key.str(), transName));
+                m_logger->trace("发现原名 '{}' 的译名 '{}'", key, transName);
+                m_nameMap.insert(std::make_pair(key, std::move(transName)));
             }
         }
     }
-    catch (const toml::parse_error& e) {
+    catch (const toml::exception& e) {
         m_logger->critical("解析 人名替换表.toml 时出错");
         throw std::runtime_error(e.what());
     }
@@ -1254,7 +1182,7 @@ void NormalJsonTranslator::run() {
                 json data = json::parse(ifs);
                 ifs.close();
 
-                std::vector<json> parts = splitJsonArrayEqual(data, m_splitFileNum);
+                const std::vector<json>& parts = splitJsonArrayEqual(data, m_splitFileNum);
                 fs::path relWholePath = fs::relative(entry.path(), m_inputDir); // 原始json相对路径
 
                 std::wstring stem = fs::relative(entry.path(), m_inputDir).parent_path() / entry.path().stem();
@@ -1299,7 +1227,7 @@ void NormalJsonTranslator::run() {
                 ifs.close();
 
                 fs::path relWholePath = fs::relative(entry.path(), m_inputDir); // 原始json相对路径
-                std::vector<json> parts = splitJsonArrayNum(data, m_splitFileNum);
+                const std::vector<json>& parts = splitJsonArrayNum(data, m_splitFileNum);
 
                 std::wstring stem = fs::relative(entry.path(), m_inputDir).parent_path() / entry.path().stem();
                 for (size_t i = 0; i < parts.size(); ++i) {
@@ -1368,36 +1296,22 @@ void NormalJsonTranslator::run() {
         result.get();
     }
 
-    auto overviewArr = m_problemOverview["problemOverview"].as_array();
-    if (!overviewArr) {
-        throw std::runtime_error("problemOverview 字段不是数组。");
-    }
-    if (overviewArr->empty()) {
+    if (m_problemOverview.as_array().empty()) {
         m_logger->info("\n\n```\n无问题概览\n```\n");
     }
     else {
         ofs.open(m_projectDir / L"翻译问题概览.toml");
-        ofs << m_problemOverview;
+        ofs << toml::format("problemOverview", m_problemOverview);
         ofs.close();
-        std::map<std::string, std::set<std::string>> problemMap;
-        json problemOverviewJson = json::array();
-        for (const auto& elem : *overviewArr) {
-            auto problemSe = elem.as_table();
-            if (!problemSe) {
-                throw std::runtime_error("problemOverview 数组元素不是表。");
-            }
-            problemMap[problemSe->get("problem")->value_or(std::string{})]
-                .insert(problemSe->get("filename")->value_or(std::string{}));
-            std::stringstream ss;
-            ss << toml::json_formatter(*problemSe);
-            problemOverviewJson.push_back(
-                json::parse(ss.str())
-            );
-        }
         ofs.open(m_projectDir / L"翻译问题概览.json");
-        ofs << problemOverviewJson.dump(2);
+        ofs << m_problemOverviewJson.dump(2);
         ofs.close();
         m_logger->debug("已生成 翻译问题概览.json 和 翻译问题概览.toml 文件");
+
+        std::map<std::string, std::set<std::string>> problemMap;
+        for (const auto& elem : m_problemOverview.as_array()) {
+            problemMap[elem.at("problems").as_string()].insert(elem.at("filename").as_string());
+        }
 
         std::string problemOverviewStr = "\n\n```\n问题概览:\n";
         size_t problemCount = 0;

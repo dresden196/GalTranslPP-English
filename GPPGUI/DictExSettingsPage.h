@@ -2,7 +2,7 @@
 #define DICTEXSETTINGSPAGE_H
 
 #include <QList>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include <filesystem>
 #include "BasePage.h"
 
@@ -13,15 +13,15 @@ class DictExSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit DictExSettingsPage(toml::table& globalConfig, toml::table& projectConfig, QWidget* parent = nullptr);
+    explicit DictExSettingsPage(toml::value& globalConfig, toml::value& projectConfig, QWidget* parent = nullptr);
     ~DictExSettingsPage() override;
     void refreshCommonDictsList();
 
 private:
 
     void _setupUI();
-    toml::table& _globalConfig;
-    toml::table& _projectConfig;
+    toml::value& _globalConfig;
+    toml::value& _projectConfig;
 
     std::function<void()> _refreshCommonDictsListFunc;
 };

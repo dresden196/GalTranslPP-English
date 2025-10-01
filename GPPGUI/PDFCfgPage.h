@@ -3,7 +3,7 @@
 #ifndef PDFCFGPAGE_H
 #define PDFCFGPAGE_H
 
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include "BasePage.h"
 
 class PDFCfgPage : public BasePage
@@ -11,11 +11,11 @@ class PDFCfgPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit PDFCfgPage(toml::table& projectConfig, QWidget* parent = nullptr);
+    explicit PDFCfgPage(toml::value& projectConfig, QWidget* parent = nullptr);
     ~PDFCfgPage();
 
 private:
-    toml::table& _projectConfig;
+    toml::value& _projectConfig;
 };
 
 #endif // PDFCFGPAGE_H

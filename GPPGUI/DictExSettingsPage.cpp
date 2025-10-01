@@ -11,7 +11,7 @@
 
 import Tool;
 
-DictExSettingsPage::DictExSettingsPage(toml::table& globalConfig, toml::table& projectConfig, QWidget* parent) :
+DictExSettingsPage::DictExSettingsPage(toml::value& globalConfig, toml::value& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _globalConfig(globalConfig)
 {
 	setWindowTitle(tr("项目字典设置"));
@@ -37,115 +37,54 @@ void DictExSettingsPage::_setupUI()
 	QWidget* mainWidget = new QWidget(this);
 	QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
 
-	ElaScrollPageArea* preDictNamesArea = new ElaScrollPageArea(mainWidget);
-	QHBoxLayout* preDictNamesLayout = new QHBoxLayout(preDictNamesArea);
-	ElaText* preDictNamesText = new ElaText(preDictNamesArea);
-	preDictNamesText->setText(tr("选择要启用的译前字典"));
-	preDictNamesText->setWordWrap(false);
-	preDictNamesText->setTextPixelSize(16);
-	preDictNamesLayout->addWidget(preDictNamesText);
-	preDictNamesLayout->addStretch();
-	ElaMultiSelectComboBox* preDictNamesComboBox = new ElaMultiSelectComboBox(preDictNamesArea);
-	preDictNamesComboBox->setFixedWidth(500);
-	auto preDictNames = _globalConfig["commonPreDicts"]["dictNames"].as_array();
-	if (preDictNames) {
-		for (const auto& elem : *preDictNames) {
-			if (auto dictNameOpt = elem.value<std::string>()) {
-				preDictNamesComboBox->addItem(QString::fromStdString(*dictNameOpt));
-			}
-		}
-	}
-	preDictNamesComboBox->addItem("项目字典_译前");
-	preDictNames = _projectConfig["dictionary"]["preDict"].as_array();
-	if (preDictNames) {
-		QList<int> indexesToSelect;
-		for (const auto& elem : *preDictNames) {
-			if (auto dictNameOpt = elem.value<std::string>()) {
-				int index = preDictNamesComboBox->findText(QString(fs::path(ascii2Wide(*dictNameOpt)).stem().wstring()));
-				if (index < 0) {
-					continue;
+	auto createDictSelectAreaFunc = 
+		[=](const QString& text, const QString& defaultItem, const std::string& globalConfigKey, const std::string& projectConfigKey) -> ElaMultiSelectComboBox*
+		{
+			ElaScrollPageArea* dictNamesArea = new ElaScrollPageArea(mainWidget);
+			QHBoxLayout* dictNamesLayout = new QHBoxLayout(dictNamesArea);
+			ElaText* dictNamesText = new ElaText(dictNamesArea);
+			dictNamesText->setText(text);
+			dictNamesText->setWordWrap(false);
+			dictNamesText->setTextPixelSize(16);
+			dictNamesLayout->addWidget(dictNamesText);
+			dictNamesLayout->addStretch();
+			ElaMultiSelectComboBox* dictNamesComboBox = new ElaMultiSelectComboBox(dictNamesArea);
+			dictNamesComboBox->setFixedWidth(500);
+			auto& globalConfigDictNames = _globalConfig[globalConfigKey]["dictNames"];
+			if (globalConfigDictNames.is_array()) {
+				for (const auto& dictName : globalConfigDictNames.as_array()) {
+					if (dictName.is_string()) {
+						dictNamesComboBox->addItem(QString::fromStdString(dictName.as_string()));
+					}
 				}
-				indexesToSelect.append(index);
 			}
-		}
-		preDictNamesComboBox->setCurrentSelection(indexesToSelect);
-	}
-	preDictNamesLayout->addWidget(preDictNamesComboBox);
-	mainLayout->addWidget(preDictNamesArea);
-
-	ElaScrollPageArea* gptDictNamesArea = new ElaScrollPageArea(mainWidget);
-	QHBoxLayout* gptDictNamesLayout = new QHBoxLayout(gptDictNamesArea);
-	ElaText* gptDictNamesText = new ElaText(gptDictNamesArea);
-	gptDictNamesText->setText(tr("选择要启用的GPT字典"));
-	gptDictNamesText->setWordWrap(false);
-	gptDictNamesText->setTextPixelSize(16);
-	gptDictNamesLayout->addWidget(gptDictNamesText);
-	gptDictNamesLayout->addStretch();
-	ElaMultiSelectComboBox* gptDictNamesComboBox = new ElaMultiSelectComboBox(gptDictNamesArea);
-	gptDictNamesComboBox->setFixedWidth(500);
-	auto gptDictNames = _globalConfig["commonGptDicts"]["dictNames"].as_array();
-	if (gptDictNames) {
-		for (const auto& elem : *gptDictNames) {
-			if (auto dictNameOpt = elem.value<std::string>()) {
-				gptDictNamesComboBox->addItem(QString::fromStdString(*dictNameOpt));
-			}
-		}
-	}
-	gptDictNamesComboBox->addItem("项目GPT字典");
-	gptDictNames = _projectConfig["dictionary"]["gptDict"].as_array();
-	if (gptDictNames) {
-		QList<int> indexesToSelect;
-		for (const auto& elem : *gptDictNames) {
-			if (auto dictNameOpt = elem.value<std::string>()) {
-				int index = gptDictNamesComboBox->findText(QString(fs::path(ascii2Wide(*dictNameOpt)).stem().wstring()));
-				if (index < 0) {
-					continue;
+			dictNamesComboBox->addItem(defaultItem);
+			auto& projectConfigDictNames = _projectConfig["dictionary"][projectConfigKey];
+			if (projectConfigDictNames.is_array()) {
+				QList<int> indexesToSelect;
+				for (const auto& dictName : projectConfigDictNames.as_array()) {
+					if (dictName.is_string()) {
+						int index = dictNamesComboBox->findText(QString(fs::path(ascii2Wide(dictName.as_string())).stem().wstring()));
+						if (index < 0) {
+							continue;
+						}
+						indexesToSelect.append(index);
+					}
 				}
-				indexesToSelect.append(index);
+				dictNamesComboBox->setCurrentSelection(indexesToSelect);
 			}
-		}
-		gptDictNamesComboBox->setCurrentSelection(indexesToSelect);
-	}
-	gptDictNamesLayout->addWidget(gptDictNamesComboBox);
-	mainLayout->addWidget(gptDictNamesArea);
 
-	ElaScrollPageArea* postDictNamesArea = new ElaScrollPageArea(mainWidget);
-	QHBoxLayout* postDictNamesLayout = new QHBoxLayout(postDictNamesArea);
-	ElaText* postDictNamesText = new ElaText(postDictNamesArea);
-	postDictNamesText->setText(tr("选择要启用的译后字典"));
-	postDictNamesText->setWordWrap(false);
-	postDictNamesText->setTextPixelSize(16);
-	postDictNamesLayout->addWidget(postDictNamesText);
-	postDictNamesLayout->addStretch();
-	ElaMultiSelectComboBox* postDictNamesComboBox = new ElaMultiSelectComboBox(postDictNamesArea);
-	postDictNamesComboBox->setFixedWidth(500);
-	auto postDictNames = _globalConfig["commonPostDicts"]["dictNames"].as_array();
-	if (postDictNames) {
-		for (const auto& elem : *postDictNames) {
-			if (auto dictNameOpt = elem.value<std::string>()) {
-				postDictNamesComboBox->addItem(QString::fromStdString(*dictNameOpt));
-			}
-		}
-	}
-	postDictNamesComboBox->addItem("项目字典_译后");
-	postDictNames = _projectConfig["dictionary"]["postDict"].as_array();
-	if (postDictNames) {
-		QList<int> indexesToSelect;
-		for (const auto& elem : *postDictNames) {
-			if (auto dictNameOpt = elem.value<std::string>()) {
-				int index = postDictNamesComboBox->findText(QString(fs::path(ascii2Wide(*dictNameOpt)).stem().wstring()));
-				if (index < 0) {
-					continue;
-				}
-				indexesToSelect.append(index);
-			}
-		}
-		postDictNamesComboBox->setCurrentSelection(indexesToSelect);
-	}
-	postDictNamesLayout->addWidget(postDictNamesComboBox);
-	mainLayout->addWidget(postDictNamesArea);
+			dictNamesLayout->addWidget(dictNamesComboBox);
+			mainLayout->addWidget(dictNamesArea);
+			return dictNamesComboBox;
+		};
 
-	bool usePreDictInName = _projectConfig["dictionary"]["usePreDictInName"].value_or(false);
+	ElaMultiSelectComboBox* comboBox = createDictSelectAreaFunc(tr("选择要启用的译前字典"), tr("项目译前字典"), "commonPreDicts", "preDict");
+	ElaMultiSelectComboBox* gptDictNamesComboBox = createDictSelectAreaFunc(tr("选择要启用的GPT字典"), tr("项目GPT字典"), "commonGptDicts", "gptDict");
+	ElaMultiSelectComboBox* postDictNamesComboBox = createDictSelectAreaFunc(tr("选择要启用的译后字典"), tr("项目译后字典"), "commonPostDicts", "postDict");
+
+
+	bool usePreDictInName = toml::get_or(_projectConfig["dictionary"]["usePreDictInName"], false);
 	ElaScrollPageArea* usePreDictInNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePreDictInNameLayout = new QHBoxLayout(usePreDictInNameArea);
 	ElaText* usePreDictInNameText = new ElaText(usePreDictInNameArea);
@@ -159,7 +98,7 @@ void DictExSettingsPage::_setupUI()
 	usePreDictInNameLayout->addWidget(usePreDictInNameSwitch);
 	mainLayout->addWidget(usePreDictInNameArea);
 
-	bool usePostDictInName = _projectConfig["dictionary"]["usePostDictInName"].value_or(false);
+	bool usePostDictInName = toml::get_or(_projectConfig["dictionary"]["usePostDictInName"], false);
 	ElaScrollPageArea* usePostDictInNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePostDictInNameLayout = new QHBoxLayout(usePostDictInNameArea);
 	ElaText* usePostDictInNameText = new ElaText(usePostDictInNameArea);
@@ -173,7 +112,7 @@ void DictExSettingsPage::_setupUI()
 	usePostDictInNameLayout->addWidget(usePostDictInNameSwitch);
 	mainLayout->addWidget(usePostDictInNameArea);
 
-	bool usePreDictInMsg = _projectConfig["dictionary"]["usePreDictInMsg"].value_or(true);
+	bool usePreDictInMsg = toml::get_or(_projectConfig["dictionary"]["usePreDictInMsg"], true);
 	ElaScrollPageArea* usePreDictInMsgArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePreDictInMsgLayout = new QHBoxLayout(usePreDictInMsgArea);
 	ElaText* usePreDictInMsgText = new ElaText(usePreDictInMsgArea);
@@ -187,7 +126,7 @@ void DictExSettingsPage::_setupUI()
 	usePreDictInMsgLayout->addWidget(usePreDictInMsgSwitch);
 	mainLayout->addWidget(usePreDictInMsgArea);
 
-	bool usePostDictInMsg = _projectConfig["dictionary"]["usePostDictInMsg"].value_or(true);
+	bool usePostDictInMsg = toml::get_or(_projectConfig["dictionary"]["usePostDictInMsg"], true);
 	ElaScrollPageArea* usePostDictInMsgArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePostDictInMsgLayout = new QHBoxLayout(usePostDictInMsgArea);
 	ElaText* usePostDictInMsgText = new ElaText(usePostDictInMsgArea);
@@ -201,7 +140,7 @@ void DictExSettingsPage::_setupUI()
 	usePostDictInMsgLayout->addWidget(usePostDictInMsgSwitch);
 	mainLayout->addWidget(usePostDictInMsgArea);
 
-	bool useGPTDictToReplaceName = _projectConfig["dictionary"]["useGPTDictToReplaceName"].value_or(false);
+	bool useGPTDictToReplaceName = toml::get_or(_projectConfig["dictionary"]["useGPTDictToReplaceName"], false);
 	ElaScrollPageArea* useGPTDictToReplaceNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* useGPTDictToReplaceNameLayout = new QHBoxLayout(useGPTDictToReplaceNameArea);
 	ElaText* useGPTDictToReplaceNameText = new ElaText(useGPTDictToReplaceNameArea);
@@ -218,115 +157,55 @@ void DictExSettingsPage::_setupUI()
 
 	_refreshCommonDictsListFunc = [=]()
 		{
-			toml::array* commonPreDictsArrPtr = _globalConfig["commonPreDicts"]["dictNames"].as_array();
-			toml::array* commonGptDictsArrPtr = _globalConfig["commonGptDicts"]["dictNames"].as_array();
-			toml::array* commonPostDictsArrPtr = _globalConfig["commonPostDicts"]["dictNames"].as_array();
-			toml::array commonPreDictsArr = commonPreDictsArrPtr ? *commonPreDictsArrPtr : toml::array{};
-			toml::array commonGptDictsArr = commonGptDictsArrPtr ? *commonGptDictsArrPtr : toml::array{};
-			toml::array commonPostDictsArr = commonPostDictsArrPtr ? *commonPostDictsArrPtr : toml::array{};
-
-			QList<int> preDictIndexesToRemove;
-			for (int i = 0; i < preDictNamesComboBox->count(); i++) {
-				if (
-					preDictNamesComboBox->itemText(i) != "项目字典_译前" &&
-					std::ranges::find_if(commonPreDictsArr, [=](const auto& elem)
-						{
-							return elem.value_or(std::string{}) == preDictNamesComboBox->itemText(i).toStdString();
-						}) == commonPreDictsArr.end()
-							)
+			auto refreshCommonDictsListFunc = 
+				[=](const QString& excludeName, const std::string& globalConfigKey, ElaMultiSelectComboBox* comboBox)
 				{
-					preDictIndexesToRemove.append(i);
-				}
-			}
-			std::ranges::sort(preDictIndexesToRemove, [](int a, int b) { return a > b; });
-			for (int index : preDictIndexesToRemove) {
-				preDictNamesComboBox->removeItem(index);
-			}
-			QStringList commonPreDictsChosen = preDictNamesComboBox->getCurrentSelection();
-			for (auto& elem : commonPreDictsArr) {
-				if (auto dictNameOpt = elem.value<std::string>()) {
-					int index = preDictNamesComboBox->findText(QString::fromStdString(*dictNameOpt));
-					if (index >= 0) {
-						continue;
-					}
-					preDictNamesComboBox->insertItem(0, QString::fromStdString(*dictNameOpt));
-					if (_globalConfig["commonPreDicts"]["spec"][*dictNameOpt]["defaultOn"].value_or(true)) {
-						commonPreDictsChosen.append(QString::fromStdString(*dictNameOpt));
-					}
-				}
-			}
-			preDictNamesComboBox->setCurrentSelection(commonPreDictsChosen);
-
-			QList<int> gptDictIndexesToRemove;
-			for (int i = 0; i < gptDictNamesComboBox->count(); i++) {
-				if (
-					gptDictNamesComboBox->itemText(i) != "项目GPT字典" &&
-					std::ranges::find_if(commonGptDictsArr, [=](const auto& elem)
-						{
-							return elem.value_or(std::string{}) == gptDictNamesComboBox->itemText(i).toStdString();
-						}) == commonGptDictsArr.end()
+					auto& commonDictsVal = _globalConfig[globalConfigKey]["dictNames"];
+					const toml::array& commonDictsArr = commonDictsVal.is_array() ? commonDictsVal.as_array() : toml::array{};
+					QList<int> dictIndexesToRemove;
+					for (int i = 0; i < comboBox->count(); i++) {
+						if (
+							comboBox->itemText(i) != excludeName &&
+							!std::ranges::any_of(commonDictsArr, [=](const auto& elem)
+								{
+									return elem.is_string() && elem.as_string() == comboBox->itemText(i).toStdString();
+								})
 							)
-				{
-					gptDictIndexesToRemove.append(i);
-				}
-			}
-			std::ranges::sort(gptDictIndexesToRemove, [](int a, int b) { return a > b; });
-			for (int index : gptDictIndexesToRemove) {
-				gptDictNamesComboBox->removeItem(index);
-			}
-			QStringList commonGptDictsChosen = gptDictNamesComboBox->getCurrentSelection();
-			for (auto& elem : commonGptDictsArr) {
-				if (auto dictNameOpt = elem.value<std::string>()) {
-					int index = gptDictNamesComboBox->findText(QString::fromStdString(*dictNameOpt));
-					if (index >= 0) {
-						continue;
-					}
-					gptDictNamesComboBox->insertItem(0, QString::fromStdString(*dictNameOpt));
-					if (_globalConfig["commonGptDicts"]["spec"][*dictNameOpt]["defaultOn"].value_or(true)) {
-						commonGptDictsChosen.append(QString::fromStdString(*dictNameOpt));
-					}
-				}
-			}
-			gptDictNamesComboBox->setCurrentSelection(commonGptDictsChosen);
-
-			QList<int> postDictIndexesToRemove;
-			for (int i = 0; i < postDictNamesComboBox->count(); i++) {
-				if (
-					postDictNamesComboBox->itemText(i) != "项目字典_译后" &&
-					std::ranges::find_if(commonPostDictsArr, [=](const auto& elem)
 						{
-							return elem.value_or(std::string{}) == postDictNamesComboBox->itemText(i).toStdString();
-						}) == commonPostDictsArr.end()
-							)
-				{
-					postDictIndexesToRemove.append(i);
-				}
-			}
-			std::ranges::sort(postDictIndexesToRemove, [](int a, int b) { return a > b; });
-			for (int index : postDictIndexesToRemove) {
-				postDictNamesComboBox->removeItem(index);
-			}
-			QStringList commonPostDictsChosen = postDictNamesComboBox->getCurrentSelection();
-			for (auto& elem : commonPostDictsArr) {
-				if (auto dictNameOpt = elem.value<std::string>()) {
-					int index = postDictNamesComboBox->findText(QString::fromStdString(*dictNameOpt));
-					if (index >= 0) {
-						continue;
+							dictIndexesToRemove.append(i);
+						}
 					}
-					postDictNamesComboBox->insertItem(0, QString::fromStdString(*dictNameOpt));
-					if (_globalConfig["commonPostDicts"]["spec"][*dictNameOpt]["defaultOn"].value_or(true)) {
-						commonPostDictsChosen.append(QString::fromStdString(*dictNameOpt));
+					std::ranges::sort(dictIndexesToRemove, [](int a, int b) { return a > b; });
+					for (int index : dictIndexesToRemove) {
+						comboBox->removeItem(index);
 					}
-				}
-			}
-			postDictNamesComboBox->setCurrentSelection(commonPostDictsChosen);
+					QStringList commonDictsChosen = comboBox->getCurrentSelection();
+					for (const auto& dictName : commonDictsArr) {
+						if (dictName.is_string()) {
+							int index = comboBox->findText(QString::fromStdString(dictName.as_string()));
+							if (index >= 0) {
+								continue;
+							}
+							comboBox->insertItem(0, QString::fromStdString(dictName.as_string()));
+							if (toml::get_or(_globalConfig[globalConfigKey]["spec"][dictName.as_string()]["defaultOn"], true)) {
+								commonDictsChosen.append(QString::fromStdString(dictName.as_string()));
+							}
+						}
+					}
+					comboBox->setCurrentSelection(commonDictsChosen);
+				};
+
+			refreshCommonDictsListFunc("项目字典_译前", "commonPreDicts", comboBox);
+			refreshCommonDictsListFunc("项目GPT字典", "commonGptDicts", gptDictNamesComboBox);
+			refreshCommonDictsListFunc("项目字典_译后", "commonPostDicts", postDictNamesComboBox);
+			
 		};
 
 
 	_applyFunc = [=]()
 		{
 			toml::array preDictNamesArr, gptDictNamesArr, postDictNamesArr;
-			QStringList preDictNamesStr = preDictNamesComboBox->getCurrentSelection(),
+			QStringList preDictNamesStr = comboBox->getCurrentSelection(),
 				gptDictNames = gptDictNamesComboBox->getCurrentSelection(),
 				postDictNames = postDictNamesComboBox->getCurrentSelection();
 			for (const auto& name : preDictNamesStr) {

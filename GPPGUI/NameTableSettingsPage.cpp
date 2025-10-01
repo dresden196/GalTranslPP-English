@@ -12,13 +12,14 @@
 #include "ElaMessageBar.h"
 #include "ElaTabWidget.h"
 #include "ElaPlainTextEdit.h"
+#include "ReadDicts.h"
 
 import Tool;
 
-NameTableSettingsPage::NameTableSettingsPage(fs::path& projectDir, toml::table& globalConfig, toml::table& projectConfig, QWidget* parent) :
+NameTableSettingsPage::NameTableSettingsPage(fs::path& projectDir, toml::value& globalConfig, toml::value& projectConfig, QWidget* parent) :
 	BasePage(parent), _projectConfig(projectConfig), _globalConfig(globalConfig), _projectDir(projectDir)
 {
-	setWindowTitle(tr("人名表"));
+	setWindowTitle(tr("人名替换表"));
 	setTitleVisible(false);
 	setContentsMargins(0, 0, 0, 0);
 
@@ -44,48 +45,35 @@ QList<NameTableEntry> NameTableSettingsPage::readNameTable()
 	if (!fs::exists(nameTablePath)) {
 		return result;
 	}
-	std::ifstream ifs(nameTablePath);
-	toml::table tbl;
+
 	try {
-		tbl = toml::parse(ifs);
+		const toml::ordered_value tbl = toml::parse<toml::ordered_type_config>(nameTablePath);
+		for (const auto& [key, value] : tbl.as_table()) {
+			if (!value.is_array() || value.size() < 2 || !value[0].is_string() || !value[1].is_integer()) {
+				continue;
+			}
+			NameTableEntry entry;
+			entry.original = QString::fromStdString(key);
+			entry.translation = QString::fromStdString(value[0].as_string());
+			entry.count = value[1].as_integer();
+			result.push_back(entry);
+		}
+		/*std::ranges::sort(result, [](const NameTableEntry& a, const NameTableEntry& b)
+			{
+				return a.count > b.count;
+			});*/
 	}
 	catch (...) {
 		ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("人名替换表 不符合 toml 规范"), 3000);
 		return result;
 	}
-	ifs.close();
-	for (const auto& [key, value] : tbl) {
-		NameTableEntry entry;
-		entry.original = QString::fromStdString(std::string(key.str()));
-		if (auto valueArr = value.as_array(); valueArr->size() >= 2) {
-			if (auto optTrans = valueArr->get(0)->value<std::string>()) {
-				entry.translation = QString::fromStdString(*optTrans);
-			}
-			if (auto optCount = valueArr->get(1)->value<int>()) {
-				entry.count = *optCount;
-			}
-		}
-		result.push_back(entry);
-	}
-	std::ranges::sort(result, [](const NameTableEntry& a, const NameTableEntry& b)
-		{
-			return a.count > b.count;
-		});
+	
 	return result;
 }
 
 QString NameTableSettingsPage::readNameTableStr()
 {
-	QString result;
-	fs::path nameTablePath = _projectDir / L"人名替换表.toml";
-	if (!fs::exists(nameTablePath)) {
-		return result;
-	}
-	std::ifstream ifs(nameTablePath);
-	std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-	ifs.close();
-	result = QString::fromStdString(str);
-	return result;
+	return ReadDicts::readDictsStr(_projectDir / L"人名替换表.toml");
 }
 
 void NameTableSettingsPage::_setupUI()
@@ -154,11 +142,11 @@ void NameTableSettingsPage::_setupUI()
 	nameTableView->verticalHeader()->setHidden(true);
 	nameTableView->setAlternatingRowColors(true);
 	nameTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-	nameTableView->setColumnWidth(0, _projectConfig["GUIConfig"]["nameTableColumnWidth"]["0"].value_or(258));
-	nameTableView->setColumnWidth(1, _projectConfig["GUIConfig"]["nameTableColumnWidth"]["1"].value_or(258));
-	nameTableView->setColumnWidth(2, _projectConfig["GUIConfig"]["nameTableColumnWidth"]["2"].value_or(258));
+	nameTableView->setColumnWidth(0, toml::get_or(_projectConfig["GUIConfig"]["nameTableColumnWidth"]["0"], 258));
+	nameTableView->setColumnWidth(1, toml::get_or(_projectConfig["GUIConfig"]["nameTableColumnWidth"]["1"], 258));
+	nameTableView->setColumnWidth(2, toml::get_or(_projectConfig["GUIConfig"]["nameTableColumnWidth"]["2"], 258));
 	stackedWidget->addWidget(nameTableView);
-	stackedWidget->setCurrentIndex(_projectConfig["GUIConfig"]["nameTableOpenMode"].value_or(_globalConfig["defaultNameTableOpenMode"].value_or(0)));
+	stackedWidget->setCurrentIndex(toml::get_or(_projectConfig["GUIConfig"]["nameTableOpenMode"], toml::get_or(_globalConfig["defaultNameTableOpenMode"], 0)));
 
 	plainTextModeButton->setEnabled(stackedWidget->currentIndex() != 0);
 	TableModeButton->setEnabled(stackedWidget->currentIndex() != 1);
@@ -187,12 +175,18 @@ void NameTableSettingsPage::_setupUI()
 		{
 			plainTextEdit->setPlainText(readNameTableStr());
 			nameTableModel->loadData(readNameTable());
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("刷新成功"), tr("重新载入了人名表"), 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("刷新成功"), tr("重新载入了 人名替换表"), 3000);
 		};
 	connect(refreshButton, &ElaPushButton::clicked, this, refreshFunc);
 	connect(addNameButton, &ElaPushButton::clicked, this, [=]()
 		{
-			nameTableModel->insertRow(nameTableModel->rowCount());
+			QModelIndexList index = nameTableView->selectionModel()->selectedIndexes();
+			if (index.isEmpty()) {
+				nameTableModel->insertRow(nameTableModel->rowCount());
+			}
+			else {
+				nameTableModel->insertRow(index.first().row());
+			}
 		});
 	connect(delNameButton, &ElaPushButton::clicked, this, [=]()
 		{
@@ -218,11 +212,11 @@ void NameTableSettingsPage::_setupUI()
 	connect(saveDictButton, &ElaPushButton::clicked, this, [=]()
 		{
 			// 保存的提示和按钮绑定，因为保存项目配置时用的自己的提示
-			// 但刷新可以直接把提示丢进refreshFunc里，因为一般用到这个函数的时候都要提示(单独保存字典时的重载入是静默的)
+			// 但刷新可以直接把提示丢进refreshFunc里，因为一般用到这个函数的时候都要提示(单独保存字典时的重载是静默的)
 			if (_applyFunc) {
 				_applyFunc();
 			}
-			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("保存成功"), tr("已保存人名替换表"), 3000);
+			ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("保存成功"), tr("已保存 人名替换表"), 3000);
 		});
 	connect(withdrawButton, &ElaPushButton::clicked, this, [=]()
 		{
@@ -246,22 +240,21 @@ void NameTableSettingsPage::_setupUI()
 			std::ofstream ofs(_projectDir / L"人名替换表.toml");
 			int index = stackedWidget->currentIndex();
 			if (index == 0) {
-				std::string str = plainTextEdit->toPlainText().toStdString();
-				ofs << str;
+				ofs << plainTextEdit->toPlainText().toStdString();
 				ofs.close();
 				nameTableModel->loadData(readNameTable());
 			}
 			else if (index == 1) {
-				ofs << "# '原名' = [ '译名', 出现次数 ]\n";
-				QList<NameTableEntry> entries = nameTableModel->getEntries();
+				toml::ordered_value tbl = toml::ordered_table{};
+				tbl.comments().push_back("'原名' = [ '译名', 出现次数 ]");
+				const QList<NameTableEntry>& entries = nameTableModel->getEntriesRef();
 				for (const NameTableEntry& entry : entries) {
 					if (entry.original.isEmpty()) {
 						continue;
 					}
-					toml::table tbl;
-					tbl.insert(entry.original.toStdString(), toml::array{ entry.translation.toStdString(), entry.count });
-					ofs << tbl << "\n";
+					tbl[entry.original.toStdString()] = toml::array{ entry.translation.toStdString(), entry.count };
 				}
+				ofs << toml::format(tbl);
 				ofs.close();
 				plainTextEdit->setPlainText(readNameTableStr());
 			}
@@ -273,6 +266,6 @@ void NameTableSettingsPage::_setupUI()
 
 	_refreshFunc = refreshFunc;
 
-	tabWidget->addTab(mainWidget, tr("人名表"));
+	tabWidget->addTab(mainWidget, tr("人名替换表"));
 	addCentralWidget(tabWidget, true, true, 0);
 }

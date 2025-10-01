@@ -4,7 +4,7 @@
 #define DICTSETTINGSPAGE_H
 
 #include <QList>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include <filesystem>
 #include "BasePage.h"
 #include "DictionaryModel.h"
@@ -19,20 +19,15 @@ class DictSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit DictSettingsPage(fs::path& projectDir, toml::table& globalConfig, toml::table& projectConfig, QWidget* parent = nullptr);
+    explicit DictSettingsPage(fs::path& projectDir, toml::value& globalConfig, toml::value& projectConfig, QWidget* parent = nullptr);
     ~DictSettingsPage() override;
     void refreshDicts();
 
 private:
 
-    QList<DictionaryEntry> readGptDicts(std::optional<fs::path> dictPathOpt = std::nullopt);
-    QString readGptDictsStr(std::optional<fs::path> dictPathOpt = std::nullopt);
-    QList<NormalDictEntry> readNormalDicts(const fs::path& dictPath);
-    QString readNormalDictsStr(const fs::path& dictPath);
-
     void _setupUI();
-    toml::table& _globalConfig;
-    toml::table& _projectConfig;
+    toml::value& _globalConfig;
+    toml::value& _projectConfig;
     fs::path& _projectDir;
 
     std::function<void()> _refreshFunc;

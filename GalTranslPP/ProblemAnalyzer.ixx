@@ -59,29 +59,28 @@ module :private;
 void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const std::string& targetLang) {
     if (sentence->translated_preview.empty()) {
         if (!sentence->pre_processed_text.empty() && !sentence->pre_translated_text.empty()) {
-            sentence->problem = "翻译为空";
+            sentence->problems = { "翻译为空" };
         }
         else {
-            sentence->problem.clear();
+            sentence->problems.clear();
         }
         return;
     }
     if (sentence->translated_preview.starts_with("(Failed to translate)")) {
-        sentence->problem = "翻译失败";
+        sentence->problems = { "翻译失败" };
         return;
     }
 
-    sentence->problem.clear();
-    std::vector<std::string> problemList;
+    sentence->problems.clear();
 
     // 1. 词频过高
     if (m_problems.highFrequency.use) {
         const std::string& origText = chooseStringRef(sentence, m_problems.highFrequency.base);
         const std::string& transView = chooseStringRef(sentence, m_problems.highFrequency.check);
-        auto [mostWord, wordCount] = getMostCommonChar(transView);
-        auto [mostWordOrg, wordCountOrg] = getMostCommonChar(origText);
+        const auto [mostWord, wordCount] = getMostCommonChar(transView);
+        const auto [mostWordOrg, wordCountOrg] = getMostCommonChar(origText);
         if (wordCount > 20 && wordCount > (wordCountOrg > 0 ? wordCountOrg * 2 : 20)) {
-            problemList.push_back("词频过高-'" + mostWord + "'" + std::to_string(wordCount) + "次");
+            sentence->problems.push_back("词频过高-'" + mostWord + "'" + std::to_string(wordCount) + "次");
         }
     }
 
@@ -93,32 +92,32 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
             bool orgHas = origText.find(check) != std::string::npos;
             bool transHas = transView.find(check) != std::string::npos;
 
-            if (orgHas && !transHas) problemList.push_back("本有 " + check + " 符号");
-            if (!orgHas && transHas) problemList.push_back("本无 " + check + " 符号");
+            if (orgHas && !transHas) sentence->problems.push_back("本有 " + check + " 符号");
+            if (!orgHas && transHas) sentence->problems.push_back("本无 " + check + " 符号");
         }
     }
 
     // 3. 残留日文
     if (m_problems.remainJp.use) {
         const std::string& transView = chooseStringRef(sentence, m_problems.remainJp.check);
-        if (containsKana(transView)) {
-            problemList.push_back("残留日文");
+        if (std::string kanas = extractKana(transView); !kanas.empty()) {
+            sentence->problems.push_back("残留日文: " + kanas);
         }
     }
 
     if (m_problems.introLatin.use) {
         const std::string& origText = chooseStringRef(sentence, m_problems.introLatin.base);
         const std::string& transView = chooseStringRef(sentence, m_problems.introLatin.check);
-        if (containsLatin(transView) && !containsLatin(origText)) {
-            problemList.push_back("引入拉丁字母");
+        if (std::string latins = extractLatin(transView); !latins.empty() && extractLatin(origText).empty()) {
+            sentence->problems.push_back("引入拉丁字母: " + latins);
         }
     }
 
     if (m_problems.introHangul.use) {
         const std::string& origText = chooseStringRef(sentence, m_problems.introHangul.base);
         const std::string& transView = chooseStringRef(sentence, m_problems.introHangul.check);
-        if (containsHangul(transView) && !containsHangul(origText)) {
-            problemList.push_back("引入韩文");
+        if (std::string hanguls = extractHangul(transView); !hanguls.empty() && extractHangul(origText).empty()) {
+            sentence->problems.push_back("引入韩文: " + hanguls);
         }
     }
 
@@ -130,7 +129,7 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
             int orgLinebreaks = countSubstring(origText, sentence->originalLinebreak);
             int transLinebreaks = countSubstring(transView, sentence->originalLinebreak);
             if (orgLinebreaks > transLinebreaks) {
-                problemList.push_back("丢失换行");
+                sentence->problems.push_back(std::format("丢失换行({}/{})", orgLinebreaks, transLinebreaks));
             }
         }
     }
@@ -141,34 +140,39 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
             int orgLinebreaks = countSubstring(origText, sentence->originalLinebreak);
             int transLinebreaks = countSubstring(transView, sentence->originalLinebreak);
             if (orgLinebreaks < transLinebreaks) {
-                problemList.push_back("多加换行");
+                sentence->problems.push_back(std::format("多加换行({}/{})", orgLinebreaks, transLinebreaks));
             }
         }
     }
 
     // 5. 译文长度异常
-    if (m_problems.longer.use) {
-        const std::string& origText = chooseStringRef(sentence, m_problems.longer.base);
-        const std::string& transView = chooseStringRef(sentence, m_problems.longer.check);
-        if (transView.length() > origText.length() * 1.3 && !origText.empty()) {
-            problemList.push_back(std::format("比原文长 {:.2f} 倍", transView.length() / (double)origText.length()));
-        }
-    }
-
     if (m_problems.strictlyLonger.use) {
         const std::string& origText = chooseStringRef(sentence, m_problems.strictlyLonger.base);
         const std::string& transView = chooseStringRef(sentence, m_problems.strictlyLonger.check);
-        if (transView.length() > origText.length() && !origText.empty()) {
-            problemList.push_back(std::format("比原文长严格 {:.2f} 倍", transView.length() / (double)origText.length()));
+        size_t origTextCharCount = splitIntoGraphemes(origText).size();
+        size_t transViewCharCount = splitIntoGraphemes(transView).size();
+        if (transViewCharCount > origTextCharCount && origTextCharCount != 0) {
+            sentence->problems.push_back(
+                std::format("比原文严格长 {:.2f} 倍({}/{}字符)", transViewCharCount / (double)origTextCharCount, transViewCharCount, origTextCharCount)
+            );
+        }
+    }
+    else if (m_problems.longer.use) {
+        const std::string& origText = chooseStringRef(sentence, m_problems.longer.base);
+        const std::string& transView = chooseStringRef(sentence, m_problems.longer.check);
+        size_t origTextCharCount = splitIntoGraphemes(origText).size();
+        size_t transViewCharCount = splitIntoGraphemes(transView).size();
+        if (transViewCharCount > origTextCharCount * 1.3 && origTextCharCount != 0) {
+            sentence->problems.push_back(
+                std::format("比原文长 {:.2f} 倍({}/{}字符)", transViewCharCount / (double)origTextCharCount, transViewCharCount, origTextCharCount)
+            );
         }
     }
 
+
     // 6. 字典未使用
     if (m_problems.dictUnused.use) {
-        std::string dictProblem = gptDict.checkDicUse(sentence, m_problems.dictUnused.base, m_problems.dictUnused.check);
-        if (!dictProblem.empty()) {
-            problemList.push_back(dictProblem);
-        }
+        gptDict.checkDicUse(sentence, m_problems.dictUnused.base, m_problems.dictUnused.check);
     }
 
     // 7. 语言不通
@@ -204,7 +208,7 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
             if (transTextLen > 6) {
                 auto results = m_langIdentifier->FindTopNMostFreqLangs(transTextToCheck, 3);
                 if (results[0].language == chrome_lang_id::NNetLanguageIdentifier::kUnknown && !langSet.empty()) {
-                    problemList.push_back("无法识别的语言");
+                    sentence->problems.push_back("无法识别的语言");
                 }
                 for (const auto& result : results) {
                     if (result.language == chrome_lang_id::NNetLanguageIdentifier::kUnknown) {
@@ -215,7 +219,7 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
                         continue;
                     }
                     if (result.language != simplifiedTargetLang && langSet.find(result.language) == langSet.end()) {
-                        problemList.push_back(std::format("引入({}, {:.3f})", result.language, result.probability));
+                        sentence->problems.push_back(std::format("引入({}, {:.3f})", result.language, result.probability));
                     }
                 }
             }
@@ -223,19 +227,6 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
         
     }
 
-    if (sentence->other_info.contains("tlbf_overflow_error")) {
-        problemList.push_back("换行修复错误(字数超阈值)");
-    }
-
-    // 组合所有问题
-    if (!problemList.empty()) {
-        for (size_t i = 0; i < problemList.size(); ++i) {
-            sentence->problem += problemList[i];
-            if (i < problemList.size() - 1) {
-                sentence->problem += ", ";
-            }
-        }
-    }
 }
 
 void ProblemAnalyzer::loadProblems(const std::vector<std::string>& problemList, const std::string& punctSet, double langProbability)
@@ -246,6 +237,9 @@ void ProblemAnalyzer::loadProblems(const std::vector<std::string>& problemList, 
     }
 	for (const auto& problem : problemList)
 	{
+        if (problem.empty()) {
+            continue;
+        }
 		if (problem == "词频过高") {
 			m_problems.highFrequency.use = true;
 		}

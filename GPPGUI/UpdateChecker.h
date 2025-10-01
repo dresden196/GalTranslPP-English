@@ -8,7 +8,7 @@
 #include <QTimer>
 #include <QSystemTrayIcon>
 #include <fstream>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 
 class ElaText;
 
@@ -16,7 +16,7 @@ class UpdateChecker : public QObject
 {
     Q_OBJECT
 public:
-    explicit UpdateChecker(toml::table& globalConfig, ElaText* statusText, QObject* parent = nullptr);
+    explicit UpdateChecker(toml::value& globalConfig, ElaText* statusText, QObject* parent = nullptr);
     void check(bool forDownload = false);
     void downloadUpdate(const QString& url);
     bool getIsDownloadSucceed();
@@ -49,7 +49,7 @@ private:
     QTimer* m_downloadTimer = nullptr;
     QMap<QNetworkReply*, bool> m_isForDownloadMap;
 
-    toml::table& m_globalConfig;
+    toml::value& m_globalConfig;
     const QString m_repoOwner = "julixian";
     const QString m_repoName = "GalTranslPP";
 };

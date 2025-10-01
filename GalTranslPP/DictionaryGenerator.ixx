@@ -9,7 +9,7 @@ export module DictionaryGenerator;
 
 import <nlohmann/json.hpp>;
 import <ctpl_stl.h>;
-import <toml++/toml.hpp>;
+import <toml.hpp>;
 import APIPool;
 import Dictionary;
 
@@ -121,7 +121,7 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
 
             if (surface.length() <= 1) continue;
 
-            if (feature.find("固有名詞") != std::string::npos || containsKatakana(surface)) {
+            if (feature.find("固有名詞") != std::string::npos || !extractKatakana(surface).empty()) {
                 wordsInSegment.insert(surface);
                 m_wordCounter[surface]++;
             }
@@ -347,8 +347,9 @@ void DictionaryGenerator::generate(const fs::path& inputDir, const fs::path& out
     std::vector<std::tuple<std::string, std::string, std::string>> finalList;
 
     // 按出现次数排序
-    std::sort(m_finalDict.begin(), m_finalDict.end(), [&](const auto& a, const auto& b) {
-        return m_finalCounter[std::get<0>(a)] > m_finalCounter[std::get<0>(b)];
+    std::sort(m_finalDict.begin(), m_finalDict.end(), [&](const auto& a, const auto& b) 
+        {
+            return m_finalCounter[std::get<0>(a)] > m_finalCounter[std::get<0>(b)];
         });
 
     // 过滤
@@ -362,24 +363,24 @@ void DictionaryGenerator::generate(const fs::path& inputDir, const fs::path& out
 
     // 去重
     std::set<std::string> seen;
-    finalList.erase(std::remove_if(finalList.begin(), finalList.end(), [&](const auto& item) {
-        if (seen.count(std::get<0>(item))) {
-            return true;
-        }
-        seen.insert(std::get<0>(item));
-        return false;
+    finalList.erase(std::remove_if(finalList.begin(), finalList.end(), [&](const auto& item) 
+        {
+            if (seen.count(std::get<0>(item))) {
+                return true;
+            }
+            seen.insert(std::get<0>(item));
+            return false;
         }), finalList.end());
 
 
-    std::ofstream ofs(outputFilePath);
-    ofs << "gptDict = [" << std::endl;
+    toml::value arr = toml::array{};
     
     for (const auto& item : finalList) {
-        auto tbl = toml::table{ { "org", std::get<0>(item) }, { "rep", std::get<1>(item) }, { "note", std::get<2>(item) } };
-        ofs << std::format("    {{ org = {}, rep = {}, note = {} }},",
-            stream2String(tbl["org"]), stream2String(tbl["rep"]), stream2String(tbl["note"])) << std::endl;
+        arr.push_back(toml::ordered_table{ { "org", std::get<0>(item) }, { "rep", std::get<1>(item) }, { "note", std::get<2>(item) } });
     }
     
-    ofs << "]" << std::endl;
+    arr.as_array_fmt().fmt = toml::array_format::multiline;
+    std::ofstream ofs(outputFilePath);
+    ofs << toml::format(toml::value{ toml::table{{ "gptDict", arr }} });
     m_logger->info("字典生成完成，共 {} 个词语，已保存到 {}", finalList.size(), wide2Ascii(outputFilePath));
 }

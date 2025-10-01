@@ -150,6 +150,7 @@ copy "$(TargetDir)translations\Translation_*.*" "$(TargetDir)..\GUICORE\translat
     <ClCompile Include="PluginItemWidget.cpp" />
     <ClCompile Include="PluginSettingsPage.cpp" />
     <ClCompile Include="PromptSettingsPage.cpp" />
+    <ClCompile Include="ReadDicts.cpp" />
     <ClCompile Include="SettingPage.cpp" />
     <ClCompile Include="StartSettingsPage.cpp" />
     <ClCompile Include="TranslatorWorker.cpp" />
@@ -262,6 +263,7 @@ copy "$(TargetDir)translations\Translation_*.*" "$(TargetDir)..\GUICORE\translat
   <ItemGroup>
     <ClInclude Include="ExponentialMovingAverageEstimator.hpp" />
     <ClInclude Include="NoWheelComboBox.h" />
+    <QtMoc Include="ReadDicts.h" />
     <QtMoc Include="PDFCfgPage.h" />
     <QtMoc Include="CommonGptDictPage.h" />
     <QtMoc Include="DictExSettingsPage.h" />

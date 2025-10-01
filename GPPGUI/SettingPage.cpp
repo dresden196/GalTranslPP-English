@@ -15,7 +15,7 @@
 
 import Tool;
 
-SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
+SettingPage::SettingPage(toml::value& globalConfig, QWidget* parent)
     : BasePage(parent), _globalConfig(globalConfig)
 {
     // 预览窗口标题
@@ -27,7 +27,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     themeText->setWordWrap(false);
     themeText->setTextPixelSize(18);
 
-    int themeMode = _globalConfig["themeMode"].value_or(0);
+    int themeMode = toml::get_or(_globalConfig["themeMode"], 0);
     eTheme->setThemeMode((ElaThemeType::ThemeMode)themeMode);
     ElaComboBox* themeComboBox = new ElaComboBox(this);
     themeComboBox->addItem(tr("日间模式"));
@@ -80,7 +80,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     displayButtonGroup->addButton(acrylicButton, 4);
     displayButtonGroup->addButton(dwmBlurnormalButton, 5);
 
-    int windowDisplayMode = _globalConfig["windowDisplayMode"].value_or(0); // 不知道为什么3及以上的值会失效
+    int windowDisplayMode = toml::get_or(_globalConfig["windowDisplayMode"], 0); // 不知道为什么3及以上的值会失效
     QAbstractButton* abstractButton = displayButtonGroup->button(windowDisplayMode);
     if (abstractButton)
     {
@@ -139,7 +139,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     navigationGroup->addButton(minimumButton, 1);
     navigationGroup->addButton(compactButton, 2);
     navigationGroup->addButton(maximumButton, 3);
-    int navigationMode = _globalConfig["navigationMode"].value_or(0);
+    int navigationMode = toml::get_or(_globalConfig["navigationMode"], 0);
     abstractButton = navigationGroup->button(navigationMode);
     if (abstractButton) {
         abstractButton->setChecked(true);
@@ -166,7 +166,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     autoRefreshLayout->addWidget(autoRefreshText);
     autoRefreshLayout->addStretch();
     ElaToggleSwitch* autoRefreshSwitch = new ElaToggleSwitch(autoRefreshArea);
-    autoRefreshSwitch->setIsToggled(_globalConfig["autoRefreshAfterTranslate"].value_or(true));
+    autoRefreshSwitch->setIsToggled(toml::get_or(_globalConfig["autoRefreshAfterTranslate"], true));
     connect(autoRefreshSwitch, &ElaToggleSwitch::toggled, this, [=](bool isChecked) 
         {
             insertToml(_globalConfig, "autoRefreshAfterTranslate", isChecked);
@@ -185,7 +185,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     nameTableOpenModeLayout->addStretch();
     nameTableOpenModeLayout->addWidget(nameTableOpenModeTextButton);
     nameTableOpenModeLayout->addWidget(nameTableOpenModeTableButton);
-    int nameTableOpenMode = _globalConfig["defaultNameTableOpenMode"].value_or(0);
+    int nameTableOpenMode = toml::get_or(_globalConfig["defaultNameTableOpenMode"], 0);
     QButtonGroup* nameTableOpenModeGroup = new QButtonGroup(nameTableOpenModeArea);
     nameTableOpenModeGroup->addButton(nameTableOpenModeTextButton, 0);
     nameTableOpenModeGroup->addButton(nameTableOpenModeTableButton, 1);
@@ -214,7 +214,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     dictOpenModeLayout->addStretch();
     dictOpenModeLayout->addWidget(dictOpenModeTextButton);
     dictOpenModeLayout->addWidget(dictOpenModeTableButton);
-    int dictOpenMode = _globalConfig["defaultDictOpenMode"].value_or(0);
+    int dictOpenMode = toml::get_or(_globalConfig["defaultDictOpenMode"], 0);
     QButtonGroup* dictOpenModeGroup = new QButtonGroup(dictOpenModeArea);
     dictOpenModeGroup->addButton(dictOpenModeTextButton, 0);
     dictOpenModeGroup->addButton(dictOpenModeTableButton, 1);
@@ -238,7 +238,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     allowCloseWhenRunningText->setWordWrap(false);
     allowCloseWhenRunningText->setTextPixelSize(15);
     ElaToggleSwitch* allowCloseWhenRunningSwitch = new ElaToggleSwitch(allowCloseWhenRunningArea);
-    allowCloseWhenRunningSwitch->setIsToggled(_globalConfig["allowCloseWhenRunning"].value_or(false));
+    allowCloseWhenRunningSwitch->setIsToggled(toml::get_or(_globalConfig["allowCloseWhenRunning"], false));
     allowCloseWhenRunningLayout->addWidget(allowCloseWhenRunningText);
     allowCloseWhenRunningLayout->addStretch();
     allowCloseWhenRunningLayout->addWidget(allowCloseWhenRunningSwitch);
@@ -254,7 +254,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     autoDownloadText->setWordWrap(false);
     autoDownloadText->setTextPixelSize(15);
     ElaToggleSwitch* autoDownloadSwitch = new ElaToggleSwitch(autoDownloadArea);
-    autoDownloadSwitch->setIsToggled(_globalConfig["autoDownloadUpdate"].value_or(true));
+    autoDownloadSwitch->setIsToggled(toml::get_or(_globalConfig["autoDownloadUpdate"], true));
     autoDownloadLayout->addWidget(autoDownloadText);
     autoDownloadLayout->addStretch();
     autoDownloadLayout->addWidget(autoDownloadSwitch);
@@ -271,7 +271,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     checkUpdateText->setWordWrap(false);
     checkUpdateText->setTextPixelSize(15);
     ElaToggleSwitch* checkUpdateSwitch = new ElaToggleSwitch(checkUpdateArea);
-    checkUpdateSwitch->setIsToggled(_globalConfig["autoCheckUpdate"].value_or(true));
+    checkUpdateSwitch->setIsToggled(toml::get_or(_globalConfig["autoCheckUpdate"], true));
     checkUpdateLayout->addWidget(checkUpdateText);
     checkUpdateLayout->addStretch();
     checkUpdateLayout->addWidget(checkUpdateSwitch);
@@ -288,7 +288,7 @@ SettingPage::SettingPage(toml::table& globalConfig, QWidget* parent)
     ElaComboBox* languageComboBox = new ElaComboBox(languageArea);
     languageComboBox->addItem(tr("zh_CN"));
     languageComboBox->addItem(tr("en"));
-    if (int languageIndex = languageComboBox->findText(_globalConfig["language"].value_or("zh_CN")); languageIndex >= 0) {
+    if (int languageIndex = languageComboBox->findText(QString::fromStdString(toml::get_or(_globalConfig["language"], "zh_CN"))); languageIndex >= 0) {
         languageComboBox->setCurrentIndex(languageIndex);
     }
     languageLayout->addWidget(languageComboBox);

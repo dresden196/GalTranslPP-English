@@ -12,7 +12,7 @@
 
 import Tool;
 
-TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
+TLFCfgPage::TLFCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
 	setWindowTitle(tr("换行修复设置"));
 	setContentsMargins(10, 0, 10, 0);
@@ -22,7 +22,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	QVBoxLayout* mainLayout = new QVBoxLayout(centerWidget);
 
 	// 换行模式
-	QString fixMode = QString::fromStdString(_projectConfig["plugins"]["TextLinebreakFix"]["换行模式"].value_or(std::string{}));
+	QString fixMode = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["换行模式"], ""));
 	ElaScrollPageArea* fixModeArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* fixModeLayout = new QHBoxLayout(fixModeArea);
 	ElaText* fixModeText = new ElaText(tr("换行模式"), fixModeArea);
@@ -44,7 +44,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	mainLayout->addWidget(fixModeArea);
 
 	// 仅在标点后添加
-	bool onlyAddAfterPunct = _projectConfig.at_path("plugins.TextLinebreakFix.仅在标点后添加").value_or(true);
+	bool onlyAddAfterPunct = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["仅在标点后添加"], true);
 	ElaScrollPageArea* onlyAddAfterPunctArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* onlyAddAfterPunctLayout = new QHBoxLayout(onlyAddAfterPunctArea);
 	ElaText* onlyAddAfterPunctText = new ElaText(tr("仅在标点后添加"), onlyAddAfterPunctArea);
@@ -59,7 +59,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	mainLayout->addWidget(onlyAddAfterPunctArea);
 
 	// 分段字数阈值
-	int threshold = _projectConfig["plugins"]["TextLinebreakFix"]["分段字数阈值"].value_or(21);
+	int threshold = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["分段字数阈值"], 21);
 	ElaScrollPageArea* segmentThresholdArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* segmentThresholdLayout = new QHBoxLayout(segmentThresholdArea);
 	ElaText* segmentThresholdText = new ElaText(tr("分段字数阈值"), segmentThresholdArea);
@@ -75,7 +75,7 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	mainLayout->addWidget(segmentThresholdArea);
 
 	// 强制修复
-	bool forceFix = _projectConfig.at_path("plugins.TextLinebreakFix.强制修复").value_or(false);
+	bool forceFix = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["强制修复"], false);
 	ElaScrollPageArea* forceFixArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* forceFixLayout = new QHBoxLayout(forceFixArea);
 	ElaText* forceFixText = new ElaText(tr("强制修复"), forceFixArea);
@@ -88,10 +88,12 @@ TLFCfgPage::TLFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	mainLayout->addWidget(forceFixArea);
 
 	// 报错阈值
-	int errorThreshold = _projectConfig["plugins"]["TextLinebreakFix"]["报错阈值"].value_or(35);
+	int errorThreshold = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["报错阈值"], 35);
 	ElaScrollPageArea* errorThresholdArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* errorThresholdLayout = new QHBoxLayout(errorThresholdArea);
 	ElaText* errorThresholdText = new ElaText(tr("报错阈值"), errorThresholdArea);
+	ElaToolTip* errorThresholdTip = new ElaToolTip(errorThresholdArea);
+	errorThresholdTip->setToolTip(tr("单行字符数超过此阈值时报错"));
 	errorThresholdText->setTextPixelSize(16);
 	errorThresholdLayout->addWidget(errorThresholdText);
 	errorThresholdLayout->addStretch();

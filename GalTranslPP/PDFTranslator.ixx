@@ -5,7 +5,7 @@ module;
 export module PDFTranslator;
 
 import <nlohmann/json.hpp>;
-import <toml++/toml.hpp>;
+import <toml.hpp>;
 import Tool;
 import NormalJsonTranslator;
 
@@ -55,27 +55,20 @@ PDFTranslator::PDFTranslator(const fs::path& projectDir, std::shared_ptr<IContro
     m_pdfInputDir = m_projectDir / L"gt_input";
     m_pdfOutputDir = m_projectDir / L"gt_output";
 
-    std::ifstream ifs;
-
     try {
-        ifs.open(m_projectDir / L"config.toml");
-        auto projectConfig = toml::parse(ifs);
-        ifs.close();
-
-        ifs.open(pluginConfigsPath / L"filePlugins/PDF.toml");
-        auto pluginConfig = toml::parse(ifs);
-        ifs.close();
+        const auto projectConfig = toml::parse(m_projectDir / L"config.toml");
+        const auto pluginConfig = toml::parse(pluginConfigsPath / L"filePlugins/PDF.toml");
 
         m_bilingualOutput = parseToml<bool>(projectConfig, pluginConfig, "plugins.PDF.输出双语翻译文件");
-        std::string pdfConverterPath = parseToml<std::string>(projectConfig, pluginConfig, "plugins.PDF.PDFConverterPath");
+        const std::string& pdfConverterPath = parseToml<std::string>(projectConfig, pluginConfig, "plugins.PDF.PDFConverterPath");
         m_pdfConverterPath = ascii2Wide(pdfConverterPath);
 
         if (!fs::exists(m_pdfConverterPath)) {
             throw std::runtime_error("未找到 PDF 转换器路径");
         }
     }
-    catch (const toml::parse_error& e) {
-        m_logger->critical("项目配置文件解析失败, 错误位置: {}, 错误信息: {}", stream2String(e.source().begin), e.description());
+    catch (const toml::exception& e) {
+        m_logger->critical("PDF 配置文件解析失败");
         throw std::runtime_error(e.what());
     }
 }

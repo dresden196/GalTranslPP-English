@@ -3,7 +3,7 @@
 #ifndef COMMONNORMALDICTPAGE_H
 #define COMMONNORMALDICTPAGE_H
 
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include <string>
 #include "BasePage.h"
 #include "NormalTabEntry.h"
@@ -15,7 +15,7 @@ class CommonNormalDictPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit CommonNormalDictPage(const std::string& mode, toml::table& globalConfig, QWidget* parent = nullptr);
+    explicit CommonNormalDictPage(const std::string& mode, toml::value& globalConfig, QWidget* parent = nullptr);
     ~CommonNormalDictPage() override;
 
 Q_SIGNALS:
@@ -23,12 +23,9 @@ Q_SIGNALS:
 
 private:
 
-    QList<NormalDictEntry> readNormalDicts(const fs::path& dictPath);
-    QString readNormalDictsStr(const fs::path& dictPath);
-
     void _setupUI();
 
-    toml::table& _globalConfig;
+    toml::value& _globalConfig;
 
     QList<NormalTabEntry> _normalTabEntries;
     QWidget* _mainWindow;

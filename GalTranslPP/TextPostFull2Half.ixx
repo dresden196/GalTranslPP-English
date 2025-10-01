@@ -6,7 +6,7 @@ module;
 
 export module TextPostFull2Half;
 
-import <toml++/toml.hpp>;
+import <toml.hpp>;
 import Tool;
 export import IPlugin;
 
@@ -35,14 +35,9 @@ module :private;
 TextPostFull2Half::TextPostFull2Half(const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger)
     : IPlugin(projectDir, logger)
 {
-    std::ifstream ifs;
     try {
-        ifs.open(projectDir / L"config.toml");
-        auto projectConfig = toml::parse(ifs);
-        ifs.close();
-        ifs.open(pluginConfigsPath / L"textPostPlugins/TextPostFull2Half.toml");
-        auto pluginConfig = toml::parse(ifs);
-        ifs.close();
+        const auto projectConfig = toml::parse(projectDir / L"config.toml");
+        const auto pluginConfig = toml::parse(pluginConfigsPath / L"textPostPlugins/TextPostFull2Half.toml");
 
         m_replacePunctuation = parseToml<bool>(projectConfig, pluginConfig, "plugins.TextPostFull2Half.是否替换标点");
         m_reverseConversion = parseToml<bool>(projectConfig, pluginConfig, "plugins.TextPostFull2Half.是否反向替换");
@@ -50,9 +45,9 @@ TextPostFull2Half::TextPostFull2Half(const fs::path& projectDir, std::shared_ptr
         createConversionMap();
         m_logger->info("译后全角半角转换插件已加载 - 替换标点: {}, 反向替换: {}",
                       m_replacePunctuation, m_reverseConversion);
-    } catch (const toml::parse_error& e) {
-        m_logger->critical("配置文件解析错误: {}", e.description());
-        throw;
+    } catch (const toml::exception& e) {
+        m_logger->critical("全角半角转换 配置文件解析错误");
+        throw std::runtime_error(e.what());
     }
 }
 

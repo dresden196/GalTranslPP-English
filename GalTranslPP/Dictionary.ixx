@@ -7,7 +7,7 @@ module;
 
 export module Dictionary;
 
-import <toml++/toml.hpp>;
+import <toml.hpp>;
 import Tool;
 
 namespace fs = std::filesystem;
@@ -15,7 +15,7 @@ namespace fs = std::filesystem;
 export {
 
     struct GptTabEntry {
-        int priority = 0;
+        int priority;
         std::string searchStr;
         std::string replaceStr;
         std::string note;
@@ -43,20 +43,20 @@ export {
 
         std::string doReplace(const Sentence* se, CachePart targetToModify);
 
-        std::string checkDicUse(const Sentence* sentence, CachePart base, CachePart check);
+        void checkDicUse(Sentence* sentence, CachePart base, CachePart check);
     };
 
 
     struct DictEntry {
-        int priority = 0;
+        int priority;
 
         std::string searchStr;
         std::string replaceStr;
-        bool isReg = false;
+        bool isReg;
         std::shared_ptr<icu::RegexPattern> searchReg;
 
         // 条件字典相关
-        bool isConditional = false;
+        bool isConditional;
         std::shared_ptr<icu::RegexPattern> conditionReg;
         CachePart conditionTarget;
     };
@@ -104,136 +104,6 @@ void GptDictionary::createTagger(const fs::path& dictDir) {
         throw std::runtime_error("无法初始化 MeCab Tagger。请确保 BaseConfig/DictGenerator/mecabrc 和 " + wide2Ascii(dictDir) + " 存在\n"
             "错误信息: " + MeCab::getLastError());
     }
-}
-
-std::string GptDictionary::checkDicUse(const Sentence* sentence, CachePart base, CachePart check) {
-    if (!m_tagger) {
-        throw std::runtime_error("MeCab Tagger 未初始化，无法进行 GPT 字典检查");
-    }
-    std::vector<std::string> problems;
-    const std::string& origText = chooseStringRef(sentence, base);
-    const std::string& transView = chooseStringRef(sentence, check);
-    for (const auto& entry : m_entries) {
-        // 如果原文中不包含这个词，就跳过检查
-        if (origText.find(entry.searchStr) == std::string::npos) {
-            continue;
-        }
-        // 检查译文中是否使用了对应的词
-        auto replaceWords = splitString(entry.replaceStr, '/');
-        bool found = false;
-        for (const auto& word : replaceWords) {
-            if (transView.find(word) != std::string::npos) {
-                found = true;
-                break;
-            }
-        }
-        if (found) {
-            // 出现了则默认使用了字典
-            continue;
-        }
-        else if (entry.searchStr.length() > 15) {
-            // 如果字典长度大于 5 个汉字字符，则默认认为是字典未正确使用的情况
-            problems.push_back("GPT字典 " + entry.searchStr + "->" + entry.replaceStr + " 未使用");
-            continue;
-        }
-        // 未出现则分词检查原文中是否有完整的 searchStr 词组
-        std::unique_ptr<MeCab::Lattice> lattice(m_model->createLattice());
-        lattice->set_sentence(origText.c_str());
-        if (!m_tagger->parse(lattice.get())) {
-            throw std::runtime_error(std::format("分词器解析失败，错误信息: {}", MeCab::getLastError()));
-        }
-        
-        for (const MeCab::Node* node = lattice->bos_node(); node; node = node->next) {
-            if (node->stat == MECAB_BOS_NODE || node->stat == MECAB_EOS_NODE) continue;
-
-            std::string surface(node->surface, node->length);
-            std::string feature = node->feature;
-
-            m_logger->trace("分词结果：{} ({})", surface, feature);
-
-            if (surface == entry.searchStr) {
-                found = true;
-                break;
-            }
-        }
-
-        if (found) {
-            // 如果原文有完整的 searchStr 词组且译文中没有使用对应的词，几乎可以肯定是字典未正确使用的情况
-            problems.push_back("GPT字典 " + entry.searchStr + "->" + entry.replaceStr + " 未使用");
-        }
-        
-    }
-    // 将所有问题拼接成一个字符串
-    std::string result;
-    for (size_t i = 0; i < problems.size(); ++i) {
-        result += problems[i];
-        if (i < problems.size() - 1) {
-            result += ", ";
-        }
-    }
-    return result;
-}
-
-void GptDictionary::loadFromFile(const fs::path& filePath) {
-    if (!fs::exists(filePath)) {
-        m_logger->warn("GPT 字典文件不存在: {}", wide2Ascii(filePath));
-        return;
-    }
-
-    std::ifstream ifs(filePath);
-    int count = 0;
-
-    try {
-        auto dictData = toml::parse(ifs);
-        auto dicts = dictData["gptDict"].as_array();
-        if (!dicts) {
-            m_logger->info("已加载 GPT 字典: {}, 共 {} 个词条", wide2Ascii(filePath.filename()), count);
-            return;
-        }
-        dicts->for_each([&](auto&& el)
-            {
-                GptTabEntry entry;
-                if constexpr (toml::is_table<decltype(el)>) {
-                    if (!el.contains("searchStr") && !el.contains("org")) {
-                        throw std::invalid_argument(std::format("GPT 字典文件格式错误(未找到searchStr|org): {}", wide2Ascii(filePath)));
-                    }
-                    if (!el.contains("replaceStr") && !el.contains("rep")) {
-                        throw std::invalid_argument(std::format("GPT 字典文件格式错误(未找到replaceStr|rep): {}", wide2Ascii(filePath)));
-                    }
-
-                    entry.searchStr = el.contains("org") ? el["org"].value_or("") : el["searchStr"].value_or("");
-                    if (entry.searchStr.empty()) {
-                        return;
-                    }
-                    entry.replaceStr = el.contains("rep") ? el["rep"].value_or("") : el["replaceStr"].value_or("");
-                    if (el.contains("note")) {
-                        entry.note = el["note"].value_or("");
-                    }
-                    entry.priority = el["priority"].value_or(0);
-                    m_entries.push_back(entry);
-                    count++;
-                }
-                else {
-                    throw std::invalid_argument(std::format("GPT 字典文件格式错误(not a table): {}", wide2Ascii(filePath)));
-                }
-            });
-    }
-    catch (const toml::parse_error& e) {
-        m_logger->error("GPT 字典文件解析错误: {}, 错误位置: {}, 错误信息: {}", wide2Ascii(filePath), stream2String(e.source().begin), e.description());
-        throw std::runtime_error(e.what());
-    }
-    
-    m_logger->info("已加载 GPT 字典: {}, 共 {} 个词条", wide2Ascii(filePath.filename()), count);
-}
-
-std::string GptDictionary::doReplace(const Sentence* se, CachePart targetToModify) {
-    std::string textToModify = chooseString(se, targetToModify);
-
-    for (const auto& entry : m_entries) {
-        replaceStrInplace(textToModify, entry.searchStr, entry.replaceStr);
-    }
-
-    return textToModify;
 }
 
 std::string GptDictionary::generatePrompt(const std::vector<Sentence*>& batch, TransEngine transEngine) {
@@ -303,6 +173,115 @@ std::string GptDictionary::generatePrompt(const std::vector<Sentence*>& batch, T
     return {};
 }
 
+void GptDictionary::loadFromFile(const fs::path& filePath) {
+    if (!fs::exists(filePath)) {
+        m_logger->error("GPT 字典文件不存在: {}", wide2Ascii(filePath));
+        return;
+    }
+
+    int count = 0;
+
+    try {
+        const auto dictData = toml::parse(filePath);
+        if (!dictData.contains("gptDict")) {
+            return;
+        }
+        const auto& dicts = dictData.at("gptDict").as_array();
+        for (const auto& el : dicts) {
+            GptTabEntry entry;
+            if (!el.contains("searchStr") && !el.contains("org")) {
+                throw std::invalid_argument(std::format("GPT 字典文件格式错误(未找到searchStr|org): {}", wide2Ascii(filePath)));
+            }
+            if (!el.contains("replaceStr") && !el.contains("rep")) {
+                throw std::invalid_argument(std::format("GPT 字典文件格式错误(未找到replaceStr|rep): {}", wide2Ascii(filePath)));
+            }
+
+            entry.searchStr = el.contains("org") ? el.at("org").as_string() : el.at("searchStr").as_string();
+            if (entry.searchStr.empty()) {
+                continue;
+            }
+            entry.replaceStr = el.contains("rep") ? el.at("rep").as_string() : el.at("replaceStr").as_string();
+            entry.note = toml::find_or(el, "note", "");
+            entry.priority = toml::find_or(el, "priority", 0);
+            m_entries.push_back(entry);
+        }
+    }
+    catch (const toml::exception& e) {
+        m_logger->critical("GPT 字典文件解析错误");
+        throw std::runtime_error(e.what());
+    }
+
+    m_logger->info("已加载 GPT 字典: {}, 共 {} 个词条", wide2Ascii(filePath.filename()), count);
+}
+
+std::string GptDictionary::doReplace(const Sentence* se, CachePart targetToModify) {
+    std::string textToModify = chooseString(se, targetToModify);
+
+    for (const auto& entry : m_entries) {
+        replaceStrInplace(textToModify, entry.searchStr, entry.replaceStr);
+    }
+
+    return textToModify;
+}
+
+void GptDictionary::checkDicUse(Sentence* sentence, CachePart base, CachePart check) {
+    if (!m_tagger) {
+        throw std::runtime_error("MeCab Tagger 未初始化，无法进行 GPT 字典检查");
+    }
+    const std::string& origText = chooseStringRef(sentence, base);
+    const std::string& transView = chooseStringRef(sentence, check);
+    for (const auto& entry : m_entries) {
+        // 如果原文中不包含这个词，就跳过检查
+        if (origText.find(entry.searchStr) == std::string::npos) {
+            continue;
+        }
+        // 检查译文中是否使用了对应的词
+        const auto& replaceWords = splitString(entry.replaceStr, '/');
+        bool found = false;
+        for (const auto& word : replaceWords) {
+            if (transView.find(word) != std::string::npos) {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            // 出现了则默认使用了字典
+            continue;
+        }
+        else if (entry.searchStr.length() > 15) {
+            // 如果字典长度大于 5 个汉字字符，则默认认为是字典未正确使用的情况
+            sentence->problems.push_back("GPT字典 " + entry.searchStr + "->" + entry.replaceStr + " 未使用");
+            continue;
+        }
+        // 未出现则分词检查原文中是否有完整的 searchStr 词组
+        std::unique_ptr<MeCab::Lattice> lattice(m_model->createLattice());
+        lattice->set_sentence(origText.c_str());
+        if (!m_tagger->parse(lattice.get())) {
+            throw std::runtime_error(std::format("分词器解析失败，错误信息: {}", MeCab::getLastError()));
+        }
+        
+        for (const MeCab::Node* node = lattice->bos_node(); node; node = node->next) {
+            if (node->stat == MECAB_BOS_NODE || node->stat == MECAB_EOS_NODE) continue;
+
+            std::string surface(node->surface, node->length);
+            std::string feature = node->feature;
+
+            m_logger->trace("分词结果：{} ({})", surface, feature);
+
+            if (surface == entry.searchStr) {
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            // 如果原文有完整的 searchStr 词组且译文中没有使用对应的词，几乎可以肯定是字典未正确使用的情况
+            sentence->problems.push_back("GPT字典 " + entry.searchStr + "->" + entry.replaceStr + " 未使用");
+        }
+        
+    }
+}
+
 
 
 
@@ -313,75 +292,71 @@ void NormalDictionary::loadFromFile(const fs::path& filePath) {
     }
 
     int count = 0;
-    std::ifstream ifs(filePath);
     try {
-        auto dictData = toml::parse(ifs);
-        auto dicts = dictData["normalDict"].as_array();
-        if (!dicts) {
-            m_logger->info("已加载 Normal 字典: {}, 共 {} 个词条", wide2Ascii(filePath.filename()), count);
+        const auto dictData = toml::parse(filePath);
+        if (!dictData.contains("normalDict")) {
             return;
         }
-        dicts->for_each([&](auto&& el)
-            {
-                if constexpr (toml::is_table<decltype(el)>) {
-                    DictEntry entry;
-                    if (!el.contains("searchStr") && !el.contains("org")) {
-                        throw std::invalid_argument(std::format("Normal 字典文件格式错误(未找到searchStr|org): {}", wide2Ascii(filePath)));
-                    }
-                    if (!el.contains("replaceStr") && !el.contains("rep")) {
-                        throw std::invalid_argument(std::format("Normal 字典文件格式错误(未找到replaceStr|rep): {}", wide2Ascii(filePath)));
-                    }
-                    entry.isReg = el["isReg"].value_or(false);
+        const auto dicts = dictData.at("normalDict").as_array();
+        for (const auto& el : dicts) {
+            DictEntry entry;
+            if (!el.contains("searchStr") && !el.contains("org")) {
+                throw std::invalid_argument(std::format("Normal 字典文件格式错误(未找到searchStr|org): {}", wide2Ascii(filePath)));
+            }
+            if (!el.contains("replaceStr") && !el.contains("rep")) {
+                throw std::invalid_argument(std::format("Normal 字典文件格式错误(未找到replaceStr|rep): {}", wide2Ascii(filePath)));
+            }
+            entry.isReg = toml::find_or(el, "isReg", false);
 
-                    std::string str = el.contains("org") ? el["org"].value_or("") : el["searchStr"].value_or("");
-                    if (str.empty()) {
-                        return;
-                    }
+            std::string str = el.contains("org") ? el.at("org").as_string() : el.at("searchStr").as_string();
+            if (str.empty()) {
+                continue;
+            }
 
-                    UErrorCode status = U_ZERO_ERROR;
-                    if (entry.isReg) {
-                        icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(str));
-                        entry.searchReg.reset(icu::RegexPattern::compile(ustr, 0, status));
-                        if (U_FAILURE(status)) {
-                            throw std::runtime_error(std::format("Normal 字典文件格式错误(正则表达式错误): {}  ——  {}", wide2Ascii(filePath), str));
-                        }
-                    }
-                    else {
-                        entry.searchStr = str;
-                    }
-                    
-                    entry.replaceStr = el.contains("rep") ? el["rep"].value_or("") : el["replaceStr"].value_or("");
-                    entry.priority = el["priority"].value_or(0);
-                    entry.isConditional = !(el["conditionTarget"].value_or(std::string{}).empty()) && !(el["conditionReg"].value_or(std::string{}).empty());
-
-                    if (!entry.isConditional) {
-                        m_entries.push_back(entry);
-                        count++;
-                        return;
-                    }
-
-                    std::string conditionTarget = el["conditionTarget"].value_or("");
-                    entry.conditionTarget = chooseCachePart(conditionTarget);
-                    if (entry.conditionTarget == CachePart::None) {
-                        throw std::invalid_argument(std::format("Normal 字典文件格式错误(conditionTarget 无效): {}  ——  {}",
-                            wide2Ascii(filePath), conditionTarget));
-                    }
-                    
-                    str = el["conditionReg"].value_or("");
-                    icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(str));
-                    entry.conditionReg.reset(icu::RegexPattern::compile(ustr, 0, status));
-                    if (U_FAILURE(status)) {
-                        throw std::runtime_error(std::format("Normal 字典文件格式错误(conditionReg 正则表达式错误): {}  ——  {}",
-                            wide2Ascii(filePath), str));
-                    }
-
-                    m_entries.push_back(entry);
-                    count++;
+            UErrorCode status = U_ZERO_ERROR;
+            if (entry.isReg) {
+                icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(str));
+                entry.searchReg.reset(icu::RegexPattern::compile(ustr, 0, status));
+                if (U_FAILURE(status)) {
+                    throw std::runtime_error(std::format("Normal 字典文件格式错误(正则表达式错误): {}  ——  {}", wide2Ascii(filePath), str));
                 }
-            });
+            }
+            else {
+                entry.searchStr = str;
+            }
+            
+            entry.replaceStr = el.contains("rep") ? el.at("rep").as_string() : el.at("replaceStr").as_string();
+            entry.priority = toml::find_or(el, "priority", 0);
+            entry.isConditional = el.contains("conditionTarget") && !(el.at("conditionTarget").as_string().empty())
+                && el.contains("conditionReg") && !(el.at("conditionReg").as_string().empty());
+
+            if (!entry.isConditional) {
+                m_entries.push_back(entry);
+                count++;
+                continue;
+            }
+
+            std::string conditionTarget = el.at("conditionTarget").as_string();
+            entry.conditionTarget = chooseCachePart(conditionTarget);
+            if (entry.conditionTarget == CachePart::None) {
+                throw std::invalid_argument(std::format("Normal 字典文件格式错误(conditionTarget 无效): {}  ——  {}",
+                    wide2Ascii(filePath), conditionTarget));
+            }
+            
+            str = el.at("conditionReg").as_string();
+            icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(str));
+            entry.conditionReg.reset(icu::RegexPattern::compile(ustr, 0, status));
+            if (U_FAILURE(status)) {
+                throw std::runtime_error(std::format("Normal 字典文件格式错误(conditionReg 正则表达式错误): {}  ——  {}",
+                    wide2Ascii(filePath), str));
+            }
+
+            m_entries.push_back(entry);
+            count++;
+        }
     }
-    catch (const toml::parse_error& e) {
-        m_logger->error("Normal 字典文件解析错误: {}, 错误位置: {}, 错误信息: {}", wide2Ascii(filePath), stream2String(e.source().begin), e.description());
+    catch (const toml::exception& e) {
+        m_logger->critical("Normal 字典文件解析错误: {}", wide2Ascii(filePath));
         throw std::runtime_error(e.what());
     }
     

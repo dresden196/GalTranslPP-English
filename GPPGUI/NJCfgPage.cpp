@@ -9,7 +9,7 @@
 
 import Tool;
 
-NJCfgPage::NJCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
+NJCfgPage::NJCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
 	setWindowTitle(tr("NormalJson 输出配置"));
 	setContentsMargins(10, 0, 10, 0);
@@ -19,7 +19,7 @@ NJCfgPage::NJCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(par
 	QVBoxLayout* mainLayout = new QVBoxLayout(centerWidget);
 
 	// 输出带原文
-	bool outputWithSrc = _projectConfig["plugins"]["NormalJson"]["output_with_src"].value_or(true);
+	bool outputWithSrc = toml::get_or(_projectConfig["plugins"]["NormalJson"]["output_with_src"], true);
 	ElaScrollPageArea* outputArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* outputLayout = new QHBoxLayout(outputArea);
 	ElaText* outputText = new ElaText(tr("输出带原文"), outputArea);

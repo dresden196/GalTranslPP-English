@@ -16,7 +16,7 @@
 
 import Tool;
 
-EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
+EpubCfgPage::EpubCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
 	setWindowTitle(tr("Epub 输出配置"));
 	setContentsMargins(10, 0, 10, 0);
@@ -26,7 +26,7 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 	QVBoxLayout* mainLayout = new QVBoxLayout(centerWidget);
 
 	// 双语显示
-	bool bilingual = _projectConfig["plugins"]["Epub"]["双语显示"].value_or(true);
+	bool bilingual = toml::get_or(_projectConfig["plugins"]["Epub"]["双语显示"], true);
 	ElaScrollPageArea* outputArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* outputLayout = new QHBoxLayout(outputArea);
 	ElaText* outputText = new ElaText(tr("双语显示"), outputArea);
@@ -39,7 +39,7 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 	mainLayout->addWidget(outputArea);
 
 	// 原文颜色
-	std::string colorStr = _projectConfig["plugins"]["Epub"]["原文颜色"].value_or("#808080");
+	std::string colorStr = toml::get_or(_projectConfig["plugins"]["Epub"]["原文颜色"], "#808080");
 	QColor color = QColor(colorStr.c_str());
 	ElaScrollPageArea* colorArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* colorLayout = new QHBoxLayout(colorArea);
@@ -77,7 +77,7 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 
 
 	// 缩小比例
-	double scale = _projectConfig["plugins"]["Epub"]["缩小比例"].value_or(0.8);
+	double scale = toml::get_or(_projectConfig["plugins"]["Epub"]["缩小比例"], 0.8);
 	ElaScrollPageArea* scaleArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* scaleLayout = new QHBoxLayout(scaleArea);
 	ElaText* scaleText = new ElaText(tr("缩小比例"), scaleArea);
@@ -91,53 +91,35 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 	mainLayout->addWidget(scaleArea);
 
 	// 预处理正则
-	toml::table preRegexTable = toml::table{};
-	auto preRegexArr = _projectConfig["plugins"]["Epub"]["预处理正则"].as_array();
-	if (preRegexArr) {
-		for (auto& elem : *preRegexArr) {
-			auto tbl = elem.as_table();
-			if (!tbl) {
-				continue;
-			}
-			tbl->is_inline(false);
-		}
-		preRegexTable.insert("预处理正则", *preRegexArr);
+	toml::value preRegexArr = toml::array{};
+	auto& preRegex = _projectConfig["plugins"]["Epub"]["preprocRegex"];
+	if (preRegex.is_array()) {
+		preRegexArr = preRegex;
 	}
-	else {
-		preRegexTable.insert("预处理正则", toml::array{ toml::table{} });
-	}
+	preRegexArr.as_array_fmt().fmt = toml::array_format::array_of_tables;
 	ElaText* preRegexText = new ElaText(tr("预处理正则"), centerWidget);
 	preRegexText->setTextPixelSize(18);
 	mainLayout->addSpacing(10);
 	mainLayout->addWidget(preRegexText);
 	ElaPlainTextEdit* preRegexEdit = new ElaPlainTextEdit(centerWidget);
 	preRegexEdit->setMinimumHeight(300);
-	preRegexEdit->setPlainText(QString::fromStdString(stream2String(preRegexTable)));
+	preRegexEdit->setPlainText(QString::fromStdString(toml::format(toml::value{ toml::table{{ "preprocRegex", preRegexArr }} })));
 	mainLayout->addWidget(preRegexEdit);
 
 	// 后处理正则
-	toml::table postRegexTable = toml::table{};
-	auto postRegexArr = _projectConfig["plugins"]["Epub"]["后处理正则"].as_array();
-	if (postRegexArr) {
-		for (auto& elem : *postRegexArr) {
-			auto tbl = elem.as_table();
-			if (!tbl) {
-				continue;
-			}
-			tbl->is_inline(false);
-		}
-		postRegexTable.insert("后处理正则", *postRegexArr);
+	toml::value postRegexArr = toml::array{};
+	auto& postRegex = _projectConfig["plugins"]["Epub"]["postprocRegex"];
+	if (postRegex.is_array()) {
+		postRegexArr = postRegex;
 	}
-	else {
-		postRegexTable.insert("后处理正则", toml::array{ toml::table{} });
-	}
+	postRegexArr.as_array_fmt().fmt = toml::array_format::array_of_tables;
 	ElaText* postRegexText = new ElaText(tr("后处理正则"), centerWidget);
 	postRegexText->setTextPixelSize(18);
 	mainLayout->addSpacing(10);
 	mainLayout->addWidget(postRegexText);
 	ElaPlainTextEdit* postRegexEdit = new ElaPlainTextEdit(centerWidget);
 	postRegexEdit->setMinimumHeight(300);
-	postRegexEdit->setPlainText(QString::fromStdString(stream2String(postRegexTable)));
+	postRegexEdit->setPlainText(QString::fromStdString(toml::format(toml::value{ toml::table{{ "postprocRegex", postRegexArr }} })));
 	mainLayout->addWidget(postRegexEdit);
 
 	QWidget* tipButtonWidget = new QWidget(centerWidget);
@@ -158,26 +140,26 @@ EpubCfgPage::EpubCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage
 			insertToml(_projectConfig, "plugins.Epub.缩小比例", scaleSlider->value());
 
 			try {
-				toml::table preTbl = toml::parse(preRegexEdit->toPlainText().toStdString());
-				auto preArr = preTbl["预处理正则"].as_array();
-				if (preArr) {
-					insertToml(_projectConfig, "plugins.Epub.预处理正则", *preArr);
+				toml::value preTbl = toml::parse_str(preRegexEdit->toPlainText().toStdString());
+				auto& preArr = preTbl["preprocRegex"];
+				if (preArr.is_array()) {
+					insertToml(_projectConfig, "plugins.Epub.preprocRegex", preArr.as_array());
 				}
 				else {
-					insertToml(_projectConfig, "plugins.Epub.预处理正则", toml::array{});
+					insertToml(_projectConfig, "plugins.Epub.preprocRegex", toml::array{});
 				}
 			}
 			catch (...) {
 				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("Epub预处理正则格式错误"), 3000);
 			}
 			try {
-				toml::table postTbl = toml::parse(postRegexEdit->toPlainText().toStdString());
-				auto postArr = postTbl["后处理正则"].as_array();
-				if (postArr) {
-					insertToml(_projectConfig, "plugins.Epub.后处理正则", *postArr);
+				toml::value postTbl = toml::parse_str(postRegexEdit->toPlainText().toStdString());
+				auto& postArr = postTbl["postprocRegex"];
+				if (postArr.is_array()) {
+					insertToml(_projectConfig, "plugins.Epub.postprocRegex", postArr.as_array());
 				}
 				else {
-					insertToml(_projectConfig, "plugins.Epub.后处理正则", toml::array{});
+					insertToml(_projectConfig, "plugins.Epub.postprocRegex", toml::array{});
 				}
 			}
 			catch (...) {

@@ -34,7 +34,7 @@ QString calculateFileSha256(const QString& filePath)
     return hash.result().toHex();
 }
 
-UpdateChecker::UpdateChecker(toml::table& globalConfig, ElaText* statusText, QObject* parent) : 
+UpdateChecker::UpdateChecker(toml::value& globalConfig, ElaText* statusText, QObject* parent) : 
     QObject(parent), m_statusText(statusText), m_globalConfig(globalConfig)
 {
     m_checkManager = new QNetworkAccessManager(this);
@@ -117,7 +117,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
 
     QJsonObject jsonObj = jsonDoc.object();
     std::string latestVersion = jsonObj["tag_name"].toString().toStdString();
-    bool canUpdate = forDownload ? true : m_globalConfig["autoDownloadUpdate"].value_or(true);
+    bool canUpdate = forDownload ? true : toml::get_or(m_globalConfig["autoDownloadUpdate"], true);
     bool isCompatible = true;
     bool hasNewVersion = cmpVer(latestVersion, GPPVERSION, isCompatible);
 

@@ -4,7 +4,7 @@
 #define PROMPTSSETTINGSPAGE_H
 
 #include <QList>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include <filesystem>
 #include "BasePage.h"
 #include "DictionaryModel.h"
@@ -17,14 +17,14 @@ class PromptSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit PromptSettingsPage(fs::path& projectDir, toml::table& projectConfig, QWidget* parent = nullptr);
+    explicit PromptSettingsPage(fs::path& projectDir, toml::value& projectConfig, QWidget* parent = nullptr);
     ~PromptSettingsPage() override;
 
 private:
 
     void _setupUI();
-    toml::table _promptConfig;
-    toml::table& _projectConfig;
+    toml::value _promptConfig;
+    toml::value& _projectConfig;
     fs::path& _projectDir;
 
 };

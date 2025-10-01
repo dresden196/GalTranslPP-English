@@ -27,9 +27,7 @@ DefaultPromptPage::DefaultPromptPage(QWidget* parent)
 
 	if (fs::exists(L"BaseConfig/Prompt.toml")) {
 		try {
-			std::ifstream ifs(L"BaseConfig/Prompt.toml");
-			_promptConfig = toml::parse(ifs);
-			ifs.close();
+			_promptConfig = toml::parse<toml::ordered_type_config>(fs::path(L"BaseConfig/Prompt.toml"));
 		}
 		catch (...) {
 			ElaMessageBar::error(ElaMessageBarType::TopRight, tr("解析失败"), tr("默认提示词配置文件不符合 toml 规范"), 3000);
@@ -85,14 +83,14 @@ void DefaultPromptPage::_setupUI()
 			plainTextFont.setPixelSize(15);
 			promptUserModeEdit->setFont(plainTextFont);
 			promptUserModeEdit->setPlainText(
-				QString::fromStdString(_promptConfig[userPromptKey].value_or(std::string{}))
+				QString::fromStdString(toml::get_or(_promptConfig[userPromptKey], std::string{}))
 			);
 			promptStackedWidget->addWidget(promptUserModeEdit);
 			// 系统提示词
 			ElaPlainTextEdit* promptSystemModeEdit = new ElaPlainTextEdit(promptStackedWidget);
 			promptSystemModeEdit->setFont(plainTextFont);
 			promptSystemModeEdit->setPlainText(
-				QString::fromStdString(_promptConfig[systemPromptKey].value_or(std::string{}))
+				QString::fromStdString(toml::get_or(_promptConfig[systemPromptKey], std::string{}))
 			);
 			promptStackedWidget->addWidget(promptSystemModeEdit);
 			promptStackedWidget->setCurrentIndex(0);

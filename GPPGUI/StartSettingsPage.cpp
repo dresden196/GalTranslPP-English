@@ -25,7 +25,7 @@
 
 import Tool;
 
-StartSettingsPage::StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::table& projectConfig, QWidget* parent) : 
+StartSettingsPage::StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::value& projectConfig, QWidget* parent) : 
 	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir), _mainWindow(mainWindow)
 {
 	setWindowTitle(tr("启动设置"));
@@ -77,7 +77,7 @@ void StartSettingsPage::_setupUI()
 	QVBoxLayout* buttonLayout = new QVBoxLayout(buttonArea);
 
 	// 文件格式
-	std::string filePlugin = _projectConfig["plugins"]["filePlugin"].value_or("NormalJson");
+	std::string filePlugin = toml::get_or(_projectConfig["plugins"]["filePlugin"], "NormalJson");
 	QString filePluginStr = QString::fromStdString(filePlugin);
 	ElaText* fileFormatLabel = new ElaText(buttonArea);
 	fileFormatLabel->setTextPixelSize(16);
@@ -135,7 +135,7 @@ void StartSettingsPage::_setupUI()
 	buttonLayout->addWidget(_remainTimeLabel);
 
 	// 翻译模式
-	std::string transEngine = _projectConfig["plugins"]["transEngine"].value_or("ForGalJson");
+	std::string transEngine = toml::get_or(_projectConfig["plugins"]["transEngine"], "ForGalJson");
 	QString transEngineStr = QString::fromStdString(transEngine);
 	ElaText* translateModeLabel = new ElaText(buttonArea);
 	translateModeLabel->setTextPixelSize(16);
@@ -382,7 +382,7 @@ void StartSettingsPage::_onStartTranslatingClicked()
 	_progressBar->setValue(0);
 
 	Q_EMIT startWork();
-	_transEngine = QString::fromStdString(_projectConfig["plugins"]["transEngine"].value_or(std::string{}));
+	_transEngine = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["transEngine"], ""));
 	_stopTranslateButton->setEnabled(true);
 }
 

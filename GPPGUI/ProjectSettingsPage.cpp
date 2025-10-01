@@ -27,21 +27,19 @@
 
 import Tool;
 
-ProjectSettingsPage::ProjectSettingsPage(toml::table& globalConfig, const fs::path& projectDir, QWidget* parent)
+ProjectSettingsPage::ProjectSettingsPage(toml::value& globalConfig, const fs::path& projectDir, QWidget* parent)
     : BasePage(parent), _projectDir(projectDir), _globalConfig(globalConfig), _mainWindow(parent)
 {
     setWindowTitle(tr("项目设置主页"));
     setTitleVisible(false);
     setContentsMargins(5, 10, 10, 10);
 
-    std::ifstream ifs(_projectDir / L"config.toml");
     try {
-        _projectConfig = toml::parse(ifs);
+        _projectConfig = toml::parse<toml::ordered_type_config>(_projectDir / L"config.toml");
     }
     catch (...) {
         ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的配置文件不符合 toml 规范"), 3000);
     }
-    ifs.close();
     insertToml(_projectConfig, "GUIConfig.isRunning", false);
 
     _setupUI();
@@ -247,20 +245,18 @@ void ProjectSettingsPage::_createPages()
 
 void ProjectSettingsPage::_refreshProjectConfig()
 {
-    bool isRunning = _projectConfig["GUIConfig"]["isRunning"].value_or(true);
+    bool isRunning = toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true);
     if (isRunning) {
         ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("正在翻译"), tr("项目仍在运行中，无法刷新配置"), 3000);
         return;
     }
-    std::ifstream ifs(_projectDir / L"config.toml");
     try {
-        _projectConfig = toml::parse(ifs);
+        _projectConfig = toml::parse(_projectDir / L"config.toml");
     }
     catch (...) {
         ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的配置文件不符合规范"), 3000);
         return;
     }
-    ifs.close();
     insertToml(_projectConfig, "GUIConfig.isRunning", false);
     while (_stackedWidget->count() > 0) {
         QWidget* widget = _stackedWidget->currentWidget();
@@ -282,7 +278,7 @@ void ProjectSettingsPage::_onFinishTranslating(const QString& transEngine, int e
 {
     if (
         exitCode == 0 &&
-        _globalConfig["autoRefreshAfterTranslate"].value_or(true)
+        toml::get_or(_globalConfig["autoRefreshAfterTranslate"], true)
         ) {
         if (transEngine == "DumpName") {
             _nameTableSettingsPage->refreshTable();
@@ -297,5 +293,5 @@ void ProjectSettingsPage::_onFinishTranslating(const QString& transEngine, int e
 
 bool ProjectSettingsPage::getIsRunning()
 {
-    return _projectConfig["GUIConfig"]["isRunning"].value_or(true);
+    return toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true);
 }

@@ -4,7 +4,7 @@ module;
 
 export module TextLinebreakFix;
 
-import <toml++/toml.hpp>;
+import <toml.hpp>;
 import Tool;
 export import IPlugin;
 
@@ -38,14 +38,8 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, std::shared_ptr<s
 	: IPlugin(projectDir, logger)
 {
 	try {
-		std::ifstream ifs;
-		ifs.open(m_projectDir / L"config.toml");
-		auto projectConfig = toml::parse(ifs);
-		ifs.close();
-
-		ifs.open(pluginConfigsPath / L"textPostPlugins/TextLinebreakFix.toml");
-		auto pluginConfig = toml::parse(ifs);
-		ifs.close();
+		const auto projectConfig = toml::parse(m_projectDir / L"config.toml");
+		const auto pluginConfig = toml::parse(pluginConfigsPath / L"textPostPlugins/TextLinebreakFix.toml");
 
 		m_mode = parseToml<std::string>(projectConfig, pluginConfig, "plugins.TextLinebreakFix.换行模式");
 		m_onlyAddAfterPunct = parseToml<bool>(projectConfig, pluginConfig, "plugins.TextLinebreakFix.仅在标点后添加");
@@ -56,12 +50,15 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, std::shared_ptr<s
 		if (m_segmentThreshold <= 0) {
 			throw std::runtime_error("分段字数阈值必须大于0");
 		}
+		if (m_errorThreshold <= 0) {
+			throw std::runtime_error("报错阈值必须大于0");
+		}
 
 		m_logger->info("已加载插件 TextLinebreakFix, 换行模式: {}, 仅在标点后添加 {}, 分段字数阈值: {}, 强制修复: {}, 报错阈值: {}",
 			m_mode, m_onlyAddAfterPunct, m_segmentThreshold, m_forceFix, m_errorThreshold);
 	}
-	catch (const toml::parse_error& e) {
-		m_logger->critical("换行修复配置文件解析错误: {}", e.description());
+	catch (const toml::exception& e) {
+		m_logger->critical("换行修复配置文件解析错误");
 		throw std::runtime_error(e.what());
 	}
 }
@@ -73,13 +70,13 @@ void TextLinebreakFix::run(Sentence* se)
 	}
 
 	int origLinebreakCount = countSubstring(se->pre_processed_text, "<br>");
-	int newLinebreakCount = countSubstring(se->translated_preview, "<br>");
+	int transLinebreakCount = countSubstring(se->translated_preview, "<br>");
 
-	if (newLinebreakCount == origLinebreakCount && !m_forceFix) {
+	if (transLinebreakCount == origLinebreakCount && !m_forceFix) {
 		return;
 	}
 
-	m_logger->debug("需要修复换行的句子[{}]: 原文 {} 行, 译文 {} 行", se->pre_processed_text, origLinebreakCount + 1, newLinebreakCount + 1);
+	m_logger->debug("需要修复换行的句子[{}]: 原文 {} 行, 译文 {} 行", se->pre_processed_text, origLinebreakCount + 1, transLinebreakCount + 1);
 
 	std::string orgText = se->translated_preview;
 	std::string textToModify = se->translated_preview;
@@ -89,7 +86,9 @@ void TextLinebreakFix::run(Sentence* se)
 			textToModify += "<br>";
 		}
 		se->translated_preview = textToModify;
-		m_logger->debug("译文[{}]({}行): 修正后译文[{}]({}行)", orgText, origLinebreakCount + 1, se->translated_preview, newLinebreakCount + 1);
+
+		se->other_info["换行修复"] = std::format("原文 {} 行, 译文 {} 行, 修正后 {} 行", origLinebreakCount + 1, transLinebreakCount + 1, transLinebreakCount + 1);
+		m_logger->debug("译文[{}]({}行): 修正后译文[{}]({}行)", orgText, origLinebreakCount + 1, se->translated_preview, transLinebreakCount + 1);
 		return;
 	}
 	std::vector<std::string> graphemes = splitIntoGraphemes(textToModify);
@@ -251,11 +250,13 @@ void TextLinebreakFix::run(Sentence* se)
 			lineIndex++;
 			if (size_t charCount = splitIntoGraphemes(newLine).size(); charCount > m_errorThreshold) {
 				m_logger->error("句子[{}](原有{}行)其中的 译文行[{}]超出报错阈值[{}/{}]", se->pre_processed_text, origLinebreakCount + 1, newLine, charCount, m_errorThreshold);
-				se->other_info["tlbf_overflow_error"] += std::format("第 {} 行超出报错阈值[{}/{}], ", lineIndex, charCount, m_errorThreshold);
+				se->problems.push_back(std::format("第 {} 行超出报错阈值[{}/{}]", lineIndex, charCount, m_errorThreshold));
 			}
 		}
 	}
 
-	m_logger->debug("句子[{}]({}行): 修正后译文[{}]({}行)", orgText, origLinebreakCount + 1, se->translated_preview, countSubstring(se->translated_preview, "<br>") + 1);
+	int newLinebreakCount = countSubstring(se->translated_preview, "<br>");
+	se->other_info["换行修复"] = std::format("原文 {} 行, 译文 {} 行, 修正后 {} 行", origLinebreakCount + 1, newLinebreakCount + 1, newLinebreakCount + 1);
+	m_logger->debug("句子[{}]({}行): 修正后译文[{}]({}行)", orgText, origLinebreakCount + 1, se->translated_preview, newLinebreakCount + 1);
 }
 

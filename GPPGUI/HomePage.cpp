@@ -20,7 +20,7 @@
 #include "ElaText.h"
 #include "ElaToolTip.h"
 
-HomePage::HomePage(toml::table& globalConfig, QWidget* parent)
+HomePage::HomePage(toml::value& globalConfig, QWidget* parent)
     : BasePage(parent), _globalConfig(globalConfig)
 {
     // 预览窗口标题
@@ -104,24 +104,24 @@ HomePage::HomePage(toml::table& globalConfig, QWidget* parent)
     flowTextLayout->addWidget(flowText);
 
     // ElaFlowLayout
-    auto popularCardsArr = _globalConfig["popularCards"].as_array();
-    auto getPopularCardInConfig = [&](size_t index) -> std::optional<toml::table>
+    bool hasPopularCardsArr = _globalConfig["popularCards"].is_array();
+    auto getPopularCardInConfig = [&](size_t index) -> std::optional<toml::value>
         {
-            if (!popularCardsArr || index >= popularCardsArr->size()) {
+            if (!hasPopularCardsArr || index >= _globalConfig["popularCards"].size()) {
                 return std::nullopt;
             }
-            auto pCard = popularCardsArr->get(index)->as_table();
-            if (!pCard) {
+            auto& popularCardsArr = _globalConfig["popularCards"].as_array();
+            if (!popularCardsArr[index].is_table()) {
                 return std::nullopt;
             }
-            return *pCard;
+            return popularCardsArr[index];
         };
 
-    auto applyPopularCardInConfig = [&](const std::optional<toml::table>& cardOpt, ElaPopularCard* homeCard)
+    auto applyPopularCardInConfig = [&](const std::optional<toml::value>& cardOpt, ElaPopularCard* homeCard)
         {
-            const toml::table& card = *cardOpt;
-            QString pathOrUrl = card["pathOrUrl"].value_or("");
-            bool fromLocal = card["fromLocal"].value_or(false);
+            const toml::value& card = *cardOpt;
+            QString pathOrUrl = QString::fromStdString(toml::find_or(card, "pathOrUrl", ""));
+            bool fromLocal = toml::find_or(card, "fromLocal", false);
             if (fromLocal) {
                 homeCard->setCardButtonText(tr("启动"));
             }
@@ -135,10 +135,10 @@ HomePage::HomePage(toml::table& globalConfig, QWidget* parent)
                         QDesktopServices::openUrl(url);
                     });
             }
-            homeCard->setTitle(card["title"].value_or(""));
-            homeCard->setSubTitle(card["subTitle"].value_or(""));
+            homeCard->setTitle(QString::fromStdString(toml::find_or(card, "title", "")));
+            homeCard->setSubTitle(QString::fromStdString(toml::find_or(card, "subTitle", "")));
 
-            if (QString pixmapPath = card["cardPixmap"].value_or(""); !pixmapPath.isEmpty()) {
+            if (QString pixmapPath = QString::fromStdString(toml::find_or(card, "cardPixmap", "")); !pixmapPath.isEmpty()) {
                 homeCard->setCardPixmap(QPixmap(pixmapPath));
             }
             else if (fromLocal) {
@@ -149,17 +149,18 @@ HomePage::HomePage(toml::table& globalConfig, QWidget* parent)
                     homeCard->setCardPixmap(icon.pixmap(128, 128));
                 }
             }
-            homeCard->setInteractiveTips(card["interactiveTips"].value_or(""));
-            homeCard->setDetailedText(card["detailedText"].value_or(""));
-            homeCard->setCardFloatPixmap(QPixmap(card["cardFloatPixmap"].value_or("")));
+            homeCard->setInteractiveTips(QString::fromStdString(toml::find_or(card, "interactiveTips", "")));
+            homeCard->setDetailedText(QString::fromStdString(toml::find_or(card, "detailedText", "")));
+            homeCard->setCardFloatPixmap(QPixmap(QString::fromStdString(toml::find_or(card, "cardFloatPixmap", ""))));
         };
 
     auto applyRestPopularCardsInConfig = [&](ElaFlowLayout* flowLayout)
         {
-            if (!popularCardsArr) {
+            if (!hasPopularCardsArr) {
                 return;
             }
-            for (size_t i = (size_t)flowLayout->count(); i < popularCardsArr->size(); ++i) {
+            auto& cards = _globalConfig["popularCards"];
+            for (size_t i = (size_t)flowLayout->count(); i < cards.size(); ++i) {
                 if (auto cardOpt = getPopularCardInConfig(i)) {
                     ElaPopularCard* popularCard = new ElaPopularCard(this);
                     applyPopularCardInConfig(cardOpt, popularCard);

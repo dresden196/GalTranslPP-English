@@ -4,7 +4,7 @@
 #define PROJECTSETTINGSPAGE_H
 
 #include <QList>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include <filesystem>
 #include "BasePage.h"
 
@@ -28,7 +28,7 @@ class ProjectSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit ProjectSettingsPage(toml::table& globalConfig, const fs::path& projectDir, QWidget* parent = nullptr);
+    explicit ProjectSettingsPage(toml::value& globalConfig, const fs::path& projectDir, QWidget* parent = nullptr);
     ~ProjectSettingsPage() override;
 
     QString getProjectName();
@@ -46,8 +46,8 @@ private:
     // UI 控件
     QStackedWidget* _stackedWidget;
     fs::path _projectDir;
-    toml::table _projectConfig;
-    toml::table& _globalConfig;
+    toml::value _projectConfig;
+    toml::value& _globalConfig;
 
     APISettingsPage* _apiSettingsPage;
     PluginSettingsPage* _pluginSettingsPage;

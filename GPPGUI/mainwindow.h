@@ -4,7 +4,7 @@
 #include "ElaWindow.h"
 
 #include <QMainWindow>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 class HomePage;
 class AboutDialog;
 class DefaultPromptPage;
@@ -64,6 +64,6 @@ private:
     ElaContentDialog* _closeDialog{nullptr};
     UpdateChecker* _updateChecker{nullptr};
 
-    toml::table _globalConfig;
+    toml::value _globalConfig;
 };
 #endif // MAINWINDOW_H

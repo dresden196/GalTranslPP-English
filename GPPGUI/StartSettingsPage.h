@@ -4,7 +4,7 @@
 #define STARTSETTINGSPAGE_H
 
 #include <QThread>
-#include <toml++/toml.hpp>
+#include <toml.hpp>
 #include <filesystem>
 #include "BasePage.h"
 #include "TranslatorWorker.h"
@@ -26,7 +26,7 @@ class StartSettingsPage : public BasePage
     Q_OBJECT
 
 public:
-    explicit StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::table& projectConfig, QWidget* parent = nullptr);
+    explicit StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::value& projectConfig, QWidget* parent = nullptr);
     ~StartSettingsPage() override;
     virtual void apply2Config() override;
 
@@ -43,7 +43,7 @@ private:
     TranslatorWorker* _worker;
 
     void _setupUI();
-    toml::table& _projectConfig;
+    toml::value& _projectConfig;
     QWidget* _mainWindow;
 
     ElaPushButton* _startTranslateButton;

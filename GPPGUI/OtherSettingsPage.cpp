@@ -17,7 +17,7 @@
 
 import Tool;
 
-OtherSettingsPage::OtherSettingsPage(fs::path& projectDir, toml::table& projectConfig, QWidget* parent) : 
+OtherSettingsPage::OtherSettingsPage(fs::path& projectDir, toml::value& projectConfig, QWidget* parent) : 
 	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir)
 {
 	setWindowTitle(tr("其它设置"));
@@ -64,7 +64,7 @@ void OtherSettingsPage::_setupUI()
 	moveButton->setText(tr("移动项目"));
 	connect(moveButton, &ElaPushButton::clicked, this, [=]()
 		{
-			if (_projectConfig["GUIConfig"]["isRunning"].value_or(true)) {
+			if (toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true)) {
 				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("移动失败"), tr("项目仍在运行中，无法移动"), 3000);
 				return;
 			}
@@ -107,7 +107,7 @@ void OtherSettingsPage::_setupUI()
 	renameButton->setText(tr("更名"));
 	connect(renameButton, &ElaPushButton::clicked, this, [=]()
 		{
-			if (_projectConfig["GUIConfig"]["isRunning"].value_or(true)) {
+			if (toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true)) {
 				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("更名失败"), tr("项目仍在运行中，无法更名"), 3000);
 				return;
 			}
@@ -196,7 +196,7 @@ void OtherSettingsPage::_setupUI()
 	cacheButton->setText(tr("删除"));
 	connect(cacheButton, &ElaPushButton::clicked, this, [=]()
 		{
-			if (_projectConfig["GUIConfig"]["isRunning"].value_or(true)) {
+			if (toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true)) {
 				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("删除失败"), tr("项目仍在运行中，无法删除缓存"), 3000);
 				return;
 			}

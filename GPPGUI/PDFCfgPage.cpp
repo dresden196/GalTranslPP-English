@@ -13,7 +13,7 @@
 
 import Tool;
 
-PDFCfgPage::PDFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
+PDFCfgPage::PDFCfgPage(toml::value& projectConfig, QWidget* parent) : BasePage(parent), _projectConfig(projectConfig)
 {
 	setWindowTitle(tr("PDF 输出配置"));
 	setContentsMargins(10, 0, 10, 0);
@@ -23,7 +23,7 @@ PDFCfgPage::PDFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	QVBoxLayout* mainLayout = new QVBoxLayout(centerWidget);
 
 	// 输出双语翻译文件
-	bool outputDual = _projectConfig["plugins"]["PDF"]["输出双语翻译文件"].value_or(true);
+	bool outputDual = toml::get_or(_projectConfig["plugins"]["PDF"]["输出双语翻译文件"], true);
 	ElaScrollPageArea* outputArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* outputLayout = new QHBoxLayout(outputArea);
 	ElaText* outputText = new ElaText(tr("输出双语翻译文件"), outputArea);
@@ -36,7 +36,7 @@ PDFCfgPage::PDFCfgPage(toml::table& projectConfig, QWidget* parent) : BasePage(p
 	mainLayout->addWidget(outputArea);
 
 	// PDF转换器路径
-	std::string pdfConverterPath = _projectConfig["plugins"]["PDF"]["PDFConverterPath"].value_or("BaseConfig/PDFConverter/PDFConverter.exe");
+	std::string pdfConverterPath = toml::get_or(_projectConfig["plugins"]["PDF"]["PDFConverterPath"], "BaseConfig/PDFConverter/PDFConverter.exe");
 	ElaScrollPageArea* converterArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* converterLayout = new QHBoxLayout(converterArea);
 	ElaText* converterText = new ElaText(tr("PDF转换器路径"), converterArea);
