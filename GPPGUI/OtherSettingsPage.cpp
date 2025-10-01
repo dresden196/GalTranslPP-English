@@ -202,7 +202,7 @@ void OtherSettingsPage::_setupUI()
 				return;
 			}
 
-			ElaContentDialog helpDialog(this);
+			ElaContentDialog helpDialog(_mainWindow);
 			helpDialog.setLeftButtonText(tr("否"));
 			helpDialog.setMiddleButtonText(tr("思考人生"));
 			helpDialog.setRightButtonText(tr("是"));

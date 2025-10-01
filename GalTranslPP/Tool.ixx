@@ -138,7 +138,12 @@ export {
             }
             pCurrentTable = &pCurrentTable->at(keys[i]).as_table();
         }
-        (*pCurrentTable)[keys.back()] = value;
+        if constexpr (std::is_same_v<toml::basic_value<TC>, toml::ordered_value>) {
+            (*pCurrentTable)[keys.back()] = toml::ordered_value{ value };
+        }
+        else {
+            (*pCurrentTable)[keys.back()] = toml::value{ value };
+        }
         return table;
     }
 

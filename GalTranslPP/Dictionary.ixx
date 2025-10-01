@@ -189,11 +189,11 @@ void GptDictionary::loadFromFile(const fs::path& filePath) {
         const auto& dicts = dictData.at("gptDict").as_array();
         for (const auto& el : dicts) {
             GptTabEntry entry;
-            if (!el.contains("searchStr") && !el.contains("org")) {
-                throw std::invalid_argument(std::format("GPT 字典文件格式错误(未找到searchStr|org): {}", wide2Ascii(filePath)));
+            if (!el.contains("org") && !el.contains("searchStr")) {
+                continue;
             }
-            if (!el.contains("replaceStr") && !el.contains("rep")) {
-                throw std::invalid_argument(std::format("GPT 字典文件格式错误(未找到replaceStr|rep): {}", wide2Ascii(filePath)));
+            if (!el.contains("rep") && !el.contains("replaceStr")) {
+                continue;
             }
 
             entry.searchStr = el.contains("org") ? el.at("org").as_string() : el.at("searchStr").as_string();
@@ -300,11 +300,11 @@ void NormalDictionary::loadFromFile(const fs::path& filePath) {
         const auto dicts = dictData.at("normalDict").as_array();
         for (const auto& el : dicts) {
             DictEntry entry;
-            if (!el.contains("searchStr") && !el.contains("org")) {
-                throw std::invalid_argument(std::format("Normal 字典文件格式错误(未找到searchStr|org): {}", wide2Ascii(filePath)));
+            if (!el.contains("org") && !el.contains("searchStr")) {
+                continue;
             }
-            if (!el.contains("replaceStr") && !el.contains("rep")) {
-                throw std::invalid_argument(std::format("Normal 字典文件格式错误(未找到replaceStr|rep): {}", wide2Ascii(filePath)));
+            if (!el.contains("rep") && !el.contains("replaceStr")) {
+                continue;
             }
             entry.isReg = toml::find_or(el, "isReg", false);
 

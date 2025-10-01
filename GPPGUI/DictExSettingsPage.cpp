@@ -195,9 +195,9 @@ void DictExSettingsPage::_setupUI()
 					comboBox->setCurrentSelection(commonDictsChosen);
 				};
 
-			refreshCommonDictsListFunc("项目字典_译前", "commonPreDicts", comboBox);
+			refreshCommonDictsListFunc("项目译前字典", "commonPreDicts", comboBox);
 			refreshCommonDictsListFunc("项目GPT字典", "commonGptDicts", gptDictNamesComboBox);
-			refreshCommonDictsListFunc("项目字典_译后", "commonPostDicts", postDictNamesComboBox);
+			refreshCommonDictsListFunc("项目译后字典", "commonPostDicts", postDictNamesComboBox);
 			
 		};
 
