@@ -145,7 +145,7 @@ void PASettingsPage::_setupUI()
 	compareObjHelperText->setWordWrap(false);
 	mainLayout->addWidget(compareObjHelperText);
 	ElaPlainTextEdit* compareObjEdit = new ElaPlainTextEdit(mainWidget);
-	compareObjEdit->setMinimumHeight(280);
+	compareObjEdit->setMinimumHeight(300);
 	compareObjEdit->setFont(font);
 	compareObjEdit->setPlainText(QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ "overwriteCompareObj", compareObjArr }} })));
 	compareObjEdit->moveCursor(QTextCursor::End);
@@ -197,6 +197,7 @@ void PASettingsPage::_setupUI()
 				toml::ordered_value newCompareObjTbl = toml::parse_str<toml::ordered_type_config>(compareObjEdit->toPlainText().toStdString());
 				auto& newCompareObjArr = newCompareObjTbl["overwriteCompareObj"];
 				if (newCompareObjArr.is_array()) {
+					newCompareObjArr.as_array_fmt().fmt = toml::array_format::multiline;
 					insertToml(_projectConfig, "problemAnalyze.overwriteCompareObj", newCompareObjArr.as_array());
 				}
 				else {

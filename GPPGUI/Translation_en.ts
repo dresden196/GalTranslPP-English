@@ -2002,7 +2002,7 @@
     </message>
     <message>
         <location filename="PASettingsPage.cpp" line="193"/>
-        <location filename="PASettingsPage.cpp" line="207"/>
+        <location filename="PASettingsPage.cpp" line="208"/>
         <source>解析错误</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2012,7 +2012,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="207"/>
+        <location filename="PASettingsPage.cpp" line="208"/>
         <source>overwriteCompareObj不符合 toml 规范</source>
         <translation type="unfinished"></translation>
     </message>

@@ -182,14 +182,14 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         // 需要API
         if (m_transEngine != TransEngine::DumpName && m_transEngine != TransEngine::Rebuild && m_transEngine != TransEngine::ShowNormal) {
             const auto& apisArr = toml::find<
-                std::vector<std::tuple<std::string, std::string, std::string, bool>>
+                std::vector<toml::ordered_table>
             >(configData, "backendSpecific", "OpenAI-Compatible", "apis");
 
             std::vector<TranslationAPI> apis;
-            for (const auto& el : apisArr) {
+            for (const auto& apiTbl : apisArr) {
                 TranslationAPI api;
-                if (auto value = std::get<0>(el); !value.empty()) {
-                    api.apikey = value;
+                if (apiTbl.contains("apikey") && !apiTbl.at("apikey").as_string().empty()) {
+                    api.apikey = apiTbl.at("apikey").as_string();
                 }
                 else if (m_transEngine == TransEngine::Sakura) {
                     api.apikey = "sk-sakura";
@@ -197,14 +197,14 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                 else {
                     continue;
                 }
-                if (auto value = std::get<1>(el); !value.empty()) {
-                    api.apiurl = cvt2StdApiUrl(value);
+                if (apiTbl.contains("apiurl") && !apiTbl.at("apiurl").as_string().empty()) {
+                    api.apiurl = cvt2StdApiUrl(apiTbl.at("apiurl").as_string());
                 }
                 else {
                     continue;
                 }
-                if (auto value = std::get<2>(el); !value.empty()) {
-                    api.modelName = value;
+                if (apiTbl.contains("modelName") && !apiTbl.at("modelName").as_string().empty()) {
+                    api.modelName = apiTbl.at("modelName").as_string();
                 }
                 else if (m_transEngine == TransEngine::Sakura) {
                     api.modelName = "sakura";
@@ -212,7 +212,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                 else {
                     continue;
                 }
-                api.stream = std::get<3>(el);
+                api.stream = apiTbl.contains("stream") && apiTbl.at("stream").as_boolean();
                 apis.push_back(std::move(api));
             }
 
@@ -220,7 +220,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                 throw std::invalid_argument("config.toml 中找不到可用的 apikey ");
             }
             else {
-                m_apiPool.loadAPIs(apis);
+                m_apiPool.loadAPIs(std::move(apis));
             }
         }
 
@@ -291,7 +291,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             }
         }
 
-        const std::string& defaultDictFolder = toml::find_or(configData, "dictionary", "defaultDictFolder", "Dict");
+        const std::string& defaultDictFolder = toml::find_or(configData, "dictionary", "defaultDictFolder", "BaseConfig/Dict");
         const fs::path defaultDictFolderPath = ascii2Wide(std::move(defaultDictFolder));
 
         m_usePreDictInName = toml::find_or(configData, "dictionary", "usePreDictInName", false);
@@ -1048,7 +1048,7 @@ void NormalJsonTranslator::run() {
 
 
         const fs::path nameTablePath = m_projectDir / L"人名替换表.toml";
-        toml::value orgNameTable;
+        toml::value orgNameTable = toml::table{};
         try {
             if (fs::exists(nameTablePath)) {
                 orgNameTable = toml::parse(nameTablePath);
@@ -1073,7 +1073,12 @@ void NormalJsonTranslator::run() {
         toml::ordered_value newNameTable;
         newNameTable.comments().push_back("'原名' = [ '译名', 出现次数 ]");
         for (const auto& key : nameTableKeys) {
-            newNameTable[key] = toml::array{ toml::find_or(orgNameTable, key, ""), nameTableMap[key] };
+            try {
+                newNameTable[key] = toml::array{ toml::find_or(orgNameTable, key, 0, ""), nameTableMap[key] };
+            }
+            catch (...) {
+                newNameTable[key] = toml::array{ "", nameTableMap[key]};
+            }
         }
         ofs.open(nameTablePath);
         ofs << toml::format(newNameTable);
