@@ -2,7 +2,7 @@
 #define READDICTS_h
 
 #include "NormalDictModel.h"
-#include "DictionaryModel.h"
+#include "GptDictModel.h"
 #include <QList>
 #include <filesystem>
 #include <vector>
@@ -17,8 +17,8 @@ public:
 	explicit ReadDicts(QObject* parent = nullptr);
 	~ReadDicts() override;
 
-	static QList<DictionaryEntry> readGptDicts(const fs::path& dictPath);
-	static QList<DictionaryEntry> readGptDicts(const std::vector<fs::path>& dictPaths);
+	static QList<GptDictEntry> readGptDicts(const fs::path& dictPath);
+	static QList<GptDictEntry> readGptDicts(const std::vector<fs::path>& dictPaths);
 
 	static QList<NormalDictEntry> readNormalDicts(const fs::path& dictPath);
 

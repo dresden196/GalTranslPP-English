@@ -7,7 +7,7 @@
 #include <toml.hpp>
 #include <filesystem>
 #include "BasePage.h"
-#include "DictionaryModel.h"
+#include "GptDictModel.h"
 #include "NormalDictModel.h"
 
 namespace fs = std::filesystem;
@@ -32,7 +32,7 @@ private:
 
     std::function<void()> _refreshFunc;
 
-    QList<DictionaryEntry> _withdrawGptList;
+    QList<GptDictEntry> _withdrawGptList;
     QList<NormalDictEntry> _withdrawPreList;
     QList<NormalDictEntry> _withdrawPostList;
 };

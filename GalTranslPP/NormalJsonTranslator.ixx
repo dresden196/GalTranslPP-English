@@ -9,6 +9,8 @@ module;
 #include <ranges>
 #include <boost/regex.hpp>
 #include <spdlog/spdlog.h>
+#include <unicode/regex.h>
+#include <unicode/unistr.h>
 
 export module NormalJsonTranslator;
 
@@ -71,7 +73,8 @@ export {
         std::string m_splitFile;
         int m_splitFileNum;
         std::string m_linebreakSymbol;
-        std::vector<std::string> m_retranslKeys;
+        std::vector<std::shared_ptr<icu::RegexPattern>> m_retranslKeys;
+        std::vector<std::shared_ptr<icu::RegexPattern>> m_skipProblems;
 
         bool m_needsCombining = false;
         // 输入分割文件相对路径到原始json相对路径的映射
@@ -264,14 +267,36 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             m_problemAnalyzer.loadProblems(*problemList, punctSet, langProbability);
         }
 
+        auto addRegexFunc = [](const std::vector<std::string>& patterns, std::vector<std::shared_ptr<icu::RegexPattern>>& regexPatterns)
+            {
+                UErrorCode status = U_ZERO_ERROR;
+                for (const auto& pattern : patterns) {
+                    if (pattern.empty()) {
+                        continue;
+                    }
+                    icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(pattern));
+                    std::shared_ptr<icu::RegexPattern> regexPattern(icu::RegexPattern::compile(ustr, 0, status));
+                    if (U_FAILURE(status)) {
+                        throw std::runtime_error(std::format("skipProblems 正则编译错误: {}", pattern));
+                    }
+                    regexPatterns.push_back(regexPattern);
+                }
+            };
+
         const auto& retranslKeys = toml::find<
             std::optional<std::vector<std::string>>
         >(configData, "problemAnalyze", "retranslKeys");
         if (retranslKeys) {
-            m_retranslKeys = std::move(*retranslKeys);
+            addRegexFunc(*retranslKeys, m_retranslKeys);
         }
 
-        
+        const auto& skipProblems = toml::find<
+            std::optional<std::vector<std::string>>
+        >(configData, "problemAnalyze", "skipProblems");
+        if (skipProblems) {
+            addRegexFunc(*skipProblems, m_skipProblems);
+        }
+
         const auto& overwriteCompareObj = toml::find<std::optional<toml::array>>(configData, "problemAnalyze", "overwriteCompareObj");
         if (overwriteCompareObj) {
             for (const auto& tbl : *overwriteCompareObj) {
@@ -517,6 +542,19 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
     }
 
     m_problemAnalyzer.analyze(se, m_gptDictionary, m_targetLang);
+    std::erase_if(se->problems, [this](const auto& problem)
+        {
+            icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(problem));
+            return std::ranges::any_of(m_skipProblems, [&](const auto& regexPattern)
+                {
+                    UErrorCode status = U_ZERO_ERROR;
+                    std::shared_ptr<icu::RegexMatcher> matcher(regexPattern->matcher(ustr, status));
+                    if (!U_FAILURE(status)) {
+                        return (bool)matcher->find();
+                    }
+                    return false;
+                });
+        });
 }
 
 

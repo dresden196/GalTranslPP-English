@@ -256,7 +256,7 @@ void TextLinebreakFix::run(Sentence* se)
 	}
 
 	int newLinebreakCount = countSubstring(se->translated_preview, "<br>");
-	se->other_info["换行修复"] = std::format("原文 {} 行, 译文 {} 行, 修正后 {} 行", origLinebreakCount + 1, newLinebreakCount + 1, newLinebreakCount + 1);
+	se->other_info["换行修复"] = std::format("原文 {} 行, 译文 {} 行, 修正后 {} 行", origLinebreakCount + 1, transLinebreakCount + 1, newLinebreakCount + 1);
 	m_logger->debug("句子[{}]({}行): 修正后译文[{}]({}行)", orgText, origLinebreakCount + 1, se->translated_preview, newLinebreakCount + 1);
 }
 

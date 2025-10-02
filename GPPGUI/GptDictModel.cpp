@@ -1,9 +1,9 @@
-// DictionaryModel.cpp
+// GptDictModel.cpp
 
-#include "DictionaryModel.h"
+#include "GptDictModel.h"
 #include <QFont>
 
-DictionaryModel::DictionaryModel(QObject* parent)
+GptDictModel::GptDictModel(QObject* parent)
     : QAbstractTableModel(parent)
 {
     // 初始化表头
@@ -11,7 +11,7 @@ DictionaryModel::DictionaryModel(QObject* parent)
 }
 
 // 返回数据行数
-int DictionaryModel::rowCount(const QModelIndex& parent) const
+int GptDictModel::rowCount(const QModelIndex& parent) const
 {
     // 检查 parent 是否有效，对于表格模型，它应始终无效
     if (parent.isValid()) {
@@ -21,7 +21,7 @@ int DictionaryModel::rowCount(const QModelIndex& parent) const
 }
 
 // 返回列数
-int DictionaryModel::columnCount(const QModelIndex& parent) const
+int GptDictModel::columnCount(const QModelIndex& parent) const
 {
     if (parent.isValid()) {
         return 0;
@@ -30,7 +30,7 @@ int DictionaryModel::columnCount(const QModelIndex& parent) const
 }
 
 // 提供数据给视图
-QVariant DictionaryModel::data(const QModelIndex& index, int role) const
+QVariant GptDictModel::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid()) {
         return QVariant();
@@ -44,7 +44,7 @@ QVariant DictionaryModel::data(const QModelIndex& index, int role) const
     // --- 核心逻辑：根据 'role' 提供不同的数据 ---
     if (role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        const DictionaryEntry& entry = _entries.at(index.row());
+        const GptDictEntry& entry = _entries.at(index.row());
         switch (index.column())
         {
         case 0: return entry.original;
@@ -65,7 +65,7 @@ QVariant DictionaryModel::data(const QModelIndex& index, int role) const
 }
 
 // 提供表头数据
-QVariant DictionaryModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant GptDictModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
     {
@@ -79,7 +79,7 @@ QVariant DictionaryModel::headerData(int section, Qt::Orientation orientation, i
 // --- 以下是实现可编辑性的关键 ---
 
 // 1. 设置单元格的标志 (Flags)
-Qt::ItemFlags DictionaryModel::flags(const QModelIndex& index) const
+Qt::ItemFlags GptDictModel::flags(const QModelIndex& index) const
 {
     if (!index.isValid()) {
         return Qt::NoItemFlags;
@@ -90,7 +90,7 @@ Qt::ItemFlags DictionaryModel::flags(const QModelIndex& index) const
 }
 
 // 2. 实现 setData，当用户完成编辑时，视图会调用此函数
-bool DictionaryModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool GptDictModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
     if (!index.isValid() || role != Qt::EditRole) {
         return false;
@@ -100,7 +100,7 @@ bool DictionaryModel::setData(const QModelIndex& index, const QVariant& value, i
         return false;
     }
 
-    DictionaryEntry& entry = _entries[index.row()];
+    GptDictEntry& entry = _entries[index.row()];
     QString textValue = value.toString();
 
     // 根据列更新对应的数据
@@ -131,7 +131,7 @@ bool DictionaryModel::setData(const QModelIndex& index, const QVariant& value, i
 
 // --- 公共方法 ---
 
-void DictionaryModel::loadData(const QList<DictionaryEntry>& entries)
+void GptDictModel::loadData(const QList<GptDictEntry>& entries)
 {
     // 在修改底层数据结构之前，必须调用 beginResetModel()
     beginResetModel();
@@ -140,7 +140,7 @@ void DictionaryModel::loadData(const QList<DictionaryEntry>& entries)
     endResetModel();
 }
 
-bool DictionaryModel::insertRow(int row, DictionaryEntry entry, const QModelIndex& parent)
+bool GptDictModel::insertRow(int row, GptDictEntry entry, const QModelIndex& parent)
 {
     // 在插入行之前，调用 beginInsertRows()
     beginInsertRows(parent, row, row);
@@ -152,7 +152,7 @@ bool DictionaryModel::insertRow(int row, DictionaryEntry entry, const QModelInde
     return true;
 }
 
-bool DictionaryModel::removeRow(int row, const QModelIndex& parent)
+bool GptDictModel::removeRow(int row, const QModelIndex& parent)
 {
     if (row < 0 || row >= _entries.count()) {
         return false;
@@ -166,12 +166,12 @@ bool DictionaryModel::removeRow(int row, const QModelIndex& parent)
     return true;
 }
 
-QList<DictionaryEntry> DictionaryModel::getEntries() const
+QList<GptDictEntry> GptDictModel::getEntries() const
 {
     return _entries;
 }
 
-const QList<DictionaryEntry>& DictionaryModel::getEntriesRef() const
+const QList<GptDictEntry>& GptDictModel::getEntriesRef() const
 {
     return _entries;
 }

@@ -69,12 +69,18 @@ void UpdateChecker::check(bool forDownload)
     }
     if (m_downloadSuccess) {
         ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("下载已完成"), tr("点击卡片以关闭程序并安装更新"), 5000);
+        m_trayIcon->show();
         m_trayIcon->showMessage(
             tr("下载已完成"),                  // 标题
                 tr("点击以关闭程序并安装更新"),      // 内容
             QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
             5000                          // 显示时长 (毫秒)
         );
+        std::thread([this]()
+            {
+                std::this_thread::sleep_for(std::chrono::seconds(5));
+                m_trayIcon->hide();
+            }).detach();
         return;
     }
     QUrl url("https://api.github.com/repos/" + m_repoOwner + "/" + m_repoName + "/releases/latest");
@@ -143,12 +149,18 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
                             m_statusText->setText(tr("更新下载已完成"));
                             m_downloadSuccess = true;
                             hasUpdateFile = true;
+                            m_trayIcon->show();
                             m_trayIcon->showMessage(
                                 tr("下载完成"),                  // 标题
                                     tr("点击以关闭程序并安装更新"),      // 内容
                                 QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
                                 5000                          // 显示时长 (毫秒)
                             );
+                            std::thread([this]()
+                                {
+                                    std::this_thread::sleep_for(std::chrono::seconds(5));
+                                    m_trayIcon->hide();
+                                }).detach();
                         }
                         break;
                     }
@@ -222,13 +234,19 @@ void UpdateChecker::onDownloadFinished(QNetworkReply* reply)
     m_statusText->setText(tr("更新下载成功"));
     m_downloadSuccess = true;
 
-    // 其实我有点想用 wintoast ...，QT这个taryIcon真有点丑
+    // 其实我有点想用 wintoast ...，QT这个taryIcon真有点丑，而且还有点麻烦
+    m_trayIcon->show();
     m_trayIcon->showMessage(
         tr("下载完成"),                  // 标题
             tr("点击以关闭程序并安装更新"),      // 内容
         QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
         5000                          // 显示时长 (毫秒)
     );
+    std::thread([this]()
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+            m_trayIcon->hide();
+        }).detach();
 
     reply->deleteLater();
 }
@@ -243,10 +261,10 @@ bool UpdateChecker::getIsDownloading()
     return m_downloadReply != nullptr;
 }
 
-bool UpdateChecker::cmpVer(std::string latestVer, std::string currentVer, bool& isCompatible)
+bool UpdateChecker::cmpVer(const std::string& latestVer, const std::string& currentVer, bool& isCompatible)
 {
     bool isCurrentVerPre = false;
-    auto removePostfix = [&](std::string& v)
+    auto removePostfix = [&](std::string v) -> std::string
         {
             while (true) {
                 if (
@@ -260,11 +278,12 @@ bool UpdateChecker::cmpVer(std::string latestVer, std::string currentVer, bool& 
                     break;
                 }
             }
+            return v;
         };
     
-    removePostfix(currentVer);
+    std::string fixedCurrentVer = removePostfix(currentVer);
     std::string v1s = latestVer.find_last_of("v") == std::string::npos ? latestVer : latestVer.substr(latestVer.find_last_of("v") + 1);
-    std::string v2s = currentVer.find_last_of("v") == std::string::npos ? currentVer : currentVer.substr(currentVer.find_last_of("v") + 1);
+    std::string v2s = fixedCurrentVer.find_last_of("v") == std::string::npos ? fixedCurrentVer : fixedCurrentVer.substr(fixedCurrentVer.find_last_of("v") + 1);
 
     std::vector<std::string> lastVerParts = splitString(v1s, '.');
     std::vector<std::string> currentVerParts = splitString(v2s, '.');

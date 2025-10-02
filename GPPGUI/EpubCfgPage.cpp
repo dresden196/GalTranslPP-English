@@ -96,7 +96,6 @@ EpubCfgPage::EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : 
 	if (preRegex.is_array()) {
 		preRegexArr = preRegex;
 	}
-	preRegexArr.as_array_fmt().fmt = toml::array_format::array_of_tables;
 	ElaText* preRegexText = new ElaText(tr("预处理正则"), centerWidget);
 	preRegexText->setTextPixelSize(18);
 	mainLayout->addSpacing(10);
@@ -112,7 +111,6 @@ EpubCfgPage::EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : 
 	if (postRegex.is_array()) {
 		postRegexArr = postRegex;
 	}
-	postRegexArr.as_array_fmt().fmt = toml::array_format::array_of_tables;
 	ElaText* postRegexText = new ElaText(tr("后处理正则"), centerWidget);
 	postRegexText->setTextPixelSize(18);
 	mainLayout->addSpacing(10);

@@ -134,7 +134,7 @@ copy "$(TargetDir)translations\Translation_*.*" "$(TargetDir)..\GUICORE\translat
     <ClCompile Include="CommonSettingsPage.cpp" />
     <ClCompile Include="DefaultPromptPage.cpp" />
     <ClCompile Include="DictExSettingsPage.cpp" />
-    <ClCompile Include="DictionaryModel.cpp" />
+    <ClCompile Include="GptDictModel.cpp" />
     <ClCompile Include="DictSettingsPage.cpp" />
     <ClCompile Include="ElaInputDialog.cpp" />
     <ClCompile Include="EpubCfgPage.cpp" />
@@ -193,7 +193,7 @@ copy "$(TargetDir)translations\Translation_*.*" "$(TargetDir)..\GUICORE\translat
     <QtMoc Include="DictSettingsPage.h" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="DictionaryModel.h" />
+    <QtMoc Include="GptDictModel.h" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="NormalDictModel.h" />

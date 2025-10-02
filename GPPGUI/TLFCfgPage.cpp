@@ -22,6 +22,8 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	QVBoxLayout* mainLayout = new QVBoxLayout(centerWidget);
 
 	// 换行模式
+	QStringList fixModes = { "优先标点", "保持位置", "固定字数", "平均" };
+	QStringList fixModesToShow = { tr("优先标点"), tr("保持位置"), tr("固定字数"), tr("平均") };
 	QString fixMode = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["换行模式"], ""));
 	ElaScrollPageArea* fixModeArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* fixModeLayout = new QHBoxLayout(fixModeArea);
@@ -30,12 +32,9 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	fixModeLayout->addWidget(fixModeText);
 	fixModeLayout->addStretch();
 	ElaComboBox* fixModeComboBox = new ElaComboBox(fixModeArea);
-	fixModeComboBox->addItem("优先标点");
-	fixModeComboBox->addItem("保持位置");
-	fixModeComboBox->addItem("固定字数");
-	fixModeComboBox->addItem("平均");
+	fixModeComboBox->addItems(fixModesToShow);
 	if (!fixMode.isEmpty()) {
-		int index = fixModeComboBox->findText(fixMode);
+		int index = fixModes.indexOf(fixMode);
 		if (index >= 0) {
 			fixModeComboBox->setCurrentIndex(index);
 		}
@@ -105,7 +104,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 
 	_applyFunc = [=]()
 		{
-			insertToml(_projectConfig, "plugins.TextLinebreakFix.换行模式", fixModeComboBox->currentText().toStdString());
+			insertToml(_projectConfig, "plugins.TextLinebreakFix.换行模式", fixModes[fixModeComboBox->currentIndex()].toStdString());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.仅在标点后添加", onlyAddAfterPunctToggleSwitch->getIsToggled());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.分段字数阈值", segmentThresholdSpinBox->value());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.强制修复", forceFixToggleSwitch->getIsToggled());

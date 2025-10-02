@@ -141,8 +141,8 @@ void CommonGptDictPage::_setupUI()
 			tableView->verticalHeader()->setHidden(true);
 			tableView->setAlternatingRowColors(true);
 			tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-			DictionaryModel* model = new DictionaryModel(tableView);
-			QList<DictionaryEntry> gptData = ReadDicts::readGptDicts(orgDictPath);
+			GptDictModel* model = new GptDictModel(tableView);
+			QList<GptDictEntry> gptData = ReadDicts::readGptDicts(orgDictPath);
 			model->loadData(gptData);
 			tableView->setModel(model);
 			stackedWidget->addWidget(tableView);
@@ -212,11 +212,11 @@ void CommonGptDictPage::_setupUI()
 					if (stackedWidget->currentIndex() == 0 && !forceSaveInTableModeToInit) {
 						ofs << plainTextEdit->toPlainText().toStdString();
 						ofs.close();
-						QList<DictionaryEntry> newDictEntries = ReadDicts::readGptDicts(it->dictPath);
+						QList<GptDictEntry> newDictEntries = ReadDicts::readGptDicts(it->dictPath);
 						model->loadData(newDictEntries);
 					}
 					else if (stackedWidget->currentIndex() == 1 || forceSaveInTableModeToInit) {
-						QList<DictionaryEntry> dictEntries = model->getEntries();
+						QList<GptDictEntry> dictEntries = model->getEntries();
 						toml::ordered_value dictArr = toml::array{};
 						for (const auto& entry : dictEntries) {
 							toml::ordered_table dictTable;
@@ -284,7 +284,7 @@ void CommonGptDictPage::_setupUI()
 			connect(removeDictButton, &ElaPushButton::clicked, this, [=]()
 				{
 					QModelIndexList selectedRows = tableView->selectionModel()->selectedRows();
-					const QList<DictionaryEntry>& entries = model->getEntriesRef();
+					const QList<GptDictEntry>& entries = model->getEntriesRef();
 					std::ranges::sort(selectedRows, [](const QModelIndex& a, const QModelIndex& b)
 						{
 							return a.row() > b.row();
@@ -305,7 +305,7 @@ void CommonGptDictPage::_setupUI()
 					if (gptTabEntry.withdrawList->empty()) {
 						return;
 					}
-					DictionaryEntry entry = gptTabEntry.withdrawList->front();
+					GptDictEntry entry = gptTabEntry.withdrawList->front();
 					gptTabEntry.withdrawList->pop_front();
 					model->insertRow(0, entry);
 					if (gptTabEntry.withdrawList->empty()) {

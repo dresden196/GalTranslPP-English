@@ -133,21 +133,23 @@ export {
         const std::vector<std::string> keys = splitString(path, '.');
         auto* pCurrentTable = &table.as_table();
         for (size_t i = 0; i < keys.size() - 1; i++) {
-            if (!pCurrentTable->contains(keys[i]) || !pCurrentTable->at(keys[i]).is_table()) {
-                (*pCurrentTable)[keys[i]] = toml::table{};
+            auto& subTable = (*pCurrentTable)[keys[i]];
+            if (!subTable.is_table()) {
+                subTable = toml::table{};
             }
-            pCurrentTable = &pCurrentTable->at(keys[i]).as_table();
+            pCurrentTable = &subTable.as_table();
         }
         
+        auto& lastVal = (*pCurrentTable)[keys.back()];
         if constexpr (std::is_same_v<toml::basic_value<TC>, toml::ordered_value>) {
-            const auto orgComments = (*pCurrentTable)[keys.back()].comments();
-            (*pCurrentTable)[keys.back()] = toml::ordered_value{ value };
-            pCurrentTable->at(keys.back()).comments() = orgComments;
+            const auto orgComments = lastVal.comments();
+            lastVal = toml::ordered_value{ value };
+            lastVal.comments() = orgComments;
         }
         else {
-            const auto orgComments = (*pCurrentTable)[keys.back()].comments();
-            (*pCurrentTable)[keys.back()] = toml::value{ value };
-            pCurrentTable->at(keys.back()).comments() = orgComments;
+            const auto orgComments = lastVal.comments();
+            lastVal = toml::value{ value };
+            lastVal.comments() = orgComments;
         }
         return table;
     }

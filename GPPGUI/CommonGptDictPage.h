@@ -9,7 +9,7 @@
 #include <toml.hpp>
 #include <filesystem>
 #include "BasePage.h"
-#include "DictionaryModel.h"
+#include "GptDictModel.h"
 
 class ElaPlainTextEdit;
 class ElaTableView;
@@ -21,11 +21,11 @@ struct GptTabEntry {
     QStackedWidget* stackedWidget;
     ElaPlainTextEdit* plainTextEdit;
     ElaTableView* tableView;
-    DictionaryModel* dictModel;
+    GptDictModel* dictModel;
     fs::path dictPath;
     std::function<bool(bool)>saveFunc;
-    QSharedPointer<QList<DictionaryEntry>> withdrawList;
-    GptTabEntry() : withdrawList(new QList<DictionaryEntry>){}
+    QSharedPointer<QList<GptDictEntry>> withdrawList;
+    GptTabEntry() : withdrawList(new QList<GptDictEntry>){}
 };
 
 class CommonGptDictPage : public BasePage

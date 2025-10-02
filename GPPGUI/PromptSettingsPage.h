@@ -7,7 +7,7 @@
 #include <toml.hpp>
 #include <filesystem>
 #include "BasePage.h"
-#include "DictionaryModel.h"
+#include "GptDictModel.h"
 #include "NormalDictModel.h"
 
 namespace fs = std::filesystem;

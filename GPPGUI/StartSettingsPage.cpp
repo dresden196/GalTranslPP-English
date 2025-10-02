@@ -346,7 +346,7 @@ void StartSettingsPage::_setupUI()
 		});
 
 	_workThread->start();
-	addCentralWidget(mainWidget);
+	addCentralWidget(mainWidget, true, true, 0);
 
 	_applyFunc = [=]()
 		{
@@ -405,6 +405,7 @@ void StartSettingsPage::_workFinished(int exitCode)
 {
 	_threadNumRing->setValue(0);
 	_remainTimeLabel->display("00:00:00");
+	_trayIcon->show();
 
 	switch (exitCode)
 	{
@@ -457,6 +458,11 @@ void StartSettingsPage::_workFinished(int exitCode)
 	default:
 		break;
 	}
+	std::thread([this]()
+		{
+			std::this_thread::sleep_for(std::chrono::seconds(5));
+			_trayIcon->hide();
+		}).detach();
 
 	Q_EMIT finishTranslatingSignal(_transEngine, exitCode);
 	_startTranslateButton->setEnabled(true);

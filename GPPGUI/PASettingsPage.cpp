@@ -108,16 +108,16 @@ void PASettingsPage::_setupUI()
 
 	mainLayout->addSpacing(20);
 
-	// 重翻在缓存的problem或pre_jp中包含对应**关键字**的句子，去掉下面列表中的#号注释来使用，也可添加自定义的关键字。
+	// 正则表达式列表，重翻正则在缓存的 orig_text 或 某条 problem 中能 search 通过的句子。
 	toml::ordered_value retranslKeysArr = toml::array{};
 	auto& retranslKeys = _projectConfig["problemAnalyze"]["retranslKeys"];
 	if (retranslKeys.is_array()) {
-		retranslKeysArr = retranslKeys.as_array();
+		retranslKeysArr = retranslKeys;
 	}
-	retranslKeysArr.as_array_fmt().fmt = toml::array_format::multiline;
+	retranslKeysArr.comments().clear();
 	ElaText* retranslKeyHelperText = new ElaText(tr("重翻关键字设定"), mainWidget);
 	ElaToolTip* retranslKeyHelperTip = new ElaToolTip(retranslKeyHelperText);
-	retranslKeyHelperTip->setToolTip(tr("重翻在缓存的problem或orig_text中包含对应 **关键字** 的句子，遵循toml格式"));
+	retranslKeyHelperTip->setToolTip(tr("正则表达式列表，重翻正则在缓存的 orig_text 或 某条 problem 中能 search 通过的句子。遵循toml格式"));
 	retranslKeyHelperText->setTextPixelSize(18);
 	retranslKeyHelperText->setWordWrap(false);
 	mainLayout->addWidget(retranslKeyHelperText);
@@ -131,13 +131,34 @@ void PASettingsPage::_setupUI()
 
 	mainLayout->addSpacing(20);
 
+	// 正则表达式列表，如果一条 problem 能被以下正则 search 通过，则不加入 problems 列表
+	toml::ordered_value excludeKeysArr = toml::array{};
+	auto& excludeKeys = _projectConfig["problemAnalyze"]["skipProblems"];
+	if (excludeKeys.is_array()) {
+		excludeKeysArr = excludeKeys;
+	}
+	excludeKeysArr.comments().clear();
+	ElaText* excludeKeyHelperText = new ElaText(tr("跳过问题关键字设定"), mainWidget);
+	ElaToolTip* excludeKeyHelperTip = new ElaToolTip(excludeKeyHelperText);
+	excludeKeyHelperTip->setToolTip(tr("正则表达式列表，如果一条 problem 能被以下正则 search 通过，则不加入 problems 列表。遵循toml格式"));
+	excludeKeyHelperText->setTextPixelSize(18);
+	excludeKeyHelperText->setWordWrap(false);
+	mainLayout->addWidget(excludeKeyHelperText);
+	ElaPlainTextEdit* excludeKeyEdit = new ElaPlainTextEdit(mainWidget);
+	excludeKeyEdit->setFont(font);
+	excludeKeyEdit->setPlainText(QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ "skipProblems", excludeKeysArr }} })));
+	excludeKeyEdit->moveCursor(QTextCursor::End);
+	mainLayout->addWidget(excludeKeyEdit);
+
+	mainLayout->addSpacing(20);
+
 	// 问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)
 	toml::ordered_value compareObjArr = toml::array{};
 	auto& overwriteCompareObj = _projectConfig["problemAnalyze"]["overwriteCompareObj"];
 	if (overwriteCompareObj.is_array()) {
-		compareObjArr = overwriteCompareObj.as_array();
+		compareObjArr = overwriteCompareObj;
 	}
-	compareObjArr.as_array_fmt().fmt = toml::array_format::multiline;
+	compareObjArr.comments().clear();
 	ElaText* compareObjHelperText = new ElaText(tr("问题比较对象设定"), mainWidget);
 	ElaToolTip* compareObjHelperTip = new ElaToolTip(compareObjHelperText);
 	compareObjHelperTip->setToolTip(tr("问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)，遵循toml格式"));
@@ -201,10 +222,23 @@ void PASettingsPage::_setupUI()
 			}
 
 			try {
+				toml::ordered_value newExcludeKeysTbl = toml::parse_str<toml::ordered_type_config>(excludeKeyEdit->toPlainText().toStdString());
+				auto& newExcludeKeysArr = newExcludeKeysTbl["skipProblems"];
+				if (newExcludeKeysArr.is_array()) {
+					insertToml(_projectConfig, "problemAnalyze.skipProblems", newExcludeKeysArr);
+				}
+				else {
+					insertToml(_projectConfig, "problemAnalyze.skipProblems", toml::array{});
+				}
+			}
+			catch (...) {
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析错误"), tr("skipProblems不符合 toml 规范"), 3000);
+			}
+
+			try {
 				toml::ordered_value newCompareObjTbl = toml::parse_str<toml::ordered_type_config>(compareObjEdit->toPlainText().toStdString());
 				auto& newCompareObjArr = newCompareObjTbl["overwriteCompareObj"];
 				if (newCompareObjArr.is_array()) {
-					newCompareObjArr.as_array_fmt().fmt = toml::array_format::multiline;
 					insertToml(_projectConfig, "problemAnalyze.overwriteCompareObj", newCompareObjArr);
 				}
 				else {

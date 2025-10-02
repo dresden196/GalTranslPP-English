@@ -1,6 +1,9 @@
 module;
 
+#include <ranges>
 #include <spdlog/spdlog.h>
+#include <unicode/regex.h>
+#include <unicode/unistr.h>
 
 export module NJ_ImpTool;
 
@@ -25,7 +28,7 @@ export {
     void combineOutputFiles(const fs::path& originalRelFilePath, const std::map<fs::path, bool>& splitFileParts,
         std::shared_ptr<spdlog::logger> logger, const fs::path& outputCacheDir, const fs::path& outputDir);
 
-    bool hasRetranslKey(const std::vector<std::string>& retranslKeys, const Sentence* se);
+    bool hasRetranslKey(const std::vector<std::shared_ptr<icu::RegexPattern>>& retranslKeys, const Sentence* se);
 
     void saveCache(const std::vector<Sentence>& allSentences, const fs::path& cachePath);
 
@@ -426,14 +429,21 @@ void combineOutputFiles(const fs::path& originalRelFilePath, const std::map<fs::
 }
 
 
-bool hasRetranslKey(const std::vector<std::string>& retranslKeys, const Sentence* se) {
-    return std::any_of(retranslKeys.begin(), retranslKeys.end(), [&](const std::string& key)
+bool hasRetranslKey(const std::vector<std::shared_ptr<icu::RegexPattern>>& retranslKeys, const Sentence* se) {
+    std::vector<icu::UnicodeString> ustrings;
+    for (const auto& problem : se->problems) {
+        ustrings.push_back(icu::UnicodeString::fromUTF8(problem));
+    }
+    ustrings.push_back(icu::UnicodeString::fromUTF8(se->original_text));
+    auto product = std::views::cartesian_product(retranslKeys, ustrings);
+    return std::ranges::any_of(product, [](const auto& tuple)
         {
-            return se->original_text.find(key) != std::string::npos ||
-                std::ranges::any_of(se->problems, [&](const std::string& prob)
-                    {
-                        return prob.find(key) != std::string::npos;
-                    });
+            UErrorCode status = U_ZERO_ERROR;
+            std::unique_ptr<icu::RegexMatcher> matcher(std::get<0>(tuple)->matcher(std::get<1>(tuple), status));
+            if (!U_FAILURE(status)) {
+                return (bool)matcher->find();
+            }
+            return false;
         });
 }
 

@@ -73,7 +73,7 @@
     <ClCompile Include="DictSettingsPage.cpp">
       <Filter>Source Files\ProjectSettingImp</Filter>
     </ClCompile>
-    <ClCompile Include="DictionaryModel.cpp">
+    <ClCompile Include="GptDictModel.cpp">
       <Filter>Source Files\ToolWidgetsImp</Filter>
     </ClCompile>
     <ClCompile Include="NormalDictModel.cpp">
@@ -177,7 +177,7 @@
     <QtMoc Include="DictSettingsPage.h">
       <Filter>Header Files\ProjectSettingH</Filter>
     </QtMoc>
-    <QtMoc Include="DictionaryModel.h">
+    <QtMoc Include="GptDictModel.h">
       <Filter>Header Files\ToolWidgetsH</Filter>
     </QtMoc>
     <QtMoc Include="NormalDictModel.h">

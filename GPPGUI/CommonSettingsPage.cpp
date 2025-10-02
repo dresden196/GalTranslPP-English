@@ -319,7 +319,9 @@ void CommonSettingsPage::_setupUI()
 
 	// 项目所用的换行
 	std::string linebreakSymbol = toml::get_or(_projectConfig["common"]["linebreakSymbol"], "auto");
-	QString linebreakSymbolStr = QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{"linebreakSymbol", linebreakSymbol}} }));
+	toml::ordered_value lbsVal = linebreakSymbol;
+	lbsVal.as_string_fmt().fmt = toml::string_format::basic;
+	QString linebreakSymbolStr = QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{"linebreakSymbol", lbsVal}} }));
 	mainLayout->addSpacing(10);
 	ElaText* linebreakText = new ElaText(tr("本项目所使用的换行符"), mainWidget);
 	linebreakText->setTextPixelSize(18);
@@ -358,11 +360,16 @@ void CommonSettingsPage::_setupUI()
 			insertToml(_projectConfig, "common.dictDir", dictLineEdit->text().toStdString());
 			try {
 				toml::ordered_value newTbl = toml::parse_str<toml::ordered_type_config>(linebreakEdit->toPlainText().toStdString());
-				std::string newLinebreakSymbol = toml::get_or(newTbl["linebreakSymbol"], "auto");
-				insertToml(_projectConfig, "common.linebreakSymbol", newLinebreakSymbol);
+				auto& newLinebreakSymbol = newTbl["linebreakSymbol"];
+				if (newLinebreakSymbol.is_string()) {
+					insertToml(_projectConfig, "common.linebreakSymbol", newLinebreakSymbol);
+				}
+				else {
+					insertToml(_projectConfig, "common.linebreakSymbol", "auto");
+				}
 			}
 			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("linebreakSymbol格式错误"), 3000);
+				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析失败"), tr("linebreakSymbol不符合 toml 规范"), 3000);
 			}
 		};
 

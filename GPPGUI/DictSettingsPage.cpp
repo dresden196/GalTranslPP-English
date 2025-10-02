@@ -60,7 +60,7 @@ void DictSettingsPage::_setupUI()
 			QList<EntryType>& withdrawList, const std::string& configKey, const QString& tabName) 
 		-> std::pair<std::function<void()>, std::function<void(bool)>>
 	{
-		using ModelType = typename std::conditional<std::is_same_v<EntryType, DictionaryEntry>, DictionaryModel, NormalDictModel>::type;
+		using ModelType = typename std::conditional<std::is_same_v<EntryType, GptDictEntry>, GptDictModel, NormalDictModel>::type;
 		QWidget* dictWidget = new QWidget(mainWidget);
 		QVBoxLayout* dictLayout = new QVBoxLayout(dictWidget);
 		QWidget* buttonWidget = new QWidget(mainWidget);
@@ -130,7 +130,7 @@ void DictSettingsPage::_setupUI()
 		dictTableView->setAlternatingRowColors(true);
 		dictTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-		if constexpr (std::is_same_v<EntryType, DictionaryEntry>) {
+		if constexpr (std::is_same_v<EntryType, GptDictEntry>) {
 			dictTableView->setColumnWidth(0, toml::get_or(_projectConfig["GUIConfig"]["gptDictTableColumnWidth"]["0"], 175));
 			dictTableView->setColumnWidth(1, toml::get_or(_projectConfig["GUIConfig"]["gptDictTableColumnWidth"]["1"], 175));
 			dictTableView->setColumnWidth(2, toml::get_or(_projectConfig["GUIConfig"]["gptDictTableColumnWidth"]["2"], 425));
@@ -160,7 +160,7 @@ void DictSettingsPage::_setupUI()
 			};
 		auto saveDictFunc = [=](bool forceSaveInTableModeToInit)
 			{
-				if constexpr (std::is_same_v<EntryType, DictionaryEntry>) {
+				if constexpr (std::is_same_v<EntryType, GptDictEntry>) {
 					std::ofstream ofs(_projectDir / (tabName.toStdWString() + L".toml"));
 					if (fs::exists(_projectDir / L"项目GPT字典-生成.toml")) {
 						try {
@@ -235,7 +235,7 @@ void DictSettingsPage::_setupUI()
 		connect(importDictButton, &ElaIconButton::clicked, this, [=]()
 			{
 				QString filter;
-				if constexpr (std::is_same_v<EntryType, DictionaryEntry>) {
+				if constexpr (std::is_same_v<EntryType, GptDictEntry>) {
 					filter = "TOML files (*.toml);;JSON files (*.json);;TSV files (*.tsv *.txt)";
 				}
 				else {
@@ -247,7 +247,7 @@ void DictSettingsPage::_setupUI()
 				}
 				fs::path importDictPath = dictPathStr.toStdWString();
 				QList<EntryType> entries;
-				if constexpr (std::is_same_v<EntryType, DictionaryEntry>) {
+				if constexpr (std::is_same_v<EntryType, GptDictEntry>) {
 					entries = ReadDicts::readGptDicts(importDictPath);
 				}
 				else {
@@ -338,7 +338,7 @@ void DictSettingsPage::_setupUI()
 		{
 			return ReadDicts::readGptDictsStr(gptDictPaths);
 		};
-	std::function<QList<DictionaryEntry>()> gptReadEntriesFunc = [=]() -> QList<DictionaryEntry>
+	std::function<QList<GptDictEntry>()> gptReadEntriesFunc = [=]() -> QList<GptDictEntry>
 		{
 			return ReadDicts::readGptDicts(gptDictPaths);
 		};

@@ -97,10 +97,18 @@ problemList = [
   "语言不通",
 ]
 
-#"重翻在缓存的problem或orig_text中包含对应**关键字**的句子，去掉下面列表中的#号注释来使用，也可添加自定义的关键字。",
+# 正则表达式列表，重翻正则在缓存的 orig_text 或 某条 problem 中能 search 通过的句子。
 retranslKeys = [
+  # 空字符串将被忽略
   #"残留日文",
   "翻译失败",
+]
+
+# 正则表达式列表，如果一条 problem 能被以下正则 search 通过，则不加入 problems 列表
+skipProblems = [
+  # "引入拉丁字母: .*Live.*"
+  # 空字符串将被忽略
+  ""
 ]
 
 #规定标点错漏要查哪些标点

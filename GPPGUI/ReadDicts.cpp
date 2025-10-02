@@ -18,9 +18,9 @@ QString ReadDicts::readDictsStr(const fs::path& dictPath)
 	return QString::fromStdString(result);
 }
 
-QList<DictionaryEntry> ReadDicts::readGptDicts(const fs::path& dictPath)
+QList<GptDictEntry> ReadDicts::readGptDicts(const fs::path& dictPath)
 {
-	QList<DictionaryEntry> result;
+	QList<GptDictEntry> result;
 	if (!fs::exists(dictPath)) {
 		return result;
 	}
@@ -36,7 +36,7 @@ QList<DictionaryEntry> ReadDicts::readGptDicts(const fs::path& dictPath)
 				if (!dict.is_table()) {
 					continue;
 				}
-				DictionaryEntry entry;
+				GptDictEntry entry;
 				entry.original = dict.contains("org") ? QString::fromStdString(toml::find_or(dict, "org", "")) :
 					QString::fromStdString(toml::find_or(dict, "searchStr", ""));
 				entry.translation = dict.contains("rep") ? QString::fromStdString(toml::find_or(dict, "rep", "")) :
@@ -66,7 +66,7 @@ QList<DictionaryEntry> ReadDicts::readGptDicts(const fs::path& dictPath)
 				if (!elem.is_object()) {
 					continue;
 				}
-				DictionaryEntry entry;
+				GptDictEntry entry;
 				entry.original = QString::fromStdString(elem.value("src", ""));
 				entry.translation = QString::fromStdString(elem.value("dst", ""));
 				entry.description = QString::fromStdString(elem.value("info", ""));
@@ -91,7 +91,7 @@ QList<DictionaryEntry> ReadDicts::readGptDicts(const fs::path& dictPath)
 			if (tokens.size() < 2) {
 				continue;
 			}
-			DictionaryEntry entry;
+			GptDictEntry entry;
 			entry.original = QString::fromStdString(tokens[0]);
 			entry.translation = QString::fromStdString(tokens[1]);
 			if (tokens.size() > 2) {
@@ -111,9 +111,9 @@ QList<DictionaryEntry> ReadDicts::readGptDicts(const fs::path& dictPath)
 	return result;
 }
 
-QList<DictionaryEntry> ReadDicts::readGptDicts(const std::vector<fs::path>& dictPaths)
+QList<GptDictEntry> ReadDicts::readGptDicts(const std::vector<fs::path>& dictPaths)
 {
-	QList<DictionaryEntry> result;
+	QList<GptDictEntry> result;
 	for (const auto& dictPath : dictPaths) {
 		result.append(readGptDicts(dictPath));
 	}
