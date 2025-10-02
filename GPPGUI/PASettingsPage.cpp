@@ -91,7 +91,7 @@ void PASettingsPage::_setupUI()
 	mainLayout->addWidget(punctuationListArea);
 
 	// 语言不通检测的语言置信度，设置越高则检测越精准，但可能遗漏，反之亦然
-	double languageProbability = toml::get_or(_projectConfig["problemAnalyze"]["langProbability"], 0.85);
+	double languageProbability = toml::get_or(_projectConfig["problemAnalyze"]["langProbability"], 0.94);
 	ElaScrollPageArea* languageProbabilityArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* languageProbabilityLayout = new QHBoxLayout(languageProbabilityArea);
 	ElaText* languageProbabilityTitle = new ElaText(tr("语言置信度"), languageProbabilityArea);
@@ -183,7 +183,14 @@ void PASettingsPage::_setupUI()
 				toml::ordered_value newRetranslKeysTbl = toml::parse_str<toml::ordered_type_config>(retranslKeyEdit->toPlainText().toStdString());
 				auto& newRetranslKeysArr = newRetranslKeysTbl["retranslKeys"];
 				if (newRetranslKeysArr.is_array()) {
-					insertToml(_projectConfig, "problemAnalyze.retranslKeys", newRetranslKeysArr.as_array());
+					for (auto& rkey : newRetranslKeysArr.as_array()) {
+						int index = problemListToShow.indexOf(rkey.as_string());
+						if (index < 0) {
+							continue;
+						}
+						rkey = problemList[index].toStdString();
+					}
+					insertToml(_projectConfig, "problemAnalyze.retranslKeys", newRetranslKeysArr);
 				}
 				else {
 					insertToml(_projectConfig, "problemAnalyze.retranslKeys", toml::array{});

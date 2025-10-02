@@ -138,11 +138,16 @@ export {
             }
             pCurrentTable = &pCurrentTable->at(keys[i]).as_table();
         }
+        
         if constexpr (std::is_same_v<toml::basic_value<TC>, toml::ordered_value>) {
+            const auto orgComments = (*pCurrentTable)[keys.back()].comments();
             (*pCurrentTable)[keys.back()] = toml::ordered_value{ value };
+            pCurrentTable->at(keys.back()).comments() = orgComments;
         }
         else {
+            const auto orgComments = (*pCurrentTable)[keys.back()].comments();
             (*pCurrentTable)[keys.back()] = toml::value{ value };
+            pCurrentTable->at(keys.back()).comments() = orgComments;
         }
         return table;
     }

@@ -143,7 +143,7 @@ EpubCfgPage::EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : 
 				toml::ordered_value preTbl = toml::parse_str<toml::ordered_type_config>(preRegexEdit->toPlainText().toStdString());
 				auto& preArr = preTbl["preprocRegex"];
 				if (preArr.is_array()) {
-					insertToml(_projectConfig, "plugins.Epub.preprocRegex", preArr.as_array());
+					insertToml(_projectConfig, "plugins.Epub.preprocRegex", preArr);
 				}
 				else {
 					insertToml(_projectConfig, "plugins.Epub.preprocRegex", toml::array{});
@@ -156,7 +156,7 @@ EpubCfgPage::EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : 
 				toml::ordered_value postTbl = toml::parse_str<toml::ordered_type_config>(postRegexEdit->toPlainText().toStdString());
 				auto& postArr = postTbl["postprocRegex"];
 				if (postArr.is_array()) {
-					insertToml(_projectConfig, "plugins.Epub.postprocRegex", postArr.as_array());
+					insertToml(_projectConfig, "plugins.Epub.postprocRegex", postArr);
 				}
 				else {
 					insertToml(_projectConfig, "plugins.Epub.postprocRegex", toml::array{});

@@ -57,58 +57,62 @@ void PromptSettingsPage::_setupUI()
 	auto createPromptWidgetFunc =
 		[=](const QString& promptName, const std::string& userPromptKey, const std::string& systemPromptKey) -> std::function<void()>
 		{
-			QWidget* forgalJsonWidget = new QWidget(mainWidget);
-			QVBoxLayout* forgalJsonLayout = new QVBoxLayout(forgalJsonWidget);
-			QWidget* forgalJsonButtonWidget = new QWidget(mainWidget);
-			QHBoxLayout* forgalJsonButtonLayout = new QHBoxLayout(forgalJsonButtonWidget);
-			ElaPushButton* forgalJsonUserModeButtom = new ElaPushButton(forgalJsonButtonWidget);
-			forgalJsonUserModeButtom->setText(tr("用户提示词"));
-			forgalJsonUserModeButtom->setEnabled(false);
-			ElaPushButton* forgalJsonSystemModeButtom = new ElaPushButton(forgalJsonButtonWidget);
-			forgalJsonSystemModeButtom->setText(tr("系统提示词"));
-			forgalJsonSystemModeButtom->setEnabled(true);
-			forgalJsonButtonLayout->addWidget(forgalJsonUserModeButtom);
-			forgalJsonButtonLayout->addWidget(forgalJsonSystemModeButtom);
-			forgalJsonButtonLayout->addStretch();
-			forgalJsonLayout->addWidget(forgalJsonButtonWidget, 0, Qt::AlignTop);
+			QWidget* promptWidget = new QWidget(mainWidget);
+			QVBoxLayout* promptLayout = new QVBoxLayout(promptWidget);
+			QWidget* promptButtonWidget = new QWidget(mainWidget);
+			QHBoxLayout* promptButtonLayout = new QHBoxLayout(promptButtonWidget);
+			ElaPushButton* promptUserModeButtom = new ElaPushButton(promptButtonWidget);
+			promptUserModeButtom->setText(tr("用户提示词"));
+			promptUserModeButtom->setEnabled(false);
+			ElaPushButton* promptSystemModeButtom = new ElaPushButton(promptButtonWidget);
+			promptSystemModeButtom->setText(tr("系统提示词"));
+			promptSystemModeButtom->setEnabled(true);
+			promptButtonLayout->addWidget(promptUserModeButtom);
+			promptButtonLayout->addWidget(promptSystemModeButtom);
+			promptButtonLayout->addStretch();
+			promptLayout->addWidget(promptButtonWidget, 0, Qt::AlignTop);
 
-			QStackedWidget* forgalJsonStackedWidget = new QStackedWidget(forgalJsonWidget);
+			QStackedWidget* promptStackedWidget = new QStackedWidget(promptWidget);
 			// 用户提示词
-			ElaPlainTextEdit* forgalJsonUserModeEdit = new ElaPlainTextEdit(forgalJsonStackedWidget);
-			QFont plainTextFont = forgalJsonUserModeEdit->font();
+			ElaPlainTextEdit* promptUserModeEdit = new ElaPlainTextEdit(promptStackedWidget);
+			QFont plainTextFont = promptUserModeEdit->font();
 			plainTextFont.setPixelSize(15);
-			forgalJsonUserModeEdit->setFont(plainTextFont);
-			forgalJsonUserModeEdit->setPlainText(
-				QString::fromStdString(toml::get_or(_promptConfig[userPromptKey], std::string{}))
+			promptUserModeEdit->setFont(plainTextFont);
+			promptUserModeEdit->setPlainText(
+				QString::fromStdString(toml::get_or(_promptConfig[userPromptKey], ""))
 			);
-			forgalJsonStackedWidget->addWidget(forgalJsonUserModeEdit);
+			promptStackedWidget->addWidget(promptUserModeEdit);
 			// 系统提示词
-			ElaPlainTextEdit* forgalJsonSystemModeEdit = new ElaPlainTextEdit(forgalJsonStackedWidget);
+			ElaPlainTextEdit* forgalJsonSystemModeEdit = new ElaPlainTextEdit(promptStackedWidget);
 			forgalJsonSystemModeEdit->setFont(plainTextFont);
 			forgalJsonSystemModeEdit->setPlainText(
-				QString::fromStdString(toml::get_or(_promptConfig[systemPromptKey], std::string{}))
+				QString::fromStdString(toml::get_or(_promptConfig[systemPromptKey], ""))
 			);
-			forgalJsonStackedWidget->addWidget(forgalJsonSystemModeEdit);
-			forgalJsonStackedWidget->setCurrentIndex(0);
-			forgalJsonLayout->addWidget(forgalJsonStackedWidget, 1);
-			connect(forgalJsonUserModeButtom, &ElaPushButton::clicked, this, [=]()
+			promptStackedWidget->addWidget(forgalJsonSystemModeEdit);
+			promptStackedWidget->setCurrentIndex(0);
+			promptLayout->addWidget(promptStackedWidget, 1);
+			connect(promptUserModeButtom, &ElaPushButton::clicked, this, [=]()
 				{
-					forgalJsonStackedWidget->setCurrentIndex(0);
-					forgalJsonUserModeButtom->setEnabled(false);
-					forgalJsonSystemModeButtom->setEnabled(true);
+					promptStackedWidget->setCurrentIndex(0);
+					promptUserModeButtom->setEnabled(false);
+					promptSystemModeButtom->setEnabled(true);
 				});
-			connect(forgalJsonSystemModeButtom, &ElaPushButton::clicked, this, [=]()
+			connect(promptSystemModeButtom, &ElaPushButton::clicked, this, [=]()
 				{
-					forgalJsonStackedWidget->setCurrentIndex(1);
-					forgalJsonUserModeButtom->setEnabled(true);
-					forgalJsonSystemModeButtom->setEnabled(false);
+					promptStackedWidget->setCurrentIndex(1);
+					promptUserModeButtom->setEnabled(true);
+					promptSystemModeButtom->setEnabled(false);
 				});
-			tabWidget->addTab(forgalJsonWidget, promptName);
+			tabWidget->addTab(promptWidget, promptName);
 
 			auto result = [=]()
 				{
-					insertToml(_promptConfig, userPromptKey, forgalJsonUserModeEdit->toPlainText().toStdString());
-					insertToml(_promptConfig, systemPromptKey, forgalJsonSystemModeEdit->toPlainText().toStdString());
+					toml::ordered_value userPromptVal = promptUserModeEdit->toPlainText().toStdString();
+					toml::ordered_value systemPromptVal = forgalJsonSystemModeEdit->toPlainText().toStdString();
+					userPromptVal.as_string_fmt().fmt = toml::string_format::multiline_basic;
+					systemPromptVal.as_string_fmt().fmt = toml::string_format::multiline_basic;
+					insertToml(_promptConfig, userPromptKey, userPromptVal);
+					insertToml(_promptConfig, systemPromptKey, systemPromptVal);
 				};
 			return result;
 		};
@@ -129,7 +133,7 @@ void PromptSettingsPage::_setupUI()
 			sakuraApplyFunc();
 			gendicApplyFunc();
 			std::ofstream ofs(_projectDir / L"Prompt.toml");
-			ofs << _promptConfig;
+			ofs << toml::format(_promptConfig);
 			ofs.close();
 		};
 

@@ -29,35 +29,35 @@ transEngine = "ForGalJson"
 textPostPlugins = [
 ] 
 
-  [plugins.NormalJson]
-  output_with_src = true
+[plugins.NormalJson]
+output_with_src = true
 
-  [plugins.Epub]
-  "双语显示" = true
+[plugins.Epub]
+"双语显示" = true
 
-    [[plugins.Epub.preprocRegex]]
-    org = '<ruby><rb>(.+?)</rb><rt>(.+?)</rt></ruby>'
-    rep = '[$2/$1]'
+[[plugins.Epub.preprocRegex]]
+org = '<ruby><rb>(.+?)</rb><rt>(.+?)</rt></ruby>'
+rep = '[$2/$1]'
 
-    [[plugins.Epub.preprocRegex]]
-    org = '(<p[^>/]*>)(.*?)(</p>)'
-    callback = [
-        { org = '<[^>]*>', rep = '', group = 2 },
-    ]
+[[plugins.Epub.preprocRegex]]
+org = '(<p[^>/]*>)(.*?)(</p>)'
+callback = [
+  { org = '<[^>]*>', rep = '', group = 2 },
+]
 
-    [[plugins.Epub.postprocRegex]]
-    org = '\[([^/\[\]]+?)/([^/\[\]]+?)\]'
-    rep = '<ruby><rb>$2</rb><rt>$1</rt></ruby>'
+[[plugins.Epub.postprocRegex]]
+org = '\[([^/\[\]]+?)/([^/\[\]]+?)\]'
+rep = '<ruby><rb>$2</rb><rt>$1</rt></ruby>'
 
-  [plugins.PDF]
-  PDFConverterPath = "BaseConfig/PDFConverter/PDFConverter.exe"
+[plugins.PDF]
+PDFConverterPath = "BaseConfig/PDFConverter/PDFConverter.exe"
 
-  [plugins.TextLinebreakFix]
-  "换行模式" = "优先标点"
-  "仅在标点后添加" = true # 仅在优先标点模式有效
+[plugins.TextLinebreakFix]
+"换行模式" = "优先标点"
+"仅在标点后添加" = true # 仅在优先标点模式有效
 
-  [plugins.TextPostFull2Half]
-  "是否反向替换" = false  # false=全角->半角，true=半角->全角
+[plugins.TextPostFull2Half]
+"是否反向替换" = false  # false=全角->半角，true=半角->全角
 
 [common]
 numPerRequestTranslate = 8 # 单次请求翻译句子数量，推荐值 < 15
@@ -99,13 +99,13 @@ problemList = [
 
 #"重翻在缓存的problem或orig_text中包含对应**关键字**的句子，去掉下面列表中的#号注释来使用，也可添加自定义的关键字。",
 retranslKeys = [
-  "翻译失败",
   #"残留日文",
+  "翻译失败",
 ]
 
 #规定标点错漏要查哪些标点
 punctSet = """（()）：:*[]{}<>『』「」“”;；'/\\"""
-langProbability = 0.85 # 语言不通检测的语言置信度，设置越高则检测越精准，但可能遗漏，反之亦然
+langProbability = 0.94 # 语言不通检测的语言置信度，设置越高则检测越精准，但可能遗漏，反之亦然
 
 # 问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)
 overwriteCompareObj = [

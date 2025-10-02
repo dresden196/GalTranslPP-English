@@ -875,7 +875,7 @@
     </message>
     <message>
         <location filename="DefaultPromptPage.cpp" line="113"/>
-        <location filename="DefaultPromptPage.cpp" line="128"/>
+        <location filename="DefaultPromptPage.cpp" line="132"/>
         <source>保存成功</source>
         <translation type="unfinished">saved successfully</translation>
     </message>
@@ -885,12 +885,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DefaultPromptPage.cpp" line="128"/>
+        <location filename="DefaultPromptPage.cpp" line="132"/>
         <source>默认 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="DefaultPromptPage.cpp" line="128"/>
+        <location filename="DefaultPromptPage.cpp" line="132"/>
         <source> 提示词配置已保存。</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2001,18 +2001,18 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="193"/>
-        <location filename="PASettingsPage.cpp" line="208"/>
+        <location filename="PASettingsPage.cpp" line="200"/>
+        <location filename="PASettingsPage.cpp" line="215"/>
         <source>解析错误</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="193"/>
+        <location filename="PASettingsPage.cpp" line="200"/>
         <source>retranslKeys不符合 toml 规范</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="208"/>
+        <location filename="PASettingsPage.cpp" line="215"/>
         <source>overwriteCompareObj不符合 toml 规范</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2255,32 +2255,32 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="116"/>
+        <location filename="PromptSettingsPage.cpp" line="120"/>
         <source>ForGalJson</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="117"/>
+        <location filename="PromptSettingsPage.cpp" line="121"/>
         <source>ForGalTsv</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="118"/>
+        <location filename="PromptSettingsPage.cpp" line="122"/>
         <source>ForNovelTsv</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="119"/>
+        <location filename="PromptSettingsPage.cpp" line="123"/>
         <source>DeepSeek</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="120"/>
+        <location filename="PromptSettingsPage.cpp" line="124"/>
         <source>Sakura</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="121"/>
+        <location filename="PromptSettingsPage.cpp" line="125"/>
         <source>GenDict</source>
         <translation type="unfinished"></translation>
     </message>

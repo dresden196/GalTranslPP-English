@@ -115,15 +115,19 @@ void DefaultPromptPage::_setupUI()
 
 			auto result = [=]()
 				{
-					insertToml(_promptConfig, userPromptKey, promptUserModeEdit->toPlainText().toStdString());
-					insertToml(_promptConfig, systemPromptKey, promptSystemModeEdit->toPlainText().toStdString());
+					toml::ordered_value userPromptVal = promptUserModeEdit->toPlainText().toStdString();
+					toml::ordered_value systemPromptVal = promptSystemModeEdit->toPlainText().toStdString();
+					userPromptVal.as_string_fmt().fmt = toml::string_format::multiline_basic;
+					systemPromptVal.as_string_fmt().fmt = toml::string_format::multiline_basic;
+					insertToml(_promptConfig, userPromptKey, userPromptVal);
+					insertToml(_promptConfig, systemPromptKey, systemPromptVal);
 				};
 
 			connect(promptSaveButton, &ElaPushButton::clicked, this, [=]()
 				{
 					result();
 					std::ofstream ofs(L"BaseConfig/Prompt.toml");
-					ofs << _promptConfig;
+					ofs << toml::format(_promptConfig);
 					ofs.close();
 					ElaMessageBar::success(ElaMessageBarType::TopRight, tr("保存成功"), tr("默认 ") + promptName + tr(" 提示词配置已保存。"), 3000);
 				});
