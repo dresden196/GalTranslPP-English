@@ -4,6 +4,7 @@ module;
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
+#include <ranges>
 
 export module Dictionary;
 
@@ -57,8 +58,7 @@ export {
 
         // 条件字典相关
         bool isConditional;
-        std::shared_ptr<icu::RegexPattern> conditionReg;
-        CachePart conditionTarget;
+        GPPCondition gppCondition;
     };
 
     class NormalDictionary {
@@ -335,24 +335,12 @@ void NormalDictionary::loadFromFile(const fs::path& filePath) {
                 count++;
                 continue;
             }
-
-            std::string conditionTarget = el.at("conditionTarget").as_string();
-            entry.conditionTarget = chooseCachePart(conditionTarget);
-            if (entry.conditionTarget == CachePart::None) {
-                throw std::invalid_argument(std::format("Normal 字典文件格式错误(conditionTarget 无效): {}  ——  {}",
-                    wide2Ascii(filePath), conditionTarget));
+            else {
+                entry.gppCondition = createGppCondition(el);
+                m_entries.push_back(entry);
+                count++;
             }
             
-            str = el.at("conditionReg").as_string();
-            icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(str));
-            entry.conditionReg.reset(icu::RegexPattern::compile(ustr, 0, status));
-            if (U_FAILURE(status)) {
-                throw std::runtime_error(std::format("Normal 字典文件格式错误(conditionReg 正则表达式错误): {}  ——  {}",
-                    wide2Ascii(filePath), str));
-            }
-
-            m_entries.push_back(entry);
-            count++;
         }
     }
     catch (const toml::exception& e) {
@@ -386,39 +374,26 @@ std::string NormalDictionary::doReplace(const Sentence* sentence, CachePart targ
         return textToModify;
     }
 
-    for (const auto& entry : m_entries) {
-        bool canReplace = false;
-        if (!entry.isConditional) {
-            canReplace = true;
+    for (const auto& entry : m_entries
+        | std::views::filter([&](const auto& entry)
+            {
+                return !entry.isConditional || checkCondition(entry.gppCondition, sentence);
+            })) 
+    {
+        if (entry.isReg) {
+            icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(textToModify));
+            UErrorCode status = U_ZERO_ERROR;
+            std::unique_ptr<icu::RegexMatcher> matcher(entry.searchReg->matcher(ustr, status));
+            if (U_FAILURE(status)) {
+                m_logger->error("正则表达式创建matcher失败: {}, 句子: [{}]", u_errorName(status), textToModify);
+                return textToModify;
+            }
+            icu::UnicodeString result = matcher->replaceAll(icu::UnicodeString::fromUTF8(entry.replaceStr), status);
+            textToModify.clear();
+            result.toUTF8String(textToModify);
         }
         else {
-            icu::UnicodeString textToInspect = icu::UnicodeString::fromUTF8(chooseString(sentence, entry.conditionTarget));
-            UErrorCode status = U_ZERO_ERROR;
-            std::unique_ptr<icu::RegexMatcher> matcher(entry.conditionReg->matcher(textToInspect, status));
-            if (!U_FAILURE(status)) {
-                canReplace = matcher->find();
-            }
-            else {
-                m_logger->error("正则表达式创建matcher失败: {}, 句子: [{}]", u_errorName(status), textToModify);
-            }
-        }
-
-        if (canReplace) {
-            if (entry.isReg) {
-                icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(textToModify));
-                UErrorCode status = U_ZERO_ERROR;
-                std::unique_ptr<icu::RegexMatcher> matcher(entry.searchReg->matcher(ustr, status));
-                if (U_FAILURE(status)) {
-                    m_logger->error("正则表达式创建matcher失败: {}, 句子: [{}]", u_errorName(status), textToModify);
-                    return textToModify;
-                }
-                icu::UnicodeString result = matcher->replaceAll(icu::UnicodeString::fromUTF8(entry.replaceStr), status);
-                std::string str;
-                textToModify = result.toUTF8String(str);
-            }
-            else {
-                replaceStrInplace(textToModify, entry.searchStr, entry.replaceStr);
-            }
+            replaceStrInplace(textToModify, entry.searchStr, entry.replaceStr);
         }
     }
 

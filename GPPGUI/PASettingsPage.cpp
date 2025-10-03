@@ -108,76 +108,75 @@ void PASettingsPage::_setupUI()
 
 	mainLayout->addSpacing(20);
 
-	// 正则表达式列表，重翻正则在缓存的 orig_text 或 某条 problem 中能 search 通过的句子。
-	toml::ordered_value retranslKeysArr = toml::array{};
-	auto& retranslKeys = _projectConfig["problemAnalyze"]["retranslKeys"];
-	if (retranslKeys.is_array()) {
-		retranslKeysArr = retranslKeys;
-	}
-	retranslKeysArr.comments().clear();
-	ElaText* retranslKeyHelperText = new ElaText(tr("重翻关键字设定"), mainWidget);
-	ElaToolTip* retranslKeyHelperTip = new ElaToolTip(retranslKeyHelperText);
-	retranslKeyHelperTip->setToolTip(tr("正则表达式列表，重翻正则在缓存的 orig_text 或 某条 problem 中能 search 通过的句子。遵循toml格式"));
-	retranslKeyHelperText->setTextPixelSize(18);
-	retranslKeyHelperText->setWordWrap(false);
-	mainLayout->addWidget(retranslKeyHelperText);
-	ElaPlainTextEdit* retranslKeyEdit = new ElaPlainTextEdit(mainWidget);
-	QFont font = retranslKeyEdit->font();
-	font.setPixelSize(14);
-	retranslKeyEdit->setFont(font);
-	retranslKeyEdit->setPlainText(QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ "retranslKeys", retranslKeysArr }} })));
-	retranslKeyEdit->moveCursor(QTextCursor::End);
-	mainLayout->addWidget(retranslKeyEdit);
+	auto createPAPlainTextEditAreaFunc = 
+		[=](const std::string& configKey, const QString& title, std::optional<int> minHeight = std::nullopt)
+		-> std::function<void()>
+		{
+			toml::ordered_value retranslKeysArr = toml::array{};
+			auto& retranslKeys = _projectConfig["problemAnalyze"][configKey];
+			if (retranslKeys.is_array()) {
+				retranslKeysArr = retranslKeys;
+			}
+			ElaText* retranslKeyHelperText = new ElaText(title, mainWidget);
+			retranslKeyHelperText->setTextPixelSize(18);
+			retranslKeyHelperText->setWordWrap(false);
+			mainLayout->addWidget(retranslKeyHelperText);
+			ElaPlainTextEdit* retranslKeyEdit = new ElaPlainTextEdit(mainWidget);
+			if (minHeight) {
+				retranslKeyEdit->setMinimumHeight(*minHeight);
+			}
+			QFont font = retranslKeyEdit->font();
+			font.setPixelSize(14);
+			retranslKeyEdit->setFont(font);
+			retranslKeyEdit->setPlainText(QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ configKey, retranslKeysArr }} })));
+			retranslKeyEdit->moveCursor(QTextCursor::Start);
+			mainLayout->addWidget(retranslKeyEdit);
 
+			std::function<void()> saveFunc = [=]()
+				{
+					try {
+						toml::ordered_value newRetranslKeysTbl = toml::parse_str<toml::ordered_type_config>(retranslKeyEdit->toPlainText().toStdString());
+						auto& newRetranslKeysArr = newRetranslKeysTbl[configKey];
+						if (newRetranslKeysArr.is_array()) {
+							if (configKey == "retranslKeys") {
+								for (auto& rkey : newRetranslKeysArr.as_array()) {
+									int index = problemListToShow.indexOf(rkey.as_string());
+									if (index < 0) {
+										continue;
+									}
+									rkey = problemList[index].toStdString();
+								}
+							}
+							insertToml(_projectConfig, "problemAnalyze." + configKey, newRetranslKeysArr);
+						}
+						else {
+							insertToml(_projectConfig, "problemAnalyze." + configKey, toml::array{});
+						}
+					}
+					catch (...) {
+						ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析错误"), QString::fromStdString(configKey) + tr("不符合 toml 规范"), 3000);
+					}
+				};
+			return saveFunc;
+		};
+
+	// 正则表达式列表，重翻正则在缓存的 orig_text 或 某条 problem 中能 search 通过的句子。
+	auto retranslKeysSaveFunc = createPAPlainTextEditAreaFunc("retranslKeys", tr("重翻关键字设定"), 280);
 	mainLayout->addSpacing(20);
 
 	// 正则表达式列表，如果一条 problem 能被以下正则 search 通过，则不加入 problems 列表
-	toml::ordered_value excludeKeysArr = toml::array{};
-	auto& excludeKeys = _projectConfig["problemAnalyze"]["skipProblems"];
-	if (excludeKeys.is_array()) {
-		excludeKeysArr = excludeKeys;
-	}
-	excludeKeysArr.comments().clear();
-	ElaText* excludeKeyHelperText = new ElaText(tr("跳过问题关键字设定"), mainWidget);
-	ElaToolTip* excludeKeyHelperTip = new ElaToolTip(excludeKeyHelperText);
-	excludeKeyHelperTip->setToolTip(tr("正则表达式列表，如果一条 problem 能被以下正则 search 通过，则不加入 problems 列表。遵循toml格式"));
-	excludeKeyHelperText->setTextPixelSize(18);
-	excludeKeyHelperText->setWordWrap(false);
-	mainLayout->addWidget(excludeKeyHelperText);
-	ElaPlainTextEdit* excludeKeyEdit = new ElaPlainTextEdit(mainWidget);
-	excludeKeyEdit->setFont(font);
-	excludeKeyEdit->setPlainText(QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ "skipProblems", excludeKeysArr }} })));
-	excludeKeyEdit->moveCursor(QTextCursor::End);
-	mainLayout->addWidget(excludeKeyEdit);
-
+	auto skipProblemsSaveFunc = createPAPlainTextEditAreaFunc("skipProblems", tr("跳过问题关键字设定"), 280);
 	mainLayout->addSpacing(20);
 
 	// 问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)
-	toml::ordered_value compareObjArr = toml::array{};
-	auto& overwriteCompareObj = _projectConfig["problemAnalyze"]["overwriteCompareObj"];
-	if (overwriteCompareObj.is_array()) {
-		compareObjArr = overwriteCompareObj;
-	}
-	compareObjArr.comments().clear();
-	ElaText* compareObjHelperText = new ElaText(tr("问题比较对象设定"), mainWidget);
-	ElaToolTip* compareObjHelperTip = new ElaToolTip(compareObjHelperText);
-	compareObjHelperTip->setToolTip(tr("问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)，遵循toml格式"));
-	compareObjHelperText->setTextPixelSize(18);
-	compareObjHelperText->setWordWrap(false);
-	mainLayout->addWidget(compareObjHelperText);
-	ElaPlainTextEdit* compareObjEdit = new ElaPlainTextEdit(mainWidget);
-	compareObjEdit->setMinimumHeight(300);
-	compareObjEdit->setFont(font);
-	compareObjEdit->setPlainText(QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ "overwriteCompareObj", compareObjArr }} })));
-	compareObjEdit->moveCursor(QTextCursor::End);
-	mainLayout->addWidget(compareObjEdit);
+	auto overwriteCompareObjSaveFunc = createPAPlainTextEditAreaFunc("overwriteCompareObj", tr("问题比较对象设定"), 300);
 
 	QWidget* illusButtonWidget = new QWidget(mainWidget);
 	QHBoxLayout* illusButtonLayout = new QHBoxLayout(illusButtonWidget);
 	illusButtonLayout->addStretch();
 	ElaPushButton* illusButton = new ElaPushButton(tr("语法示例"), illusButtonWidget);
 	ElaToolTip* illusButtonTip = new ElaToolTip(illusButton);
-	illusButtonTip->setToolTip(tr("查看 重翻关键字 和 问题比较对象 设定的语法示例"));
+	illusButtonTip->setToolTip(tr("查看 重翻关键字/跳过问题关键字/问题比较对象 设定的语法示例"));
 	illusButtonLayout->addWidget(illusButton);
 	connect(illusButton, &ElaPushButton::clicked, this, [=]()
 		{
@@ -200,54 +199,9 @@ void PASettingsPage::_setupUI()
 			insertToml(_projectConfig, "problemAnalyze.punctSet", punctuationList->text().toStdString());
 			insertToml(_projectConfig, "problemAnalyze.langProbability", languageProbabilitySlider->value());
 
-			try {
-				toml::ordered_value newRetranslKeysTbl = toml::parse_str<toml::ordered_type_config>(retranslKeyEdit->toPlainText().toStdString());
-				auto& newRetranslKeysArr = newRetranslKeysTbl["retranslKeys"];
-				if (newRetranslKeysArr.is_array()) {
-					for (auto& rkey : newRetranslKeysArr.as_array()) {
-						int index = problemListToShow.indexOf(rkey.as_string());
-						if (index < 0) {
-							continue;
-						}
-						rkey = problemList[index].toStdString();
-					}
-					insertToml(_projectConfig, "problemAnalyze.retranslKeys", newRetranslKeysArr);
-				}
-				else {
-					insertToml(_projectConfig, "problemAnalyze.retranslKeys", toml::array{});
-				}
-			}
-			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析错误"), tr("retranslKeys不符合 toml 规范"), 3000);
-			}
-
-			try {
-				toml::ordered_value newExcludeKeysTbl = toml::parse_str<toml::ordered_type_config>(excludeKeyEdit->toPlainText().toStdString());
-				auto& newExcludeKeysArr = newExcludeKeysTbl["skipProblems"];
-				if (newExcludeKeysArr.is_array()) {
-					insertToml(_projectConfig, "problemAnalyze.skipProblems", newExcludeKeysArr);
-				}
-				else {
-					insertToml(_projectConfig, "problemAnalyze.skipProblems", toml::array{});
-				}
-			}
-			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析错误"), tr("skipProblems不符合 toml 规范"), 3000);
-			}
-
-			try {
-				toml::ordered_value newCompareObjTbl = toml::parse_str<toml::ordered_type_config>(compareObjEdit->toPlainText().toStdString());
-				auto& newCompareObjArr = newCompareObjTbl["overwriteCompareObj"];
-				if (newCompareObjArr.is_array()) {
-					insertToml(_projectConfig, "problemAnalyze.overwriteCompareObj", newCompareObjArr);
-				}
-				else {
-					insertToml(_projectConfig, "problemAnalyze.overwriteCompareObj", toml::array{});
-				}
-			}
-			catch (...) {
-				ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析错误"), tr("overwriteCompareObj不符合 toml 规范"), 3000);
-			}
+			retranslKeysSaveFunc();
+			skipProblemsSaveFunc();
+			overwriteCompareObjSaveFunc();
 		};
 
 	addCentralWidget(mainWidget, true, true, 0);

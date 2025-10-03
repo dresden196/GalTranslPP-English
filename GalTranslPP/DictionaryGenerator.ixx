@@ -237,8 +237,8 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
     }
 
     std::string prompt = m_userPrompt;
-    prompt = boost::regex_replace(prompt, boost::regex(R"(\{input\})"), text);
-    prompt = boost::regex_replace(prompt, boost::regex(R"(\{hint\})"), hint);
+    replaceStrInplace(prompt, "{input}", text);
+    replaceStrInplace(prompt, "{hint}", hint);
 
     json messages = json::array({
         {{"role", "system"}, {"content", m_systemPrompt}},

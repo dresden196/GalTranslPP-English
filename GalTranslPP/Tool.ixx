@@ -10,6 +10,7 @@ module;
 #include <unicode/uchar.h>
 #include <unicode/brkiter.h>
 #include <unicode/schriter.h>
+#include <unicode/regex.h>
 #include <unicode/uscript.h>
 
 export module Tool;
@@ -85,6 +86,53 @@ export {
     void extractZip(const fs::path& zipPath, const fs::path& outputDir);
 
 
+
+    struct ConditionPattern {
+        CachePart conditionTarget;
+        std::shared_ptr<icu::RegexPattern> conditionReg;
+    };
+    using GPPCondition = std::vector<ConditionPattern>;
+
+    bool checkString(std::shared_ptr<icu::RegexPattern> conditionReg, const std::string& str);
+    bool checkCondition(const GPPCondition& conditions, const Sentence* se);
+
+    template<typename TC>
+    std::vector<ConditionPattern> createGppCondition(const toml::basic_value<TC>& conditions) {
+        std::vector<ConditionPattern> patterns;
+
+        auto appendPatternFunc = [&](const auto& conditionTbl)
+            {
+                ConditionPattern pattern;
+                pattern.conditionTarget = chooseCachePart(conditionTbl.at("conditionTarget").as_string());
+                const std::string& conditionRegStr = conditionTbl.at("conditionReg").as_string();
+                icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(conditionRegStr));
+                UErrorCode status = U_ZERO_ERROR;
+                pattern.conditionReg = std::shared_ptr<icu::RegexPattern>(icu::RegexPattern::compile(ustr, 0, status));
+                if (U_FAILURE(status)) {
+                    throw std::runtime_error(std::format("Failed to compile regex pattern: {}", conditionRegStr));
+                }
+                patterns.push_back(pattern);
+            };
+        if (conditions.is_array()) {
+            for (const auto& condition : conditions.as_array() 
+                | std::views::filter([](const auto& condition) { return condition.is_table(); }))
+            {
+                appendPatternFunc(condition.as_table());
+            }
+        }
+        else if (conditions.is_table()) {
+            appendPatternFunc(conditions.as_table());
+            if (conditions.contains("additionalPatterns") && conditions.at("additionalPatterns").is_array()) {
+                for (const auto& condition : conditions.at("additionalPatterns").as_array() 
+                    | std::views::filter([](const auto& condition) { return condition.is_table(); }))
+                {
+                    appendPatternFunc(condition.as_table());
+                }
+            }
+        }
+        
+        return patterns;
+    }
 
     template<typename T>
     T calculateAbs(T a, T b) {
@@ -366,13 +414,16 @@ const std::string& chooseStringRef(const Sentence* sentence, CachePart tar) {
     case CachePart::PretransText:
         return sentence->pre_translated_text;
         break;
+    case CachePart::TranslatedBy:
+        return sentence->translated_by;
+        break;
     case CachePart::TransPreview:
         return sentence->translated_preview;
         break;
     case CachePart::None:
         throw std::runtime_error("Invalid condition target: None");
     default:
-        throw std::runtime_error("Invalid condition target");
+        throw std::runtime_error("Invalid condition target to get string: " + std::to_string((int)tar));
     }
     return {};
 }
@@ -386,8 +437,14 @@ CachePart chooseCachePart(const std::string& partName) {
     if (partName == "name") {
         part = CachePart::Name;
     }
+    else if (partName == "names") {
+        part = CachePart::Names;
+    }
     else if (partName == "name_preview") {
         part = CachePart::NamePreview;
+    }
+    else if (partName == "names_preview") {
+        part = CachePart::NamesPreview;
     }
     else if (partName == "orig_text") {
         part = CachePart::OrigText;
@@ -398,10 +455,19 @@ CachePart chooseCachePart(const std::string& partName) {
     else if (partName == "pretrans_text") {
         part = CachePart::PretransText;
     }
+    else if (partName == "problems") {
+        part = CachePart::Problems;
+    }
+    else if (partName == "other_info") {
+        part = CachePart::OtherInfo;
+    }
+    else if (partName == "translated_by") {
+        part = CachePart::TranslatedBy;
+    }
     else if (partName == "trans_preview") {
         part = CachePart::TransPreview;
     }
-    return part;
+    throw std::invalid_argument("无效的 CachePart: " + partName);
 }
 
 bool isSameExtension(const fs::path& filePath, const std::wstring& ext) {
@@ -619,6 +685,54 @@ void extractZip(const fs::path& zipPath, const fs::path& outputDir) {
         }
     }
     zip_close(za);
+}
+
+bool checkString(std::shared_ptr<icu::RegexPattern> conditionReg, const std::string& str) {
+    icu::UnicodeString textToInspect = icu::UnicodeString::fromUTF8(str);
+    UErrorCode status = U_ZERO_ERROR;
+    std::unique_ptr<icu::RegexMatcher> matcher(conditionReg->matcher(textToInspect, status));
+    if (!U_FAILURE(status)) {
+        return (bool)matcher->find();
+    }
+    else {
+        std::string textToInspectU8;
+        throw std::runtime_error(std::format("正则表达式创建matcher失败: {}, 句子: [{}]", u_errorName(status), textToInspect.toUTF8String(textToInspectU8)));
+    }
+    return false;
+}
+
+bool checkCondition(const GPPCondition& conditions, const Sentence* se) {
+    return std::ranges::all_of(conditions, [&](const ConditionPattern& pattern)
+        {
+            if (pattern.conditionTarget == CachePart::Names) {
+                return std::ranges::any_of(se->names, [&](const auto& name)
+                    {
+                        return checkString(pattern.conditionReg, name);
+                    });
+            }
+            else if (pattern.conditionTarget == CachePart::NamesPreview) {
+                return std::ranges::any_of(se->names_preview, [&](const auto& name_preview)
+                    {
+                        return checkString(pattern.conditionReg, name_preview);
+                    });
+            }
+            else if (pattern.conditionTarget == CachePart::Problems) {
+                return std::ranges::any_of(se->problems, [&](const auto& problem)
+                    {
+                        return checkString(pattern.conditionReg, problem);
+                    });
+            }
+            else if (pattern.conditionTarget == CachePart::OtherInfo) {
+                return std::ranges::any_of(se->other_info, [&](const auto& info)
+                    {
+                        return checkString(pattern.conditionReg, info.second);
+                    });
+            }
+            else {
+                return checkString(pattern.conditionReg, chooseStringRef(se, pattern.conditionTarget));
+            }
+            return false;
+        });
 }
 
 

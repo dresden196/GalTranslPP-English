@@ -73,8 +73,10 @@ export {
         std::string m_splitFile;
         int m_splitFileNum;
         std::string m_linebreakSymbol;
-        std::vector<std::shared_ptr<icu::RegexPattern>> m_retranslKeys;
-        std::vector<std::shared_ptr<icu::RegexPattern>> m_skipProblems;
+        std::vector<GPPCondition> m_retranslKeys;
+        // first: 要忽略的 problem 正则表达式 pattern，second: 忽略条件
+        using SkipProblemCondition = std::pair<std::shared_ptr<icu::RegexPattern>, std::optional<GPPCondition>>;
+        std::vector<SkipProblemCondition> m_skipProblems;
 
         bool m_needsCombining = false;
         // 输入分割文件相对路径到原始json相对路径的映射
@@ -267,34 +269,58 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             m_problemAnalyzer.loadProblems(*problemList, punctSet, langProbability);
         }
 
-        auto addRegexFunc = [](const std::vector<std::string>& patterns, std::vector<std::shared_ptr<icu::RegexPattern>>& regexPatterns)
-            {
-                UErrorCode status = U_ZERO_ERROR;
-                for (const auto& pattern : patterns) {
-                    if (pattern.empty()) {
-                        continue;
-                    }
-                    icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(pattern));
-                    std::shared_ptr<icu::RegexPattern> regexPattern(icu::RegexPattern::compile(ustr, 0, status));
-                    if (U_FAILURE(status)) {
-                        throw std::runtime_error(std::format("skipProblems 正则编译错误: {}", pattern));
-                    }
-                    regexPatterns.push_back(regexPattern);
-                }
-            };
-
-        const auto& retranslKeys = toml::find<
-            std::optional<std::vector<std::string>>
-        >(configData, "problemAnalyze", "retranslKeys");
+        const auto& retranslKeys = toml::find<std::optional<toml::array>>(configData, "problemAnalyze", "retranslKeys");
         if (retranslKeys) {
-            addRegexFunc(*retranslKeys, m_retranslKeys);
+            for (const auto& elem : *retranslKeys) {
+                if (elem.is_string()) {
+                    ConditionPattern pattern;
+                    pattern.conditionTarget = CachePart::Problems;
+                    icu::UnicodeString ustr = icu::UnicodeString::fromUTF8(elem.as_string());
+                    UErrorCode status = U_ZERO_ERROR;
+                    pattern.conditionReg = std::shared_ptr<icu::RegexPattern>(icu::RegexPattern::compile(ustr, 0, status));
+                    if (U_FAILURE(status)) {
+                        throw std::runtime_error(std::format("retranslKeys 正则表达式 [{}] 编译失败", elem.as_string()));
+                    }
+                    m_retranslKeys.push_back(GPPCondition{ pattern });
+                }
+                else if (elem.is_array()) {
+                    m_retranslKeys.push_back(createGppCondition(elem));
+                }
+                else {
+                    throw std::invalid_argument("retranslKeys 元素必须是字符串或数组");
+                }
+            }
         }
 
-        const auto& skipProblems = toml::find<
-            std::optional<std::vector<std::string>>
-        >(configData, "problemAnalyze", "skipProblems");
+        const auto& skipProblems = toml::find<std::optional<toml::array>>(configData, "problemAnalyze", "skipProblems");
         if (skipProblems) {
-            addRegexFunc(*skipProblems, m_skipProblems);
+            auto compileProblemRegexFunc = [](const std::string& patternStr) -> std::shared_ptr<icu::RegexPattern>
+                {
+                    icu::UnicodeString ustr = icu::UnicodeString::fromUTF8(patternStr);
+                    UErrorCode status = U_ZERO_ERROR;
+                    std::shared_ptr<icu::RegexPattern> pattern = std::shared_ptr<icu::RegexPattern>(icu::RegexPattern::compile(ustr, 0, status));
+                    if (U_FAILURE(status)) {
+                        throw std::runtime_error(std::format("skipProblems Problem正则表达式 [{}] 编译失败", patternStr));
+                    }
+                    return pattern;
+                };
+            for (const auto& elem : *skipProblems) {
+                if (elem.is_string()) {
+                    m_skipProblems.push_back(std::make_pair(compileProblemRegexFunc(elem.as_string()), std::nullopt));
+                }
+                else if (elem.is_array() && elem.size() > 0) {
+                    if (!elem[0].is_string()) {
+                        throw std::invalid_argument("skipProblems 的内联表数组第一个元素必须是字符串");
+                    }
+                    std::shared_ptr<icu::RegexPattern> pattern = compileProblemRegexFunc(elem[0].as_string());
+                    if (elem.size() == 1) {
+                        m_skipProblems.push_back(std::make_pair(pattern, std::nullopt));
+                    }
+                    else {
+                        m_skipProblems.push_back(std::make_pair(pattern, createGppCondition(elem)));
+                    }
+                }
+            }
         }
 
         const auto& overwriteCompareObj = toml::find<std::optional<toml::array>>(configData, "problemAnalyze", "overwriteCompareObj");
@@ -542,17 +568,17 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
     }
 
     m_problemAnalyzer.analyze(se, m_gptDictionary, m_targetLang);
-    std::erase_if(se->problems, [this](const auto& problem)
+    std::erase_if(se->problems, [&](const auto& problem)
         {
-            icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(problem));
-            return std::ranges::any_of(m_skipProblems, [&](const auto& regexPattern)
+            return std::ranges::any_of(m_skipProblems, [&](const SkipProblemCondition& skipProblem)
                 {
-                    UErrorCode status = U_ZERO_ERROR;
-                    std::shared_ptr<icu::RegexMatcher> matcher(regexPattern->matcher(ustr, status));
-                    if (!U_FAILURE(status)) {
-                        return (bool)matcher->find();
+                    bool problemMatch = checkString(skipProblem.first, problem);
+                    if (!skipProblem.second.has_value()) {
+                        return problemMatch;
                     }
-                    return false;
+                    else {
+                        return problemMatch && checkCondition(*skipProblem.second, se);
+                    }
                 });
         });
 }
@@ -563,7 +589,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
     if (batch.empty()) {
         return true;
     }
-    for (auto& pSentence : batch) {
+    for (Sentence* pSentence : batch) {
         if (pSentence->pre_processed_text.empty()) {
             pSentence->complete = true;
             m_completedSentences++;
@@ -582,7 +608,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         }
 
         std::vector<Sentence*> batchToTransThisRound;
-        for (auto pSentence : batch | std::views::filter([](const Sentence* pSentence) { return !pSentence->complete; })) {
+        for (Sentence* pSentence : batch | std::views::filter([](const Sentence* pSentence) { return !pSentence->complete; })) {
             batchToTransThisRound.push_back(pSentence);
         }
         if (batchToTransThisRound.empty()) {
@@ -864,10 +890,7 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
                 continue;
             }
             const auto& item = it->second;
-            if (item.contains("problems") && item["problems"].is_array()) {
-                se.problems = item["problems"].get<std::vector<std::string>>();
-            }
-            if (m_transEngine != TransEngine::Rebuild && hasRetranslKey(m_retranslKeys, &se)) {
+            if (m_transEngine != TransEngine::Rebuild && hasRetranslKey(m_retranslKeys, item)) {
                 toTranslate.push_back(&se);
                 continue;
             }
@@ -1313,8 +1336,10 @@ void NormalJsonTranslator::run() {
     }
     // 问题概览完毕
 
-    fs::remove_all(m_inputCacheDir);
-    fs::remove_all(m_outputCacheDir);
+    if (m_needsCombining) {
+        fs::remove_all(m_inputCacheDir);
+        fs::remove_all(m_outputCacheDir);
+    }
     if (m_transEngine == TransEngine::Rebuild && m_completedSentences != m_totalSentences) {
         m_logger->critical("重建过程中有句子未命中缓存 ({}/{} lines)，请检查日志以定位问题。", m_completedSentences.load(), m_totalSentences);
     }

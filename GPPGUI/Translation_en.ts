@@ -842,8 +842,9 @@
     </message>
     <message>
         <location filename="CommonSettingsPage.cpp" line="329"/>
-        <source>将换行符统一规范为 &lt;br&gt; 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行，具体替换时机详见使用说明，auto为自动检测</source>
-        <translation>All linebreak symbols will be replaced to &lt;br&gt; for programming use</translation>
+        <source>将换行符统一规范为 &amp;lt;br&amp;gt; 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行。&lt;br&gt;具体替换时机详见使用说明，auto为自动检测</source>
+        <oldsource>将换行符统一规范为 &amp;lt;br&amp;gt; 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行，具体替换时机详见使用说明，auto为自动检测</oldsource>
+        <translation type="unfinished">All linebreak symbols will be replaced to &lt;br&gt; for programming use</translation>
     </message>
     <message>
         <location filename="CommonSettingsPage.cpp" line="372"/>
@@ -1986,65 +1987,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="118"/>
-        <source>重翻关键字设定</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="PASettingsPage.cpp" line="120"/>
-        <source>正则表达式列表，重翻正则在缓存的 orig_text 或 某条 problem 中能 search 通过的句子。遵循toml格式</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="PASettingsPage.cpp" line="141"/>
-        <source>跳过问题关键字设定</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="PASettingsPage.cpp" line="143"/>
-        <source>正则表达式列表，如果一条 problem 能被以下正则 search 通过，则不加入 problems 列表。遵循toml格式</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="PASettingsPage.cpp" line="162"/>
-        <source>问题比较对象设定</source>
+        <location filename="PASettingsPage.cpp" line="157"/>
+        <source>不符合 toml 规范</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="PASettingsPage.cpp" line="164"/>
-        <source>问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)，遵循toml格式</source>
+        <source>重翻关键字设定</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="178"/>
+        <location filename="PASettingsPage.cpp" line="179"/>
+        <source>查看 重翻关键字/跳过问题关键字/问题比较对象 设定的语法示例</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="PASettingsPage.cpp" line="168"/>
+        <source>跳过问题关键字设定</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="PASettingsPage.cpp" line="172"/>
+        <source>问题比较对象设定</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="PASettingsPage.cpp" line="177"/>
         <source>语法示例</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="180"/>
-        <source>查看 重翻关键字 和 问题比较对象 设定的语法示例</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="PASettingsPage.cpp" line="221"/>
-        <location filename="PASettingsPage.cpp" line="235"/>
-        <location filename="PASettingsPage.cpp" line="249"/>
+        <location filename="PASettingsPage.cpp" line="157"/>
         <source>解析错误</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="PASettingsPage.cpp" line="221"/>
-        <source>retranslKeys不符合 toml 规范</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="PASettingsPage.cpp" line="235"/>
-        <source>skipProblems不符合 toml 规范</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="PASettingsPage.cpp" line="249"/>
-        <source>overwriteCompareObj不符合 toml 规范</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2302,16 +2276,11 @@
     </message>
     <message>
         <location filename="PromptSettingsPage.cpp" line="123"/>
-        <source>DeepSeek</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="PromptSettingsPage.cpp" line="124"/>
         <source>Sakura</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="125"/>
+        <location filename="PromptSettingsPage.cpp" line="124"/>
         <source>GenDict</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2493,103 +2462,103 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="173"/>
+        <location filename="StartSettingsPage.cpp" line="172"/>
         <source>开始翻译</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="190"/>
+        <location filename="StartSettingsPage.cpp" line="189"/>
         <source>停止翻译</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="401"/>
+        <location filename="StartSettingsPage.cpp" line="400"/>
         <source>停止中</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="401"/>
+        <location filename="StartSettingsPage.cpp" line="400"/>
         <source>正在等待最后一批翻译完成，请稍候...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="413"/>
-        <location filename="StartSettingsPage.cpp" line="417"/>
-        <location filename="StartSettingsPage.cpp" line="424"/>
+        <location filename="StartSettingsPage.cpp" line="412"/>
+        <location filename="StartSettingsPage.cpp" line="416"/>
+        <location filename="StartSettingsPage.cpp" line="423"/>
         <source>翻译失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="413"/>
-        <location filename="StartSettingsPage.cpp" line="418"/>
-        <location filename="StartSettingsPage.cpp" line="424"/>
-        <location filename="StartSettingsPage.cpp" line="428"/>
-        <location filename="StartSettingsPage.cpp" line="431"/>
-        <location filename="StartSettingsPage.cpp" line="456"/>
+        <location filename="StartSettingsPage.cpp" line="412"/>
+        <location filename="StartSettingsPage.cpp" line="417"/>
+        <location filename="StartSettingsPage.cpp" line="423"/>
+        <location filename="StartSettingsPage.cpp" line="427"/>
+        <location filename="StartSettingsPage.cpp" line="430"/>
+        <location filename="StartSettingsPage.cpp" line="455"/>
         <source>项目 </source>
         <translation type="unfinished">Project </translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="413"/>
-        <location filename="StartSettingsPage.cpp" line="418"/>
+        <location filename="StartSettingsPage.cpp" line="412"/>
+        <location filename="StartSettingsPage.cpp" line="417"/>
         <source> 翻译任务失败，请检查日志输出。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="424"/>
+        <location filename="StartSettingsPage.cpp" line="423"/>
         <source> 连工厂函数都失败了，玩毛啊</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="428"/>
-        <location filename="StartSettingsPage.cpp" line="430"/>
-        <location filename="StartSettingsPage.cpp" line="437"/>
-        <location filename="StartSettingsPage.cpp" line="439"/>
+        <location filename="StartSettingsPage.cpp" line="427"/>
+        <location filename="StartSettingsPage.cpp" line="429"/>
+        <location filename="StartSettingsPage.cpp" line="436"/>
+        <location filename="StartSettingsPage.cpp" line="438"/>
         <source>生成完成</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="428"/>
-        <location filename="StartSettingsPage.cpp" line="431"/>
+        <location filename="StartSettingsPage.cpp" line="427"/>
+        <location filename="StartSettingsPage.cpp" line="430"/>
         <source> 的生成任务已完成。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="437"/>
-        <location filename="StartSettingsPage.cpp" line="440"/>
+        <location filename="StartSettingsPage.cpp" line="436"/>
+        <location filename="StartSettingsPage.cpp" line="439"/>
         <source>请在 show_normal 文件夹中查收项目 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="437"/>
-        <location filename="StartSettingsPage.cpp" line="440"/>
+        <location filename="StartSettingsPage.cpp" line="436"/>
+        <location filename="StartSettingsPage.cpp" line="439"/>
         <source> 的预处理结果。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="446"/>
-        <location filename="StartSettingsPage.cpp" line="448"/>
+        <location filename="StartSettingsPage.cpp" line="445"/>
+        <location filename="StartSettingsPage.cpp" line="447"/>
         <source>翻译完成</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="446"/>
-        <location filename="StartSettingsPage.cpp" line="449"/>
+        <location filename="StartSettingsPage.cpp" line="445"/>
+        <location filename="StartSettingsPage.cpp" line="448"/>
         <source>请在 gt_output 文件夹中查收项目 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="449"/>
+        <location filename="StartSettingsPage.cpp" line="448"/>
         <source> 的翻译结果。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="456"/>
+        <location filename="StartSettingsPage.cpp" line="455"/>
         <source>停止成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="456"/>
+        <location filename="StartSettingsPage.cpp" line="455"/>
         <source> 的翻译任务已终止</source>
         <translation type="unfinished"></translation>
     </message>

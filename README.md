@@ -48,9 +48,8 @@ GalTransl++无论处理哪种文件格式，最后都是统一化为json来读�
 * **`# ForGalJson`**: 实际翻译模式，向AI输入json格式的句子(包含`name`和`message`)并要求AI以json格式回复，程序将解析返回的Json。
 * **`# ForGalTsv`**: 实际翻译模式，向AI输入TSV格式的句子(包含`name`和`message`)并要求AI以TSV格式回复，程序将解析返回的TSV，可能比ForGalJson模式更省token。
 * **`# ForNovelTsv`**: 实际翻译模式，和 `ForGalTsv` 的区别主要是变动提示词，向AI输入和解析的时候都不带`name`键。
-* **`# DeepseekJson`**: 实际翻译模式，和 `ForGalJson` 的唯一区别是程序自带的默认提示词变成了中文。
 * **`# Sakura`**: 实际翻译模式，向AI输入自然语言形式的句子(包含`name`和`message`)，由于Sakura是翻译特化模型，不必要求即会返回同样形式的的句子，程序解析返回的自然语言。
-* **`# DumpName`**: 提取所有的 `name` 键，在项目文件夹下生成 `人名替换表.toml` 以供统一替换人名。
+* **`# DumpName`**: 提取所有的 `name` 键，在项目文件夹下生成 `人名替换表.toml` 以供统一替换人名(已有则仅更新)。
 * **`# GenDict`**: 借助AI自动生成术语表，保存在项目文件夹下的 `项目GPT字典-生成.toml` 中。
 * **`# Rebuild`**: 即使 `problem` 或 `orig_text` 中包含 `retranslKey` 也不会重翻，只根据缓存重建结果。
 * **`# ShowNormal`**: 保存预处理后的内容及句子到项目文件夹下带 `show_normal` 字段的文件夹中，如Epub格式下可生成预处理后的html/xhtml文件以及生成的json，可用于检查和排错。
@@ -95,8 +94,6 @@ GalTransl++的字典分为 **译前字典**，**GPT字典**，**译后字典** �
   * 例如，你在按开始翻译按钮时，人名表是以表模式显示的，则会先将 **人名表(表模式)** 中的数据保存到 `人名替换表.toml` 中，然后再执行翻译。如果在纯文本模式下没有按 toml 格式来编辑，翻译时肯定会报错。
   * 按 **刷新** 将会重新从项目文件夹中的 toml 文件读取数据。如果你在GUI中还有修改了没有保存的数据，请务必先确认备份情况再刷新。
   * 按 **保存** 会在保存的同时刷新另一模式的数据。比如在纯文本模式中编辑后按下保存，则此时表模式也会更新刚刚编辑过的内容。另外，保存 **项目GPT字典** 时会 **删除**  `项目GPT字典-生成.toml` 以防止数据重复，请务必注意。
-
-> **⚠️ 注意**：由于`DumpName`/`GenDict`任务会分别生成 `人名替换表.toml` / `项目GPT字典-生成.toml` 并覆盖原有文件，默认也会在任务结束后自动刷新，所以请务必注意不要被其覆盖掉有用的信息。
 
 ### 一个常见的翻译流程
 
@@ -165,18 +162,32 @@ GalTransl++的缓存中可能包含如下键:
 
 <summary>
 
-### retranslKey 语法示例:
+### 问题分析 语法示例:
 
 </summary>
 
 ```
+# 正则表达式列表，如果句子缓存中的某条 problem 能被以下任一正则 search 通过，则进行重翻
+# 如果想对指定原文/译文进行重翻，请通过内联表数组指定 conditionTarget 和 conditionReg
 retranslKeys = [
-  "翻译失败",
-  "残留日文",
-  "^本有.*符号$",
-  "本无",
-  # ...
-  # skipProblems 同理
+  #"残留日文",
+  [{ conditionTarget = 'orig_text', conditionReg = '^(?!.*隠さん).*$'},
+   { conditionTarget = 'trans_preview', conditionReg = '隐同学' }], # 重翻所有 原文中不含'隠さん'且译文中含'隐同学' 的句子
+  "翻译失败", # 等效于 [{ conditionTarget = 'problems', conditionReg = '翻译失败' }]
+]
+```
+
+skipProblems语法示例
+
+```
+# 正则表达式列表，如果一条 problem 能被以下任一正则 search 通过，则不加入 problems 列表
+# 如果想忽略指定原文/译文的指定问题，请通过内联表数组指定 conditionTarget 和 conditionReg
+# 并在表数组第一项填入要忽略的 problem(同样也是正则表达式)
+skipProblems = [
+  # "^引入拉丁字母: Live$"  # 不加任何条件
+  # 如果 原文中包含'モチモチ'且译文中包含'Q弹'，则忽略此句子中所有能被 '引入拉丁字母' search 通过的 problem
+  [ '引入拉丁字母', { conditionTarget = 'preproc_text', conditionReg = 'モチモチ'},
+    { conditionTarget = 'trans_preview', conditionReg = 'Q弹'}], 
 ]
 ```
 

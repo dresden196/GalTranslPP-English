@@ -14,7 +14,6 @@ filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, i18
 # ForGalJson: 向AI输入json格式的对话并要求AI以json格式回复，使用 FORGALJSON_SYSTEM 和 FORGALJSON_TRANS_PROMPT_EN 作为提示词
 # ForGalTsv: 向AI输入TSV格式的对话并要求AI以TSV格式回复，使用 FORGALTSV_SYSTEM 和 FORGALTSV_TRANS_PROMPT_EN 作为提示词
 # ForNovelTsv: 和 ForGalTsv 的区别是输入不带name，使用 FORNOVELTSV_SYSTEM 和 FORNOVELTSV_TRANS_PROMPT_EN 作为提示词
-# DeepseekJson: 基本上是将 ForGalJson 的提示词翻译成了中文，使用 DEEPSEEKJSON_SYSTEM_PROMPT 和 DEEPSEEKJSON_TRANS_PROMPT 作为提示词
 # Sakura: 使用 SAKURA_SYSTEM_PROMPT 和 SAKURA_TRANS_PROMPT 作为提示词
 # DumpName: 生成 人名替换表.toml 以供替换人名
 # GenDict: 借助AI自动生成术语表，使用 GENDIC_SYSTEM 和 GENDIC_PROMPT 作为提示词
@@ -53,7 +52,7 @@ rep = '<ruby><rb>$2</rb><rt>$1</rt></ruby>'
 PDFConverterPath = "BaseConfig/PDFConverter/PDFConverter.exe"
 
 [plugins.TextLinebreakFix]
-"换行模式" = "优先标点"
+"换行模式" = "优先标点" # 判断换行数目是否相同的基准是 preproc_text(中的<br>) 而不是 orig_text，请注意
 "仅在标点后添加" = true # 仅在优先标点模式有效
 
 [plugins.TextPostFull2Half]
@@ -97,18 +96,23 @@ problemList = [
   "语言不通",
 ]
 
-# 正则表达式列表，重翻正则在缓存的 orig_text 或 某条 problem 中能 search 通过的句子。
+# 正则表达式列表，如果句子缓存中的某条 problem 能被以下任一正则 search 通过，则进行重翻
+# 如果想对指定原文/译文进行重翻，请通过内联表数组指定 conditionTarget 和 conditionReg
 retranslKeys = [
-  # 空字符串将被忽略
   #"残留日文",
-  "翻译失败",
+  [{ conditionTarget = 'orig_text', conditionReg = '^(?!.*隠さん).*$'},
+   { conditionTarget = 'trans_preview', conditionReg = '隐同学' }], # 重翻所有 原文中不含'隠さん'且译文中含'隐同学' 的句子
+  "翻译失败", # 等效于 [{ conditionTarget = 'problems', conditionReg = '翻译失败' }]
 ]
 
-# 正则表达式列表，如果一条 problem 能被以下正则 search 通过，则不加入 problems 列表
+# 正则表达式列表，如果一条 problem 能被以下任一正则 search 通过，则不加入 problems 列表
+# 如果想忽略指定原文/译文的指定问题，请通过内联表数组指定 conditionTarget 和 conditionReg
+# 并在表数组第一项填入要忽略的 problem(同样也是正则表达式)
 skipProblems = [
-  # "引入拉丁字母: .*Live.*"
-  # 空字符串将被忽略
-  ""
+  # "^引入拉丁字母: Live$"  # 不加任何条件
+  # 如果 原文中包含'モチモチ'且译文中包含'Q弹'，则忽略此句子中所有能被 '引入拉丁字母' search 通过的 problem
+  [ '引入拉丁字母', { conditionTarget = 'preproc_text', conditionReg = 'モチモチ'},
+    { conditionTarget = 'trans_preview', conditionReg = 'Q弹'}], 
 ]
 
 #规定标点错漏要查哪些标点
@@ -116,6 +120,8 @@ punctSet = """（()）：:*[]{}<>『』「」“”;；'/\\"""
 langProbability = 0.94 # 语言不通检测的语言置信度，设置越高则检测越精准，但可能遗漏，反之亦然
 
 # 问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)
+# 如 { base = 'orig_text', check = 'trans_preview', problemKey = '比原文长严格' }
+# 意思是当 trans_preview 比 orig_text 严格长时，在 problem 中留下对应的问题。
 overwriteCompareObj = [
   { problemKey = "词频过高", base = "orig_text", check = "trans_preview" },
   { problemKey = "残留日文", check = "trans_preview" },

@@ -150,11 +150,10 @@ void StartSettingsPage::_setupUI()
 	translateModeLabel->setText(tr("翻译模式:"));
 	buttonLayout->addWidget(translateModeLabel);
 	ElaComboBox* translateMode = new NoWheelComboBox(buttonArea);
-	// TODO: 不要被鼠标滚轮的滚动改变选项
+	// 不要被鼠标滚轮的滚动改变选项
 	translateMode->addItem("ForGalJson");
 	translateMode->addItem("ForGalTsv");
 	translateMode->addItem("ForNovelTsv");
-	translateMode->addItem("DeepseekJson");
 	translateMode->addItem("Sakura");
 	translateMode->addItem("DumpName");
 	translateMode->addItem("GenDict");

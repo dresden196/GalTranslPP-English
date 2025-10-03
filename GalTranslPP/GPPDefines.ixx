@@ -41,7 +41,7 @@ export {
         None, ForGalJson, ForGalTsv, ForNovelTsv, DeepseekJson, Sakura, DumpName, GenDict, Rebuild, ShowNormal
     };
 
-    enum class CachePart { None, Name, NamePreview, OrigText, PreprocText, PretransText, TransPreview };
+    enum class CachePart { None, Name, NamePreview, Names, NamesPreview, OrigText, PreprocText, PretransText, Problems, OtherInfo, TranslatedBy, TransPreview };
 
 
 

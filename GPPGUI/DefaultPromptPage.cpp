@@ -140,7 +140,6 @@ void DefaultPromptPage::_setupUI()
 	auto forgalJsonApplyFunc = createPromptWidgetFunc("ForGalJson", "FORGALJSON_TRANS_PROMPT_EN", "FORGALJSON_SYSTEM");
 	auto forgalTsvApplyFunc = createPromptWidgetFunc("ForGalTsv", "FORGALTSV_TRANS_PROMPT_EN", "FORGALTSV_SYSTEM");
 	auto forNovelTsvApplyFunc = createPromptWidgetFunc("ForNovelTsv", "FORNOVELTSV_TRANS_PROMPT_EN", "FORNOVELTSV_SYSTEM");
-	auto deepSeekApplyFunc = createPromptWidgetFunc("DeepSeek", "DEEPSEEKJSON_TRANS_PROMPT", "DEEPSEEKJSON_SYSTEM_PROMPT");
 	auto sakuraApplyFunc = createPromptWidgetFunc("Sakura", "SAKURA_TRANS_PROMPT", "SAKURA_SYSTEM_PROMPT");
 	auto gendicApplyFunc = createPromptWidgetFunc("GenDict", "GENDIC_PROMPT", "GENDIC_SYSTEM");
 
@@ -150,7 +149,6 @@ void DefaultPromptPage::_setupUI()
 			forgalJsonApplyFunc();
 			forgalTsvApplyFunc();
 			forNovelTsvApplyFunc();
-			deepSeekApplyFunc();
 			sakuraApplyFunc();
 			gendicApplyFunc();
 			std::ofstream ofs(L"BaseConfig/Prompt.toml");

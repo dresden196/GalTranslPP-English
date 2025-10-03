@@ -65,10 +65,6 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, std::shared_ptr<s
 
 void TextLinebreakFix::run(Sentence* se)
 {
-	if (se->originalLinebreak.empty()) {
-		return;
-	}
-
 	int origLinebreakCount = countSubstring(se->pre_processed_text, "<br>");
 	int transLinebreakCount = countSubstring(se->translated_preview, "<br>");
 
@@ -78,20 +74,20 @@ void TextLinebreakFix::run(Sentence* se)
 
 	m_logger->debug("需要修复换行的句子[{}]: 原文 {} 行, 译文 {} 行", se->pre_processed_text, origLinebreakCount + 1, transLinebreakCount + 1);
 
-	std::string orgText = se->translated_preview;
-	std::string textToModify = se->translated_preview;
-	replaceStrInplace(textToModify, "<br>", "");
-	if (textToModify.empty()) {
+	std::string orgTransPreview = se->translated_preview;
+	std::string transViewToModify = se->translated_preview;
+	replaceStrInplace(transViewToModify, "<br>", "");
+	if (transViewToModify.empty()) {
 		for (int i = 0; i < origLinebreakCount; i++) {
-			textToModify += "<br>";
+			transViewToModify += "<br>";
 		}
-		se->translated_preview = textToModify;
+		se->translated_preview = transViewToModify;
 
 		se->other_info["换行修复"] = std::format("原文 {} 行, 译文 {} 行, 修正后 {} 行", origLinebreakCount + 1, transLinebreakCount + 1, transLinebreakCount + 1);
-		m_logger->debug("译文[{}]({}行): 修正后译文[{}]({}行)", orgText, origLinebreakCount + 1, se->translated_preview, transLinebreakCount + 1);
+		m_logger->debug("译文[{}]({}行): 修正后译文[{}]({}行)", orgTransPreview, origLinebreakCount + 1, se->translated_preview, transLinebreakCount + 1);
 		return;
 	}
-	std::vector<std::string> graphemes = splitIntoGraphemes(textToModify);
+	std::vector<std::string> graphemes = splitIntoGraphemes(transViewToModify);
 
 	if (m_mode == "平均") {
 		int linebreakAdded = 0;
@@ -101,38 +97,36 @@ void TextLinebreakFix::run(Sentence* se)
 			charCountLine = 1;
 		}
 
-		textToModify.clear();
+		transViewToModify.clear();
 		for (size_t i = 0; i < graphemes.size(); i++) {
-			textToModify += graphemes[i];
+			transViewToModify += graphemes[i];
 			if ((i + 1) % charCountLine == 0 && linebreakAdded < origLinebreakCount) {
-				textToModify += "<br>";
+				transViewToModify += "<br>";
 				linebreakAdded++;
 			}
 		}
-		se->translated_preview = textToModify;
 	}
 	else if (m_mode == "固定字数") {
 
-		textToModify.clear();
+		transViewToModify.clear();
 		for (size_t i = 0; i < graphemes.size(); i++) {
-			textToModify += graphemes[i];
+			transViewToModify += graphemes[i];
 			if ((i + 1) % m_segmentThreshold == 0 && i != graphemes.size() - 1) {
-				textToModify += "<br>";
+				transViewToModify += "<br>";
 			}
 		}
-		se->translated_preview = textToModify;
 	}
 	else if (m_mode == "保持位置") {
 		std::vector<double> relPositons = getSubstringPositions(se->pre_processed_text, "<br>");
 
 		std::vector<size_t> linebreakPositions;
 		for (double pos : relPositons) {
-			linebreakPositions.push_back(static_cast<size_t>(pos * textToModify.length()));
+			linebreakPositions.push_back(static_cast<size_t>(pos * transViewToModify.length()));
 		}
 
 		std::reverse(graphemes.begin(), graphemes.end());
 
-		textToModify.clear();
+		transViewToModify.clear();
 
 		size_t currentPos = 0;
 		for (size_t pos : linebreakPositions) {
@@ -140,19 +134,17 @@ void TextLinebreakFix::run(Sentence* se)
 				if (graphemes.empty()) {
 					break;
 				}
-				textToModify += graphemes.back();
+				transViewToModify += graphemes.back();
 				currentPos += graphemes.back().length();
 				graphemes.pop_back();
 			}
-			textToModify += "<br>";
+			transViewToModify += "<br>";
 		}
 
 		while (!graphemes.empty()) {
-			textToModify += graphemes.back();
+			transViewToModify += graphemes.back();
 			graphemes.pop_back();
 		}
-
-		se->translated_preview = textToModify;
 	}
 	else if (m_mode == "优先标点") {
 
@@ -166,9 +158,16 @@ void TextLinebreakFix::run(Sentence* se)
 				punctPositions.push_back(std::make_pair(currentPos - graphemes[i].length(), currentPos));
 			}
 		}
+		std::set<std::string> excludePunct =
+		{ "『", "「", "“", "‘", "'", "《", "〈", "（", "【", "〔", "〖" };
 		std::erase_if(punctPositions, [&](auto& pos)
 			{
-				if (pos.second >= textToModify.length()) {
+				if (pos.second >= transViewToModify.length()) {
+					return true;
+				}
+				std::string punctStr = transViewToModify.substr(pos.first, pos.second - pos.first);
+				// 不在这些标点后添加换行符
+				if (excludePunct.contains(punctStr)) {
 					return true;
 				}
 				// 如果标点后面还有标点，则不插入换行符
@@ -180,10 +179,10 @@ void TextLinebreakFix::run(Sentence* se)
 
 		std::vector<size_t> linebreakPositions; // 根据相对位置大致估算新换行在译文中的位置
 		for (double pos : relPositons) {
-			linebreakPositions.push_back(static_cast<size_t>(pos * textToModify.length()));
+			linebreakPositions.push_back(static_cast<size_t>(pos * transViewToModify.length()));
 		}
 
-		std::vector<size_t> positionsToAddLinebreak; // 最终要在 textToModify 中插入换行符的位置
+		std::vector<size_t> positionsToAddLinebreak; // 最终要在 transViewToModify 中插入换行符的位置
 
 		if (punctPositions.size() == origLinebreakCount) {
 			for (auto& pos : punctPositions) {
@@ -210,7 +209,7 @@ void TextLinebreakFix::run(Sentence* se)
 							break;
 						}
 					}
-					if (currentPos < textToModify.length() && std::find(positionsToAddLinebreak.begin(), positionsToAddLinebreak.end(), currentPos) == positionsToAddLinebreak.end()) {
+					if (currentPos < transViewToModify.length() && std::find(positionsToAddLinebreak.begin(), positionsToAddLinebreak.end(), currentPos) == positionsToAddLinebreak.end()) {
 						positionsToAddLinebreak.push_back(currentPos);
 					}
 				}
@@ -233,7 +232,7 @@ void TextLinebreakFix::run(Sentence* se)
 			});
 
 		for (size_t pos : positionsToAddLinebreak) {
-			textToModify.insert(pos, "<br>");
+			transViewToModify.insert(pos, "<br>");
 		}
 
 	}
@@ -241,10 +240,10 @@ void TextLinebreakFix::run(Sentence* se)
 		throw std::runtime_error("未知的换行模式: " + m_mode);
 	}
 
-	se->translated_preview = textToModify;
+	se->translated_preview = transViewToModify;
 
-	if (textToModify.length() > m_errorThreshold) {
-		std::vector<std::string> newLines = splitString(textToModify, "<br>");
+	if (transViewToModify.length() > m_errorThreshold) {
+		std::vector<std::string> newLines = splitString(transViewToModify, "<br>");
 		size_t lineIndex = 0;
 		for (const std::string& newLine : newLines) {
 			lineIndex++;
@@ -257,6 +256,6 @@ void TextLinebreakFix::run(Sentence* se)
 
 	int newLinebreakCount = countSubstring(se->translated_preview, "<br>");
 	se->other_info["换行修复"] = std::format("原文 {} 行, 译文 {} 行, 修正后 {} 行", origLinebreakCount + 1, transLinebreakCount + 1, newLinebreakCount + 1);
-	m_logger->debug("句子[{}]({}行): 修正后译文[{}]({}行)", orgText, origLinebreakCount + 1, se->translated_preview, newLinebreakCount + 1);
+	m_logger->debug("句子[{}]({}行): 修正后译文[{}]({}行)", orgTransPreview, transLinebreakCount + 1, se->translated_preview, newLinebreakCount + 1);
 }
 

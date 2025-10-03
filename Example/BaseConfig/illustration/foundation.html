@@ -110,9 +110,8 @@
 <li><strong><code># ForGalJson</code></strong>: 实际翻译模式，向AI输入json格式的句子(包含<code>name</code>和<code>message</code>)并要求AI以json格式回复，程序将解析返回的Json。</li>
 <li><strong><code># ForGalTsv</code></strong>: 实际翻译模式，向AI输入TSV格式的句子(包含<code>name</code>和<code>message</code>)并要求AI以TSV格式回复，程序将解析返回的TSV，可能比ForGalJson模式更省token。</li>
 <li><strong><code># ForNovelTsv</code></strong>: 实际翻译模式，和 <code>ForGalTsv</code> 的区别主要是变动提示词，向AI输入和解析的时候都不带<code>name</code>键。</li>
-<li><strong><code># DeepseekJson</code></strong>: 实际翻译模式，和 <code>ForGalJson</code> 的唯一区别是程序自带的默认提示词变成了中文。</li>
 <li><strong><code># Sakura</code></strong>: 实际翻译模式，向AI输入自然语言形式的句子(包含<code>name</code>和<code>message</code>)，由于Sakura是翻译特化模型，不必要求即会返回同样形式的的句子，程序解析返回的自然语言。</li>
-<li><strong><code># DumpName</code></strong>: 提取所有的 <code>name</code> 键，在项目文件夹下生成 <code>人名替换表.toml</code> 以供统一替换人名。</li>
+<li><strong><code># DumpName</code></strong>: 提取所有的 <code>name</code> 键，在项目文件夹下生成(已有则仅更新) <code>人名替换表.toml</code> 以供统一替换人名。</li>
 <li><strong><code># GenDict</code></strong>: 借助AI自动生成术语表，保存在项目文件夹下的 <code>项目GPT字典-生成.toml</code> 中。</li>
 <li><strong><code># Rebuild</code></strong>: 即使 <code>problem</code> 或 <code>orig_text</code> 中包含 <code>retranslKey</code> 也不会重翻，只根据缓存重建结果。</li>
 <li><strong><code># ShowNormal</code></strong>: 保存预处理后的内容及句子到项目文件夹下带 <code>show_normal</code> 字段的文件夹中，如Epub格式下可生成预处理后的html/xhtml文件以及生成的json，可用于检查和排错。</li>
@@ -153,9 +152,6 @@
 </ul>
 </li>
 </ul>
-<blockquote>
-<p><strong>⚠️ 注意</strong>：由于<code>DumpName</code>/<code>GenDict</code>任务会分别生成 <code>人名替换表.toml</code> / <code>项目GPT字典-生成.toml</code> 并覆盖原有文件，默认也会在任务结束后自动刷新，所以请务必注意不要被其覆盖掉有用的信息。</p>
-</blockquote>
 <h3>一个常见的翻译流程</h3>
 <p>1、  新建项目 -&gt; 输入项目名。<br>
 2、  在新建的项目文件夹中的<code>gt_input</code>文件夹中放入待翻译的文件。<br>

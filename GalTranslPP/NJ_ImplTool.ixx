@@ -28,7 +28,7 @@ export {
     void combineOutputFiles(const fs::path& originalRelFilePath, const std::map<fs::path, bool>& splitFileParts,
         std::shared_ptr<spdlog::logger> logger, const fs::path& outputCacheDir, const fs::path& outputDir);
 
-    bool hasRetranslKey(const std::vector<std::shared_ptr<icu::RegexPattern>>& retranslKeys, const Sentence* se);
+    bool hasRetranslKey(const std::vector<GPPCondition>& retranslKeys, const json& item);
 
     void saveCache(const std::vector<Sentence>& allSentences, const fs::path& cachePath);
 
@@ -433,21 +433,37 @@ void combineOutputFiles(const fs::path& originalRelFilePath, const std::map<fs::
 }
 
 
-bool hasRetranslKey(const std::vector<std::shared_ptr<icu::RegexPattern>>& retranslKeys, const Sentence* se) {
-    std::vector<icu::UnicodeString> ustrings;
-    for (const auto& problem : se->problems) {
-        ustrings.push_back(icu::UnicodeString::fromUTF8(problem));
+bool hasRetranslKey(const std::vector<GPPCondition>& retranslKeys, const json& item) {
+    if (retranslKeys.empty()) {
+        return false;
     }
-    ustrings.push_back(icu::UnicodeString::fromUTF8(se->original_text));
-    auto product = std::views::cartesian_product(retranslKeys, ustrings);
-    return std::ranges::any_of(product, [](const auto& tuple)
+
+    Sentence se;
+    if (item.contains("name")) {
+        se.nameType = NameType::Single;
+        se.name = item.at("name");
+        se.name_preview = item.at("name_preview");
+    }
+    else if (item.contains("names")) {
+        se.nameType = NameType::Multiple;
+        se.names = item.at("names");
+        se.names_preview = item.at("names_preview");
+    }
+    se.original_text = item.value("original_text", "");
+    se.pre_processed_text = item.value("pre_processed_text", "");
+    se.pre_translated_text = item.value("pre_translated_text", "");
+    if (item.contains("problems")) {
+        se.problems = item.at("problems").get<std::vector<std::string>>();
+    }
+    if (item.contains("other_info")) {
+        se.other_info = item.at("other_info").get<std::map<std::string, std::string>>();
+    }
+    se.translated_by = item.value("translated_by", "");
+    se.translated_preview = item.value("translated_preview", "");
+
+    return std::ranges::any_of(retranslKeys, [&](const GPPCondition& key)
         {
-            UErrorCode status = U_ZERO_ERROR;
-            std::unique_ptr<icu::RegexMatcher> matcher(std::get<0>(tuple)->matcher(std::get<1>(tuple), status));
-            if (!U_FAILURE(status)) {
-                return (bool)matcher->find();
-            }
-            return false;
+            return checkCondition(key, &se);
         });
 }
 
