@@ -4,6 +4,7 @@ module;
 #include <spdlog/spdlog.h>
 #include <boost/regex.hpp>
 #include <cpr/cpr.h>
+#include <ranges>
 
 export module DictionaryGenerator;
 
@@ -20,6 +21,7 @@ export {
     class DictionaryGenerator {
     private:
         APIPool& m_apiPool;
+        NormalDictionary& m_preDict;
         std::shared_ptr<IController> m_controller;
         std::string m_systemPrompt;
         std::string m_userPrompt;
@@ -29,6 +31,8 @@ export {
         std::string m_apiStrategy;
         int m_maxRetries;
         bool m_checkQuota;
+        bool m_usePreDictInName;
+        bool m_usePreDictInMsg;
 
         // 阶段一和二的结果
         std::vector<std::string> m_segments;
@@ -44,15 +48,15 @@ export {
         // MeCab 解析器
         std::unique_ptr<MeCab::Tagger> m_tagger;
 
-        void preprocessAndTokenize(const std::vector<fs::path>& jsonFiles, NormalDictionary& preDict, bool usePreDictInName);
+        void preprocessAndTokenize(const std::vector<fs::path>& jsonFiles);
         std::vector<int> solveSentenceSelection();
         void callLLMToGenerate(int segmentIndex, int threadId);
 
     public:
-        DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, const fs::path& dictDir,
-            const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
-            int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota);
-        void generate(const fs::path& inputDir, const fs::path& outputFilePath, NormalDictionary& preDict, bool usePreDictInName);
+        DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool,
+            NormalDictionary& preDict, const fs::path& dictDir, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
+            int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota, bool usePreDictInName, bool usePreDictInMsg);
+        void generate(const std::vector<fs::path>& jsonFiles, const fs::path& outputFilePath);
     };
 }
 
@@ -60,11 +64,11 @@ export {
 module :private;
 
 DictionaryGenerator::DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool,
-    const fs::path& dictDir, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
-    int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota)
-    : m_controller(controller), m_logger(logger), m_apiPool(apiPool), m_systemPrompt(systemPrompt), m_userPrompt(userPrompt),
-    m_apiStrategy(apiStrategy), m_maxRetries(maxRetries), m_checkQuota(checkQuota),
-    m_threadsNum(threadsNum), m_apiTimeoutMs(apiTimeoutMs) 
+    NormalDictionary& preDict, const fs::path& dictDir, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
+    int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota, bool usePreDictInName, bool usePreDictInMsg)
+    : m_controller(controller), m_logger(logger), m_apiPool(apiPool), m_preDict(preDict), m_systemPrompt(systemPrompt), m_userPrompt(userPrompt),
+    m_apiStrategy(apiStrategy), m_maxRetries(maxRetries),
+    m_threadsNum(threadsNum), m_apiTimeoutMs(apiTimeoutMs), m_checkQuota(checkQuota), m_usePreDictInName(usePreDictInName), m_usePreDictInMsg(usePreDictInMsg)
 {
     m_tagger.reset(
         MeCab::createTagger(("-r BaseConfig/DictGenerator/mecabrc -d " + wide2Ascii(dictDir, 0)).c_str())
@@ -74,34 +78,62 @@ DictionaryGenerator::DictionaryGenerator(std::shared_ptr<IController> controller
     }
 }
 
-void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jsonFiles, NormalDictionary& preDict, bool usePreDictInName) {
+void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jsonFiles) {
     m_logger->info("阶段一：预处理和分词...");
     std::string currentSegment;
     const size_t MAX_SEGMENT_LEN = 512;
 
     Sentence se;
-    for (const auto& filePath : jsonFiles) {
-        std::ifstream f(filePath);
-        json data = json::parse(f);
-        for (const auto& item : data) {
+    std::ifstream ifs;
+    for (const auto& item : jsonFiles
+        | std::views::transform([&](const fs::path& filePath)
+            {
+                ifs.open(filePath);
+                json data = json::parse(ifs);
+                ifs.close();
+                return data;
+            }) | std::views::join)
+    {
+        if (item.contains("name")) {
+            se.nameType = NameType::Single;
             se.name = item.value("name", "");
-            se.original_text = item.value("message", "");
-            if (usePreDictInName) {
-                se.name = preDict.doReplace(&se, CachePart::Name);
-            }
-            se.original_text = preDict.doReplace(&se, CachePart::OrigText);
-            if (!se.name.empty()) {
-                m_nameSet.insert(se.name);
-                m_wordCounter[se.name] += 2;
-            }
-            currentSegment += se.name + se.original_text + "\n";
-
-            if (currentSegment.length() > MAX_SEGMENT_LEN) {
-                m_segments.push_back(currentSegment);
-                currentSegment.clear();
+            if (m_usePreDictInName) {
+                se.name = m_preDict.doReplace(&se, CachePart::Name);
             }
         }
+        else if (item.contains("names")) {
+            se.nameType = NameType::Multiple;
+            se.names = item["names"].get<std::vector<std::string>>();
+            if (m_usePreDictInName) {
+                for (auto& name : se.names) {
+                    se.name = name;
+                    name = m_preDict.doReplace(&se, CachePart::Name);
+                }
+            }
+        }
+        if (se.nameType == NameType::Single && !se.name.empty()) {
+            m_nameSet.insert(se.name);
+            m_wordCounter[se.name] += 2;
+        }
+        else if (se.nameType == NameType::Multiple) {
+            for (const auto& name : se.names | std::views::filter([](const std::string& name) { return !name.empty(); })) {
+                m_nameSet.insert(name);
+                m_wordCounter[name] += 2;
+            }
+        }
+
+        se.original_text = item.value("message", "");
+        if (m_usePreDictInMsg) {
+            se.pre_processed_text = m_preDict.doReplace(&se, CachePart::OrigText);
+        }
+
+        currentSegment += getNameString(&se) + se.pre_processed_text + "\n";
+        if (currentSegment.length() > MAX_SEGMENT_LEN) {
+            m_segments.push_back(currentSegment);
+            currentSegment.clear();
+        }
     }
+    
     if (!currentSegment.empty()) {
         m_segments.push_back(currentSegment);
     }
@@ -260,20 +292,9 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
     m_controller->reduceThreadNum();
 }
 
-void DictionaryGenerator::generate(const fs::path& inputDir, const fs::path& outputFilePath, NormalDictionary& preDict, bool usePreDictInName) {
-    std::vector<fs::path> jsonFiles;
-    for (const auto& entry : fs::recursive_directory_iterator(inputDir)) {
-        if (entry.is_regular_file() && isSameExtension(entry.path(), L".json")) {
-            jsonFiles.push_back(entry.path());
-        }
-    }
-    if (jsonFiles.empty()) {
-        m_logger->warn("输入目录 {} 为空，无法生成字典。", inputDir.string());
-        return;
-    }
+void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const fs::path& outputFilePath) {
 
-    preprocessAndTokenize(jsonFiles, preDict, usePreDictInName);
-
+    preprocessAndTokenize(jsonFiles);
     auto selectedIndices = solveSentenceSelection();
     if (selectedIndices.size() > 128) {
         selectedIndices.resize(128);
@@ -324,7 +345,7 @@ void DictionaryGenerator::generate(const fs::path& inputDir, const fs::path& out
         }), finalList.end());
 
 
-    toml::value arr = toml::array{};
+    toml::ordered_value arr = toml::array{};
     
     for (const auto& item : finalList) {
         arr.push_back(toml::ordered_table{ { "org", std::get<0>(item) }, { "rep", std::get<1>(item) }, { "note", std::get<2>(item) } });
@@ -332,6 +353,6 @@ void DictionaryGenerator::generate(const fs::path& inputDir, const fs::path& out
     
     arr.as_array_fmt().fmt = toml::array_format::multiline;
     std::ofstream ofs(outputFilePath);
-    ofs << toml::format(toml::value{ toml::table{{ "gptDict", arr }} });
+    ofs << toml::format(toml::ordered_value{ toml::ordered_table{{ "gptDict", arr }} });
     m_logger->info("字典生成完成，共 {} 个词语，已保存到 {}", finalList.size(), wide2Ascii(outputFilePath));
 }

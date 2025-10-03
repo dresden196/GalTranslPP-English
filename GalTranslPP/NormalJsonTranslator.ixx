@@ -22,7 +22,7 @@ import Dictionary;
 import DictionaryGenerator;
 import ProblemAnalyzer;
 import IPlugin;
-import NJ_ImpTool;
+import NJ_ImplTool;
 export import ITranslator;
 
 using json = nlohmann::json;
@@ -86,7 +86,7 @@ export {
         toml::ordered_value m_problemOverview = toml::array{};
         ordered_json m_problemOverviewJson = ordered_json::array();
         std::function<void(fs::path)> m_onFileProcessed;
-        std::mutex m_cacheMutex;
+        std::shared_mutex m_cacheMutex;
         std::mutex m_outputMutex;
 
         APIPool m_apiPool;
@@ -105,7 +105,7 @@ export {
 
         bool translateBatchWithRetry(const fs::path& relInputPath, std::vector<Sentence*>& batch, int threadId);
 
-        void processFile(const fs::path& inputPath, int threadId);
+        void processFile(const fs::path& relInputPath, int threadId);
 
     public:
         NormalJsonTranslator(const fs::path& projectDir, std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger,
@@ -572,7 +572,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
     }
 
     int retryCount = 0;
-    std::string contextHistory = buildContextHistory(batch, m_transEngine, m_contextHistorySize);
+    std::string contextHistory = buildContextHistory(batch, m_transEngine, m_contextHistorySize, 2048 * 3);
     std::string glossary = m_gptDictionary.generatePrompt(batch, m_transEngine);
 
     while (retryCount < m_maxRetries) {
@@ -582,10 +582,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         }
 
         std::vector<Sentence*> batchToTransThisRound;
-        for (auto pSentence : batch) {
-            if (pSentence->complete) {
-                continue;
-            }
+        for (auto pSentence : batch | std::views::filter([](const Sentence* pSentence) { return !pSentence->complete; })) {
             batchToTransThisRound.push_back(pSentence);
         }
         if (batchToTransThisRound.empty()) {
@@ -655,12 +652,11 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         }
 
         // --- 如果请求成功，则继续解析 ---
-        std::string content = response.content;
-        m_logger->info("[线程 {}] [文件 {}] 成功响应，解析结果: \n{}", threadId, wide2Ascii(relInputPath), content);
+        m_logger->info("[线程 {}] [文件 {}] 成功响应，解析结果: \n{}", threadId, wide2Ascii(relInputPath), response.content);
         int parsedCount = 0;
         bool parseError = false;
 
-        parseContent(content, batchToTransThisRound, id2SentenceMap, currentAPI.modelName, m_transEngine, parseError, parsedCount,
+        parseContent(response.content, batchToTransThisRound, id2SentenceMap, currentAPI.modelName, m_transEngine, parseError, parsedCount,
             m_controller, m_completedSentences);
 
         if (parseError || parsedCount != batchToTransThisRound.size()) {
@@ -674,10 +670,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
     }
 
     m_logger->error("[线程 {}] [文件 {}] 批次翻译在 {} 次重试后彻底失败。", threadId, wide2Ascii(relInputPath.filename()), m_maxRetries);
-    for (auto& pSentence : batch) {
-        if (pSentence->complete) {
-            continue;
-        }
+    for (auto& pSentence : batch | std::views::filter([](const Sentence* pSentence) { return !pSentence->complete; })) {
         pSentence->pre_translated_text = "(Failed to translate)" + pSentence->pre_processed_text;
         pSentence->complete = true;
         m_completedSentences++;
@@ -688,15 +681,15 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
 
 
 // ============================================        processFile        ========================================
-void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) {
+void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadId) {
     if (m_controller->shouldStop()) {
         return;
     }
-    m_logger->debug("[线程 {}] 开始处理文件: {}", threadId, wide2Ascii(inputPath));
+    m_logger->debug("[线程 {}] 开始处理文件: {}", threadId, wide2Ascii(relInputPath));
     m_controller->addThreadNum();
 
     std::ifstream ifs;
-    fs::path relInputPath = fs::relative(inputPath, m_needsCombining ? m_inputCacheDir : m_inputDir);
+    fs::path inputPath = m_needsCombining ? (m_inputCacheDir / relInputPath) : (m_inputDir / relInputPath);
     fs::path outputPath = m_needsCombining ? (m_outputCacheDir / relInputPath) : (m_outputDir / relInputPath);
     fs::path cachePath = m_cacheDir / relInputPath;
     fs::path showNormalPath = m_projectDir / L"gt_show_normal" / relInputPath;
@@ -704,14 +697,14 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
     createParent(cachePath);
 
     std::vector<Sentence> sentences;
+    // 解析输入文件
     try {
         ifs.open(inputPath);
         json data = json::parse(ifs);
         ifs.close();
-        for (size_t i = 0; i < data.size(); ++i) {
-            const auto& item = data[i];
+        for (const auto& [index, item] : data | std::views::enumerate) {
             Sentence se;
-            se.index = (int)i;
+            se.index = (int)index;
             if (item.contains("name")) {
                 se.nameType = NameType::Single;
                 se.name = item.value("name", "");
@@ -721,9 +714,6 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
                 for (const auto& name : item["names"]) {
                     se.names.push_back(name.get<std::string>());
                 }
-            }
-            if (!item.contains("message")) {
-                throw std::runtime_error(std::format("[线程 {}] [文件 {}] 第 {} 个对象缺少 message 字段。", threadId, wide2Ascii(inputPath), i));
             }
             se.original_text = item.value("message", "");
             sentences.push_back(se);
@@ -737,9 +727,11 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
         }
     }
     catch (const json::exception& e) {
-        throw std::runtime_error(std::format("[线程 {}] [文件 {}] 解析失败: {}", threadId, wide2Ascii(inputPath), e.what()));
+        throw std::runtime_error(std::format("[线程 {}] [文件 {}] 解析失败: {}", threadId, wide2Ascii(relInputPath), e.what()));
     }
+    // 输入文件解析完毕
 
+    // ShowNormal
     if (m_transEngine == TransEngine::ShowNormal) {
         json showNormalJson = json::array();
         for (const auto& se : sentences) {
@@ -764,13 +756,15 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
         ofs << showNormalJson.dump(2);
         return;
     }
+    // ShowNormal结束
 
     std::vector<Sentence*> toTranslate;
 
+    // 读缓存逻辑
     {
         std::unordered_map<std::string, json> cacheMap;
 
-        auto insertArr = [&](const json& jsonArr)
+        auto insertJsonArrToCacheMap = [&](const json& jsonArr)
             {
                 for (size_t i = 0; i < jsonArr.size(); ++i) {
                     const auto& item = jsonArr[i];
@@ -786,25 +780,25 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
                 }
             };
 
-        auto insertCacheMap = [&](const fs::path& path)
+        auto usePotentialPartFileCacheToInsertCacheMap = [&](const fs::path& potentialCachePath)
             {
-                std::lock_guard<std::mutex> lock(m_cacheMutex);
+                std::shared_lock<std::shared_mutex> lock(m_cacheMutex);
                 try {
-                    ifs.open(path);
+                    ifs.open(potentialCachePath);
                     json jsonArr = json::parse(ifs);
                     ifs.close();
-                    insertArr(jsonArr);
+                    insertJsonArrToCacheMap(jsonArr);
                 }
                 catch (const json::exception& e) {
-                    throw std::runtime_error(std::format("[线程 {}] 缓存文件 {} 解析失败: {}", threadId, wide2Ascii(path), e.what()));
+                    throw std::runtime_error(std::format("[线程 {}] 缓存文件 {} 解析失败: {}", threadId, wide2Ascii(fs::relative(potentialCachePath, m_cacheDir)), e.what()));
                 }
             };
 
         std::vector<fs::path> cachePaths;
 
-        auto readPartCache = [&](const std::wstring& cacheSpec, const fs::path& path)
+        auto readAllPotentialPartFileCache = [&](const std::wstring& cacheSpec, const fs::path& specParentDir)
             {
-                for (const auto& entry : fs::directory_iterator(path)) {
+                for (const auto& entry : fs::directory_iterator(specParentDir)) {
                     if (!entry.is_regular_file()) {
                         continue;
                     }
@@ -813,7 +807,7 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
                     }
                 }
                 for (const auto& cp : cachePaths) {
-                    insertCacheMap(cp);
+                    usePotentialPartFileCacheToInsertCacheMap(cp);
                 }
             };
 
@@ -830,19 +824,19 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
             size_t pos = relInputPath.filename().wstring().rfind(L"_part_");
             std::wstring orgStem = relInputPath.filename().wstring().substr(0, pos);
             std::wstring cacheSpec = orgStem + L"_part_*.json";
-            readPartCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
+            readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
         }
         else {
             if (fs::exists(cachePath)) {
                 cachePaths.push_back(cachePath);
             }
             std::wstring cacheSpec = relInputPath.stem().wstring() + L"_part_*.json";
-            readPartCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
+            readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
         }
 
         json totalCacheJsonList = json::array();
         for (const auto& cp : cachePaths) {
-            std::lock_guard<std::mutex> lock(m_cacheMutex);
+            std::shared_lock<std::shared_mutex> lock(m_cacheMutex);
             try {
                 ifs.open(cp);
                 json cacheJsonList = json::parse(ifs);
@@ -853,7 +847,7 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
                 throw std::runtime_error(std::format("[线程 {}] 缓存文件 {} 解析失败: {}", threadId, wide2Ascii(cp), e.what()));
             }
         }
-        insertArr(totalCacheJsonList);
+        insertJsonArrToCacheMap(totalCacheJsonList);
 
 
         for (auto& se : sentences) {
@@ -870,35 +864,33 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
                 continue;
             }
             const auto& item = it->second;
-            if (item.contains("problems")) {
-                if (item["problems"].is_array()) {
-                    se.problems = item["problems"].get<std::vector<std::string>>();
-                }
-                else if (item["problems"].is_string()) {
-                    se.problems.push_back(item["problems"].get<std::string>());
-                }
+            if (item.contains("problems") && item["problems"].is_array()) {
+                se.problems = item["problems"].get<std::vector<std::string>>();
             }
             if (m_transEngine != TransEngine::Rebuild && hasRetranslKey(m_retranslKeys, &se)) {
                 toTranslate.push_back(&se);
                 continue;
             }
-            se.pre_translated_text = item.value("pre_translated_text", "");
-            se.translated_by = item.value("translated_by", "");
-            se.complete = true;
-            m_completedSentences++;
-            m_controller->updateBar(); // 命中缓存
-            postProcess(&se);
+            else {
+                se.pre_translated_text = item.value("pre_translated_text", "");
+                se.translated_by = item.value("translated_by", "");
+                se.complete = true;
+                m_completedSentences++;
+                m_controller->updateBar(); // 命中缓存
+                postProcess(&se);
+            }
         }
 
         m_logger->info("[线程 {}] [文件 {}] 共 {} 句，命中缓存 {} 句，需翻译 {} 句。", threadId, wide2Ascii(relInputPath),
             sentences.size(), sentences.size() - toTranslate.size(), toTranslate.size());
 
         if (m_transEngine == TransEngine::Rebuild && !toTranslate.empty()) {
-            m_logger->critical("[线程 {}] [文件 {}] 有 {} 句未命中缓存，这些句子是: ", threadId, wide2Ascii(relInputPath), toTranslate.size());
-            for (auto& se : toTranslate) {
-                m_logger->error("[{}]", se->original_text);
+            std::string notFoundSentences;
+            for (const auto& se : toTranslate) {
+                notFoundSentences += se->original_text + "\n";
             }
-            std::lock_guard<std::mutex> lock(m_cacheMutex);
+            m_logger->critical("[线程 {}] [文件 {}] 有 {} 句未命中缓存，这些句子是: {}", threadId, wide2Ascii(relInputPath), toTranslate.size(), notFoundSentences);
+            std::lock_guard<std::shared_mutex> lock(m_cacheMutex);
             saveCache(sentences, cachePath);
             m_controller->reduceThreadNum();
             return;
@@ -913,19 +905,19 @@ void NormalJsonTranslator::processFile(const fs::path& inputPath, int threadId) 
         }
         std::vector<Sentence*> batch(toTranslate.begin() + i, toTranslate.begin() + std::min(i + m_batchSize, toTranslate.size()));
         translateBatchWithRetry(relInputPath, batch, threadId);
-        for (auto& se : batch) {
+        for (Sentence* se : batch) {
             postProcess(se);
         }
         batchCount++;
         if (batchCount % m_saveCacheInterval == 0) {
             m_logger->debug("[线程 {}] [文件 {}] 达到保存间隔，正在更新缓存文件...", threadId, wide2Ascii(inputPath));
-            std::lock_guard<std::mutex> lock(m_cacheMutex);
+            std::lock_guard<std::shared_mutex> lock(m_cacheMutex);
             saveCache(sentences, cachePath);
         }
     }
 
     {
-        std::lock_guard<std::mutex> lock(m_cacheMutex);
+        std::lock_guard<std::shared_mutex> lock(m_cacheMutex);
         m_logger->debug("[线程 {}] [文件 {}] 翻译完成，正在进行最终保存...", threadId, wide2Ascii(inputPath));
         saveCache(sentences, cachePath);
 
@@ -1021,13 +1013,13 @@ void NormalJsonTranslator::run() {
         }
     }
 
-    fs::remove_all(m_inputCacheDir);
-    fs::remove_all(m_outputCacheDir);
+    // 所有的json相对路径
+    std::vector<fs::path> relJsonPaths;
 
     std::ifstream ifs;
     std::ofstream ofs;
 
-    
+    // 人名表处理
     {
         std::map<std::string, int> nameTableMap;
         Sentence se;
@@ -1037,24 +1029,22 @@ void NormalJsonTranslator::run() {
                 if (name.empty()) {
                     return;
                 }
-                auto it = nameTableMap.find(name);
-                if (it == nameTableMap.end()) {
-                    nameTableMap.insert(std::make_pair(name, 1));
-                }
-                else {
-                    it->second++;
-                }
+                nameTableMap[name]++;
             };
+
+        // 收集人名和json相对路径，检查msg字段是否存在
         for (const auto& entry : fs::recursive_directory_iterator(m_inputDir)) {
             if (!entry.is_regular_file() || !isSameExtension(entry.path(), L".json")) {
                 continue;
             }
+            fs::path relInputPath = fs::relative(entry.path(), m_inputDir);
+            relJsonPaths.push_back(relInputPath);
             try {
                 ifs.open(entry.path());
                 json data = json::parse(ifs);
                 ifs.close();
 
-                for (const auto& item : data) {
+                for (const auto& [index, item] : data | std::views::enumerate) {
                     m_totalSentences++;
                     if (item.contains("name")) {
                         se.name = item["name"].get<std::string>();
@@ -1072,17 +1062,19 @@ void NormalJsonTranslator::run() {
                             insertNameTable(se.name);
                         }
                     }
-
+                    if (!item.contains("message")) {
+                        throw std::runtime_error(std::format("[文件 {}] 第 {} 个对象缺少 message 字段。", wide2Ascii(relInputPath), index));
+                    }
                 }
             }
             catch (const json::exception& e) {
-                m_logger->critical("读取文件 {} 时出错", wide2Ascii(entry.path()));
+                m_logger->critical("读取文件 {} 时出错", wide2Ascii(relInputPath));
                 throw std::runtime_error(e.what());
             }
         }
 
         if (m_totalSentences == 0) {
-            throw std::runtime_error("未找到有效的 json 文件");
+            throw std::runtime_error("未找到有效的 Sentence");
         }
         m_controller->makeBar(m_totalSentences, m_threadsNum);
 
@@ -1133,16 +1125,24 @@ void NormalJsonTranslator::run() {
     // 人名表处理完毕
 
 
-
+    // 字典生成
     if (m_transEngine == TransEngine::GenDict) {
-        DictionaryGenerator generator(m_controller, m_logger, m_apiPool, ascii2Wide(m_dictDir), m_systemPrompt, m_userPrompt, m_apiStrategy,
-            m_maxRetries, m_threadsNum, m_apiTimeOutMs, m_checkQuota);
+        DictionaryGenerator generator(m_controller, m_logger, m_apiPool, m_preDictionary,
+            ascii2Wide(m_dictDir), m_systemPrompt, m_userPrompt, m_apiStrategy,
+            m_maxRetries, m_threadsNum, m_apiTimeOutMs, m_checkQuota, m_usePreDictInName, m_usePreDictInMsg);
         fs::path outputFilePath = m_projectDir / L"项目GPT字典-生成.toml";
-        generator.generate(m_inputDir, outputFilePath, m_preDictionary, m_usePreDictInName);
+        std::vector<fs::path> inputPaths = std::move(relJsonPaths);
+        for (auto& inputPath : inputPaths) {
+            inputPath = m_inputDir / inputPath;
+        }
+        generator.generate(inputPaths, outputFilePath);
         m_logger->info("已生成 项目GPT字典-生成.toml 文件");
         return;
     }
+    // 字典生成完毕
 
+
+    // 解析人名替换表
     try {
         const auto nameTable = toml::parse(m_projectDir / L"人名替换表.toml");
 
@@ -1161,144 +1161,104 @@ void NormalJsonTranslator::run() {
         m_logger->critical("解析 人名替换表.toml 时出错");
         throw std::runtime_error(e.what());
     }
-
-    fs::path sourceDir = m_inputDir; // 默认从输入目录读取
-
-    if (m_splitFile == "Equal" && m_splitFileNum > 1) {
-        m_needsCombining = true;
-        sourceDir = m_inputCacheDir;
-        for (const auto& dir : { m_inputCacheDir, m_outputCacheDir }) {
-            if (!fs::exists(dir)) {
-                fs::create_directories(dir);
-                m_logger->info("已创建目录: {}", wide2Ascii(dir));
-            }
-        }
-
-        m_logger->info("检测到文件分割模式 (Equal)，开始预处理输入文件...");
-        for (const auto& entry : fs::recursive_directory_iterator(m_inputDir)) {
-            if (!entry.is_regular_file() || !isSameExtension(entry.path(), L".json")) {
-                continue;
-            }
-
-            try {
-                ifs.open(entry.path());
-                json data = json::parse(ifs);
-                ifs.close();
-
-                const std::vector<json>& parts = splitJsonArrayEqual(data, m_splitFileNum);
-                fs::path relWholePath = fs::relative(entry.path(), m_inputDir); // 原始json相对路径
-
-                std::wstring stem = fs::relative(entry.path(), m_inputDir).parent_path() / entry.path().stem();
-                for (size_t i = 0; i < parts.size(); ++i) {
-                    fs::path relPartPath = stem + L"_part_" + std::to_wstring(i) + entry.path().extension().wstring();
-                    m_splitFilePartsToJson[relPartPath] = relWholePath;
-                    m_jsonToSplitFileParts[relWholePath].insert(std::make_pair(relPartPath, false));
-                    fs::path partPath = m_inputCacheDir / relPartPath;
-                    createParent(partPath);
-                    ofs.open(partPath);
-                    ofs << parts[i].dump(2);
-                    ofs.close();
-                }
-                m_logger->debug("文件 {} 已被分割成 {} 份，存入输入缓存。", wide2Ascii(relWholePath), parts.size());
-
-            }
-            catch (const json::exception& e) {
-                m_logger->critical("分割文件 {} 时出错", wide2Ascii(entry.path()));
-                throw std::runtime_error(e.what());
-            }
-        }
-    }
-    else if (m_splitFile == "Num" && m_splitFileNum > 0) {
-        m_needsCombining = true;
-        sourceDir = m_inputCacheDir;
-        for (const auto& dir : { m_inputCacheDir, m_outputCacheDir }) {
-            if (!fs::exists(dir)) {
-                fs::create_directories(dir);
-                m_logger->info("已创建目录: {}", wide2Ascii(dir));
-            }
-        }
-
-        m_logger->info("检测到文件分割模式 (Num)，开始预处理输入文件...");
-        for (const auto& entry : fs::recursive_directory_iterator(m_inputDir)) {
-            if (!entry.is_regular_file() || !isSameExtension(entry.path(), L".json")) {
-                continue;
-            }
-
-            try {
-                ifs.open(entry.path());
-                json data = json::parse(ifs);
-                ifs.close();
-
-                fs::path relWholePath = fs::relative(entry.path(), m_inputDir); // 原始json相对路径
-                const std::vector<json>& parts = splitJsonArrayNum(data, m_splitFileNum);
-
-                std::wstring stem = fs::relative(entry.path(), m_inputDir).parent_path() / entry.path().stem();
-                for (size_t i = 0; i < parts.size(); ++i) {
-                    fs::path relPartPath = stem + L"_part_" + std::to_wstring(i) + entry.path().extension().wstring();
-                    m_splitFilePartsToJson[relPartPath] = relWholePath;
-                    m_jsonToSplitFileParts[relWholePath].insert(std::make_pair(relPartPath, false));
-                    fs::path partPath = m_inputCacheDir / relPartPath;
-                    createParent(partPath);
-                    ofs.open(partPath);
-                    ofs << parts[i].dump(2);
-                    ofs.close();
-                }
-                m_logger->debug("文件 {} 已被按每 {} 句分割成 {} 份，存入输入缓存。",
-                    wide2Ascii(relWholePath), m_splitFileNum, parts.size());
-
-            }
-            catch (const std::exception& e) {
-                m_logger->critical("分割文件 {} 时出错", wide2Ascii(entry.path()));
-                throw std::runtime_error(e.what());
-            }
-        }
-    }
-    else if (m_splitFile != "No") {
-        throw std::invalid_argument(std::format("未知的文件分割模式: {}, 请使用 'No', 'Equal', 'Num'", m_splitFile));
-    }
+    // 解析人名替换表完毕
 
 
-    m_logger->debug("开始从目录 {} 分发翻译任务...", wide2Ascii(sourceDir));
-    std::vector<fs::path> filePaths;
-    for (const auto& entry : fs::recursive_directory_iterator(sourceDir)) {
-        if (entry.is_regular_file() && isSameExtension(entry.path(), L".json")) {
-            filePaths.push_back(entry.path());
-        }
-    }
-    if (filePaths.empty()) {
-        throw std::runtime_error("未找到任何待翻译文件。");
-    }
-
-    if (m_sortMethod == "size") {
-        std::ranges::sort(filePaths, [](const fs::path& a, const fs::path& b)
+    // 单文件分割
+    {
+        auto splitFunc = [&](std::function<std::vector<json>(const json&, int)> splitImplFunc)
             {
-                return fs::file_size(a) > fs::file_size(b);
-            });
+                if (m_splitFileNum <= 0) {
+                    throw std::invalid_argument("文件分割数必须大于 0");
+                }
+                m_needsCombining = true;
+                m_logger->info("检测到文件分割模式 ({})，开始预处理输入文件...", m_splitFile);
+                for (const auto& relJsonPath : relJsonPaths) {
+                    try {
+                        ifs.open(m_inputDir / relJsonPath);
+                        json data = json::parse(ifs);
+                        ifs.close();
+                        const std::vector<json>& parts = splitImplFunc(data, m_splitFileNum);
+                        std::wstring relStem = relJsonPath.parent_path() / relJsonPath.stem();
+                        for (size_t i = 0; i < parts.size(); ++i) {
+                            fs::path relPartPath = relStem + L"_part_" + std::to_wstring(i) + relJsonPath.extension().wstring();
+                            m_splitFilePartsToJson[relPartPath] = relJsonPath;
+                            m_jsonToSplitFileParts[relJsonPath].insert(std::make_pair(relPartPath, false));
+                            fs::path partPath = m_inputCacheDir / relPartPath;
+                            createParent(partPath);
+                            ofs.open(partPath);
+                            ofs << parts[i].dump(2);
+                            ofs.close();
+                        }
+                        m_logger->debug("文件 {} 已被分割成 {} 份，存入输入缓存。", wide2Ascii(relJsonPath), parts.size());
+
+                    }
+                    catch (const json::exception& e) {
+                        m_logger->critical("分割文件 {} 时出错", wide2Ascii(relJsonPath));
+                        throw std::runtime_error(e.what());
+                    }
+                }
+            };
+        if (m_splitFile == "Equal") {
+            splitFunc(splitJsonArrayEqual);
+        }
+        else if (m_splitFile == "Num") {
+            splitFunc(splitJsonArrayNum);
+        }
+        else if (m_splitFile != "No") {
+            throw std::invalid_argument(std::format("未知的文件分割模式: {}, 请使用 'No', 'Equal', 'Num'", m_splitFile));
+        }
     }
-    else if (m_sortMethod == "name") {
-        std::ranges::sort(filePaths);
+    // 单文件分割完毕
+
+
+    // 分发文件，开始翻译
+    {
+        std::vector<fs::path> relFilePaths;
+        if (!m_needsCombining) {
+            relFilePaths = std::move(relJsonPaths);
+        }
+        else {
+            for (const auto& [relPartPath, relJsonPath] : m_splitFilePartsToJson) {
+                relFilePaths.push_back(relPartPath);
+            }
+        }
+        if (relFilePaths.empty()) {
+            throw std::runtime_error("未找到任何待翻译文件。");
+        }
+
+        if (m_sortMethod == "size") {
+            std::ranges::sort(relFilePaths, [&](const fs::path& a, const fs::path& b)
+                {
+                    return m_needsCombining ? (fs::file_size(m_inputCacheDir / a) > fs::file_size(m_inputCacheDir / b)) :
+                        (fs::file_size(m_inputDir / a) > fs::file_size(m_inputDir / b));
+                });
+        }
+        else if (m_sortMethod == "name") {
+            std::ranges::sort(relFilePaths);
+        }
+        else {
+            throw std::invalid_argument(std::format("未知的排序模式: {}", m_sortMethod));
+        }
+
+        ctpl::thread_pool pool(std::min(m_threadsNum, (int)relFilePaths.size()));
+        std::vector<std::future<void>> results;
+
+        for (const auto& filePath : relFilePaths) {
+            results.emplace_back(pool.push([=](int id)
+                {
+                    this->processFile(filePath, id);
+                }));
+        }
+        m_logger->info("已将 {} 个文件任务分配到线程池，等待处理完成...", results.size());
+        for (auto& result : results) {
+            result.get();
+        }
     }
-    else {
-        throw std::invalid_argument(std::format("未知的排序模式: {}", m_sortMethod));
-    }
+    // 翻译结束
+    
 
-
-    ctpl::thread_pool pool(std::min(m_threadsNum, (int)filePaths.size()));
-    std::vector<std::future<void>> results;
-
-    for (const auto& filePath : filePaths) {
-        results.emplace_back(pool.push([=](int id)
-            {
-                this->processFile(filePath, id);
-            }));
-    }
-
-    m_logger->info("已将 {} 个文件任务分配到线程池，等待处理完成...", results.size());
-
-    for (auto& result : results) {
-        result.get();
-    }
-
+    // 问题概览
     if (m_problemOverview.as_array().empty()) {
         m_logger->info("\n\n```\n无问题概览\n```\n");
     }
@@ -1351,6 +1311,7 @@ void NormalJsonTranslator::run() {
         }
         m_logger->error("{}问题概览结束\n```\n", problemOverviewStr);
     }
+    // 问题概览完毕
 
     fs::remove_all(m_inputCacheDir);
     fs::remove_all(m_outputCacheDir);

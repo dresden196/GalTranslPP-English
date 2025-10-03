@@ -5,7 +5,7 @@ module;
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
 
-export module NJ_ImpTool;
+export module NJ_ImplTool;
 
 import <nlohmann/json.hpp>;
 export import Tool;
@@ -18,7 +18,7 @@ export {
 
     std::string generateCacheKey(const Sentence* s);
 
-    std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine transEngine, int contextHistorySize);
+    std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine transEngine, int contextHistorySize, int maxTokens);
 
     void fillBlockAndMap(const std::vector<Sentence*>& batchToTransThisRound, std::map<int, Sentence*>& id2SentenceMap, std::string& inputBlock, TransEngine transEngine);
 
@@ -62,7 +62,7 @@ std::string generateCacheKey(const Sentence* s) {
     return prev_text + current_text + next_text;
 }
 
-std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine transEngine, int contextHistorySize) {
+std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine transEngine, int contextHistorySize, int maxTokens) {
     if (batch.empty() || !batch[0]->prev) {
         return {};
     }
@@ -164,6 +164,10 @@ std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine
         throw std::runtime_error("未知的 PromptType");
     }
 
+    // 缺tiktoken这一块
+    if (history.length() > maxTokens) {
+        history = history.substr(history.length() - maxTokens);
+    }
     return history;
 }
 

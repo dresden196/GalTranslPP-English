@@ -34,7 +34,7 @@
     <ClCompile Include="Tool.ixx">
       <Filter>Tools\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="NJ_ImpTool.ixx">
+    <ClCompile Include="NJ_ImplTool.ixx">
       <Filter>Tools\Utils\specialized</Filter>
     </ClCompile>
     <ClCompile Include="GPPDefines.ixx">

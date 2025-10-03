@@ -183,9 +183,15 @@ int main(int argc, char* argv[])
         }
         return result;
     }
+    catch (const toml::exception& e) {
+#ifdef Q_OS_WIN
+        MessageBoxW(nullptr, QString::fromStdString(e.what()).toStdWString().c_str(), L"TOML 错误", MB_ICONERROR);
+#endif
+        return 1;
+    }
     catch (const std::exception& e) {
 #ifdef Q_OS_WIN
-        MessageBoxW(nullptr, QString::fromStdString(e.what()).toStdWString().c_str(), L"错误", MB_ICONERROR);
+        MessageBoxW(nullptr, QString::fromStdString(e.what()).toStdWString().c_str(), L"标准错误", MB_ICONERROR);
 #endif
         return 1;
     }
