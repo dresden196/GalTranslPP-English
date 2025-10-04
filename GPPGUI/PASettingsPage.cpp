@@ -44,9 +44,9 @@ void PASettingsPage::_setupUI()
 
 	// 要发现的问题清单
 	QStringList problemList = { "词频过高","标点错漏","丢失换行","多加换行","比原文长","比原文长严格","字典未使用",
-		"残留日文","引入拉丁字母","引入韩文","语言不通", };
+		"残留日文","引入拉丁字母","引入韩文", "引入繁体字","语言不通", };
 	QStringList problemListToShow = { tr("词频过高"), tr("标点错漏"), tr("丢失换行"), tr("多加换行"), tr("比原文长"), tr("比原文长严格"),
-		tr("字典未使用"), tr("残留日文"), tr("引入拉丁字母"), tr("引入韩文"), tr("语言不通"), };
+		tr("字典未使用"), tr("残留日文"), tr("引入拉丁字母"), tr("引入韩文"), tr("引入繁体字"), tr("语言不通"),};
 
 	std::set<std::string> problemListSet;
 	auto& problemListOrgArray = _projectConfig["problemAnalyze"]["problemList"];
@@ -117,7 +117,10 @@ void PASettingsPage::_setupUI()
 			if (retranslKeys.is_array()) {
 				retranslKeysArr = retranslKeys;
 			}
+			retranslKeysArr.comments().clear();
 			ElaText* retranslKeyHelperText = new ElaText(title, mainWidget);
+			ElaToolTip* retranslKeyHelperTip = new ElaToolTip(retranslKeyHelperText);
+			retranslKeyHelperTip->setToolTip(tr("点击下方『语法示例』按钮以获取具体语法规则及作用"));
 			retranslKeyHelperText->setTextPixelSize(18);
 			retranslKeyHelperText->setWordWrap(false);
 			mainLayout->addWidget(retranslKeyHelperText);
@@ -161,15 +164,15 @@ void PASettingsPage::_setupUI()
 		};
 
 	// 正则表达式列表，重翻正则在缓存的 orig_text 或 某条 problem 中能 search 通过的句子。
-	auto retranslKeysSaveFunc = createPAPlainTextEditAreaFunc("retranslKeys", tr("重翻关键字设定"), 280);
+	auto retranslKeysSaveFunc = createPAPlainTextEditAreaFunc("retranslKeys", tr("重翻关键字设定"), 250);
 	mainLayout->addSpacing(20);
 
 	// 正则表达式列表，如果一条 problem 能被以下正则 search 通过，则不加入 problems 列表
-	auto skipProblemsSaveFunc = createPAPlainTextEditAreaFunc("skipProblems", tr("跳过问题关键字设定"), 280);
+	auto skipProblemsSaveFunc = createPAPlainTextEditAreaFunc("skipProblems", tr("跳过问题关键字设定"), 250);
 	mainLayout->addSpacing(20);
 
 	// 问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)
-	auto overwriteCompareObjSaveFunc = createPAPlainTextEditAreaFunc("overwriteCompareObj", tr("问题比较对象设定"), 300);
+	auto overwriteCompareObjSaveFunc = createPAPlainTextEditAreaFunc("overwriteCompareObj", tr("问题比较对象设定"), 280);
 
 	QWidget* illusButtonWidget = new QWidget(mainWidget);
 	QHBoxLayout* illusButtonLayout = new QHBoxLayout(illusButtonWidget);

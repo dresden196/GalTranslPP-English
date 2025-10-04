@@ -1962,6 +1962,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="PASettingsPage.cpp" line="49"/>
+        <source>引入繁体字</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="PASettingsPage.cpp" line="60"/>
         <source>要发现的问题清单</source>
         <translation type="unfinished"></translation>
@@ -1987,37 +1992,43 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="157"/>
+        <location filename="PASettingsPage.cpp" line="123"/>
+        <source>点击下方『语法示例』按钮以获取具体语法规则及作用</source>
+        <oldsource>点击下方『语法示例』按钮以获取语法规则及作用</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="PASettingsPage.cpp" line="160"/>
         <source>不符合 toml 规范</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="164"/>
+        <location filename="PASettingsPage.cpp" line="167"/>
         <source>重翻关键字设定</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="179"/>
+        <location filename="PASettingsPage.cpp" line="182"/>
         <source>查看 重翻关键字/跳过问题关键字/问题比较对象 设定的语法示例</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="168"/>
+        <location filename="PASettingsPage.cpp" line="171"/>
         <source>跳过问题关键字设定</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="172"/>
+        <location filename="PASettingsPage.cpp" line="175"/>
         <source>问题比较对象设定</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="177"/>
+        <location filename="PASettingsPage.cpp" line="180"/>
         <source>语法示例</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="157"/>
+        <location filename="PASettingsPage.cpp" line="160"/>
         <source>解析错误</source>
         <translation type="unfinished"></translation>
     </message>

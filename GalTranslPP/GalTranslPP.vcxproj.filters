@@ -52,6 +52,9 @@
     <ClCompile Include="PDFTranslator.ixx">
       <Filter>filePlugins</Filter>
     </ClCompile>
+    <ClCompile Include="CodePageChecker.ixx">
+      <Filter>textPlugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="filePlugins">

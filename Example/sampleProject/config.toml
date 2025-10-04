@@ -93,6 +93,7 @@ problemList = [
   "残留日文",
   #"引入拉丁字母",
   #"引入韩文",
+  #"引入繁体字",
   "语言不通",
 ]
 
@@ -124,14 +125,11 @@ langProbability = 0.94 # 语言不通检测的语言置信度，设置越高则�
 # 意思是当 trans_preview 比 orig_text 严格长时，在 problem 中留下对应的问题。
 overwriteCompareObj = [
   { problemKey = "词频过高", base = "orig_text", check = "trans_preview" },
-  { problemKey = "残留日文", check = "trans_preview" },
   { problemKey = "标点错漏", base = "orig_text", check = "trans_preview" },
   { problemKey = "引入拉丁字母", base = "preproc_text", check = "trans_preview" },
   { problemKey = "引入韩文", base = "preproc_text", check = "trans_preview" },
   { problemKey = "丢失换行", base = "orig_text", check = "trans_preview" },
   { problemKey = "多加换行", base = "orig_text", check = "trans_preview" },
-  { problemKey = "比原文长", base = "orig_text", check = "trans_preview" },
-  { problemKey = "比原文长严格", base = "orig_text", check = "trans_preview" },
   { problemKey = "字典未使用", base = "preproc_text", check = "trans_preview" },
   { problemKey = "语言不通", base = "preproc_text", check = "trans_preview" },
 ]

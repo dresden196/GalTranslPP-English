@@ -12,6 +12,14 @@ module;
 #include <unicode/schriter.h>
 #include <unicode/regex.h>
 #include <unicode/uscript.h>
+#include <unicode/translit.h>
+
+#define USE_OPENCC
+#ifdef USE_OPENCC
+#include <opencc/opencc.h>
+#pragma comment(lib, "../lib/marisa.lib")
+#pragma comment(lib, "../lib/opencc.lib")
+#endif
 
 export module Tool;
 
@@ -82,6 +90,8 @@ export {
     std::string extractLatin(const std::string& sourceString);
 
     std::string extractHangul(const std::string& sourceString);
+
+    std::string extractTraditionalChinese(const std::string& sourceString);
 
     void extractZip(const fs::path& zipPath, const fs::path& outputDir);
 
@@ -655,6 +665,91 @@ std::string extractLatin(const std::string& sourceString) {
 
 std::string extractHangul(const std::string& sourceString) {
     return extractCharactersByScripts(sourceString, { USCRIPT_HANGUL });
+}
+
+
+std::string extractTraditionalChinese(const std::string& sourceString) {
+
+#ifdef USE_OPENCC
+    try {
+        std::string result;
+        static opencc::SimpleConverter converter("BaseConfig/t2s.json");
+        std::vector<std::string> graphemes = splitIntoGraphemes(sourceString);
+        for (const auto& grapheme : graphemes) {
+            std::string simplified = converter.Convert(grapheme);
+            if (simplified != grapheme) {
+                result += grapheme;
+            }
+        }
+        return result;
+    }
+    catch (...) {
+
+    }
+#endif
+
+    UErrorCode status = U_ZERO_ERROR;
+    auto toSimplified = std::unique_ptr<icu::Transliterator>(icu::Transliterator::createInstance("Traditional-Simplified", UTRANS_FORWARD, status));
+    if (U_FAILURE(status)) {
+        spdlog::error("Failed to create T-S Transliterator: {}", u_errorName(status));
+        return "";
+    }
+    auto toTraditional = std::unique_ptr<icu::Transliterator>(icu::Transliterator::createInstance("Simplified-Traditional", UTRANS_FORWARD, status));
+    if (U_FAILURE(status)) {
+        spdlog::error("Failed to create S-T Transliterator: {}", u_errorName(status));
+        return "";
+    }
+
+    // 白名单/排除列表：用于解决简繁转换中的歧义问题。
+    // "著" (U+8457) 是一个典型例子，它在简体中文里也是合法字符，但T->S的转换规则可能导致误判。
+    const std::set<UChar32> excludeList = {
+        0x8457 // 著
+    };
+
+    icu::UnicodeString uSource = icu::UnicodeString::fromUTF8(sourceString);
+    std::set<UChar32> traditionalChars;
+
+    icu::StringCharacterIterator iter(uSource);
+    UChar32 charSource;
+    while (iter.hasNext()) {
+        charSource = iter.next32PostInc();
+
+        // 1. 必须是汉字
+        UErrorCode scriptErr = U_ZERO_ERROR;
+        if (uscript_getScript(charSource, &scriptErr) != USCRIPT_HAN || U_FAILURE(scriptErr)) {
+            continue;
+        }
+
+        // 2. 检查是否在排除列表中
+        if (excludeList.contains(charSource)) {
+            continue;
+        }
+
+        icu::UnicodeString uCharSource(charSource);
+        icu::UnicodeString uSimplified = uCharSource;
+        toSimplified->transliterate(uSimplified);
+
+        // 3. 繁体转简体后必须有变化
+        if (uCharSource == uSimplified) {
+            continue;
+        }
+
+        // 4. 核心双向检查：简体转回繁体，必须能得到原始字符，确保转换是明确且可逆的
+        icu::UnicodeString uReTraditional = uSimplified;
+        toTraditional->transliterate(uReTraditional);
+
+        if (uReTraditional == uCharSource) {
+            traditionalChars.insert(charSource);
+        }
+    }
+
+    icu::UnicodeString resultUStr;
+    for (UChar32 ch : traditionalChars) {
+        resultUStr.append(ch);
+    }
+
+    std::string resultStr;
+    return resultUStr.toUTF8String(resultStr);
 }
 
 void extractZip(const fs::path& zipPath, const fs::path& outputDir) {
