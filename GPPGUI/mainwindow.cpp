@@ -33,7 +33,6 @@
 #include "SettingPage.h"
 
 import Tool;
-namespace fs = std::filesystem;
 
 MainWindow::MainWindow(QWidget* parent)
     : ElaWindow(parent)
@@ -113,6 +112,19 @@ MainWindow::MainWindow(QWidget* parent)
 
     // 初始化提示
     ElaMessageBar::success(ElaMessageBarType::BottomRight, tr("成功"), tr("初始化成功!"), 2000);
+}
+
+ProjectSettingsPage* MainWindow::_createProjectSettingsPage(const fs::path& projectDir)
+{
+    QSharedPointer<ProjectSettingsPage> newPage(new ProjectSettingsPage(_globalConfig, projectDir, this));
+    connect(newPage.get(), &ProjectSettingsPage::finishTranslatingSignal, this, &MainWindow::_onFinishTranslating);
+    connect(newPage.get(), &ProjectSettingsPage::changeProjectNameSignal, this, [=](QString nodeKey, QString newProjectName)
+        {
+            setNavigationNodeTitle(nodeKey, newProjectName);
+        });
+    _projectPages.push_back(newPage);
+    addPageNode(QString(projectDir.filename().wstring()), newPage.get(), _projectExpanderKey, ElaIconType::Projector);
+    return newPage.get();
 }
 
 MainWindow::~MainWindow()
@@ -254,10 +266,7 @@ void MainWindow::initContent()
                 if (!fs::exists(projectDir / L"config.toml")) {
                     continue;
                 }
-                QSharedPointer<ProjectSettingsPage> newPage(new ProjectSettingsPage(_globalConfig, projectDir, this));
-                connect(newPage.get(), &ProjectSettingsPage::finishTranslatingSignal, this, &MainWindow::_onFinishTranslating);
-                _projectPages.push_back(newPage);
-                addPageNode(QString(projectDir.filename().wstring()), newPage.get(), _projectExpanderKey, ElaIconType::Projector);
+                _createProjectSettingsPage(projectDir);
             }
         }
     }
@@ -405,10 +414,7 @@ void MainWindow::_onNewProjectTriggered()
         return;
     }
 
-    QSharedPointer<ProjectSettingsPage> newPage(new ProjectSettingsPage(_globalConfig, newProjectDir, this));
-    connect(newPage.get(), &ProjectSettingsPage::finishTranslatingSignal, this, &MainWindow::_onFinishTranslating);
-    _projectPages.push_back(newPage);
-    addPageNode(projectName, newPage.get(), _projectExpanderKey, ElaIconType::Projector);
+    ProjectSettingsPage* newPage = _createProjectSettingsPage(newProjectDir);
     this->navigation(newPage->property("ElaPageKey").toString());
 
     QUrl dirUrl = QUrl::fromLocalFile(QString(newProjectDir.wstring()));
@@ -440,10 +446,7 @@ void MainWindow::_onOpenProjectTriggered()
         return;
     }
 
-    QSharedPointer<ProjectSettingsPage> newPage(new ProjectSettingsPage(_globalConfig, projectDir, this));
-    connect(newPage.get(), &ProjectSettingsPage::finishTranslatingSignal, this, &MainWindow::_onFinishTranslating);
-    _projectPages.push_back(newPage);
-    addPageNode(newPage->getProjectName(), newPage.get(), _projectExpanderKey, ElaIconType::Projector);
+    ProjectSettingsPage* newPage = _createProjectSettingsPage(projectDir);
     this->navigation(newPage->property("ElaPageKey").toString());
 
     QUrl dirUrl = QUrl::fromLocalFile(QString(projectDir.wstring()));

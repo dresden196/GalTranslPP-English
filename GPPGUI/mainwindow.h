@@ -5,6 +5,7 @@
 
 #include <QMainWindow>
 #include <toml.hpp>
+#include <filesystem>
 class HomePage;
 class AboutDialog;
 class DefaultPromptPage;
@@ -14,6 +15,8 @@ class SettingPage;
 class ProjectSettingsPage;
 class ElaContentDialog;
 class UpdateChecker;
+
+namespace fs = std::filesystem;
 
 class MainWindow : public ElaWindow
 {
@@ -43,6 +46,7 @@ private:
     void initWindow();
     void initEdgeLayout();
     void initContent();
+    ProjectSettingsPage* _createProjectSettingsPage(const fs::path& projectDir);
 
     HomePage* _homePage{nullptr};
     AboutDialog* _aboutDialog{nullptr};

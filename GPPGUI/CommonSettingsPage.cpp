@@ -138,7 +138,7 @@ void CommonSettingsPage::_setupUI()
 			if (checked) {
 				std::string value = button->text().toStdString();
 				if (value == "No") {
-					splitArea->collpase();
+					splitArea->collapse();
 				}
 				else {
 					splitArea->expand();
@@ -148,7 +148,7 @@ void CommonSettingsPage::_setupUI()
 	connect(splitArea, &ElaDrawerArea::expandStateChanged, this, [=](bool expanded)
 		{
 			if (expanded && splitGroup->button(0)->isChecked()) {
-				splitArea->collpase();
+				splitArea->collapse();
 			}
 		});
 	mainLayout->addWidget(splitArea);
@@ -169,7 +169,7 @@ void CommonSettingsPage::_setupUI()
 	splitNumLayout->addWidget(splitNumSpinBox);
 	splitArea->addDrawer(splitNumArea);
 	if (split == "No") {
-		splitArea->collpase();
+		splitArea->collapse();
 	}
 	else {
 		splitArea->expand();

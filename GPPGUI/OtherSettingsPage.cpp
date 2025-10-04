@@ -138,6 +138,8 @@ void OtherSettingsPage::_setupUI()
 				return;
 			}
 			_projectDir = newProjectPath;
+			pathEdit->setText(QString(_projectDir.wstring()));
+			Q_EMIT changeProjectNameSignal(newProjectName);
 			ElaMessageBar::success(ElaMessageBarType::TopRight, tr("更名成功"), tr("项目已更名为 ") + newProjectName, 3000);
 		});
 	renameLayout->addWidget(renameButton);
@@ -179,7 +181,22 @@ void OtherSettingsPage::_setupUI()
 	refreshButton->setText(tr("刷新"));
 	connect(refreshButton, &ElaPushButton::clicked, this, [=]()
 		{
-			Q_EMIT refreshProjectConfigSignal();
+			ElaContentDialog helpDialog(_mainWindow);
+			helpDialog.setLeftButtonText(tr("否"));
+			helpDialog.setMiddleButtonText(tr("思考人生"));
+			helpDialog.setRightButtonText(tr("是"));
+			QWidget* widget = new QWidget(&helpDialog);
+			QVBoxLayout* layout = new QVBoxLayout(widget);
+			ElaText* confirmText = new ElaText(tr("你确定要刷新项目配置吗？"), 18, widget);
+			confirmText->setWordWrap(false);
+			layout->addWidget(confirmText);
+			layout->addWidget(new ElaText(tr("GUI中未保存的数据将会被覆盖！"), 16, widget));
+			helpDialog.setCentralWidget(widget);
+			connect(&helpDialog, &ElaContentDialog::rightButtonClicked, this, [=]()
+				{
+					Q_EMIT refreshProjectConfigSignal();
+				});
+			helpDialog.exec();
 		});
 	refreshLayout->addWidget(refreshButton);
 	mainLayout->addWidget(refreshArea);

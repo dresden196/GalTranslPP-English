@@ -477,7 +477,10 @@ CachePart chooseCachePart(const std::string& partName) {
     else if (partName == "trans_preview") {
         part = CachePart::TransPreview;
     }
-    throw std::invalid_argument("无效的 CachePart: " + partName);
+    else {
+        throw std::invalid_argument("无效的 CachePart: " + partName);
+    }
+    return part;
 }
 
 bool isSameExtension(const fs::path& filePath, const std::wstring& ext) {

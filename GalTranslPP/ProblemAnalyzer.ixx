@@ -60,19 +60,14 @@ module :private;
 void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const std::string& targetLang) {
     if (sentence->translated_preview.empty()) {
         if (!sentence->pre_processed_text.empty() && !sentence->pre_translated_text.empty()) {
-            sentence->problems = { "翻译为空" };
-        }
-        else {
-            sentence->problems.clear();
+            sentence->problems.push_back("翻译为空");
         }
         return;
     }
     if (sentence->translated_preview.starts_with("(Failed to translate)")) {
-        sentence->problems = { "翻译失败" };
+        sentence->problems.push_back("翻译失败");
         return;
     }
-
-    sentence->problems.clear();
 
     // 1. 词频过高
     if (m_problems.highFrequency.use) {

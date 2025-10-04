@@ -664,7 +664,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         if (!optAPI.has_value()) {
             throw std::runtime_error("没有可用的API Key了");
         }
-        TranslationAPI currentAPI = optAPI.value();
+        const TranslationAPI& currentAPI = optAPI.value();
 
         json payload = { {"model", currentAPI.modelName}, {"messages", messages} };
 
@@ -737,9 +737,7 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
             }
             else if (item.contains("names")) {
                 se.nameType = NameType::Multiple;
-                for (const auto& name : item["names"]) {
-                    se.names.push_back(name.get<std::string>());
-                }
+                se.names = item["names"].get<std::vector<std::string>>();
             }
             se.original_text = item.value("message", "");
             sentences.push_back(se);

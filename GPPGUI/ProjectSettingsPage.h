@@ -41,6 +41,7 @@ public:
 
 Q_SIGNALS:
         void finishTranslatingSignal(QString nodeKey); // 用于加红点提示翻译完成
+        void changeProjectNameSignal(QString nodeKey, QString newProjectName); // 改变项目名
 
 private:
     // UI 控件

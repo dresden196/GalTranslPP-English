@@ -252,13 +252,17 @@ void ProjectSettingsPage::_createPages()
     connect(_startSettingsPage, &StartSettingsPage::finishTranslatingSignal, this, &ProjectSettingsPage::_onFinishTranslating);
     connect(_otherSettingsPage, &OtherSettingsPage::saveConfigSignal, this, &ProjectSettingsPage::apply2Config);
     connect(_otherSettingsPage, &OtherSettingsPage::refreshProjectConfigSignal, this, &ProjectSettingsPage::_onRefreshProjectConfig);
+    connect(_otherSettingsPage, &OtherSettingsPage::changeProjectNameSignal, this, [=](QString newProjectName)
+        {
+            Q_EMIT changeProjectNameSignal(this->property("ElaPageKey").toString(), newProjectName);
+        });
 }
 
 void ProjectSettingsPage::_onRefreshProjectConfig()
 {
     bool isRunning = toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true);
     if (isRunning) {
-        ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("正在翻译"), tr("项目仍在运行中，无法刷新配置"), 3000);
+        ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("正在运行"), tr("项目仍在运行中，无法刷新配置"), 3000);
         return;
     }
     try {

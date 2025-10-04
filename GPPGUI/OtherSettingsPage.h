@@ -19,6 +19,7 @@ public:
 Q_SIGNALS:
     void saveConfigSignal();
     void refreshProjectConfigSignal();
+    void changeProjectNameSignal(QString newProjectName);
 
 private:
 

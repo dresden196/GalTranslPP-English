@@ -1,3 +1,6 @@
 [submodule "3rdParty/ElaWidgetTools"]
 	path = 3rdParty/ElaWidgetTools
 	url = https://github.com/julixian/ElaWidgetTools.git
+[submodule "3rdParty/OpenCC"]
+	path = 3rdParty/OpenCC
+	url = https://github.com/julixian/OpenCC.git
