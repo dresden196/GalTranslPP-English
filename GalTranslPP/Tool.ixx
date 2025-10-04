@@ -783,14 +783,11 @@ bool checkString(std::shared_ptr<icu::RegexPattern> conditionReg, const std::str
     icu::UnicodeString textToInspect = icu::UnicodeString::fromUTF8(str);
     UErrorCode status = U_ZERO_ERROR;
     std::unique_ptr<icu::RegexMatcher> matcher(conditionReg->matcher(textToInspect, status));
-    if (!U_FAILURE(status)) {
-        return (bool)matcher->find();
-    }
-    else {
+    if (U_FAILURE(status)) {
         std::string textToInspectU8;
         throw std::runtime_error(std::format("正则表达式创建matcher失败: {}, 句子: [{}]", u_errorName(status), textToInspect.toUTF8String(textToInspectU8)));
     }
-    return false;
+    return (bool)matcher->find();
 }
 
 bool checkCondition(const GPPCondition& conditions, const Sentence* se) {

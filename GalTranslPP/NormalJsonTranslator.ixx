@@ -821,7 +821,7 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
 
         std::vector<fs::path> cachePaths;
 
-        auto readAllPotentialPartFileCache = [&](const std::wstring& cacheSpec, const fs::path& specParentDir)
+        auto readAllPotentialPartFileCache = [&](const std::wstring& cacheSpec, const fs::path& specParentDir, std::optional<fs::path> additionalCachePath = std::nullopt)
             {
                 for (const auto& entry : fs::directory_iterator(specParentDir)) {
                     if (!entry.is_regular_file()) {
@@ -830,6 +830,9 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
                     if (PathMatchSpecW(entry.path().filename().wstring().c_str(), cacheSpec.c_str())) {
                         cachePaths.push_back(entry.path());
                     }
+                }
+                if (additionalCachePath.has_value()) {
+                    cachePaths.push_back(additionalCachePath.value());
                 }
                 for (const auto& cp : cachePaths) {
                     usePotentialPartFileCacheToInsertCacheMap(cp);
@@ -842,20 +845,24 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
             }
         }
         else if (m_needsCombining) {
-            if (fs::exists(m_cacheDir / m_splitFilePartsToJson[relInputPath])) {
-                cachePaths.push_back(m_cacheDir / m_splitFilePartsToJson[relInputPath]);
+            std::optional<fs::path> additionalCachePath = std::nullopt;
+            auto it = m_splitFilePartsToJson.find(relInputPath);
+            if (it != m_splitFilePartsToJson.end() && fs::exists(m_cacheDir / it->second)) {
+                additionalCachePath = m_cacheDir / it->second;
             }
             // 这个逻辑还挺耗时的，我自己尝试优化结果大败而归
             size_t pos = relInputPath.filename().wstring().rfind(L"_part_");
             std::wstring orgStem = relInputPath.filename().wstring().substr(0, pos);
             std::wstring cacheSpec = orgStem + L"_part_*.json";
-            readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
+            // 分割优先读分割缓存
+            readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path(), additionalCachePath);
         }
         else {
             if (fs::exists(cachePath)) {
                 cachePaths.push_back(cachePath);
             }
             std::wstring cacheSpec = relInputPath.stem().wstring() + L"_part_*.json";
+            // 非分割优先读整体缓存
             readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
         }
 
