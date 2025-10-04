@@ -352,22 +352,16 @@ std::wstring wstr2Lower(const std::wstring& wstr) {
     return result;
 }
 
-std::vector<std::string> splitString(const std::string& s, char delimiter) {
-    std::vector<std::string> tokens;
-    std::string token;
-    std::istringstream tokenStream(s);
-    while (std::getline(tokenStream, token, delimiter)) {
-        tokens.push_back(token);
-    }
-    return tokens;
-}
-
 std::vector<std::string> splitString(const std::string& s, const std::string& delimiter) {
     std::vector<std::string> parts;
     for (const auto& part_view : std::views::split(s, delimiter)) {
         parts.emplace_back(part_view.begin(), part_view.end());
     }
     return parts;
+}
+
+std::vector<std::string> splitString(const std::string& s, char delimiter) {
+    return splitString(s, std::string(1, delimiter));
 }
 
 std::vector<std::string> splitTsvLine(const std::string& line, const std::vector<std::string>& delimiters) {
