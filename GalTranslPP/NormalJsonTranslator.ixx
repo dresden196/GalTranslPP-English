@@ -525,6 +525,7 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
     se->name_preview = se->name;
     se->names_preview = se->names;
     se->translated_preview = se->pre_translated_text;
+    se->problems.clear();
 
     for (auto& plugin : m_postPlugins) {
         plugin->run(se);
@@ -888,6 +889,10 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
                 continue;
             }
             const auto& item = it->second;
+            // 命中缓存了就把 problems 带上
+            if (item.contains("problems")) {
+                se.problems = item["problems"].get<std::vector<std::string>>();
+            }
             if (m_transEngine != TransEngine::Rebuild && hasRetranslKey(m_retranslKeys, item)) {
                 toTranslate.push_back(&se);
                 continue;
