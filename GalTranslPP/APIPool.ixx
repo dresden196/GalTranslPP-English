@@ -143,7 +143,7 @@ bool checkResponse(const ApiResponse& response, const TranslationAPI& currentAPI
     // 情况二：频率限制 (429) 或其他可重试错误
     // 状态码 429 是最明确的信号
     if (response.statusCode == 429 || lowerErrorMsg.find("rate limit") != std::string::npos || lowerErrorMsg.find("try again") != std::string::npos) {
-        retryCount++;
+        // 429 也不加 retryCount
         m_logger->warn("[线程 {}] [文件 {}] 遇到频率限制或可重试错误，进行第 {} 次退避等待...", threadId, wide2Ascii(relInputPath.filename()), retryCount);
 
         // 实现指数退避与抖动

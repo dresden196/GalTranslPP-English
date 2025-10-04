@@ -206,14 +206,14 @@
 <p>同时也支持icu扩展正则语法，如可以使用<code>\p{P}</code>来匹配任意标点符号，<code>\p{Hangul}</code>来匹配任意韩文字符等。</p>
 </blockquote>
 <h2>其它翻译说明</h2>
-<h3>retranslKey 语法示例:</h3>
-<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>retranslKeys = [
-  "翻译失败",
-  "残留日文",
-  "^本有.*符号$",
-  "本无",
-  # ...
-  # skipProblems 同理
+<h3>问题分析 语法示例:</h3>
+<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code># 正则表达式列表，如果句子缓存中的某条 problem 能被以下任一正则 search 通过，则进行重翻
+# 如果想对指定原文/译文进行重翻，请通过内联表数组指定 conditionTarget 和 conditionReg
+retranslKeys = [
+  #"残留日文",
+  [{ conditionTarget = 'orig_text', conditionReg = '^(?!.*隠さん).*$'},
+   { conditionTarget = 'trans_preview', conditionReg = '隐同学' }], # 重翻所有 原文中不含'隠さん'且译文中含'隐同学' 的句子
+  "翻译失败", # 等效于 [{ conditionTarget = 'problems', conditionReg = '翻译失败' }]
 ]
 </code></pre>
 
@@ -225,17 +225,14 @@
       </i>
     </button><!--beforeend--></div><!--afterend--></div><p>问题比较对象设定语法示例:</p>
 <div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>overwriteCompareObj = [
-    { base = 'orig_text', check = 'trans_preview', problemKey = '词频过高' },
-    { check = 'trans_preview', problemKey = '残留日文' },
-    { base = 'preproc_text', check = 'trans_preview', problemKey = '标点错漏' },
-    { base = 'preproc_text', check = 'trans_preview', problemKey = '引入拉丁字母' },
-    { base = 'preproc_text', check = 'trans_preview', problemKey = '引入韩文' },
-    { base = 'orig_text', check = 'trans_preview', problemKey = '丢失换行' },
-    { base = 'orig_text', check = 'trans_preview', problemKey = '多加换行' },
-    { base = 'orig_text', check = 'trans_preview', problemKey = '比原文长' },
-    { base = 'orig_text', check = 'trans_preview', problemKey = '比原文长严格' },
-    { base = 'preproc_text', check = 'trans_preview', problemKey = '字典未使用' },
-    { base = 'preproc_text', check = 'trans_preview', problemKey = '语言不通' }
+    { problemKey = "词频过高", base = "orig_text", check = "trans_preview" },
+    { problemKey = "标点错漏", base = "orig_text", check = "trans_preview" },
+    { problemKey = "引入拉丁字母", base = "preproc_text", check = "trans_preview" },
+    { problemKey = "引入韩文", base = "preproc_text", check = "trans_preview" },
+    { problemKey = "丢失换行", base = "orig_text", check = "trans_preview" },
+    { problemKey = "多加换行", base = "orig_text", check = "trans_preview" },
+    { problemKey = "字典未使用", base = "preproc_text", check = "trans_preview" },
+    { problemKey = "语言不通", base = "preproc_text", check = "trans_preview" },
 ]
 </code></pre>
 
@@ -266,7 +263,7 @@
 <p>Epub正则设置依然使用toml语法解析配置，并支持两种正则写法: <strong>一般正则</strong>和<strong>回调正则</strong>。</p>
 <h4>一般正则</h4>
 <p>一般正则执行简单的匹配替换，例如使用下面的预处理正则，</p>
-<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.'预处理正则']]
+<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.preprocRegex]]
 org = '&lt;ruby&gt;&lt;rb&gt;(.+?)&lt;/rb&gt;&lt;rt&gt;(.+?)&lt;/rt&gt;&lt;/ruby&gt;'
 rep = '[$2/$1]'
 </code></pre>
@@ -288,7 +285,7 @@ rep = '[$2/$1]'
         </svg>
       </i>
     </button><!--beforeend--></div><!--afterend--></div><p>之后再遍历到此处时，「モテる男は[つら/辛]いね」 将被作为一个完整的句子被提取出来。如果之后搭配如下后处理正则，</p>
-<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.'后处理正则']]
+<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.postprocRegex]]
 org = '\[([^/\[\]]+?)/([^/\[\]]+?)\]'
 rep = '&lt;ruby&gt;&lt;rb&gt;$2&lt;/rb&gt;&lt;rt&gt;$1&lt;/rt&gt;&lt;/ruby&gt;'
 </code></pre>
@@ -314,7 +311,7 @@ rep = '&lt;ruby&gt;&lt;rb&gt;$2&lt;/rb&gt;&lt;rt&gt;$1&lt;/rt&gt;&lt;/ruby&gt;'
       </i>
     </button><!--beforeend--></div><!--afterend--></div><p>假如我不想一个一个文件的看标签写正则，而是想要直接『删除所有<code>&lt;p&gt;&lt;/p&gt;</code>标签内的其余标签并保留非标签部分』来快速过滤的话，面对不擅长处理嵌套的简单正则，显然我们很难写出这样的正则/正则组来处理这个问题，那么此时就需要使用回调正则。</p>
 <p>我们可以编写如下回调正则，</p>
-<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.'预处理正则']]
+<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.preprocRegex]]
 org = '(&lt;p[^&gt;/]*&gt;)(.*?)(&lt;/p&gt;)'
 callback = [ { group = 2, org = '&lt;[^&gt;]*&gt;', rep = '' } ]
 </code></pre>

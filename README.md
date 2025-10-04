@@ -166,6 +166,8 @@ GalTransl++的缓存中可能包含如下键:
 
 </summary>
 
+retranslKeys 语法示例
+
 ```
 # 正则表达式列表，如果句子缓存中的某条 problem 能被以下任一正则 search 通过，则进行重翻
 # 如果想对指定原文/译文进行重翻，请通过内联表数组指定 conditionTarget 和 conditionReg
@@ -177,7 +179,7 @@ retranslKeys = [
 ]
 ```
 
-skipProblems语法示例
+skipProblems 语法示例
 
 ```
 # 正则表达式列表，如果一条 problem 能被以下任一正则 search 通过，则不加入 problems 列表
@@ -191,7 +193,7 @@ skipProblems = [
 ]
 ```
 
-问题比较对象设定语法示例:
+问题比较对象设定 语法示例:
 
 ```
 overwriteCompareObj = [
