@@ -2,6 +2,7 @@ module IPlugin;
 
 import TextPostFull2Half;
 import TextLinebreakFix;
+import CodePageChecker;
 
 namespace fs = std::filesystem;
 
@@ -25,6 +26,9 @@ std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::str
 		}
 		else if (pluginName == "TextLinebreakFix") {
 			plugins.push_back(std::make_shared<TextLinebreakFix>(projectDir, logger));
+		}
+		else if (pluginName == "CodePageChecker") {
+			plugins.push_back(std::make_shared<CodePageChecker>(projectDir, logger));
 		}
 	}
 

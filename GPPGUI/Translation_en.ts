@@ -89,6 +89,20 @@
     </message>
 </context>
 <context>
+    <name>CodePageCheckerCfgPage</name>
+    <message>
+        <location filename="CodePageCheckerCfgPage.cpp" line="16"/>
+        <location filename="CodePageCheckerCfgPage.cpp" line="44"/>
+        <source>字符集检查器设置</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="CodePageCheckerCfgPage.cpp" line="27"/>
+        <source>字符集名称</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>CommonGptDictPage</name>
     <message>
         <location filename="CommonGptDictPage.cpp" line="29"/>
@@ -2092,16 +2106,21 @@
         <source>换行修复插件</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="PluginItemWidget.cpp" line="19"/>
+        <source>字符集检查插件</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PluginSettingsPage</name>
     <message>
-        <location filename="PluginSettingsPage.cpp" line="19"/>
+        <location filename="PluginSettingsPage.cpp" line="20"/>
         <source>插件设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PluginSettingsPage.cpp" line="53"/>
+        <location filename="PluginSettingsPage.cpp" line="55"/>
         <source>后处理插件设置(由上至下执行)</source>
         <translation type="unfinished"></translation>
     </message>

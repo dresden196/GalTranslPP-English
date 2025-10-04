@@ -1,10 +1,12 @@
-﻿import argparse
+﻿# filename: babeldoc_api.py
+import argparse
 import json
 import logging
 import tempfile
 from pathlib import Path
 from threading import Lock
 from concurrent.futures import Executor, Future
+from typing import Tuple, List, Optional
 
 # --- 核心BabelDOC库的导入 ---
 from babeldoc.main import create_parser
@@ -13,6 +15,7 @@ from babeldoc.format.pdf.translation_config import TranslationConfig, WatermarkO
 from babeldoc.format.pdf.document_il.midend import il_translator
 from babeldoc.translator.translator import BaseTranslator
 from babeldoc.docvision.doclayout import DocLayoutModel
+# 异常处理可能需要
 from babeldoc.babeldoc_exception.BabelDOCException import ExtractTextError
 
 # --- 修改后的 Import ---
@@ -23,7 +26,7 @@ from rich.progress import (
     BarColumn, MofNCompleteColumn, Progress, TextColumn, TimeElapsedColumn, TimeRemainingColumn
 )
 
-# --- 共享的辅助类 ---
+# --- 共享的辅助类 (与原版相同) ---
 
 class FinishReading(Exception):
     """自定义异常，用于在完成文本收集后安全地退出BabelDOC流程。"""
@@ -90,13 +93,15 @@ class MainThreadExecutor(Executor):
 class CustomTranslationStage(progress_monitor.TranslationStage):
     """自定义的进度条显示阶段。"""
     def __enter__(self):
-        self.pbar = self.pm.pbar_manager.add_task(self.name, total=self.total)
+        if self.pm.pbar_manager:
+            self.pbar = self.pm.pbar_manager.add_task(self.name, total=self.total)
         return self
     def __exit__(self, exc_type, exc_val, exc_tb):
         if hasattr(self, "pbar"):
             with self.lock:
                 diff = self.total - self.current
-                if diff > 0: self.pm.pbar_manager.update(self.pbar, advance=diff)
+                if diff > 0:
+                    self.pm.pbar_manager.update(self.pbar, advance=diff)
     def advance(self, n: int = 1):
         if hasattr(self, "pbar"):
             with self.lock:
@@ -109,14 +114,14 @@ class CustomTranslationStage(progress_monitor.TranslationStage):
             TextColumn("•"), TimeElapsedColumn(), TextColumn("•"), TimeRemainingColumn()
         )
 
-# --- 核心功能函数 ---
+# --- 内部核心函数 ---
 
-def extract_original_texts(pdf_path: Path) -> list[str]:
-    """从PDF中提取原文列表，现在也带进度条。"""
-    print(f"[*] 正在从PDF `{pdf_path.name}` 中提取原文...")
+def _extract_texts_from_pdf(pdf_path: Path, show_progress: bool) -> list[str]:
+    """内部函数：从PDF中提取原文列表。"""
     text_collector = PdfTextCollector()
     with tempfile.TemporaryDirectory() as temp_dir:
         parser = create_parser()
+        # 构造一个最小化的参数列表
         args = parser.parse_args([
             "--files", str(pdf_path), "--output", temp_dir, "--no-mono", "--no-dual", "--ignore-cache"
         ])
@@ -135,54 +140,28 @@ def extract_original_texts(pdf_path: Path) -> list[str]:
             il_translator.ILTranslator.translate = FinishReading.raise_after_call(original_il_translate)
             progress_monitor.TranslationStage = CustomTranslationStage
             
-            with progress_monitor.ProgressMonitor(TRANSLATE_STAGES) as pm, CustomTranslationStage.create_progress_bar() as pbar:
+            with progress_monitor.ProgressMonitor(TRANSLATE_STAGES) as pm:
+                pbar = CustomTranslationStage.create_progress_bar() if show_progress else None
                 pm.pbar_manager = pbar
                 try:
+                    if pbar: pbar.start()
                     do_translate(pm, config)
                 except FinishReading:
-                    # 这是预期的中断
-                    pass
+                    pass # 预期的中断
+                finally:
+                    if pbar: pbar.stop()
         finally:
             # 恢复原始组件
             il_translator.PriorityThreadPoolExecutor = original_executor
             il_translator.ILTranslator.translate = original_il_translate
             progress_monitor.TranslationStage = original_stage
-
-    print(f"\n[+] 成功提取 {len(text_collector.source_texts)} 条原文。")
     return text_collector.source_texts
 
-def generate_translated_pdf(
-    original_pdf: Path,
-    translation_json: Path,
-    output_dir: Path,
-    no_mono: bool,
-    no_dual: bool,
-):
-    """使用翻译JSON，生成新的PDF。"""
-    # 步骤 1: 提取原文用于校验
-    original_texts = extract_original_texts(original_pdf)
-    if not original_texts:
-        print("[!] 无法从PDF中提取原文，任务中止。")
-        return
-
-    # 步骤 2: 读取译文列表
-    print(f"[*] 正在加载并校验翻译文件 `{translation_json.name}`...")
-    try:
-        with open(translation_json, 'r', encoding='utf-8') as f:
-            translated_data = json.load(f)
-            translated_texts = [item['message'] for item in translated_data]
-    except (IOError, json.JSONDecodeError, KeyError) as e:
-        print(f"[!] 错误: 无法读取或解析JSON文件。错误: {e}")
-        return
-
-    if len(original_texts) != len(translated_texts):
-        print(f"[!] 严重错误: 原文数量 ({len(original_texts)}) 与译文数量 ({len(translated_texts)}) 不匹配！")
-        return
-    
-    print(f"[+] 校验通过，原文与译文数量均为 {len(translated_texts)}。")
-    
-    # 步骤 3: 使用顺序翻译器生成PDF
-    print(f"[*] 正在生成翻译后的PDF文件...")
+def _generate_pdf_from_texts(
+    original_pdf: Path, translated_texts: list[str], output_dir: Path,
+    no_mono: bool, no_dual: bool, show_progress: bool
+) -> Tuple[Optional[str], Optional[str]]:
+    """内部函数：使用译文列表生成PDF。"""
     translator = SequentialTranslator(translated_texts)
     parser = create_parser()
     cmd_args = ["--files", str(original_pdf), "--output", str(output_dir), "--ignore-cache", "--skip-scanned-detection"]
@@ -199,24 +178,140 @@ def generate_translated_pdf(
     
     original_executor = il_translator.PriorityThreadPoolExecutor
     original_stage = progress_monitor.TranslationStage
+    result_paths = (None, None)
     try:
         il_translator.PriorityThreadPoolExecutor = MainThreadExecutor
         progress_monitor.TranslationStage = CustomTranslationStage
-        with progress_monitor.ProgressMonitor(TRANSLATE_STAGES) as pm, CustomTranslationStage.create_progress_bar() as pbar:
+        with progress_monitor.ProgressMonitor(TRANSLATE_STAGES) as pm:
+            pbar = CustomTranslationStage.create_progress_bar() if show_progress else None
             pm.pbar_manager = pbar
-            result = do_translate(pm, config)
-        
-        print("\n[✔] 任务完成！")
-        if result.mono_pdf_path: print(f"  - 纯译文PDF: {Path(result.mono_pdf_path).resolve()}")
-        if result.dual_pdf_path: print(f"  - 双语PDF: {Path(result.dual_pdf_path).resolve()}")
-    except Exception as e:
-        print(f"[!] 生成PDF时发生错误: {e}")
-        logging.exception("详细错误信息:")
+            try:
+                if pbar: pbar.start()
+                result = do_translate(pm, config)
+                # 获取绝对路径
+                mono_path = str(Path(result.mono_pdf_path).resolve()) if result.mono_pdf_path else None
+                dual_path = str(Path(result.dual_pdf_path).resolve()) if result.dual_pdf_path else None
+                result_paths = (mono_path, dual_path)
+            finally:
+                if pbar: pbar.stop()
     finally:
         il_translator.PriorityThreadPoolExecutor = original_executor
         progress_monitor.TranslationStage = original_stage
+    return result_paths
 
-def main():
+# ==============================================================================
+# ============================ C++ 可调用的 API 函数 ============================
+# ==============================================================================
+
+def api_extract(input_pdf_path: str, output_json_path: str, show_progress: bool = False) -> Tuple[bool, str]:
+    """
+    API函数：从PDF中提取文本并保存为JSON。
+    
+    :param input_pdf_path: 输入PDF文件的路径。
+    :param output_json_path: 输出JSON文件的路径。
+    :param show_progress: 是否在控制台显示进度条。
+    :return: 一个元组 (success, message)，success为布尔值，message为描述信息。
+    """
+    try:
+        pdf_path = Path(input_pdf_path)
+        json_path = Path(output_json_path)
+        
+        if not pdf_path.exists():
+            return False, f"Error: Input PDF not found at '{input_pdf_path}'"
+        
+        if show_progress: print(f"[*] Extracting original texts from `{pdf_path.name}`...")
+        
+        extracted_texts = _extract_texts_from_pdf(pdf_path, show_progress)
+        
+        if not extracted_texts:
+            return True, "Warning: No text was extracted. JSON file will not be created."
+        
+        json_data = [{"message": text} for text in extracted_texts]
+        
+        if show_progress: print(f"[*] Writing {len(json_data)} text items to `{json_path.name}`...")
+        
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(json_data, f, ensure_ascii=False, indent=2)
+            
+        return True, f"Success: Extracted {len(json_data)} items to '{str(json_path.resolve())}'"
+
+    except (ExtractTextError, IOError, Exception) as e:
+        logging.exception("An error occurred during text extraction:")
+        return False, f"Fatal Error during extraction: {e}"
+
+def api_apply(
+    original_pdf_path: str,
+    translation_json_path: str,
+    output_dir_path: str,
+    no_mono: bool = False,
+    no_dual: bool = False,
+    show_progress: bool = False
+) -> Tuple[bool, str]:
+    """
+    API函数：将翻译JSON应用回PDF。
+
+    :param original_pdf_path: 原始PDF文件路径。
+    :param translation_json_path: 翻译JSON文件路径。
+    :param output_dir_path: 输出PDF的目录。
+    :param no_mono: 是否不生成纯译文PDF。
+    :param no_dual: 是否不生成双语PDF。
+    :param show_progress: 是否在控制台显示进度条。
+    :return: 一个元组 (success, message)，success为布尔值，message为描述信息或成功时生成的文件路径。
+    """
+    try:
+        pdf_path = Path(original_pdf_path)
+        json_path = Path(translation_json_path)
+        output_dir = Path(output_dir_path)
+
+        if not pdf_path.exists():
+            return False, f"Error: Original PDF not found at '{original_pdf_path}'"
+        if not json_path.exists():
+            return False, f"Error: Translation JSON not found at '{translation_json_path}'"
+        
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        if show_progress: print(f"[*] Step 1/3: Extracting original texts for validation...")
+        original_texts = _extract_texts_from_pdf(pdf_path, show_progress)
+        if not original_texts:
+            return False, "Error: Could not extract any text from the original PDF for validation."
+
+        if show_progress: print(f"[*] Step 2/3: Loading and validating translation file...")
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                translated_data = json.load(f)
+                translated_texts = [item['message'] for item in translated_data]
+        except (IOError, json.JSONDecodeError, KeyError) as e:
+            return False, f"Error: Failed to read or parse JSON file. Details: {e}"
+
+        if len(original_texts) != len(translated_texts):
+            msg = f"Fatal Error: Mismatch in text counts. Original: {len(original_texts)}, Translated: {len(translated_texts)}"
+            return False, msg
+        
+        if show_progress: print(f"[+] Validation successful. Count: {len(translated_texts)}.")
+        if show_progress: print(f"[*] Step 3/3: Generating translated PDF(s)...")
+
+        mono_path, dual_path = _generate_pdf_from_texts(
+            pdf_path, translated_texts, output_dir, no_mono, no_dual, show_progress
+        )
+
+        paths = []
+        if mono_path: paths.append(f"Mono PDF: {mono_path}")
+        if dual_path: paths.append(f"Dual PDF: {dual_path}")
+        
+        if not paths:
+            return True, "Task completed, but no PDF was generated (check --no-mono/--no-dual flags)."
+        
+        return True, "\n".join(["Success! Generated files:"] + paths)
+
+    except Exception as e:
+        logging.exception("An error occurred during PDF generation:")
+        return False, f"Fatal Error during PDF generation: {e}"
+
+# ==============================================================================
+# ============================ 命令行接口 (保持不变) ============================
+# ==============================================================================
+
+def main_cli():
     """主函数，处理命令行子命令和参数。"""
     parser = argparse.ArgumentParser(
         description="一个使用BabelDOC进行PDF文本提取与翻译回注的工具。",
@@ -253,21 +348,13 @@ def main():
         
         output_file = args.output_json if args.output_json else args.input_pdf.with_suffix('.json')
         
-        extracted_texts = extract_original_texts(args.input_pdf)
+        # 调用API函数，并显示进度
+        success, message = api_extract(str(args.input_pdf), str(output_file), show_progress=True)
 
-        if not extracted_texts:
-            print("[*] 未提取到任何文本，不生成JSON文件。")
-            return
-
-        json_data = [{"message": text} for text in extracted_texts]
-        
-        print(f"[*] 正在将 {len(json_data)} 条文本写入到 `{output_file}`...")
-        try:
-            with open(output_file, 'w', encoding='utf-8') as f:
-                json.dump(json_data, f, ensure_ascii=False, indent=2)
-            print(f"[✔] 成功！JSON文件已保存到: {output_file.resolve()}")
-        except IOError as e:
-            print(f"[!] 错误: 无法写入文件 -> {e}")
+        if success:
+            print(f"[✔] {message}")
+        else:
+            print(f"[!] {message}")
 
     elif args.command == 'apply':
         if not args.original_pdf.exists():
@@ -277,10 +364,23 @@ def main():
             print(f"[!] 错误: 翻译JSON文件不存在 -> {args.translation_json}")
             return
 
-        args.output_dir.mkdir(parents=True, exist_ok=True)
-        generate_translated_pdf(
-            args.original_pdf, args.translation_json, args.output_dir, args.no_mono, args.no_dual
+        # 调用API函数，并显示进度
+        success, message = api_apply(
+            str(args.original_pdf),
+            str(args.translation_json),
+            str(args.output_dir),
+            args.no_mono,
+            args.no_dual,
+            show_progress=True
         )
+        
+        print("\n--- 任务报告 ---")
+        if success:
+            print(f"[✔] {message}")
+        else:
+            print(f"[!] {message}")
+        print("-----------------")
+
 
 if __name__ == "__main__":
-    main()
+    main_cli()

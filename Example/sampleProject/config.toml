@@ -26,6 +26,7 @@ transEngine = "ForGalJson"
 #"TextPostFull2Half"
 # 文本译后处理插件列表，可以设置多个，按顺序执行
 textPostPlugins = [
+  "CodePageChecker"
 ] 
 
 [plugins.NormalJson]
@@ -57,6 +58,9 @@ PDFConverterPath = "BaseConfig/PDFConverter/PDFConverter.exe"
 
 [plugins.TextPostFull2Half]
 "是否反向替换" = false  # false=全角->半角，true=半角->全角
+
+[plugins.CodePageChecker]
+codePage = "gbk"
 
 [common]
 numPerRequestTranslate = 8 # 单次请求翻译句子数量，推荐值 < 15

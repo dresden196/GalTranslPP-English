@@ -1039,6 +1039,9 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
 void NormalJsonTranslator::run() {
     m_logger->info("GalTransl++ NormalJsonTranlator 启动...");
 
+    if (fs::exists(m_cacheDir)) {
+        fs::copy(m_cacheDir, m_cacheDir.parent_path() / L"transl_cache_bak", fs::copy_options::recursive | fs::copy_options::overwrite_existing);
+    }
     for (const auto& dir : { m_inputDir, m_outputDir, m_cacheDir }) {
         if (!fs::exists(dir)) {
             fs::create_directories(dir);

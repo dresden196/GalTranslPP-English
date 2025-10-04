@@ -16,6 +16,7 @@ PluginItemWidget::PluginItemWidget(const QString& pluginName, QWidget* parent)
     {
         { "TextPostFull2Half", tr("全角半角转换插件") },
         { "TextLinebreakFix", tr("换行修复插件") },
+        { "CodePageChecker", tr("字符集检查插件")},
     };
     // 主水平布局
     QHBoxLayout* mainLayout = new QHBoxLayout(this);

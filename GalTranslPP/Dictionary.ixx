@@ -58,7 +58,7 @@ export {
 
         // 条件字典相关
         bool isConditional;
-        GPPCondition gppCondition;
+        GPPCondition dictCondition;
     };
 
     class NormalDictionary {
@@ -336,7 +336,7 @@ void NormalDictionary::loadFromFile(const fs::path& filePath) {
                 continue;
             }
             else {
-                entry.gppCondition = createGppCondition(el);
+                entry.dictCondition = createGppCondition(el);
                 m_entries.push_back(entry);
                 count++;
             }
@@ -377,7 +377,7 @@ std::string NormalDictionary::doReplace(const Sentence* sentence, CachePart targ
     for (const auto& entry : m_entries
         | std::views::filter([&](const auto& entry)
             {
-                return !entry.isConditional || checkCondition(entry.gppCondition, sentence);
+                return !entry.isConditional || checkCondition(entry.dictCondition, sentence);
             })) 
     {
         if (entry.isReg) {
