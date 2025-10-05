@@ -144,18 +144,12 @@ bool checkResponse(const ApiResponse& response, const TranslationAPI& currentAPI
     // 状态码 429 是最明确的信号
     if (response.statusCode == 429 || lowerErrorMsg.find("rate limit") != std::string::npos || lowerErrorMsg.find("try again") != std::string::npos) {
         // 429 也不加 retryCount
-        m_logger->warn("[线程 {}] [文件 {}] 遇到频率限制或可重试错误，进行第 {} 次退避等待...", threadId, wide2Ascii(relInputPath.filename()), retryCount);
+        m_logger->warn("[线程 {}] [文件 {}] 遇到频率限制或可重试错误，进行退避等待...", threadId, wide2Ascii(relInputPath));
 
         // 实现指数退避与抖动
-        int sleepSeconds;
-        int maxSleepSeconds = static_cast<int>(std::pow(2, std::min(retryCount, 6)));
-        if (maxSleepSeconds > 0) {
-            sleepSeconds = std::rand() % maxSleepSeconds;
-        }
-        else {
-            sleepSeconds = 0;
-        }
-        m_logger->debug("[线程 {}] 将等待 {} 秒后重试...", threadId, sleepSeconds);
+        int maxSleepSeconds = static_cast<int>(std::pow(2, 6));
+        int sleepSeconds = std::rand() % maxSleepSeconds;
+        m_logger->debug("[线程 {}] [文件 {}] 将等待 {} 秒后重试...", threadId, wide2Ascii(relInputPath), sleepSeconds);
         if (sleepSeconds > 0) {
             std::this_thread::sleep_for(std::chrono::seconds(sleepSeconds));
         }
@@ -164,7 +158,7 @@ bool checkResponse(const ApiResponse& response, const TranslationAPI& currentAPI
 
     // 其他无法识别的硬性错误
     retryCount++;
-    m_logger->warn("[线程 {}] [文件 {}] 遇到未知API错误，进行第 {} 次重试...", threadId, wide2Ascii(relInputPath.filename()), retryCount);
+    m_logger->warn("[线程 {}] [文件 {}] 遇到未知API错误，进行第 {} 次重试...", threadId, wide2Ascii(relInputPath), retryCount);
     if (m_apiStrategy == "fallback") {
         m_logger->warn("[线程 {}] 将切换到下一个 API Key(如果有多个API Key的话)", threadId);
         m_apiPool.resortTokens();

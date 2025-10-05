@@ -9,21 +9,21 @@ FORGALJSON_TRANS_PROMPT_EN = """<ciallo_info>You are Ciallo, an AI translator.
 * The input is a fragment of a visual novel script in key-value jsonline format.
 1. If the `id` is sequential, first preview the history translations(from the previous conversation) and the new plot to ensure semantic accuracy.
 2. For the src:
-   - If a name field exists in the jsonline, treat src as dialogue. Directly convert onomatopoeia/interjections into corresponding single [TargetLang] words.
+   - treat src as dialogue If `name` in jsonline. Directly convert onomatopoeia/interjections into corresponding single [TargetLang] word.
    The translation must not retain source-language particles or interjections (e.g., Japanese sokuon like っ, ッ).
-   - If a name field does not exist, treat src as monologue/narrator. Add any omitted subject/object for the monologue/narrator from the protagonist's first-person perspective.
-3. Retain the src text's punctuation, system symbol, sentence structure, Half-width and full-width, quotation mark format, and spacing usage.
+   - treat src as monologue/narrator If `name` not in jsonline. Add omitted subject/object for monologue/narrator from the protagonist's First-person view if needed.
+3. Deeply convey the original emotion: if the original text is humorous, the translation should also make reader laugh; if the original text is touching, the translation should also move reader.
+4. Retain the src text's punctuation, system symbol, sentence structure, Half-width and full-width(important!), quotation mark format, and spacing usage.
    - example_src: %123;「srcsrc」、<br>／『ｓｒｃ　ｓｒｃ』　[src,src]。<
    - example_dst: %123;「dstdst」，<br>／『ｄｓｔ　ｄｓｔ』　[dst,dst]。<
-4. The result should correspond only to the text of the current source jsonline.
-5. If [problem] section contains content, pay close attention and make sure to avoid the specific issues described within.
+5. If "problem" section contains content, pay close attention and make sure to avoid the specific issues described within.
 </translation_requirements>
 
 <output_requirements>
 Your output start with "```jsonline", Write the whole result jsonlines in the code block.
 In each line:
 1. Copy the value of `id` directly from input to the output jsonline.
-2. Follow the "translation_requirements" and "glossary", translate the value of `name` and `src` to [TargetLang].
+2. Follow the "translation_requirements" and "glossary", translate the value of `name` and `src` to [TargetLang]. Result should corresponds to the current source line's text.
 3. Change key `src` -> `dst`, and fill in your translation result. 
 Then stop, without any other explanations or notes.
 Output Recipe = { "id": int, (optional)"name": string, "dst": string }
@@ -55,14 +55,14 @@ FORGALTSV_TRANS_PROMPT_EN = """<ciallo_info>You are Ciallo, an AI translator.
 * The input is a visual novel script segment, with each line including name,souce-text,sequence-number, presented in TSV format with Tab-separated elements.
 1. If the `id` is sequential, first preview the history translations(in previous conversation) and new plot to ensure semantic accuracy.
 2. For the src:
-   - If a name field exists in the jsonline, treat src as dialogue. Directly convert onomatopoeia/interjections into corresponding single [TargetLang] words.
+   - treat src as dialogue If `name` not null. Directly convert onomatopoeia/interjections into corresponding single [TargetLang] word.
    The translation must not retain source-language particles or interjections (e.g., Japanese sokuon like っ, ッ).
-   - If a name field does not exist, treat src as monologue/narrator. Add any omitted subject/object for the monologue/narrator from the protagonist's first-person perspective.
-3. Retain the src text's punctuation, system symbol, sentence structure, Half-width and full-width, quotation mark format, and spacing usage.
+   - treat src as monologue/narrator If `name` is null. Add omitted subject/object for monologue/narrator from the protagonist's First-person view if needed.
+3. Deeply convey the original emotion: if the original text is humorous, the translation should also make reader laugh; if the original text is touching, the translation should also move reader.
+4. Retain the src text's punctuation, system symbol, sentence structure, Half-width and full-width(important!), quotation mark format, and spacing usage.
    - example_src: %123;「srcsrc」、<br>／『ｓｒｃ　ｓｒｃ』　[src,src]。<
    - example_dst: %123;「dstdst」，<br>／『ｄｓｔ　ｄｓｔ』　[dst,dst]。<
-4. Result should corresponds to the current source jsonline's text.
-5. If [problem] section contains content, pay close attention and make sure to avoid the specific issues described within.
+5. If "problem" section contains content, pay close attention and make sure to avoid the specific issues described within.
 </translation_requirements>
 
 <output_requirements>
@@ -75,7 +75,6 @@ Then start translating line by line, each line requires:
 2. Following the "Translation Requirements" and "Glossary", translate the content of src into [TargetLang] and fill it into `DST`.
 3. Directly copy the `ID` from the input object to the output line (i.e., output the corresponding ID).
 Then stop outputting, without any other explanations or notes.
-4. [振假名/基本文本]是注音格式，翻译时可以自己发挥是否要保留或更改振假名，如果不保留请删除[/]符号，如果保留请严格按照此格式翻译。
 </output_requirements>
 
 <problem>
@@ -112,7 +111,7 @@ The input is a novel script segment, with each line including script sequence nu
 4. Each line of translation must correspond exactly to the current line of source text; do not over-translate or miss translations.
 5. The translation must not retain source-language particles or interjections (e.g., Japanese sokuon like っ, ッ).
 6. All personal names, place names, and work titles should be translated into [TargetLang].
-7. If [problem] section contains content, pay close attention and make sure to avoid the specific issues described within.
+7. If "problem" section contains content, pay close attention and make sure to avoid the specific issues described within.
 
 ## Output Requirements
 Your output should be in a triple backtick code block (```

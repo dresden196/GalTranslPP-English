@@ -33,6 +33,17 @@ PromptSettingsPage::PromptSettingsPage(fs::path& projectDir, toml::ordered_value
 				QString(_projectDir.filename().wstring()) + tr(" 的提示词配置文件不符合标准。"), 3000);
 		}
 	}
+	else if (fs::exists(L"BaseConfig/Prompt.toml")) {
+		try {
+			_promptConfig = toml::parse<toml::ordered_type_config>(_projectDir / L"Prompt.toml");
+		}
+		catch (...) {
+			ElaMessageBar::error(ElaMessageBarType::TopRight, tr("解析失败"), tr("默认提示词文件不符合 toml 规范"), 3000);
+		}
+	}
+	else {
+		ElaMessageBar::error(ElaMessageBarType::TopRight, tr("解析失败"), tr("找不到提示词文件"), 3000);
+	}
 	
 	_setupUI();
 }

@@ -26,8 +26,8 @@ export {
     private:
         std::vector<GptTabEntry> m_entries;
 
-        std::unique_ptr<MeCab::Model> m_model;
-        std::unique_ptr<MeCab::Tagger> m_tagger;
+        std::shared_ptr<MeCab::Model> m_model;
+        std::shared_ptr<MeCab::Tagger> m_tagger;
         std::shared_ptr<spdlog::logger> m_logger;
 
     public:
@@ -36,7 +36,7 @@ export {
 
         void sort();
 
-        void createTagger(const fs::path& dictDir);
+        void getModelAndTagger(std::shared_ptr<MeCab::Model> model, std::shared_ptr<MeCab::Tagger> tagger);
 
         void loadFromFile(const fs::path& filePath);
 
@@ -91,19 +91,9 @@ void GptDictionary::sort() {
         });
 }
 
-void GptDictionary::createTagger(const fs::path& dictDir) {
-    m_model.reset(
-        MeCab::Model::create(("-r BaseConfig/DictGenerator/mecabrc -d " + wide2Ascii(dictDir, 0)).c_str())
-    );
-    if (!m_model) {
-        throw std::runtime_error("无法初始化 MeCab Model。请确保 BaseConfig/DictGenerator/mecabrc 和 " + wide2Ascii(dictDir) + " 存在\n"
-            "错误信息: " + MeCab::getLastError());
-    }
-    m_tagger.reset(m_model->createTagger());
-    if (!m_tagger) {
-        throw std::runtime_error("无法初始化 MeCab Tagger。请确保 BaseConfig/DictGenerator/mecabrc 和 " + wide2Ascii(dictDir) + " 存在\n"
-            "错误信息: " + MeCab::getLastError());
-    }
+void GptDictionary::getModelAndTagger(std::shared_ptr<MeCab::Model> model, std::shared_ptr<MeCab::Tagger> tagger) {
+    m_model = model;
+    m_tagger = tagger;
 }
 
 std::string GptDictionary::generatePrompt(const std::vector<Sentence*>& batch, TransEngine transEngine) {

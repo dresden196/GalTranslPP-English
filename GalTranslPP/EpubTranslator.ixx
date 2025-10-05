@@ -329,7 +329,7 @@ void EpubTranslator::run()
                 json j = json::array();
                 for (const auto& p : sentences) {
                     // TODO: 添加可选正则区分 name 和 message
-                    j.push_back({ {"name", ""}, {"message", p.first} });
+                    j.push_back({ {"message", p.first} });
                     metadata.push_back(p.second);
                 }
                 info.metadata = std::move(metadata);

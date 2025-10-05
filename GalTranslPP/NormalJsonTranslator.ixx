@@ -7,6 +7,7 @@ module;
 #endif
 
 #include <ranges>
+#include <mecab/mecab.h>
 #include <boost/regex.hpp>
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
@@ -48,7 +49,6 @@ export {
         std::string m_systemPrompt;
         std::string m_userPrompt;
         std::string m_targetLang;
-        std::string m_dictDir;
 
         int m_totalSentences = 0;
         std::atomic<int> m_completedSentences = 0;
@@ -96,6 +96,8 @@ export {
         NormalDictionary m_preDictionary;
         NormalDictionary m_postDictionary;
         ProblemAnalyzer m_problemAnalyzer;
+        std::shared_ptr<MeCab::Model> m_model;
+        std::shared_ptr<MeCab::Tagger> m_tagger;
         std::vector<std::shared_ptr<IPlugin>> m_prePlugins;
         std::vector<std::shared_ptr<IPlugin>> m_postPlugins;
 
@@ -258,7 +260,21 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         m_contextHistorySize = toml::find_or(configData, "common", "contextHistorySize", 8);
         m_smartRetry = toml::find_or(configData, "common", "smartRetry", true);
         m_checkQuota = toml::find_or(configData, "common", "checkQuota", true);
-        m_dictDir = toml::find_or(configData, "common", "dictDir", "DictGenerator/mecab-ipadic-utf8");
+        std::string dictDir = toml::find_or(configData, "common", "dictDir", "DictGenerator/mecab-ipadic-utf8");
+
+        m_model.reset(
+            MeCab::Model::create(("-r BaseConfig/DictGenerator/mecabrc -d " + ascii2Ascii(dictDir)).c_str())
+        );
+        if (!m_model) {
+            throw std::runtime_error("无法初始化 MeCab Model。请确保 BaseConfig/DictGenerator/mecabrc 和 " + dictDir + " 存在且无特殊字符\n"
+                "错误信息: " + MeCab::getLastError());
+        }
+        m_tagger.reset(m_model->createTagger());
+        if (!m_tagger) {
+            throw std::runtime_error("无法初始化 MeCab Tagger。请确保 BaseConfig/DictGenerator/mecabrc 和 " + dictDir + " 存在且无特殊字符\n"
+                "错误信息: " + MeCab::getLastError());
+        }
+        m_gptDictionary.getModelAndTagger(m_model, m_tagger);
 
         const auto& problemList = toml::find<
             std::optional<std::vector<std::string>>
@@ -343,15 +359,13 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         }
 
         const std::string& defaultDictFolder = toml::find_or(configData, "dictionary", "defaultDictFolder", "BaseConfig/Dict");
-        const fs::path defaultDictFolderPath = ascii2Wide(std::move(defaultDictFolder));
+        const fs::path defaultDictFolderPath = ascii2Wide(defaultDictFolder);
 
         m_usePreDictInName = toml::find_or(configData, "dictionary", "usePreDictInName", false);
         m_usePostDictInName = toml::find_or(configData, "dictionary", "usePostDictInName", false);
         m_usePreDictInMsg = toml::find_or(configData, "dictionary", "usePreDictInMsg", true);
         m_usePostDictInMsg = toml::find_or(configData, "dictionary", "usePostDictInMsg", true);
         m_useGPTDictToReplaceName = toml::find_or(configData, "dictionary", "useGPTDictInName", false);
-
-        m_gptDictionary.createTagger(ascii2Wide(m_dictDir));
 
         auto loadDictsFunc = [&]<typename DictType>(const std::string& dictType, DictType& dict)
             {
@@ -1163,8 +1177,8 @@ void NormalJsonTranslator::run() {
 
     // 字典生成
     if (m_transEngine == TransEngine::GenDict) {
-        DictionaryGenerator generator(m_controller, m_logger, m_apiPool, m_preDictionary,
-            ascii2Wide(m_dictDir), m_systemPrompt, m_userPrompt, m_apiStrategy,
+        DictionaryGenerator generator(m_controller, m_logger, m_apiPool, m_tagger, 
+            m_preDictionary, m_systemPrompt, m_userPrompt, m_apiStrategy,
             m_maxRetries, m_threadsNum, m_apiTimeOutMs, m_checkQuota, m_usePreDictInName, m_usePreDictInMsg);
         fs::path outputFilePath = m_projectDir / L"项目GPT字典-生成.toml";
         std::vector<fs::path> inputPaths = std::move(relJsonPaths);
@@ -1189,7 +1203,7 @@ void NormalJsonTranslator::run() {
             const std::string& transName = toml::find_or(value, 0, "");
             if (!transName.empty()) {
                 m_logger->trace("发现原名 '{}' 的译名 '{}'", key, transName);
-                m_nameMap.insert(std::make_pair(key, std::move(transName)));
+                m_nameMap.insert(std::make_pair(key, transName));
             }
         }
     }

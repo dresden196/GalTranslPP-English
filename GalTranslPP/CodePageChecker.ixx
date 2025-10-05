@@ -26,12 +26,19 @@ export {
         UConverterCallbackReason reason,
         UErrorCode* pErrorCode);
 
+    struct UConverterDeleter {
+        void operator()(UConverter* converter) const {
+            ucnv_close(converter);
+        }
+    };
+    using UConverterPtr = std::unique_ptr<UConverter, UConverterDeleter>;
+
     class CodePageChecker : public IPlugin {
     private:
         std::string m_codePage;
         std::string m_unmappableCharsResult;
-        std::shared_ptr<UConverter> m_u8Converter;
-        std::shared_ptr<UConverter> m_codePageConverter;
+        UConverterPtr m_u8Converter;
+        UConverterPtr m_codePageConverter;
 
         const std::string& findUnmappableChars(const std::string& transViewToCheck);
 
@@ -54,11 +61,11 @@ CodePageChecker::CodePageChecker(const fs::path& projectDir, std::shared_ptr<spd
         m_codePage = parseToml<std::string>(projectConfig, pluginConfig, "plugins.CodePageChecker.codePage");
 
         UErrorCode status = U_ZERO_ERROR;
-        m_u8Converter = std::shared_ptr<UConverter>(ucnv_open("utf-8", &status), ucnv_close);
+        m_u8Converter.reset(ucnv_open("utf-8", &status));
         if (U_FAILURE(status)) {
             throw std::runtime_error("Error: Could not create ICU u8 converters. " + std::string(u_errorName(status)));
         }
-        m_codePageConverter = std::shared_ptr<UConverter>(ucnv_open(m_codePage.c_str(), &status), ucnv_close);
+        m_codePageConverter.reset(ucnv_open(m_codePage.c_str(), &status));
         if (U_FAILURE(status)) {
             throw std::runtime_error("Error: Could not create ICU " + m_codePage + " converters. " + std::string(u_errorName(status)));
         }

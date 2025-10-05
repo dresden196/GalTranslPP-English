@@ -2279,6 +2279,8 @@
     </message>
     <message>
         <location filename="PromptSettingsPage.cpp" line="32"/>
+        <location filename="PromptSettingsPage.cpp" line="41"/>
+        <location filename="PromptSettingsPage.cpp" line="45"/>
         <source>解析失败</source>
         <translation type="unfinished">Fail to analyze</translation>
     </message>
@@ -2293,37 +2295,47 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="65"/>
+        <location filename="PromptSettingsPage.cpp" line="41"/>
+        <source>默认提示词文件不符合 toml 规范</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="PromptSettingsPage.cpp" line="45"/>
+        <source>找不到提示词文件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="PromptSettingsPage.cpp" line="76"/>
         <source>用户提示词</source>
         <translation type="unfinished">User prompt</translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="68"/>
+        <location filename="PromptSettingsPage.cpp" line="79"/>
         <source>系统提示词</source>
         <translation type="unfinished">System prompt</translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="120"/>
+        <location filename="PromptSettingsPage.cpp" line="131"/>
         <source>ForGalJson</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="121"/>
+        <location filename="PromptSettingsPage.cpp" line="132"/>
         <source>ForGalTsv</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="122"/>
+        <location filename="PromptSettingsPage.cpp" line="133"/>
         <source>ForNovelTsv</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="123"/>
+        <location filename="PromptSettingsPage.cpp" line="134"/>
         <source>Sakura</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PromptSettingsPage.cpp" line="124"/>
+        <location filename="PromptSettingsPage.cpp" line="135"/>
         <source>GenDict</source>
         <translation type="unfinished"></translation>
     </message>

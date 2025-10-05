@@ -36,7 +36,8 @@ export {
 
 	private:
 
-        std::vector<std::string> m_checks;
+        std::vector<std::string> m_punctsToCheck;
+        std::function<std::string(const std::string&)> m_traditionalChineseExtractor;
         std::shared_ptr<spdlog::logger> m_logger;
         double m_probabilityThreshold = 0.85;
 
@@ -44,7 +45,7 @@ export {
 
 	public:
 
-        ProblemAnalyzer(std::shared_ptr<spdlog::logger> logger) : m_logger(logger) {}
+        ProblemAnalyzer(std::shared_ptr<spdlog::logger> logger) : m_logger(logger), m_traditionalChineseExtractor(getTraditionalChineseExtractor(logger)) {}
 
 		void loadProblems(const std::vector<std::string>& problemList, const std::string& punctSet, double langProbability);
 
@@ -84,12 +85,12 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
     if (m_problems.punctMiss.use) {
         const std::string& origText = chooseStringRef(sentence, m_problems.punctMiss.base);
         const std::string& transView = chooseStringRef(sentence, m_problems.punctMiss.check);
-        for (const auto& check : m_checks) {
-            bool orgHas = origText.find(check) != std::string::npos;
-            bool transHas = transView.find(check) != std::string::npos;
+        for (const auto& punctToCheck : m_punctsToCheck) {
+            bool orgHas = origText.find(punctToCheck) != std::string::npos;
+            bool transHas = transView.find(punctToCheck) != std::string::npos;
 
-            if (orgHas && !transHas) sentence->problems.push_back("本有 " + check + " 符号");
-            if (!orgHas && transHas) sentence->problems.push_back("本无 " + check + " 符号");
+            if (orgHas && !transHas) sentence->problems.push_back("本有 " + punctToCheck + " 符号");
+            if (!orgHas && transHas) sentence->problems.push_back("本无 " + punctToCheck + " 符号");
         }
     }
 
@@ -119,7 +120,7 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
 
     if (m_problems.introTraditionalChinese.use) {
         const std::string& transView = chooseStringRef(sentence, m_problems.introTraditionalChinese.check);
-        if (std::string traditionalChars = extractTraditionalChinese(transView); !traditionalChars.empty()) {
+        if (std::string traditionalChars = m_traditionalChineseExtractor(transView); !traditionalChars.empty()) {
             sentence->problems.push_back("引入繁体字: " + traditionalChars);
         }
     }
@@ -236,7 +237,7 @@ void ProblemAnalyzer::loadProblems(const std::vector<std::string>& problemList, 
 {
     m_probabilityThreshold = langProbability;
     if (!punctSet.empty()) {
-        m_checks = splitIntoGraphemes(punctSet);
+        m_punctsToCheck = splitIntoGraphemes(punctSet);
     }
 	for (const auto& problem : problemList)
 	{

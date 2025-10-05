@@ -13,13 +13,9 @@ module;
 #include <unicode/regex.h>
 #include <unicode/uscript.h>
 #include <unicode/translit.h>
-
-#define USE_OPENCC
-#ifdef USE_OPENCC
 #include <opencc/opencc.h>
 #pragma comment(lib, "../lib/marisa.lib")
 #pragma comment(lib, "../lib/opencc.lib")
-#endif
 
 export module Tool;
 
@@ -40,7 +36,7 @@ export {
 
     std::wstring ascii2Wide(const std::string& ascii, UINT CodePage = 65001);
 
-    std::string ascii2Ascii(const std::string& ascii, UINT src, UINT dst, LPBOOL usedDefaultChar = nullptr);
+    std::string ascii2Ascii(const std::string& ascii, UINT src = 65001, UINT dst = 0, LPBOOL usedDefaultChar = nullptr);
 
     bool executeCommand(const std::string& utf8Command);
 
@@ -91,7 +87,7 @@ export {
 
     std::string extractHangul(const std::string& sourceString);
 
-    std::string extractTraditionalChinese(const std::string& sourceString);
+    std::function<std::string(const std::string&)> getTraditionalChineseExtractor(std::shared_ptr<spdlog::logger> logger);
 
     void extractZip(const fs::path& zipPath, const fs::path& outputDir);
 
@@ -107,8 +103,8 @@ export {
     bool checkCondition(const GPPCondition& conditions, const Sentence* se);
 
     template<typename TC>
-    std::vector<ConditionPattern> createGppCondition(const toml::basic_value<TC>& conditions) {
-        std::vector<ConditionPattern> patterns;
+    GPPCondition createGppCondition(const toml::basic_value<TC>& conditions) {
+        GPPCondition patterns;
 
         auto appendPatternFunc = [&](const auto& conditionTbl)
             {
@@ -664,90 +660,98 @@ std::string extractHangul(const std::string& sourceString) {
     return extractCharactersByScripts(sourceString, { USCRIPT_HANGUL });
 }
 
-
-std::string extractTraditionalChinese(const std::string& sourceString) {
-
-#ifdef USE_OPENCC
+std::function<std::string(const std::string&)> getTraditionalChineseExtractor(std::shared_ptr<spdlog::logger> logger)
+{
+    // 是否需要线程安全？
+    std::function<std::string(const std::string&)> result;
     try {
-        std::string result;
-        static opencc::SimpleConverter converter("BaseConfig/t2s.json");
-        std::vector<std::string> graphemes = splitIntoGraphemes(sourceString);
-        for (const auto& grapheme : graphemes) {
-            std::string simplified = converter.Convert(grapheme);
-            if (simplified != grapheme) {
-                result += grapheme;
-            }
-        }
+        opencc::SimpleConverter converter("BaseConfig/t2s.json");
+        result = [=](const std::string& sourceString)
+            {
+                std::string resultStr;
+                std::vector<std::string> graphemes = splitIntoGraphemes(sourceString);
+                for (const auto& grapheme : graphemes) {
+                    std::string simplified = converter.Convert(grapheme);
+                    if (simplified != grapheme) {
+                        resultStr += grapheme;
+                    }
+                }
+                return resultStr;
+            };
+        logger->info("OpenCC is usable for traditional Chinese conversion");
         return result;
     }
     catch (...) {
-
-    }
-#endif
-
-    UErrorCode status = U_ZERO_ERROR;
-    auto toSimplified = std::unique_ptr<icu::Transliterator>(icu::Transliterator::createInstance("Traditional-Simplified", UTRANS_FORWARD, status));
-    if (U_FAILURE(status)) {
-        spdlog::error("Failed to create T-S Transliterator: {}", u_errorName(status));
-        return "";
-    }
-    auto toTraditional = std::unique_ptr<icu::Transliterator>(icu::Transliterator::createInstance("Simplified-Traditional", UTRANS_FORWARD, status));
-    if (U_FAILURE(status)) {
-        spdlog::error("Failed to create S-T Transliterator: {}", u_errorName(status));
-        return "";
-    }
-
-    // 白名单/排除列表：用于解决简繁转换中的歧义问题。
-    // "著" (U+8457) 是一个典型例子，它在简体中文里也是合法字符，但T->S的转换规则可能导致误判。
-    const std::set<UChar32> excludeList = {
-        0x8457 // 著
-    };
-
-    icu::UnicodeString uSource = icu::UnicodeString::fromUTF8(sourceString);
-    std::set<UChar32> traditionalChars;
-
-    icu::StringCharacterIterator iter(uSource);
-    UChar32 charSource;
-    while (iter.hasNext()) {
-        charSource = iter.next32PostInc();
-
-        // 1. 必须是汉字
-        UErrorCode scriptErr = U_ZERO_ERROR;
-        if (uscript_getScript(charSource, &scriptErr) != USCRIPT_HAN || U_FAILURE(scriptErr)) {
-            continue;
+        logger->error("OpenCC is not usable, falling back to ICU-based traditional Chinese conversion");
+        UErrorCode status = U_ZERO_ERROR;
+        auto toSimplified = std::shared_ptr<icu::Transliterator>(icu::Transliterator::createInstance("Traditional-Simplified", UTRANS_FORWARD, status));
+        if (U_FAILURE(status)) {
+            throw std::runtime_error("ICU-based traditional Chinese conversion is not available");
+        }
+        auto toTraditional = std::shared_ptr<icu::Transliterator>(icu::Transliterator::createInstance("Simplified-Traditional", UTRANS_FORWARD, status));
+        if (U_FAILURE(status)) {
+            throw std::runtime_error("ICU-based simplified Chinese conversion is not available");
         }
 
-        // 2. 检查是否在排除列表中
-        if (excludeList.contains(charSource)) {
-            continue;
-        }
+        result = [=](const std::string& sourceString)
+            {
+                // 白名单/排除列表：用于解决简繁转换中的歧义问题。
+                // "著" (U+8457) 是一个典型例子，它在简体中文里也是合法字符，但T->S的转换规则可能导致误判。
+                static const std::set<UChar32> excludeList = {
+                    0x8457 // 著
+                };
 
-        icu::UnicodeString uCharSource(charSource);
-        icu::UnicodeString uSimplified = uCharSource;
-        toSimplified->transliterate(uSimplified);
+                icu::UnicodeString uSource = icu::UnicodeString::fromUTF8(sourceString);
+                std::set<UChar32> traditionalChars;
 
-        // 3. 繁体转简体后必须有变化
-        if (uCharSource == uSimplified) {
-            continue;
-        }
+                icu::StringCharacterIterator iter(uSource);
+                UChar32 charSource;
+                while (iter.hasNext()) {
+                    charSource = iter.next32PostInc();
 
-        // 4. 核心双向检查：简体转回繁体，必须能得到原始字符，确保转换是明确且可逆的
-        icu::UnicodeString uReTraditional = uSimplified;
-        toTraditional->transliterate(uReTraditional);
+                    // 1. 必须是汉字
+                    UErrorCode scriptErr = U_ZERO_ERROR;
+                    if (uscript_getScript(charSource, &scriptErr) != USCRIPT_HAN || U_FAILURE(scriptErr)) {
+                        continue;
+                    }
 
-        if (uReTraditional == uCharSource) {
-            traditionalChars.insert(charSource);
-        }
+                    // 2. 检查是否在排除列表中
+                    if (excludeList.contains(charSource)) {
+                        continue;
+                    }
+
+                    icu::UnicodeString uCharSource(charSource);
+                    icu::UnicodeString uSimplified = uCharSource;
+                    toSimplified->transliterate(uSimplified);
+
+                    // 3. 繁体转简体后必须有变化
+                    if (uCharSource == uSimplified) {
+                        continue;
+                    }
+
+                    // 4. 核心双向检查：简体转回繁体，必须能得到原始字符，确保转换是明确且可逆的
+                    icu::UnicodeString uReTraditional = uSimplified;
+                    toTraditional->transliterate(uReTraditional);
+
+                    if (uReTraditional == uCharSource) {
+                        traditionalChars.insert(charSource);
+                    }
+                }
+
+                icu::UnicodeString resultUStr;
+                for (UChar32 ch : traditionalChars) {
+                    resultUStr.append(ch);
+                }
+
+                std::string resultStr;
+                return resultUStr.toUTF8String(resultStr);
+            };
+        logger->info("ICU-based traditional Chinese conversion is available");
+        return result;
     }
-
-    icu::UnicodeString resultUStr;
-    for (UChar32 ch : traditionalChars) {
-        resultUStr.append(ch);
-    }
-
-    std::string resultStr;
-    return resultUStr.toUTF8String(resultStr);
+    return result;
 }
+
 
 void extractZip(const fs::path& zipPath, const fs::path& outputDir) {
     int error = 0;

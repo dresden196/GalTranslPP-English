@@ -46,15 +46,15 @@ export {
         std::mutex m_resultMutex;
 
         // MeCab 解析器
-        std::unique_ptr<MeCab::Tagger> m_tagger;
+        std::shared_ptr<MeCab::Tagger> m_tagger;
 
         void preprocessAndTokenize(const std::vector<fs::path>& jsonFiles);
         std::vector<int> solveSentenceSelection();
         void callLLMToGenerate(int segmentIndex, int threadId);
 
     public:
-        DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool,
-            NormalDictionary& preDict, const fs::path& dictDir, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
+        DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::shared_ptr<MeCab::Tagger> tagger,
+            NormalDictionary& preDict, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
             int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota, bool usePreDictInName, bool usePreDictInMsg);
         void generate(const std::vector<fs::path>& jsonFiles, const fs::path& outputFilePath);
     };
@@ -63,19 +63,14 @@ export {
 
 module :private;
 
-DictionaryGenerator::DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool,
-    NormalDictionary& preDict, const fs::path& dictDir, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
+DictionaryGenerator::DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::shared_ptr<MeCab::Tagger> tagger,
+    NormalDictionary& preDict, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
     int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota, bool usePreDictInName, bool usePreDictInMsg)
-    : m_controller(controller), m_logger(logger), m_apiPool(apiPool), m_preDict(preDict), m_systemPrompt(systemPrompt), m_userPrompt(userPrompt),
-    m_apiStrategy(apiStrategy), m_maxRetries(maxRetries),
+    : m_controller(controller), m_logger(logger), m_apiPool(apiPool), m_tagger(tagger),
+    m_preDict(preDict), m_systemPrompt(systemPrompt), m_userPrompt(userPrompt), m_apiStrategy(apiStrategy), m_maxRetries(maxRetries),
     m_threadsNum(threadsNum), m_apiTimeoutMs(apiTimeoutMs), m_checkQuota(checkQuota), m_usePreDictInName(usePreDictInName), m_usePreDictInMsg(usePreDictInMsg)
 {
-    m_tagger.reset(
-        MeCab::createTagger(("-r BaseConfig/DictGenerator/mecabrc -d " + wide2Ascii(dictDir, 0)).c_str())
-    );
-    if (!m_tagger) {
-        throw std::runtime_error("无法初始化 MeCab Tagger。请确保 BaseConfig/DictGenerator/mecabrc 和 " + wide2Ascii(dictDir) + " 存在且无特殊字符");
-    }
+
 }
 
 void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jsonFiles) {
