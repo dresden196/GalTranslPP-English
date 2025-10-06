@@ -26,7 +26,7 @@ EpubCfgPage::EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : 
 	QVBoxLayout* mainLayout = new QVBoxLayout(centerWidget);
 
 	// 双语显示
-	bool bilingual = toml::get_or(_projectConfig["plugins"]["Epub"]["双语显示"], true);
+	bool bilingual = toml::find_or(_projectConfig, "plugins", "Epub", "双语显示", true);
 	ElaScrollPageArea* outputArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* outputLayout = new QHBoxLayout(outputArea);
 	ElaText* outputText = new ElaText(tr("双语显示"), outputArea);
@@ -39,7 +39,7 @@ EpubCfgPage::EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : 
 	mainLayout->addWidget(outputArea);
 
 	// 原文颜色
-	std::string colorStr = toml::get_or(_projectConfig["plugins"]["Epub"]["原文颜色"], "#808080");
+	std::string colorStr = toml::find_or(_projectConfig, "plugins", "Epub", "原文颜色", "#808080");
 	QColor color = QColor(colorStr.c_str());
 	ElaScrollPageArea* colorArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* colorLayout = new QHBoxLayout(colorArea);
@@ -77,7 +77,7 @@ EpubCfgPage::EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : 
 
 
 	// 缩小比例
-	double scale = toml::get_or(_projectConfig["plugins"]["Epub"]["缩小比例"], 0.8);
+	double scale = toml::find_or(_projectConfig, "plugins", "Epub", "缩小比例", 0.8);
 	ElaScrollPageArea* scaleArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* scaleLayout = new QHBoxLayout(scaleArea);
 	ElaText* scaleText = new ElaText(tr("缩小比例"), scaleArea);

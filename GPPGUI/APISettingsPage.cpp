@@ -81,7 +81,7 @@ void APISettingsPage::_setupUI()
     }
 
     // API 使用策略
-    std::string strategy = toml::get_or(_projectConfig["backendSpecific"]["OpenAI-Compatible"]["apiStrategy"], "");
+    std::string strategy = toml::find_or(_projectConfig, "backendSpecific", "OpenAI-Compatible", "apiStrategy", "");
     bool isRandom = strategy == "random";
     ElaScrollPageArea* apiStrategyArea = new ElaScrollPageArea(this);
     QHBoxLayout* apiStrategyLayout = new QHBoxLayout(apiStrategyArea);
@@ -104,7 +104,7 @@ void APISettingsPage::_setupUI()
     apiStrategyGroup->addButton(apiStrategyFallback, 1);
 
     // API 超时时间
-    int timeout = toml::get_or(_projectConfig["backendSpecific"]["OpenAI-Compatible"]["apiTimeout"], 180);
+    int timeout = toml::find_or(_projectConfig, "backendSpecific", "OpenAI-Compatible", "apiTimeout", 180);
     ElaScrollPageArea* apiTimeoutArea = new ElaScrollPageArea(this);
     QHBoxLayout* apiTimeoutLayout = new QHBoxLayout(apiTimeoutArea);
     ElaText* apiTimeoutTitle = new ElaText(tr("API 超时时间"), apiTimeoutArea);

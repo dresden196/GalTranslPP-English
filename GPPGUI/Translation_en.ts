@@ -2487,43 +2487,48 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="240"/>
-        <source>允许在项目仍在运行的情况下关闭程序(危险)</source>
+        <location filename="SettingPage.cpp" line="242"/>
+        <source>允许在项目仍在运行的情况下关闭程序</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="256"/>
+        <location filename="SettingPage.cpp" line="246"/>
+        <source>危险！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="SettingPage.cpp" line="263"/>
         <source>检测到更新后自动下载</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="273"/>
+        <location filename="SettingPage.cpp" line="280"/>
         <source>自动检查更新</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="288"/>
+        <location filename="SettingPage.cpp" line="295"/>
         <source>语言设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="290"/>
-        <location filename="SettingPage.cpp" line="316"/>
+        <location filename="SettingPage.cpp" line="297"/>
+        <location filename="SettingPage.cpp" line="323"/>
         <source>重启生效</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="312"/>
+        <location filename="SettingPage.cpp" line="319"/>
         <source>Python环境路径</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="325"/>
+        <location filename="SettingPage.cpp" line="333"/>
         <source>浏览</source>
         <translation type="unfinished">browse</translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="329"/>
+        <location filename="SettingPage.cpp" line="337"/>
         <source>选择Python环境路径</source>
         <translation type="unfinished"></translation>
     </message>

@@ -131,21 +131,21 @@ void DictSettingsPage::_setupUI()
 		dictTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
 		if constexpr (std::is_same_v<EntryType, GptDictEntry>) {
-			dictTableView->setColumnWidth(0, toml::get_or(_projectConfig["GUIConfig"]["gptDictTableColumnWidth"]["0"], 175));
-			dictTableView->setColumnWidth(1, toml::get_or(_projectConfig["GUIConfig"]["gptDictTableColumnWidth"]["1"], 175));
-			dictTableView->setColumnWidth(2, toml::get_or(_projectConfig["GUIConfig"]["gptDictTableColumnWidth"]["2"], 425));
+			dictTableView->setColumnWidth(0, toml::find_or(_projectConfig, "GUIConfig", "gptDictTableColumnWidth", "0", 175));
+			dictTableView->setColumnWidth(1, toml::find_or(_projectConfig, "GUIConfig", "gptDictTableColumnWidth", "1", 175));
+			dictTableView->setColumnWidth(2, toml::find_or(_projectConfig, "GUIConfig", "gptDictTableColumnWidth", "2", 425));
 		}
 		else {
-			dictTableView->setColumnWidth(0, toml::get_or(_projectConfig["GUIConfig"][configKey + "DictTableColumnWidth"]["0"], 200));
-			dictTableView->setColumnWidth(1, toml::get_or(_projectConfig["GUIConfig"][configKey + "DictTableColumnWidth"]["1"], 150));
-			dictTableView->setColumnWidth(2, toml::get_or(_projectConfig["GUIConfig"][configKey + "DictTableColumnWidth"]["2"], 100));
-			dictTableView->setColumnWidth(3, toml::get_or(_projectConfig["GUIConfig"][configKey + "DictTableColumnWidth"]["3"], 172));
-			dictTableView->setColumnWidth(4, toml::get_or(_projectConfig["GUIConfig"][configKey + "DictTableColumnWidth"]["4"], 75));
-			dictTableView->setColumnWidth(5, toml::get_or(_projectConfig["GUIConfig"][configKey + "DictTableColumnWidth"]["5"], 60));
+			dictTableView->setColumnWidth(0, toml::find_or(_projectConfig, "GUIConfig", configKey + "DictTableColumnWidth", "0", 200));
+			dictTableView->setColumnWidth(1, toml::find_or(_projectConfig, "GUIConfig", configKey + "DictTableColumnWidth", "1", 150));
+			dictTableView->setColumnWidth(2, toml::find_or(_projectConfig, "GUIConfig", configKey + "DictTableColumnWidth", "2", 100));
+			dictTableView->setColumnWidth(3, toml::find_or(_projectConfig, "GUIConfig", configKey + "DictTableColumnWidth", "3", 172));
+			dictTableView->setColumnWidth(4, toml::find_or(_projectConfig, "GUIConfig", configKey + "DictTableColumnWidth", "4", 75));
+			dictTableView->setColumnWidth(5, toml::find_or(_projectConfig, "GUIConfig", configKey + "DictTableColumnWidth", "5", 60));
 		}
 
 		stackedWidget->addWidget(dictTableView);
-		stackedWidget->setCurrentIndex(toml::get_or(_projectConfig["GUIConfig"][configKey + "DictTableOpenMode"], toml::get_or(_globalConfig["defaultDictOpenMode"], 0)));
+		stackedWidget->setCurrentIndex(toml::find_or(_projectConfig, "GUIConfig", configKey + "DictTableOpenMode", toml::find_or(_globalConfig, "defaultDictOpenMode", 0)));
 		plainTextModeButtom->setEnabled(stackedWidget->currentIndex() != 0);
 		tableModeButtom->setEnabled(stackedWidget->currentIndex() != 1);
 		addDictButton->setEnabled(stackedWidget->currentIndex() == 1);
@@ -241,7 +241,7 @@ void DictSettingsPage::_setupUI()
 				else {
 					filter = "TOML files (*.toml);;JSON files (*.json)";
 				}
-				QString dictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), QString::fromStdString(toml::get_or(_globalConfig["lastProjectDictPath"], wide2Ascii(_projectDir))), filter);
+				QString dictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), QString::fromStdString(toml::find_or(_globalConfig, "lastProjectDictPath", wide2Ascii(_projectDir))), filter);
 				if (dictPathStr.isEmpty()) {
 					return;
 				}

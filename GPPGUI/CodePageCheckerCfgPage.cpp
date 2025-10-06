@@ -21,7 +21,7 @@ CodePageCheckerCfgPage::CodePageCheckerCfgPage(toml::ordered_value& projectConfi
     QVBoxLayout* mainLayout = new QVBoxLayout(centerWidget);
 
     // 标点符号转换配置
-    std::string codePage = toml::get_or(_projectConfig["plugins"]["CodePageChecker"]["codePage"], "gbk");
+    std::string codePage = toml::find_or(_projectConfig, "plugins", "CodePageChecker", "codePage", "gbk");
     ElaScrollPageArea* codePageArea = new ElaScrollPageArea(this);
     QHBoxLayout* codePageLayout = new QHBoxLayout(codePageArea);
     ElaText* codePageText = new ElaText(tr("字符集名称"), codePageArea);

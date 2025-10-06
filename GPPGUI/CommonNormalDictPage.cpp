@@ -164,20 +164,20 @@ void CommonNormalDictPage::_setupUI()
 			model->loadData(normalData);
 			tableView->setModel(model);
 			stackedWidget->addWidget(tableView);
-			stackedWidget->setCurrentIndex(toml::get_or(_globalConfig[_modeConfig]["spec"][dictName]["openMode"], 1));
-			tableView->setColumnWidth(0, toml::get_or(_globalConfig[_modeConfig]["spec"][dictName]["columnWidth"]["0"], 200));
-			tableView->setColumnWidth(1, toml::get_or(_globalConfig[_modeConfig]["spec"][dictName]["columnWidth"]["1"], 150));
-			tableView->setColumnWidth(2, toml::get_or(_globalConfig[_modeConfig]["spec"][dictName]["columnWidth"]["2"], 100));
-			tableView->setColumnWidth(3, toml::get_or(_globalConfig[_modeConfig]["spec"][dictName]["columnWidth"]["3"], 172));
-			tableView->setColumnWidth(4, toml::get_or(_globalConfig[_modeConfig]["spec"][dictName]["columnWidth"]["4"], 75));
-			tableView->setColumnWidth(5, toml::get_or(_globalConfig[_modeConfig]["spec"][dictName]["columnWidth"]["5"], 60));
+			stackedWidget->setCurrentIndex(toml::find_or(_globalConfig, _modeConfig, "spec", dictName, "openMode", 1));
+			tableView->setColumnWidth(0, toml::find_or(_globalConfig, _modeConfig, "spec", dictName, "columnWidth", "0", 200));
+			tableView->setColumnWidth(1, toml::find_or(_globalConfig, _modeConfig, "spec", dictName, "columnWidth", "1", 150));
+			tableView->setColumnWidth(2, toml::find_or(_globalConfig, _modeConfig, "spec", dictName, "columnWidth", "2", 100));
+			tableView->setColumnWidth(3, toml::find_or(_globalConfig, _modeConfig, "spec", dictName, "columnWidth", "3", 172));
+			tableView->setColumnWidth(4, toml::find_or(_globalConfig, _modeConfig, "spec", dictName, "columnWidth", "4", 75));
+			tableView->setColumnWidth(5, toml::find_or(_globalConfig, _modeConfig, "spec", dictName, "columnWidth", "5", 60));
 			pageMainLayout->addWidget(stackedWidget, 1);
 
 			plainTextModeButton->setEnabled(stackedWidget->currentIndex() != 0);
 			tableModeButton->setEnabled(stackedWidget->currentIndex() != 1);
 			addDictButton->setEnabled(stackedWidget->currentIndex() == 1);
 			removeDictButton->setEnabled(stackedWidget->currentIndex() == 1);
-			defaultOnButton->setIsToggled(toml::get_or(_globalConfig[_modeConfig]["spec"][dictName]["defaultOn"], true));
+			defaultOnButton->setIsToggled(toml::find_or(_globalConfig, _modeConfig, "spec", dictName, "defaultOn", true));
 			insertToml(_globalConfig, _modeConfig + ".spec." + dictName + ".defaultOn", defaultOnButton->getIsToggled());
 
 			connect(plainTextModeButton, &ElaPushButton::clicked, this, [=]()

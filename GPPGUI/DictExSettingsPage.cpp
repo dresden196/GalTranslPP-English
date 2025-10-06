@@ -84,7 +84,7 @@ void DictExSettingsPage::_setupUI()
 	ElaMultiSelectComboBox* postDictNamesComboBox = createDictSelectAreaFunc(tr("选择要启用的译后字典"), tr("项目译后字典"), "commonPostDicts", "postDict");
 
 
-	bool usePreDictInName = toml::get_or(_projectConfig["dictionary"]["usePreDictInName"], false);
+	bool usePreDictInName = toml::find_or(_projectConfig, "dictionary", "usePreDictInName", false);
 	ElaScrollPageArea* usePreDictInNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePreDictInNameLayout = new QHBoxLayout(usePreDictInNameArea);
 	ElaText* usePreDictInNameText = new ElaText(usePreDictInNameArea);
@@ -98,7 +98,7 @@ void DictExSettingsPage::_setupUI()
 	usePreDictInNameLayout->addWidget(usePreDictInNameSwitch);
 	mainLayout->addWidget(usePreDictInNameArea);
 
-	bool usePostDictInName = toml::get_or(_projectConfig["dictionary"]["usePostDictInName"], false);
+	bool usePostDictInName = toml::find_or(_projectConfig, "dictionary", "usePostDictInName", false);
 	ElaScrollPageArea* usePostDictInNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePostDictInNameLayout = new QHBoxLayout(usePostDictInNameArea);
 	ElaText* usePostDictInNameText = new ElaText(usePostDictInNameArea);
@@ -112,7 +112,7 @@ void DictExSettingsPage::_setupUI()
 	usePostDictInNameLayout->addWidget(usePostDictInNameSwitch);
 	mainLayout->addWidget(usePostDictInNameArea);
 
-	bool usePreDictInMsg = toml::get_or(_projectConfig["dictionary"]["usePreDictInMsg"], true);
+	bool usePreDictInMsg = toml::find_or(_projectConfig, "dictionary", "usePreDictInMsg", true);
 	ElaScrollPageArea* usePreDictInMsgArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePreDictInMsgLayout = new QHBoxLayout(usePreDictInMsgArea);
 	ElaText* usePreDictInMsgText = new ElaText(usePreDictInMsgArea);
@@ -126,7 +126,7 @@ void DictExSettingsPage::_setupUI()
 	usePreDictInMsgLayout->addWidget(usePreDictInMsgSwitch);
 	mainLayout->addWidget(usePreDictInMsgArea);
 
-	bool usePostDictInMsg = toml::get_or(_projectConfig["dictionary"]["usePostDictInMsg"], true);
+	bool usePostDictInMsg = toml::find_or(_projectConfig, "dictionary", "usePostDictInMsg", true);
 	ElaScrollPageArea* usePostDictInMsgArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* usePostDictInMsgLayout = new QHBoxLayout(usePostDictInMsgArea);
 	ElaText* usePostDictInMsgText = new ElaText(usePostDictInMsgArea);
@@ -140,7 +140,7 @@ void DictExSettingsPage::_setupUI()
 	usePostDictInMsgLayout->addWidget(usePostDictInMsgSwitch);
 	mainLayout->addWidget(usePostDictInMsgArea);
 
-	bool useGPTDictToReplaceName = toml::get_or(_projectConfig["dictionary"]["useGPTDictToReplaceName"], false);
+	bool useGPTDictToReplaceName = toml::find_or(_projectConfig, "dictionary", "useGPTDictToReplaceName", false);
 	ElaScrollPageArea* useGPTDictToReplaceNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* useGPTDictToReplaceNameLayout = new QHBoxLayout(useGPTDictToReplaceNameArea);
 	ElaText* useGPTDictToReplaceNameText = new ElaText(useGPTDictToReplaceNameArea);

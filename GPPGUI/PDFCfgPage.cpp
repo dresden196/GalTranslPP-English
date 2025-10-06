@@ -23,7 +23,7 @@ PDFCfgPage::PDFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	QVBoxLayout* mainLayout = new QVBoxLayout(centerWidget);
 
 	// 输出双语翻译文件
-	bool outputDual = toml::get_or(_projectConfig["plugins"]["PDF"]["输出双语翻译文件"], true);
+	bool outputDual = toml::find_or(_projectConfig, "plugins", "PDF", "输出双语翻译文件", true);
 	ElaScrollPageArea* outputArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* outputLayout = new QHBoxLayout(outputArea);
 	ElaText* outputText = new ElaText(tr("输出双语翻译文件"), outputArea);

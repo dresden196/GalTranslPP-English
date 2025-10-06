@@ -138,11 +138,11 @@ void MainWindow::initWindow()
     setFocusPolicy(Qt::StrongFocus);
     setWindowIcon(QIcon(":/GPPGUI/Resource/Image/julixian_s.jpeg"));
 
-    int width = toml::get_or(_globalConfig["windowWidth"], 1450);
-    int height = toml::get_or(_globalConfig["windowHeight"], 770);
+    int width = toml::find_or(_globalConfig, "windowWidth", 1450);
+    int height = toml::find_or(_globalConfig, "windowHeight", 770);
     resize(width, height - 30);
-    int x = toml::get_or(_globalConfig["windowPosX"], 0);
-    int y = toml::get_or(_globalConfig["windowPosY"], 0);
+    int x = toml::find_or(_globalConfig, "windowPosX", 0);
+    int y = toml::find_or(_globalConfig, "windowPosY", 0);
     if (x < 0)x = 0;
     if (y < 0)y = 0;
     move(x, y);
@@ -202,7 +202,7 @@ void MainWindow::initEdgeLayout()
     resizeDocks({ updateDockWidget }, { 200 }, Qt::Horizontal);
     std::string gppversion = GPPVERSION;
     std::erase_if(gppversion, [](char ch) { return ch == '.'; });
-    updateDockWidget->setVisible(toml::get_or(_globalConfig["showDockWidget"][gppversion], true));
+    updateDockWidget->setVisible(toml::find_or(_globalConfig, "showDockWidget", gppversion, true));
     insertToml(_globalConfig, "showDockWidget", toml::ordered_table{});
     insertToml(_globalConfig, "showDockWidget." + gppversion, updateDockWidget->isVisible());
     connect(updateDockWidget, &ElaDockWidget::visibilityChanged, this, [=](bool visible)
@@ -320,7 +320,7 @@ void MainWindow::initContent()
 
 void MainWindow::_onNewProjectTriggered()
 {
-    QString parentPath = QFileDialog::getExistingDirectory(this, tr("选择新项目的存放位置"), QString::fromStdString(toml::get_or(_globalConfig["lastProjectPath"], "./Projects")));
+    QString parentPath = QFileDialog::getExistingDirectory(this, tr("选择新项目的存放位置"), QString::fromStdString(toml::find_or(_globalConfig, "lastProjectPath", "./Projects")));
     if (parentPath.isEmpty()) {
         return;
     }
@@ -425,7 +425,7 @@ void MainWindow::_onNewProjectTriggered()
 
 void MainWindow::_onOpenProjectTriggered()
 {
-    QString projectPath = QFileDialog::getExistingDirectory(this, tr("选择已有项目的文件夹路径"), QString::fromStdString(toml::get_or(_globalConfig["lastProjectPath"], "./Projects")));
+    QString projectPath = QFileDialog::getExistingDirectory(this, tr("选择已有项目的文件夹路径"), QString::fromStdString(toml::find_or(_globalConfig, "lastProjectPath", "./Projects")));
     if (projectPath.isEmpty()) {
         return;
     }

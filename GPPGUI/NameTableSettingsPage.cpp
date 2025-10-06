@@ -142,11 +142,11 @@ void NameTableSettingsPage::_setupUI()
 	nameTableView->verticalHeader()->setHidden(true);
 	nameTableView->setAlternatingRowColors(true);
 	nameTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-	nameTableView->setColumnWidth(0, toml::get_or(_projectConfig["GUIConfig"]["nameTableColumnWidth"]["0"], 258));
-	nameTableView->setColumnWidth(1, toml::get_or(_projectConfig["GUIConfig"]["nameTableColumnWidth"]["1"], 258));
-	nameTableView->setColumnWidth(2, toml::get_or(_projectConfig["GUIConfig"]["nameTableColumnWidth"]["2"], 258));
+	nameTableView->setColumnWidth(0, toml::find_or(_projectConfig, "GUIConfig", "nameTableColumnWidth", "0", 258));
+	nameTableView->setColumnWidth(1, toml::find_or(_projectConfig, "GUIConfig", "nameTableColumnWidth", "1", 258));
+	nameTableView->setColumnWidth(2, toml::find_or(_projectConfig, "GUIConfig", "nameTableColumnWidth", "2", 258));
 	stackedWidget->addWidget(nameTableView);
-	stackedWidget->setCurrentIndex(toml::get_or(_projectConfig["GUIConfig"]["nameTableOpenMode"], toml::get_or(_globalConfig["defaultNameTableOpenMode"], 0)));
+	stackedWidget->setCurrentIndex(toml::find_or(_globalConfig, "GUIConfig", "nameTableOpenMode", toml::find_or(_globalConfig, "defaultNameTableOpenMode", 0)));
 
 	plainTextModeButton->setEnabled(stackedWidget->currentIndex() != 0);
 	TableModeButton->setEnabled(stackedWidget->currentIndex() != 1);

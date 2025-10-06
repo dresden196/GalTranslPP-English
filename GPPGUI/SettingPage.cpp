@@ -30,7 +30,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     themeText->setWordWrap(false);
     themeText->setTextPixelSize(18);
 
-    int themeMode = toml::get_or(_globalConfig["themeMode"], 0);
+    int themeMode = toml::find_or(_globalConfig, "themeMode", 0);
     eTheme->setThemeMode((ElaThemeType::ThemeMode)themeMode);
     ElaComboBox* themeComboBox = new ElaComboBox(this);
     themeComboBox->addItem(tr("日间模式"));
@@ -83,7 +83,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     displayButtonGroup->addButton(acrylicButton, 4);
     displayButtonGroup->addButton(dwmBlurnormalButton, 5);
 
-    int windowDisplayMode = toml::get_or(_globalConfig["windowDisplayMode"], 0); // 不知道为什么3及以上的值会失效
+    int windowDisplayMode = toml::find_or(_globalConfig, "windowDisplayMode", 0); // 不知道为什么3及以上的值会失效
     QAbstractButton* abstractButton = displayButtonGroup->button(windowDisplayMode);
     if (abstractButton)
     {
@@ -142,7 +142,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     navigationGroup->addButton(minimumButton, 1);
     navigationGroup->addButton(compactButton, 2);
     navigationGroup->addButton(maximumButton, 3);
-    int navigationMode = toml::get_or(_globalConfig["navigationMode"], 0);
+    int navigationMode = toml::find_or(_globalConfig, "navigationMode", 0);
     abstractButton = navigationGroup->button(navigationMode);
     if (abstractButton) {
         abstractButton->setChecked(true);
@@ -169,7 +169,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     autoRefreshLayout->addWidget(autoRefreshText);
     autoRefreshLayout->addStretch();
     ElaToggleSwitch* autoRefreshSwitch = new ElaToggleSwitch(autoRefreshArea);
-    autoRefreshSwitch->setIsToggled(toml::get_or(_globalConfig["autoRefreshAfterTranslate"], true));
+    autoRefreshSwitch->setIsToggled(toml::find_or(_globalConfig, "autoRefreshAfterTranslate", true));
     connect(autoRefreshSwitch, &ElaToggleSwitch::toggled, this, [=](bool isChecked) 
         {
             insertToml(_globalConfig, "autoRefreshAfterTranslate", isChecked);
@@ -188,7 +188,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     nameTableOpenModeLayout->addStretch();
     nameTableOpenModeLayout->addWidget(nameTableOpenModeTextButton);
     nameTableOpenModeLayout->addWidget(nameTableOpenModeTableButton);
-    int nameTableOpenMode = toml::get_or(_globalConfig["defaultNameTableOpenMode"], 0);
+    int nameTableOpenMode = toml::find_or(_globalConfig, "defaultNameTableOpenMode", 1);
     QButtonGroup* nameTableOpenModeGroup = new QButtonGroup(nameTableOpenModeArea);
     nameTableOpenModeGroup->addButton(nameTableOpenModeTextButton, 0);
     nameTableOpenModeGroup->addButton(nameTableOpenModeTableButton, 1);
@@ -217,7 +217,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     dictOpenModeLayout->addStretch();
     dictOpenModeLayout->addWidget(dictOpenModeTextButton);
     dictOpenModeLayout->addWidget(dictOpenModeTableButton);
-    int dictOpenMode = toml::get_or(_globalConfig["defaultDictOpenMode"], 0);
+    int dictOpenMode = toml::find_or(_globalConfig, "defaultDictOpenMode", 1);
     QButtonGroup* dictOpenModeGroup = new QButtonGroup(dictOpenModeArea);
     dictOpenModeGroup->addButton(dictOpenModeTextButton, 0);
     dictOpenModeGroup->addButton(dictOpenModeTableButton, 1);
@@ -237,12 +237,19 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     // 允许在项目仍在运行的情况下关闭程序(危险)
     ElaScrollPageArea* allowCloseWhenRunningArea = new ElaScrollPageArea(this);
     QHBoxLayout* allowCloseWhenRunningLayout = new QHBoxLayout(allowCloseWhenRunningArea);
-    ElaText* allowCloseWhenRunningText = new ElaText(tr("允许在项目仍在运行的情况下关闭程序(危险)"), allowCloseWhenRunningArea);
+    QWidget* allowCloseWhenRunningWidget = new QWidget(allowCloseWhenRunningArea);
+    QVBoxLayout* allowCloseWhenRunningWidgetLayout = new QVBoxLayout(allowCloseWhenRunningWidget);
+    ElaText* allowCloseWhenRunningText = new ElaText(tr("允许在项目仍在运行的情况下关闭程序"), allowCloseWhenRunningArea);
     allowCloseWhenRunningText->setWordWrap(false);
     allowCloseWhenRunningText->setTextPixelSize(15);
+    allowCloseWhenRunningWidgetLayout->addWidget(allowCloseWhenRunningText);
+    ElaText* allowCloseWhenRunningWarningText = new ElaText(tr("危险！"), allowCloseWhenRunningArea);
+    allowCloseWhenRunningWarningText->setWordWrap(false);
+    allowCloseWhenRunningWarningText->setTextPixelSize(10);
+    allowCloseWhenRunningWidgetLayout->addWidget(allowCloseWhenRunningWarningText);
     ElaToggleSwitch* allowCloseWhenRunningSwitch = new ElaToggleSwitch(allowCloseWhenRunningArea);
-    allowCloseWhenRunningSwitch->setIsToggled(toml::get_or(_globalConfig["allowCloseWhenRunning"], false));
-    allowCloseWhenRunningLayout->addWidget(allowCloseWhenRunningText);
+    allowCloseWhenRunningSwitch->setIsToggled(toml::find_or(_globalConfig, "allowCloseWhenRunning", false));
+    allowCloseWhenRunningLayout->addWidget(allowCloseWhenRunningWidget);
     allowCloseWhenRunningLayout->addStretch();
     allowCloseWhenRunningLayout->addWidget(allowCloseWhenRunningSwitch);
     connect(allowCloseWhenRunningSwitch, &ElaToggleSwitch::toggled, this, [=](bool isChecked)
@@ -257,7 +264,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     autoDownloadText->setWordWrap(false);
     autoDownloadText->setTextPixelSize(15);
     ElaToggleSwitch* autoDownloadSwitch = new ElaToggleSwitch(autoDownloadArea);
-    autoDownloadSwitch->setIsToggled(toml::get_or(_globalConfig["autoDownloadUpdate"], true));
+    autoDownloadSwitch->setIsToggled(toml::find_or(_globalConfig, "autoDownloadUpdate", true));
     autoDownloadLayout->addWidget(autoDownloadText);
     autoDownloadLayout->addStretch();
     autoDownloadLayout->addWidget(autoDownloadSwitch);
@@ -274,7 +281,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     checkUpdateText->setWordWrap(false);
     checkUpdateText->setTextPixelSize(15);
     ElaToggleSwitch* checkUpdateSwitch = new ElaToggleSwitch(checkUpdateArea);
-    checkUpdateSwitch->setIsToggled(toml::get_or(_globalConfig["autoCheckUpdate"], true));
+    checkUpdateSwitch->setIsToggled(toml::find_or(_globalConfig, "autoCheckUpdate", true));
     checkUpdateLayout->addWidget(checkUpdateText);
     checkUpdateLayout->addStretch();
     checkUpdateLayout->addWidget(checkUpdateSwitch);
@@ -298,7 +305,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     ElaComboBox* languageComboBox = new ElaComboBox(languageArea);
     languageComboBox->addItem("zh_CN");
     languageComboBox->addItem("en");
-    if (int languageIndex = languageComboBox->findText(QString::fromStdString(toml::get_or(_globalConfig["language"], "zh_CN"))); languageIndex >= 0) {
+    if (int languageIndex = languageComboBox->findText(QString::fromStdString(toml::find_or(_globalConfig, "language", "zh_CN"))); languageIndex >= 0) {
         languageComboBox->setCurrentIndex(languageIndex);
     }
     languageLayout->addWidget(languageComboBox);
@@ -320,13 +327,14 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     pyEnvPathLayout->addWidget(pyEnvPathWidget);
     pyEnvPathLayout->addStretch();
     ElaLineEdit* pyEnvPathLineEdit = new ElaLineEdit(pyEnvPathArea);
-    pyEnvPathLineEdit->setText(QString::fromStdString(toml::get_or(_globalConfig["pyEnvPath"], "BaseConfig/python-3.12.10-embed-amd64")));
+    pyEnvPathLineEdit->setFixedWidth(400);
+    pyEnvPathLineEdit->setText(QString::fromStdString(toml::find_or(_globalConfig, "pyEnvPath", "BaseConfig/python-3.12.10-embed-amd64")));
     pyEnvPathLayout->addWidget(pyEnvPathLineEdit);
     ElaPushButton* pyEnvPathButton = new ElaPushButton(tr("浏览"), pyEnvPathArea);
     pyEnvPathLayout->addWidget(pyEnvPathButton);
     connect(pyEnvPathButton, &ElaPushButton::clicked, this, [=]()
         {
-            QString path = QFileDialog::getExistingDirectory(this, tr("选择Python环境路径"), QString::fromStdString(toml::get_or(_globalConfig["pyEnvPath"], "BaseConfig/python-3.12.10-embed-amd64")));
+            QString path = QFileDialog::getExistingDirectory(this, tr("选择Python环境路径"), QString::fromStdString(toml::find_or(_globalConfig, "pyEnvPath", "BaseConfig/python-3.12.10-embed-amd64")));
             if (!path.isEmpty())
             {
                 pyEnvPathLineEdit->setText(path);

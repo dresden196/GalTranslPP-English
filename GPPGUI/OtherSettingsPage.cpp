@@ -69,7 +69,7 @@ void OtherSettingsPage::_setupUI()
 				return;
 			}
 
-			QString newProjectParentPath = QFileDialog::getExistingDirectory(this, tr("请选择要移动到的文件夹"), QString::fromStdString(toml::get_or(_globalConfig["lastProjectPath"], "./Projects")));
+			QString newProjectParentPath = QFileDialog::getExistingDirectory(this, tr("请选择要移动到的文件夹"), QString::fromStdString(toml::find_or(_globalConfig, "lastProjectPath", "./Projects")));
 			if (newProjectParentPath.isEmpty()) {
 				return;
 			}

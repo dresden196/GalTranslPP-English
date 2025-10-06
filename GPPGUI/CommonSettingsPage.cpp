@@ -40,7 +40,7 @@ void CommonSettingsPage::_setupUI()
 	QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
 
 	// 单次请求翻译句子数量
-	int requestNum = toml::get_or(_projectConfig["common"]["numPerRequestTranslate"], 8);
+	int requestNum = toml::find_or(_projectConfig, "common", "numPerRequestTranslate", 8);
 	ElaScrollPageArea* requestNumArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* requestNumLayout = new QHBoxLayout(requestNumArea);
 	ElaText* requestNumText = new ElaText(tr("单次请求翻译句子数量"), requestNumArea);
@@ -58,7 +58,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(requestNumArea);
 
 	// 最大线程数
-	int maxThread = toml::get_or(_projectConfig["common"]["threadsNum"], 1);
+	int maxThread = toml::find_or(_projectConfig, "common", "threadsNum", 1);
 	ElaScrollPageArea* maxThreadArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* maxThreadLayout = new QHBoxLayout(maxThreadArea);
 	ElaText* maxThreadText = new ElaText(tr("最大线程数"), maxThreadArea);
@@ -72,7 +72,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(maxThreadArea);
 
 	// 翻译顺序，name为文件名，size为大文件优先，多线程时大文件优先可以提高整体速度[name/size]
-	std::string order = toml::get_or(_projectConfig["common"]["sortMethod"], "size");
+	std::string order = toml::find_or(_projectConfig, "common", "sortMethod", "size");
 	ElaScrollPageArea* orderArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* orderLayout = new QHBoxLayout(orderArea);
 	ElaText* orderText = new ElaText(tr("翻译顺序"), orderArea);
@@ -93,7 +93,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(orderArea);
 
 	// 翻译到的目标语言，包括但不限于[zh-cn/zh-tw/en/ja/ko/ru/fr]
-	std::string target = toml::get_or(_projectConfig["common"]["targetLang"], "zh-cn");
+	std::string target = toml::find_or(_projectConfig, "common", "targetLang", "zh-cn");
 	QString targetStr = QString::fromStdString(target);
 	ElaScrollPageArea* targetArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* targetLayout = new QHBoxLayout(targetArea);
@@ -110,7 +110,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(targetArea);
 
 	// 是否启用单文件分割。Num: 每n条分割一次，Equal: 每个文件均分n份，No: 关闭单文件分割。[No/Num/Equal]
-	std::string split = toml::get_or(_projectConfig["common"]["splitFile"], "No");
+	std::string split = toml::find_or(_projectConfig, "common", "splitFile", "No");
 	ElaDrawerArea* splitArea = new ElaDrawerArea(mainWidget);
 	QWidget* splitHeaderWidget = new QWidget(splitArea);
 	splitArea->setDrawerHeader(splitHeaderWidget);
@@ -155,7 +155,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(splitArea);
 
 	// Num时，表示n句拆分一次；Equal时，表示每个文件均分拆成n部分。
-	int splitNum = toml::get_or(_projectConfig["common"]["splitFileNum"], 1024);
+	int splitNum = toml::find_or(_projectConfig, "common", "splitFileNum", 1024);
 	QWidget* splitNumArea = new QWidget(splitArea);
 	QHBoxLayout* splitNumLayout = new QHBoxLayout(splitNumArea);
 	ElaText* splitNumText = new ElaText(tr("分割数量"), splitNumArea);
@@ -177,7 +177,7 @@ void CommonSettingsPage::_setupUI()
 	}
 
 	// 每翻译n次保存一次缓存
-	int saveInterval = toml::get_or(_projectConfig["common"]["saveCacheInterval"], 1);
+	int saveInterval = toml::find_or(_projectConfig, "common", "saveCacheInterval", 1);
 	ElaScrollPageArea* cacheArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* cacheLayout = new QHBoxLayout(cacheArea);
 	ElaText* cacheText = new ElaText(tr("缓存保存间隔"), cacheArea);
@@ -193,7 +193,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(cacheArea);
 
 	// 最大重试次数
-	int maxRetries = toml::get_or(_projectConfig["common"]["maxRetries"], 5);
+	int maxRetries = toml::find_or(_projectConfig, "common", "maxRetries", 5);
 	ElaScrollPageArea* retryArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* retryLayout = new QHBoxLayout(retryArea);
 	ElaText* retryText = new ElaText(tr("最大重试次数"), retryArea);
@@ -207,7 +207,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(retryArea);
 
 	// 携带上文数量
-	int contextNum = toml::get_or(_projectConfig["common"]["contextHistorySize"], 8);
+	int contextNum = toml::find_or(_projectConfig, "common", "contextHistorySize", 8);
 	ElaScrollPageArea* contextArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* contextLayout = new QHBoxLayout(contextArea);
 	ElaText* contextText = new ElaText(tr("携带上文数量"), contextArea);
@@ -221,7 +221,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(contextArea);
 
 	// 智能重试  # 解析结果失败时尝试折半重翻与清空上下文，避免无效重试。
-	bool smartRetry = toml::get_or(_projectConfig["common"]["smartRetry"], true);
+	bool smartRetry = toml::find_or(_projectConfig, "common", "smartRetry", true);
 	ElaScrollPageArea* smartRetryArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* smartRetryLayout = new QHBoxLayout(smartRetryArea);
 	ElaText* smartRetryText = new ElaText(tr("智能重试"), smartRetryArea);
@@ -236,7 +236,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(smartRetryArea);
 
 	// 额度检测 # 运行时动态检测key额度
-	bool checkQuota = toml::get_or(_projectConfig["common"]["checkQuota"], true);
+	bool checkQuota = toml::find_or(_projectConfig, "common", "checkQuota", true);
 	ElaScrollPageArea* checkQuotaArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* checkQuotaLayout = new QHBoxLayout(checkQuotaArea);
 	ElaText* checkQuotaText = new ElaText(tr("额度检测"), checkQuotaArea);
@@ -251,7 +251,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(checkQuotaArea);
 
 	// 项目日志级别
-	std::string logLevel = toml::get_or(_projectConfig["common"]["logLevel"], "info");
+	std::string logLevel = toml::find_or(_projectConfig, "common", "logLevel", "info");
 	QString logLevelStr = QString::fromStdString(logLevel);
 	ElaScrollPageArea* logArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* logLayout = new QHBoxLayout(logArea);
@@ -276,7 +276,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(logArea);
 
 	// 保存项目日志
-	bool saveLog = toml::get_or(_projectConfig["common"]["saveLog"], true);
+	bool saveLog = toml::find_or(_projectConfig, "common", "saveLog", true);
 	ElaScrollPageArea* saveLogArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* saveLogLayout = new QHBoxLayout(saveLogArea);
 	ElaText* saveLogText = new ElaText(tr("保存项目日志"), saveLogArea);
@@ -296,7 +296,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(tokenizerConfigText);
 
 	// tokenizerBackend
-	std::string tokenizerBackend = toml::get_or(_projectConfig["common"]["tokenizerBackend"], "MeCab");
+	std::string tokenizerBackend = toml::find_or(_projectConfig, "common", "tokenizerBackend", "MeCab");
 	ElaScrollPageArea* tokenizerBackendArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* tokenizerBackendLayout = new QHBoxLayout(tokenizerBackendArea);
 	ElaText* tokenizerBackendText = new ElaText(tr("分词器后端"), tokenizerBackendArea);
@@ -316,7 +316,7 @@ void CommonSettingsPage::_setupUI()
 	mainLayout->addWidget(tokenizerBackendArea);
 
 	// mecabDictDir
-	std::string mecabDictDir = toml::get_or(_projectConfig["common"]["mecabDictDir"], "BaseConfig/mecabDict/mecab-ipadic-utf8");
+	std::string mecabDictDir = toml::find_or(_projectConfig, "common", "mecabDictDir", "BaseConfig/mecabDict/mecab-ipadic-utf8");
 	ElaScrollPageArea* mecabDictDirArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* mecabDictDirLayout = new QHBoxLayout(mecabDictDirArea);
 	ElaText* mecabDictDirText = new ElaText(tr("MeCab词典目录"), mecabDictDirArea);
@@ -341,7 +341,7 @@ void CommonSettingsPage::_setupUI()
 		});
 
 	// spaCyModelName  https://spacy.io/models
-	std::string spaCyModelName = toml::get_or(_projectConfig["common"]["spaCyModelName"], "ja_core_news_trf");
+	std::string spaCyModelName = toml::find_or(_projectConfig, "common", "spaCyModelName", "ja_core_news_trf");
 	ElaScrollPageArea* spaCyModelNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* spaCyModelNameLayout = new QHBoxLayout(spaCyModelNameArea);
 	ElaText* spaCyModelNameText = new ElaText(tr("spaCy模型名称"), spaCyModelNameArea);
@@ -363,7 +363,7 @@ void CommonSettingsPage::_setupUI()
 		});
 
 	// stanzaLang https://stanfordnlp.github.io/stanza/ner_models.html
-	std::string stanzaLang = toml::get_or(_projectConfig["common"]["stanzaLang"], "ja");
+	std::string stanzaLang = toml::find_or(_projectConfig, "common", "stanzaLang", "ja");
 	ElaScrollPageArea* stanzaLangArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* stanzaLangLayout = new QHBoxLayout(stanzaLangArea);
 	ElaText* stanzaLangText = new ElaText(tr("Stanza语言ID"), stanzaLangArea);
@@ -386,7 +386,7 @@ void CommonSettingsPage::_setupUI()
 
 
 	// 项目所用的换行
-	std::string linebreakSymbol = toml::get_or(_projectConfig["common"]["linebreakSymbol"], "auto");
+	std::string linebreakSymbol = toml::find_or(_projectConfig, "common", "linebreakSymbol", "auto");
 	toml::ordered_value lbsVal = linebreakSymbol;
 	lbsVal.as_string_fmt().fmt = toml::string_format::basic;
 	QString linebreakSymbolStr = QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{"linebreakSymbol", lbsVal}} }));

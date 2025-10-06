@@ -27,7 +27,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	// 换行模式
 	QStringList fixModes = { "优先标点", "保持位置", "固定字数", "平均" };
 	QStringList fixModesToShow = { tr("优先标点"), tr("保持位置"), tr("固定字数"), tr("平均") };
-	QString fixMode = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["换行模式"], ""));
+	QString fixMode = QString::fromStdString(toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "换行模式", ""));
 	ElaScrollPageArea* fixModeArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* fixModeLayout = new QHBoxLayout(fixModeArea);
 	ElaText* fixModeText = new ElaText(tr("换行模式"), fixModeArea);
@@ -46,7 +46,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mainLayout->addWidget(fixModeArea);
 
 	// 仅在标点后添加
-	bool onlyAddAfterPunct = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["仅在标点后添加"], true);
+	bool onlyAddAfterPunct = toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "仅在标点后添加", true);
 	ElaScrollPageArea* onlyAddAfterPunctArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* onlyAddAfterPunctLayout = new QHBoxLayout(onlyAddAfterPunctArea);
 	ElaText* onlyAddAfterPunctText = new ElaText(tr("仅在标点后添加"), onlyAddAfterPunctArea);
@@ -61,7 +61,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mainLayout->addWidget(onlyAddAfterPunctArea);
 
 	// 分段字数阈值
-	int threshold = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["分段字数阈值"], 21);
+	int threshold = toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "分段字数阈值", 21);
 	ElaScrollPageArea* segmentThresholdArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* segmentThresholdLayout = new QHBoxLayout(segmentThresholdArea);
 	ElaText* segmentThresholdText = new ElaText(tr("分段字数阈值"), segmentThresholdArea);
@@ -77,7 +77,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mainLayout->addWidget(segmentThresholdArea);
 
 	// 强制修复
-	bool forceFix = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["强制修复"], false);
+	bool forceFix = toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "强制修复", false);
 	ElaScrollPageArea* forceFixArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* forceFixLayout = new QHBoxLayout(forceFixArea);
 	ElaText* forceFixText = new ElaText(tr("强制修复"), forceFixArea);
@@ -90,7 +90,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mainLayout->addWidget(forceFixArea);
 
 	// 报错阈值
-	int errorThreshold = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["报错阈值"], 28);
+	int errorThreshold = toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "报错阈值", 28);
 	ElaScrollPageArea* errorThresholdArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* errorThresholdLayout = new QHBoxLayout(errorThresholdArea);
 	ElaText* errorThresholdText = new ElaText(tr("报错阈值"), errorThresholdArea);
@@ -114,7 +114,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mainLayout->addSpacing(10);
 
 	// 使用分词器
-	bool useTokenizer = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["使用分词器"], false);
+	bool useTokenizer = toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "使用分词器", false);
 	ElaScrollPageArea* useTokenizerArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* useTokenizerLayout = new QHBoxLayout(useTokenizerArea);
 	ElaText* useTokenizerText = new ElaText(tr("使用分词器"), useTokenizerArea);
@@ -130,7 +130,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 
 	// tokenizerBackend
 	QStringList tokenizerBackends = { "MeCab", "spaCy", "Stanza" };
-	QString tokenizerBackend = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["tokenizerBackend"], "MeCab"));
+	QString tokenizerBackend = QString::fromStdString(toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "tokenizerBackend", "MeCab"));
 	ElaScrollPageArea* tokenizerBackendArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* tokenizerBackendLayout = new QHBoxLayout(tokenizerBackendArea);
 	ElaText* tokenizerBackendText = new ElaText(tr("分词器后端"), tokenizerBackendArea);
@@ -151,7 +151,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mainLayout->addWidget(tokenizerBackendArea);
 
 	// mecabDictDir
-	QString mecabDictDir = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["mecabDictDir"], "BaseConfig/mecabDict/mecab-chinese"));
+	QString mecabDictDir = QString::fromStdString(toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "mecabDictDir", "BaseConfig/mecabDict/mecab-chinese"));
 	ElaScrollPageArea* mecabDictDirArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* mecabDictDirLayout = new QHBoxLayout(mecabDictDirArea);
 	ElaText* mecabDictDirText = new ElaText(tr("MeCab词典目录"), mecabDictDirArea);
@@ -167,7 +167,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mainLayout->addWidget(mecabDictDirArea);
 
 	// spaCyModelName https://spacy.io/models
-	QString spaCyModelName = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["spaCyModelName"], "zh_core_web_trf"));
+	QString spaCyModelName = QString::fromStdString(toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "spaCyModelName", "zh_core_web_trf"));
 	ElaScrollPageArea* spaCyModelNameArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* spaCyModelNameLayout = new QHBoxLayout(spaCyModelNameArea);
 	ElaText* spaCyModelNameText = new ElaText(tr("spaCy模型名称"), spaCyModelNameArea);
@@ -190,7 +190,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mainLayout->addWidget(spaCyModelNameArea);
 
 	// Stanza https://stanfordnlp.github.io/stanza/ner_models.html
-	QString stanzaLang = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["stanzaLang"], "zh"));
+	QString stanzaLang = QString::fromStdString(toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "stanzaLang", "zh"));
 	ElaScrollPageArea* stanzaArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* stanzaLayout = new QHBoxLayout(stanzaArea);
 	ElaText* stanzaText = new ElaText(tr("Stanza语言ID"), stanzaArea);

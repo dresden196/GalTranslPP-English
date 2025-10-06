@@ -146,17 +146,17 @@ void CommonGptDictPage::_setupUI()
 			model->loadData(gptData);
 			tableView->setModel(model);
 			stackedWidget->addWidget(tableView);
-			stackedWidget->setCurrentIndex(toml::get_or(_globalConfig["commonGptDicts"]["spec"][dictName]["openMode"], 1));
-			tableView->setColumnWidth(0, toml::get_or(_globalConfig["commonGptDicts"]["spec"][dictName]["columnWidth"]["0"], 175));
-			tableView->setColumnWidth(1, toml::get_or(_globalConfig["commonGptDicts"]["spec"][dictName]["columnWidth"]["1"], 175));
-			tableView->setColumnWidth(2, toml::get_or(_globalConfig["commonGptDicts"]["spec"][dictName]["columnWidth"]["2"], 425));
+			stackedWidget->setCurrentIndex(toml::find_or(_globalConfig, "commonGptDicts", "spec", dictName, "openMode", 1));
+			tableView->setColumnWidth(0, toml::find_or(_globalConfig, "commonGptDicts", "spec", dictName, "columnWidth", "0", 175));
+			tableView->setColumnWidth(1, toml::find_or(_globalConfig, "commonGptDicts", "spec", dictName, "columnWidth", "1", 175));
+			tableView->setColumnWidth(2, toml::find_or(_globalConfig, "commonGptDicts", "spec", dictName, "columnWidth", "2", 425));
 			pageMainLayout->addWidget(stackedWidget, 1);
 
 			plainTextModeButton->setEnabled(stackedWidget->currentIndex() != 0);
 			tableModeButton->setEnabled(stackedWidget->currentIndex() != 1);
 			addDictButton->setEnabled(stackedWidget->currentIndex() == 1);
 			removeDictButton->setEnabled(stackedWidget->currentIndex() == 1);
-			defaultOnButton->setIsToggled(toml::get_or(_globalConfig["commonGptDicts"]["spec"][dictName]["defaultOn"], true));
+			defaultOnButton->setIsToggled(toml::find_or(_globalConfig, "commonGptDicts", "spec", dictName, "defaultOn", true));
 			insertToml(_globalConfig, "commonGptDicts.spec." + dictName + ".defaultOn", defaultOnButton->getIsToggled());
 
 			connect(plainTextModeButton, &ElaPushButton::clicked, this, [=]()

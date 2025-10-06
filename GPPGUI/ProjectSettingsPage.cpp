@@ -260,7 +260,7 @@ void ProjectSettingsPage::_createPages()
 
 void ProjectSettingsPage::_onRefreshProjectConfig()
 {
-    bool isRunning = toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true);
+    bool isRunning = toml::find_or(_projectConfig, "GUIConfig", "isRunning", true);
     if (isRunning) {
         ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("正在运行"), tr("项目仍在运行中，无法刷新配置"), 3000);
         return;
@@ -308,5 +308,5 @@ void ProjectSettingsPage::_onFinishTranslating(const QString& transEngine, int e
 
 bool ProjectSettingsPage::getIsRunning()
 {
-    return toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true);
+    return toml::find_or(_projectConfig, "GUIConfig", "isRunning", true);
 }

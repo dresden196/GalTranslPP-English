@@ -21,7 +21,7 @@ PostFull2HalfCfgPage::PostFull2HalfCfgPage(toml::ordered_value& projectConfig, Q
     QVBoxLayout* mainLayout = new QVBoxLayout(centerWidget);
 
     // 标点符号转换配置
-    bool convertPunctuation = toml::get_or(_projectConfig["plugins"]["TextPostFull2Half"]["是否替换标点"], true);
+    bool convertPunctuation = toml::find_or(_projectConfig, "plugins", "TextPostFull2Half", "是否替换标点", true);
     ElaScrollPageArea* punctuationArea = new ElaScrollPageArea(centerWidget);
     QHBoxLayout* punctuationLayout = new QHBoxLayout(punctuationArea);
     ElaText* punctuationText = new ElaText(tr("转换标点符号"), punctuationArea);
@@ -34,7 +34,7 @@ PostFull2HalfCfgPage::PostFull2HalfCfgPage(toml::ordered_value& projectConfig, Q
     mainLayout->addWidget(punctuationArea);
 
     // 反向替换配置
-    bool reverseConvert = toml::get_or(_projectConfig["plugins"]["TextPostFull2Half"]["是否反向替换"], false);
+    bool reverseConvert = toml::find_or(_projectConfig, "plugins", "TextPostFull2Half", "是否反向替换", false);
     ElaScrollPageArea* reverseArea = new ElaScrollPageArea(centerWidget);
     QHBoxLayout* reverseLayout = new QHBoxLayout(reverseArea);
     ElaText* reverseText = new ElaText(tr("反向替换"), reverseArea);

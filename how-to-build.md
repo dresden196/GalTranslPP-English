@@ -24,7 +24,7 @@ cd vcpkg
 # 2. 执行引导脚本进行安装
 .\bootstrap-vcpkg.bat
 
-# 3. (重要) 将 vcpkg 的根目录路径添加到用户环境变量"Path"中
+# 3. (重要) 将 vcpkg 的根目录路径添加到用户环境变量"Path"中或运行 vcpkg integreate install 来将 vcpkg 绑定到 Visual Studio
 ```
 
 ### 2.2 Qt 框架
@@ -42,7 +42,7 @@ git clone --recurse-submodules https://github.com/julixian/GalTranslPP.git
 cd GalTranslPP
 ```
 
-## 4. 编译 ElaWidgetTools (GUI 依赖)
+## 4. 编译依赖
 
 ### 4.1 配置 Visual Studio 与 Qt
 
@@ -54,14 +54,23 @@ cd GalTranslPP
   - 重启后，在菜单栏选择 `扩展` → `Qt VS Tools` → `Qt Versions`。
   - 点击 `Add New Qt Version`，将路径指向你安装的 Qt MSVC 目录 (例如: `C:\Qt\6.9.2\msvc2022_64`)，并将其设置为默认版本。
 
-### 4.2 编译与部署
+### 4.2 编译 ElaWidgetTools
 
 - 1、  使用 Visual Studio 打开 `3rdParty\ElaWidgetTools` 文件夹。
 - 2、  在顶部工具栏中，将生成配置从 `Qt-Debug` 切换为 **`Qt-Release`**。
 - 3、  在菜单栏中选择 `生成` → `全部生成` (如果使用Visual Studio且严格按照上述步骤执行，则无需更改CMakeLists中的QT_SDK_DIR)。
 - 4、  **部署编译产物**:
   - 在 `GalTranslPP` 根目录下手动创建一个名为 `lib` 的新文件夹。
-  - 将 `3rdParty\ElaWidgetTools\out\build\Release\ElaWidgetTools` 目录下的 `ElaWidgetTools.lib` 和 `ElaWidgetTools.exp` 文件移动到刚刚创建的 `GalTranslPP\lib` 文件夹中。
+  - 将 `3rdParty\ElaWidgetTools\out\build\Release\ElaWidgetTools` 目录下的 `ElaWidgetTools.lib` 文件移动到刚刚创建的 `GalTranslPP\lib` 文件夹中。
+
+### 4.3 编译 OpenCC
+
+- 1、  使用 Visual Studio 打开 `3rdParty\OpenCC` 文件夹。
+- 2、  如果编译选项没有 `x64-Release`，就先点到管理配置，点击绿色加号，选择 `x64-Release`，Ctrl + S 保存。
+- 3、  选择 `x64-Release`，选择每个**带(安装)字样**的配置各编译一次。
+- 4、  **部署编译产物**
+  - 将`3rdParty\OpenCC\out\install\x64-Release\lib` 目录下的 `marisa.lib` 和 `opencc.lib` 文件移动到 `GalTranslPP\lib` 文件夹中。
+  - 确保 `3rdParty\OpenCC\out\install\x64-Release\include` 文件夹存在，程序会用到里面的头文件
 
 ## 5. 编译 GalTranslPP (主项目)
 
@@ -75,7 +84,7 @@ cd GalTranslPP
   - 将 **平台工具集** 选项更改为 **`Visual Studio 2022 (v143)`** **(Debug和Release都改过来)**。
   - 点击 `应用` 保存设置。
   - 在菜单栏选择 `生成` → `批生成`勾选`GalTranslPP|Release|x64`并点击生成。
-    > **注意**: 此步骤专门用于编译 `mecab:x64-windows` 等依赖。编译到最后会出现乱码和报错，**这属于正常现象**，此时依赖库已成功生成。
+    > **注意**: 此步骤专门用于编译 `mecab:x64-windows` 等依赖。
 
 - 3、  **步骤二：使用 v145 工具集编译主程序**
   - 再次打开 `GalTranslPP` 项目的属性页。
@@ -89,13 +98,15 @@ cd GalTranslPP
 
 还需将一些文件复制到文件夹内程序才可正常运行。  
 
+- 0、  先将项目根目录的`Example\BaseConfig`文件夹内的`python-3.12.10-embed-amd64.zip`文件解压到当前文件夹
+
 ### 6.1 GPPCLI
 
-只需将项目根目录的`Example`文件夹内的`BaseConfig`和`sampleProject`文件夹复制到`GalTranslPP\Release\GPPCLI`即可
+- 1、  将`Example`文件夹内的`BaseConfig`和`sampleProject`文件夹复制到`GalTranslPP\Release\GPPCLI`
+- 2、  将以下文件复制到程序根目录
+  -  `3rdParty\OpenCC\out\install\x64-Release\bin\opencc.dll`
 
 ### 6.2 GPPGUI
-
-与GPPCLI相比有所不同，步骤较多：
 
 - 1、  将`BaseConfig`文件夹复制到`GalTranslPP\Release\GPPGUI`
 - 2、  在`GalTranslPP\Release\GPPGUI`新建`Projects`文件夹并将`sampleProject`文件夹整体复制进去
@@ -105,7 +116,8 @@ cd GalTranslPP
 windeployqt path/to/GalTranslPP_GUI.exe
 ```
 
-- 4、复制ElaWidgetTools.dll
+- 4、将以下文件复制到程序根目录
+  - `3rdParty\OpenCC\out\install\x64-Release\bin\opencc.dll`
   - `3rdParty\ElaWidgetTools\out\build\Release\ElaWidgetTools\ElaWidgetTools.dll`
 
 ### 6.3 私人部署（非必需）
