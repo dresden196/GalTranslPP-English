@@ -16,7 +16,7 @@ UpdateWidget::UpdateWidget(QWidget* parent)
 
     ElaText* updateTitle = new ElaText("v" + QString::fromStdString(GPPVERSION) + " 更新", 15, this);
     QStringList updateList = {
-        "0. 【重要！！！】大版本更新可能出现兼容性问题，建议备份当前尚未处理完毕的项目。",
+        "0. 【重要！！！】大版本更新可能出现兼容性问题，建议备份当前尚未处理完毕的项目。或者直接去发布页重新下载一版完整版。",
         "0.5 【依然重要】由于项目译前字典和项目译后字典的默认文件名发送变化，你需要重命名或复制粘贴一下以重新导入字典。Epub正则表名同理",
         "1. 修复update点击卡片重启后会弹出remove update冲突",
         "2. DumpName改为仅更新模式(出现的原有人名只更新出现次数并保留翻译，未出现的原有人名会被删除)，不再覆盖原有文件。",

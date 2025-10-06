@@ -7,12 +7,10 @@ module;
 #endif
 
 #include <ranges>
-#include <mecab/mecab.h>
 #include <boost/regex.hpp>
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
-#pragma comment(lib, "../lib/python312.lib")
 
 export module NormalJsonTranslator;
 
@@ -253,9 +251,9 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         const std::string& tokenizerBackend = toml::find_or(configData, "common", "tokenizerBackend", "MeCab");
 
         if (tokenizerBackend == "MeCab") {
-            const std::string& mecabDictDir = toml::find_or(configData, "common", "mecabDictDir", "BaseConfig/DictGenerator/mecab-ipadic-utf8");
+            const std::string& mecabDictDir = toml::find_or(configData, "common", "mecabDictDir", "BaseConfig/mecabDict/mecab-ipadic-utf8");
             m_logger->info("正在检查 MeCab 环境...");
-            m_tokenizeSourceLangFunc = getMeCabTokenizeFunc(mecabDictDir);
+            m_tokenizeSourceLangFunc = getMeCabTokenizeFunc(mecabDictDir, m_logger);
             m_logger->info("MeCab 环境检查完毕。");
         }
         else if (tokenizerBackend == "spaCy") {
@@ -1169,7 +1167,7 @@ void NormalJsonTranslator::run() {
                 return nameTableMap[a] > nameTableMap[b];
             });
 
-        toml::ordered_value newNameTable;
+        toml::ordered_value newNameTable = toml::ordered_table{};
         newNameTable.comments().push_back("'原名' = [ '译名', 出现次数 ]");
         for (const auto& key : nameTableKeys) {
             try {

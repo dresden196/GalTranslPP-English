@@ -7,6 +7,7 @@ export module PDFTranslator;
 import <nlohmann/json.hpp>;
 import <toml.hpp>;
 import Tool;
+import PythonManager;
 import NormalJsonTranslator;
 
 namespace fs = std::filesystem;
@@ -18,7 +19,6 @@ export {
 
     private:
 
-        fs::path m_pdfConverterPath;
         fs::path m_pdfInputDir;
         fs::path m_pdfOutputDir;
 
@@ -60,12 +60,8 @@ PDFTranslator::PDFTranslator(const fs::path& projectDir, std::shared_ptr<IContro
         const auto pluginConfig = toml::parse(pluginConfigsPath / L"filePlugins/PDF.toml");
 
         m_bilingualOutput = parseToml<bool>(projectConfig, pluginConfig, "plugins.PDF.输出双语翻译文件");
-        const std::string& pdfConverterPath = parseToml<std::string>(projectConfig, pluginConfig, "plugins.PDF.PDFConverterPath");
-        m_pdfConverterPath = ascii2Wide(pdfConverterPath);
 
-        if (!fs::exists(m_pdfConverterPath)) {
-            throw std::runtime_error("未找到 PDF 转换器路径");
-        }
+        PythonManager::getInstance().checkDependency({ "babeldoc" }, m_logger);
     }
     catch (const toml::exception& e) {
         m_logger->critical("PDF 配置文件解析失败");
@@ -90,33 +86,35 @@ void PDFTranslator::run()
         fs::create_directories(dir);
     }
 
-    std::vector<fs::path> pdfFiles;
+    std::vector<fs::path> pdfFilePaths;
     for (const auto& entry : fs::recursive_directory_iterator(m_pdfInputDir)) {
         if (entry.is_regular_file() && isSameExtension(entry.path(), L".pdf")) {
-            pdfFiles.push_back(entry.path());
+            pdfFilePaths.push_back(entry.path());
         }
     }
-    if (pdfFiles.empty()) {
+    if (pdfFilePaths.empty()) {
         throw std::runtime_error("未找到 PDF 文件");
     }
     
-    for (const auto& pdfFile : pdfFiles) {
+    for (const auto& pdfFilePath : pdfFilePaths) {
         if (m_controller->shouldStop()) {
             return;
         }
-        fs::path relPDFPath = fs::relative(pdfFile, m_pdfInputDir);
+        fs::path relPDFPath = fs::relative(pdfFilePath, m_pdfInputDir);
         fs::path relJsonPath = fs::path(relPDFPath).replace_extension(".json");
 
-        m_jsonToPDFPathMap[relJsonPath] = pdfFile;
+        m_jsonToPDFPathMap[relJsonPath] = pdfFilePath;
         fs::path inputJsonFile = m_inputDir / relJsonPath;
         createParent(inputJsonFile);
-        std::string cmd = wide2Ascii(m_pdfConverterPath) + " extract \"" + wide2Ascii(pdfFile) + "\" \"" + wide2Ascii(inputJsonFile) + "\"";
-#ifdef _WIN32
-        std::replace(cmd.begin(), cmd.end(), '/', '\\');
-#endif
-        m_logger->info("正在执行命令: {}", cmd);
-        if (!executeCommand(cmd)) {
-            throw std::runtime_error("PDF 转换器提取执行失败");
+
+        bool success = false;
+        std::string message;
+        std::tie(success, message) = extractPDF(pdfFilePath, inputJsonFile);
+        if (success) {
+            m_logger->info("成功提取元数据: {}", message);
+        }
+        else {
+            throw std::runtime_error("提取元数据失败: " + message);
         }
     }
 
@@ -130,17 +128,15 @@ void PDFTranslator::run()
             fs::path relPDFPath = fs::relative(origPDFPath, m_pdfInputDir);
             fs::path outputPDFFile = m_pdfOutputDir / relPDFPath;
             createParent(outputPDFFile);
-            std::string cmd = wide2Ascii(m_pdfConverterPath) + " apply -o \"" + wide2Ascii(outputPDFFile.parent_path()) + "\" ";
-            if (!m_bilingualOutput) {
-                cmd += "--no-dual ";
+
+            bool success = false;
+            std::string message;
+            std::tie(success, message) = rejectPDF(origPDFPath, m_outputDir / relProcessedFile, outputPDFFile, false, !m_bilingualOutput);
+            if (success) {
+                m_logger->info("成功翻译文件: {}", message);
             }
-            cmd += "\"" + wide2Ascii(origPDFPath) + "\" \"" + wide2Ascii(m_outputDir / relProcessedFile) + "\"";
-#ifdef _WIN32
-            std::replace(cmd.begin(), cmd.end(), '/', '\\');
-#endif
-            m_logger->info("正在执行命令: {}", cmd);
-            if (!executeCommand(cmd)) {
-                throw std::runtime_error("PDF 转换器注回执行失败");
+            else {
+                throw std::runtime_error("翻译文件失败: " + message);
             }
         };
 

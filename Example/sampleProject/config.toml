@@ -78,6 +78,7 @@ checkQuota = true           # 运行时动态检测key额度
 logLevel = "info"
 saveLog = true
 
+# 用于生成字典和查错的分词器后端
 tokenizerBackend = "MeCab" # MeCab, spaCy
 # MeCab 分词器所用的词典的路径
 mecabDictDir = "BaseConfig/mecabDict/mecab-ipadic-utf8" # 也可以用 mecab-ipadic-neologd 或 unidic(均需从网上下载字典)

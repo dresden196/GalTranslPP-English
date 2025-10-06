@@ -1,3 +1,2 @@
 [plugins.PDF]
 "输出双语翻译文件" = true
-PDFConverterPath = "BaseConfig/PDFConverter/PDFConverter.exe"

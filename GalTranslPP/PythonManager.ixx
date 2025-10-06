@@ -68,7 +68,7 @@ export {
 
         std::future<void> submitTask(std::function<void()> taskFunc); // 提交任务到队列
 
-        bool checkDependency(const std::vector<std::string>& dependencies, std::shared_ptr<spdlog::logger> logger);
+        void checkDependency(const std::vector<std::string>& dependencies, std::shared_ptr<spdlog::logger> logger);
 
     private:
         PythonManager();
@@ -104,9 +104,13 @@ export {
         NLPManager();
     };
 
-    std::function<NLPResult(const std::string&)> getMeCabTokenizeFunc(const std::string& mecabDictDir);
+    std::function<NLPResult(const std::string&)> getMeCabTokenizeFunc(const std::string& mecabDictDir, std::shared_ptr<spdlog::logger> logger);
     std::function<NLPResult(const std::string&)> getNLPTokenizeFunc(const std::vector<std::string>& dependencies, const std::string& moduleName,
         const std::string& modelName, bool& needReboot, std::shared_ptr<spdlog::logger> logger);
+
+    std::tuple<bool, std::string> extractPDF(const fs::path& pdfPath, const fs::path& jsonPath, bool showProgress = false);
+    std::tuple<bool, std::string> rejectPDF(const fs::path& orgPDFPath, const fs::path& translatedJsonPath, const fs::path& outputPDFPath,
+        bool noMono = false, bool noDual = false, bool showProgress = false);
 }
 
 
@@ -173,9 +177,8 @@ std::future<void> PythonManager::submitTask(std::function<void()> taskFunc) {
     return future;
 }
 
-bool PythonManager::checkDependency(const std::vector<std::string>& dependencies, std::shared_ptr<spdlog::logger> logger)
+void PythonManager::checkDependency(const std::vector<std::string>& dependencies, std::shared_ptr<spdlog::logger> logger)
 {
-    bool needReboot = false;
     for (const auto& dependency : dependencies) {
         logger->info("正在检查依赖 {}", dependency);
         auto checkDependencyTaskFunc = [&]()
@@ -199,7 +202,6 @@ bool PythonManager::checkDependency(const std::vector<std::string>& dependencies
                     try {
                         py::module_::import("importlib.metadata").attr("version")(dependency);
                         logger->info("依赖 {} 安装成功", dependency);
-                        needReboot = true;
                     }
                     catch (const py::error_already_set& e2) {
                         throw std::runtime_error("依赖 " + dependency + " 安装验证失败: " + e2.what());
@@ -210,7 +212,6 @@ bool PythonManager::checkDependency(const std::vector<std::string>& dependencies
         logger->info("依赖 {} 检查完毕", dependency);
     }
     logger->info("所有依赖均已安装");
-    return needReboot;
 }
 
 
@@ -247,7 +248,8 @@ NLPResult NLPManager::processText(const std::string& text, const std::string& mo
 
 bool NLPManager::checkModuleAndModel(const std::vector<std::string>& dependencies, const std::string& moduleName, const std::string& modelName, std::shared_ptr<spdlog::logger> logger) {
 
-    bool needReboot = PythonManager::getInstance().checkDependency(dependencies, logger);
+    bool needReboot = false;
+    PythonManager::getInstance().checkDependency(dependencies, logger);
 
     if (!m_nlpModules.contains(moduleName)) {
         // 模块不存在，尝试加载
@@ -286,6 +288,7 @@ bool NLPManager::checkModuleAndModel(const std::vector<std::string>& dependencie
                     if (modelInstalled) {
                         logger->info("模块 {} 的模型 {} 安装成功", moduleName, modelName);
                         nlpModuleProcessors.processors_.insert(std::make_pair(modelName, py::none()));
+                        // 不重启就卡死...
                         needReboot = true;
                         return;
                     }
@@ -299,6 +302,18 @@ bool NLPManager::checkModuleAndModel(const std::vector<std::string>& dependencie
         PythonManager::getInstance().submitTask(std::move(loadModelClassTaskFunc)).get();
         logger->info("模块 {} 的模型 {} 已加载", moduleName, modelName);
     }
+    // 验证一下是不是 none，比如另一个 Translator 安过但还没重启
+    else {
+        logger->info("正在验证模块 {} 的模型 {}", moduleName, modelName);
+        auto verifyModelTaskFunc = [&]()
+            {
+                if (nlpModuleProcessors.processors_[modelName].is_none()) {
+                    needReboot = true;
+                }
+            };
+        PythonManager::getInstance().submitTask(std::move(verifyModelTaskFunc)).get();
+        logger->info("模块 {} 的模型 {} 已验证", moduleName, modelName);
+    }
 
     logger->info("模块 {} 模型 {} 已加载", moduleName, modelName);
     return needReboot;
@@ -306,20 +321,20 @@ bool NLPManager::checkModuleAndModel(const std::vector<std::string>& dependencie
 
 
 // 这两个返回的函数都是线程安全的
-std::function<NLPResult(const std::string&)> getMeCabTokenizeFunc(const std::string& mecabDictDir)
+std::function<NLPResult(const std::string&)> getMeCabTokenizeFunc(const std::string& mecabDictDir, std::shared_ptr<spdlog::logger> logger)
 {
     std::shared_ptr<MeCab::Model> mecabModel;
     std::shared_ptr<MeCab::Tagger> mecabTagger;
     mecabModel.reset(
-        MeCab::Model::create(("-r BaseConfig/DictGenerator/mecabrc -d " + ascii2Ascii(mecabDictDir)).c_str())
+        MeCab::Model::create(("-r BaseConfig/mecabDict/mecabrc -d " + ascii2Ascii(mecabDictDir)).c_str())
     );
     if (!mecabModel) {
-        throw std::runtime_error("无法初始化 MeCab Model。请确保 BaseConfig/DictGenerator/mecabrc 和 " + mecabDictDir + " 存在且无特殊字符\n"
+        throw std::runtime_error("无法初始化 MeCab Model。请确保 BaseConfig/mecabDict/mecabrc 和 " + mecabDictDir + " 存在且无特殊字符\n"
             "错误信息: " + MeCab::getLastError());
     }
     mecabTagger.reset(mecabModel->createTagger());
     if (!mecabTagger) {
-        throw std::runtime_error("无法初始化 MeCab Tagger。请确保 BaseConfig/DictGenerator/mecabrc 和 " + mecabDictDir + " 存在且无特殊字符\n"
+        throw std::runtime_error("无法初始化 MeCab Tagger。请确保 BaseConfig/mecabDict/mecabrc 和 " + mecabDictDir + " 存在且无特殊字符\n"
             "错误信息: " + MeCab::getLastError());
     }
     auto resultFunc = [=](const std::string& text) -> NLPResult
@@ -336,7 +351,7 @@ std::function<NLPResult(const std::string&)> getMeCabTokenizeFunc(const std::str
 
                 std::string surface(node->surface, node->length);
                 std::string feature = node->feature;
-                //m_logger->trace("分词结果：{} ({})", surface, feature);
+                logger->trace("分词结果：{} ({})", surface, feature);
                 wordPosList.emplace_back(std::vector<std::string>{ surface, feature });
                 if (feature.find("固有名詞") != std::string::npos || !extractKatakana(surface).empty()) {
                     entityList.emplace_back(std::vector<std::string>{ surface, feature });
@@ -355,4 +370,30 @@ std::function<NLPResult(const std::string&)> getNLPTokenizeFunc(const std::vecto
             return NLPManager::getInstance().processText(text, moduleName, modelName);
         };
     return resultFunc;
+}
+
+std::tuple<bool, std::string> extractPDF(const fs::path& pdfPath, const fs::path& jsonPath, bool showProgress)
+{
+    bool success = false;
+    std::string message;
+    auto extractTaskFunc = [&]()
+        {
+            std::tie(success, message) = py::module_::import("PDFConverter").attr("api_extract")
+                (pdfPath.wstring(), jsonPath.wstring(), showProgress).cast<std::tuple<bool, std::string>>();
+        };
+    PythonManager::getInstance().submitTask(std::move(extractTaskFunc)).get();
+    return std::make_tuple(success, message);
+}
+std::tuple<bool, std::string> rejectPDF(const fs::path& orgPDFPath, const fs::path& translatedJsonPath, const fs::path& outputPDFPath,
+    bool noMono, bool noDual, bool showProgress)
+{
+    bool success = false;
+    std::string message;
+    auto rejectTaskFunc = [&]()
+        {
+            std::tie(success, message) = py::module_::import("PDFConverter").attr("api_apply")
+                (orgPDFPath.wstring(), translatedJsonPath.wstring(), outputPDFPath.wstring(), noMono, noDual, showProgress).cast<std::tuple<bool, std::string>>();
+        };
+    PythonManager::getInstance().submitTask(std::move(rejectTaskFunc)).get();
+    return std::make_tuple(success, message);
 }

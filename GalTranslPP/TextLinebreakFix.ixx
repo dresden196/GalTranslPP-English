@@ -61,7 +61,7 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, const toml::value
 			if (tokenizerBackend == "MeCab") {
 				const std::string& mecabDictDir = parseToml<std::string>(projectConfig, pluginConfig, "plugins.TextLinebreakFix.mecabDictDir");
 				m_logger->info("TextLinebreakFix 正在检查 MeCab 环境...");
-				m_tokenizeTargetLangFunc = getMeCabTokenizeFunc(mecabDictDir);
+				m_tokenizeTargetLangFunc = getMeCabTokenizeFunc(mecabDictDir, m_logger);
 				m_logger->info("TextLinebreakFix MeCab 环境检查完毕。");
 			}
 			else if (tokenizerBackend == "spaCy") {

@@ -4,3 +4,8 @@
 "分段字数阈值" = 21      # 仅在固定字数模式有效
 "强制修复" = false
 "报错阈值" = 35        # 某一行字数超过此值将会添加进problem
+"使用分词器" = true   # 可能可以获得更好的换行效果(不过感觉用处不大)
+tokenizerBackend = "spaCy" # MeCab, spaCy
+# 填目标语言的模型/字典
+mecabDictDir = "BaseConfig/mecabDict/mecab-chinese" # mecab-chinese 下载地址: https://github.com/panyang/MeCab-Chinese/tree/master/data/v0.3
+spaCyModelName = 'zh_core_web_trf'
