@@ -17,6 +17,7 @@
 mono_crash.*
 
 # Build results
+GalTranslPP/Python/
 lib/
 unidic/
 vcpkg_installed/
