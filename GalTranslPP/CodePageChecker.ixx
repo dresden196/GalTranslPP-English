@@ -6,10 +6,10 @@
 #include <unicode/ucnv.h>
 #include <unicode/ucnv_cb.h>
 #include <unicode/ustring.h>
+#include <toml.hpp>
 
 export module CodePageChecker;
 
-import <toml.hpp>;
 import Tool;
 export import IPlugin;
 

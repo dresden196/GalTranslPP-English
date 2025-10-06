@@ -1,11 +1,11 @@
 module;
 
 #include <spdlog/spdlog.h>
+#include <toml.hpp>
 
 export module PDFTranslator;
 
 import <nlohmann/json.hpp>;
-import <toml.hpp>;
 import Tool;
 import PythonManager;
 import NormalJsonTranslator;
@@ -109,6 +109,7 @@ void PDFTranslator::run()
 
         bool success = false;
         std::string message;
+        m_logger->info("正在提取文件: {}", wide2Ascii(relPDFPath));
         std::tie(success, message) = extractPDF(pdfFilePath, inputJsonFile);
         if (success) {
             m_logger->info("成功提取元数据: {}", message);
@@ -131,7 +132,8 @@ void PDFTranslator::run()
 
             bool success = false;
             std::string message;
-            std::tie(success, message) = rejectPDF(origPDFPath, m_outputDir / relProcessedFile, outputPDFFile, false, !m_bilingualOutput);
+            m_logger->info("正在回注文件: {}", wide2Ascii(relPDFPath));
+            std::tie(success, message) = rejectPDF(origPDFPath, m_outputDir / relProcessedFile, outputPDFFile.parent_path(), false, !m_bilingualOutput);
             if (success) {
                 m_logger->info("成功翻译文件: {}", message);
             }

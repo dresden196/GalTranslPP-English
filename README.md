@@ -197,15 +197,12 @@ skipProblems = [
 
 ```
 overwriteCompareObj = [
-    { base = 'orig_text', check = 'trans_preview', problemKey = '词频过高' },
     { check = 'trans_preview', problemKey = '残留日文' },
     { base = 'preproc_text', check = 'trans_preview', problemKey = '标点错漏' },
     { base = 'preproc_text', check = 'trans_preview', problemKey = '引入拉丁字母' },
     { base = 'preproc_text', check = 'trans_preview', problemKey = '引入韩文' },
     { base = 'orig_text', check = 'trans_preview', problemKey = '丢失换行' },
     { base = 'orig_text', check = 'trans_preview', problemKey = '多加换行' },
-    { base = 'orig_text', check = 'trans_preview', problemKey = '比原文长' },
-    { base = 'orig_text', check = 'trans_preview', problemKey = '比原文长严格' },
     { base = 'preproc_text', check = 'trans_preview', problemKey = '字典未使用' },
     { base = 'preproc_text', check = 'trans_preview', problemKey = '语言不通' }
 ]
@@ -301,20 +298,14 @@ callback = [ { group = 2, org = '<[^>]*>', rep = '' } ]
 
 <summary>
 
-### PDF 翻译说明
+### Python 模块使用
 
 </summary>
-与Epub不同，GalTransl++将PDF转为NormalJson是通过调用外部脚本完成的，因为目前能较好重建PDF的只有python库。
+由于许多有关深度学习的库(如分词器、PDF提取器等)只有python能方便的调用，本程序在发行时会默认附带小型的嵌入式Python环境，你无需手动下载。
 
-此脚本需要能通过CLI参数对指定pdf执行提取/回注操作，具体参数详见[PDFTranslator](GalTranslPP/PDFTranslator.ixx)
+当遇到需要使用Python库的情况时(如**翻译PDF**或**使用依赖Python的分词器**)，程序会自动为嵌入式环境下载对应的库。
 
-示例脚本为 (Example/)BaseConfig/PDFConverter/PDFConverter.py
-
-显而易见地，运行此脚本需要python环境(推荐3.12)并安装 `babeldoc` 库，
-```cmd
-pip install babeldoc
-```
-Release里也提供了此脚本打包后的exe，如果不想或者不会配置环境的可以[点此下载](https://github.com/julixian/GalTranslPP/releases/download/v1.0.2/PDFConverter.zip)(不过非常大就是了)。
+但可能在下载之后需要**重启程序**以重新加载Python解释器。请留意日志输出窗口的提示，避免造成程序卡死或崩溃。
 </details>
 
 ## 其它程序说明

@@ -15,6 +15,7 @@ module;
 #include <unicode/regex.h>
 #include <unicode/uscript.h>
 #include <unicode/translit.h>
+#include <toml.hpp>
 
 #include <opencc/opencc.h>
 #pragma comment(lib, "../lib/marisa.lib")
@@ -23,7 +24,6 @@ module;
 export module Tool;
 
 import <nlohmann/json.hpp>;
-import <toml.hpp>;
 export import std;
 export import GPPDefines;
 export import ITranslator;
@@ -41,7 +41,7 @@ export {
 
     std::string ascii2Ascii(const std::string& ascii, UINT src = 65001, UINT dst = 0, LPBOOL usedDefaultChar = nullptr);
 
-    bool executeCommand(const std::string& utf8Command, bool showWindow = false);
+    bool executeCommand(const std::wstring& program, const std::wstring& args, bool showWindow = false);
 
     int getConsoleWidth();
 #endif
@@ -198,7 +198,6 @@ export {
             }
             pCurrentTable = &subTable.as_table();
         }
-        
         auto& lastVal = (*pCurrentTable)[keys.back()];
         if constexpr (std::is_same_v<toml::basic_value<TC>, toml::ordered_value>) {
             const auto orgComments = lastVal.comments();
@@ -244,8 +243,12 @@ std::string ascii2Ascii(const std::string& ascii, UINT src, UINT dst, LPBOOL use
     return wide2Ascii(ascii2Wide(ascii, src), dst, usedDefaultChar);
 }
 
-bool executeCommand(const std::string& utf8Command, bool showWindow) {
-    std::wstring utf16Command = ascii2Wide("cmd.exe /c " + utf8Command);
+bool executeCommand(const std::wstring& program, const std::wstring& args, bool showWindow) {
+
+    // 1. 构造完整的命令行字符串。
+    //    CreateProcess 的 lpCommandLine 参数要求，如果程序路径包含空格，
+    //    它应该被双引号包围。
+    std::wstring commandLineStr = L"\"" + program + L"\" " + args;
 
     STARTUPINFOW si;
     PROCESS_INFORMATION pi;
@@ -256,16 +259,24 @@ bool executeCommand(const std::string& utf8Command, bool showWindow) {
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
 
-    // CreateProcessW需要一个可写的命令行缓冲区
-    std::vector<wchar_t> commandLine(utf16Command.begin(), utf16Command.end());
-    commandLine.push_back(L'\0');
+    // CreateProcessW 需要一个可写的字符缓冲区
+    std::vector<wchar_t> commandLineVec(commandLineStr.begin(), commandLineStr.end());
+    commandLineVec.push_back(L'\0');
+
+    //    设置 dwCreationFlags
+    //    CREATE_NEW_CONSOLE 会为新进程创建一个新的控制台窗口。
+    //    这个新窗口会显示 python.exe 的所有标准输出和标准错误。
+    DWORD creationFlags = 0;
+    if (showWindow) {
+        creationFlags |= CREATE_NEW_CONSOLE;
+    }
 
     if (!CreateProcessW(NULL,           // lpApplicationName
-        &commandLine[0], // lpCommandLine (must be writable)
+        &commandLineVec[0], // lpCommandLine (must be writable)
         NULL,           // lpProcessAttributes
         NULL,           // lpThreadAttributes
         FALSE,          // bInheritHandles
-        0,              // dwCreationFlags
+        creationFlags,  // dwCreationFlags
         NULL,           // lpEnvironment
         NULL,           // lpCurrentDirectory
         &si,            // lpStartupInfo
@@ -352,12 +363,17 @@ std::wstring wstr2Lower(const std::wstring& wstr) {
     return result;
 }
 
-std::vector<std::string> splitString(const std::string& s, const std::string& delimiter) {
-    std::vector<std::string> parts;
-    for (const auto& part_view : std::views::split(s, delimiter)) {
-        parts.emplace_back(part_view.begin(), part_view.end());
+std::vector<std::string> splitString(const std::string& str, const std::string& delimiter) {
+    std::vector<std::string> tokens;
+    size_t start = 0;
+    size_t end = str.find(delimiter);
+    while (end != std::string::npos) {
+        tokens.push_back(str.substr(start, end - start));
+        start = end + delimiter.length();
+        end = str.find(delimiter, start);
     }
-    return parts;
+    tokens.push_back(str.substr(start));
+    return tokens;
 }
 
 std::vector<std::string> splitString(const std::string& s, char delimiter) {
@@ -668,20 +684,20 @@ std::string extractHangul(const std::string& sourceString) {
 
 std::function<std::string(const std::string&)> getTraditionalChineseExtractor(std::shared_ptr<spdlog::logger> logger)
 {
-    // 是否需要线程安全？
+    // 是否需要线程安全？(似乎是不需要)
     std::function<std::string(const std::string&)> result;
     try {
-        opencc::SimpleConverter converter("BaseConfig/t2s.json");
+        std::shared_ptr<opencc::SimpleConverter> converter = std::make_shared<opencc::SimpleConverter>("BaseConfig/opencc/t2s.json");
         result = [=](const std::string& sourceString)
             {
                 static const std::set<std::string> excludeList =
                 {
-                    "乾", "阪",
+                    //"乾", "阪",
                 };
                 std::string resultStr;
                 std::vector<std::string> graphemes = splitIntoGraphemes(sourceString);
                 for (const auto& grapheme : graphemes | std::views::filter([&](const std::string& g) { return !excludeList.contains(g); })) {
-                    std::string simplified = converter.Convert(grapheme);
+                    std::string simplified = converter->Convert(grapheme);
                     if (simplified != grapheme) {
                         resultStr += grapheme;
                     }

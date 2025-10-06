@@ -4,12 +4,12 @@ module;
 #include <boost/regex.hpp>
 #include <cpr/cpr.h>
 #include <ranges>
+#include <toml.hpp>
 
 export module DictionaryGenerator;
 
 import <nlohmann/json.hpp>;
 import <ctpl_stl.h>;
-import <toml.hpp>;
 import APIPool;
 import Dictionary;
 

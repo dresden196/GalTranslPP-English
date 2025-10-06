@@ -3,10 +3,10 @@ module;
 #include <spdlog/spdlog.h>
 #include <unicode/unistr.h>
 #include <unicode/uchar.h>
+#include <toml.hpp>
 
 export module TextPostFull2Half;
 
-import <toml.hpp>;
 import Tool;
 export import IPlugin;
 

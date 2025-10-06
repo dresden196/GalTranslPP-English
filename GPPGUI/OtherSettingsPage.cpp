@@ -17,8 +17,8 @@
 
 import Tool;
 
-OtherSettingsPage::OtherSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::ordered_value& projectConfig, QWidget* parent) :
-	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir), _mainWindow(mainWindow)
+OtherSettingsPage::OtherSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::ordered_value& globalConfig, toml::ordered_value& projectConfig, QWidget* parent) :
+	BasePage(parent), _projectConfig(projectConfig), _globalConfig(globalConfig), _projectDir(projectDir), _mainWindow(mainWindow)
 {
 	setWindowTitle(tr("其它设置"));
 	setTitleVisible(false);
@@ -69,11 +69,11 @@ void OtherSettingsPage::_setupUI()
 				return;
 			}
 
-			QString newProjectParentPath = QFileDialog::getExistingDirectory(this, tr("请选择要移动到的文件夹"), QDir::currentPath() + "/Projects");
+			QString newProjectParentPath = QFileDialog::getExistingDirectory(this, tr("请选择要移动到的文件夹"), QString::fromStdString(toml::get_or(_globalConfig["lastProjectPath"], "./Projects")));
 			if (newProjectParentPath.isEmpty()) {
 				return;
 			}
-
+			insertToml(_globalConfig, "lastProjectPath", newProjectParentPath.toStdString());
 			fs::path newProjectPath = fs::path(newProjectParentPath.toStdWString()) / _projectDir.filename();
 			if (fs::exists(newProjectPath)) {
 				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("移动失败"), tr("目录下已有同名文件夹"), 3000);

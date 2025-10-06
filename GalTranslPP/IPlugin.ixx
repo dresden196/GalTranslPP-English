@@ -1,10 +1,10 @@
 module;
 
 #include <spdlog/spdlog.h>
+#include <toml.hpp>
 
 export module IPlugin;
 
-import <toml.hpp>;
 export import std;
 export import GPPDefines;
 

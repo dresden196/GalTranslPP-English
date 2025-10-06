@@ -5,11 +5,11 @@ module;
 #include <unicode/unistr.h>
 #include <zip.h>
 #include <gumbo.h>
+#include <toml.hpp>
 
 export module EpubTranslator;
 
 import <nlohmann/json.hpp>;
-import <toml.hpp>;
 import Tool;
 import NormalJsonTranslator;
 

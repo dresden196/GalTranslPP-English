@@ -4,10 +4,10 @@ module;
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
 #include <ranges>
+#include <toml.hpp>
 
 export module Dictionary;
 
-import <toml.hpp>;
 import Tool;
 
 namespace fs = std::filesystem;

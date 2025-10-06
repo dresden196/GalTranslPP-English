@@ -1,6 +1,7 @@
 module;
 
 #include <spdlog/spdlog.h>
+#include <toml.hpp>
 
 module IPlugin;
 

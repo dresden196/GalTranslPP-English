@@ -2,6 +2,7 @@
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QFileDialog>
 #include <QButtonGroup>
 
 #include "ElaApplication.h"
@@ -10,7 +11,9 @@
 #include "ElaScrollPageArea.h"
 #include "ElaText.h"
 #include "ElaTheme.h"
+#include "ElaLineEdit.h"
 #include "ElaToggleSwitch.h"
+#include "ElaPushButton.h"
 #include "ElaWindow.h"
 
 import Tool;
@@ -280,18 +283,57 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     // 语言设置
     ElaScrollPageArea* languageArea = new ElaScrollPageArea(this);
     QHBoxLayout* languageLayout = new QHBoxLayout(languageArea);
-    ElaText* languageText = new ElaText(tr("语言设置(重启生效)"), languageArea);
+    QWidget* languageWidget = new QWidget(languageArea);
+    QVBoxLayout* languageWidgetLayout = new QVBoxLayout(languageWidget);
+    ElaText* languageText = new ElaText(tr("语言设置"), languageArea);
+    languageWidgetLayout->addWidget(languageText);
+    ElaText* languageTipText = new ElaText(tr("重启生效"), languageArea);
+    languageTipText->setWordWrap(false);
+    languageTipText->setTextPixelSize(10);
+    languageWidgetLayout->addWidget(languageTipText);
     languageText->setWordWrap(false);
     languageText->setTextPixelSize(15);
-    languageLayout->addWidget(languageText);
+    languageLayout->addWidget(languageWidget);
     languageLayout->addStretch();
     ElaComboBox* languageComboBox = new ElaComboBox(languageArea);
-    languageComboBox->addItem(tr("zh_CN"));
-    languageComboBox->addItem(tr("en"));
+    languageComboBox->addItem("zh_CN");
+    languageComboBox->addItem("en");
     if (int languageIndex = languageComboBox->findText(QString::fromStdString(toml::get_or(_globalConfig["language"], "zh_CN"))); languageIndex >= 0) {
         languageComboBox->setCurrentIndex(languageIndex);
     }
     languageLayout->addWidget(languageComboBox);
+
+
+    // pyEnvPath(重启生效)
+    ElaScrollPageArea* pyEnvPathArea = new ElaScrollPageArea(this);
+    QHBoxLayout* pyEnvPathLayout = new QHBoxLayout(pyEnvPathArea);
+    QWidget* pyEnvPathWidget = new QWidget(pyEnvPathArea);
+    QVBoxLayout* pyEnvPathWidgetLayout = new QVBoxLayout(pyEnvPathWidget);
+    ElaText* pyEnvPathText = new ElaText(tr("Python环境路径"), pyEnvPathArea);
+    pyEnvPathText->setWordWrap(false);
+    pyEnvPathText->setTextPixelSize(15);
+    pyEnvPathWidgetLayout->addWidget(pyEnvPathText);
+    ElaText* pyEnvPathTipText = new ElaText(tr("重启生效"), pyEnvPathArea);
+    pyEnvPathTipText->setWordWrap(false);
+    pyEnvPathTipText->setTextPixelSize(10);
+    pyEnvPathWidgetLayout->addWidget(pyEnvPathTipText);
+    pyEnvPathLayout->addWidget(pyEnvPathWidget);
+    pyEnvPathLayout->addStretch();
+    ElaLineEdit* pyEnvPathLineEdit = new ElaLineEdit(pyEnvPathArea);
+    pyEnvPathLineEdit->setText(QString::fromStdString(toml::get_or(_globalConfig["pyEnvPath"], "BaseConfig/python-3.12.10-embed-amd64")));
+    pyEnvPathLayout->addWidget(pyEnvPathLineEdit);
+    ElaPushButton* pyEnvPathButton = new ElaPushButton(tr("浏览"), pyEnvPathArea);
+    pyEnvPathLayout->addWidget(pyEnvPathButton);
+    connect(pyEnvPathButton, &ElaPushButton::clicked, this, [=]()
+        {
+            QString path = QFileDialog::getExistingDirectory(this, tr("选择Python环境路径"), QString::fromStdString(toml::get_or(_globalConfig["pyEnvPath"], "BaseConfig/python-3.12.10-embed-amd64")));
+            if (!path.isEmpty())
+            {
+                pyEnvPathLineEdit->setText(path);
+                insertToml(_globalConfig, "pyEnvPath", path.toStdString());
+            }
+        });
+    
 
 
     _applyFunc = [=]()
@@ -311,6 +353,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
             insertToml(_globalConfig, "autoDownloadUpdate", autoDownloadSwitch->getIsToggled());
             insertToml(_globalConfig, "autoCheckUpdate", checkUpdateSwitch->getIsToggled());
             insertToml(_globalConfig, "language", languageComboBox->currentText().toStdString());
+            insertToml(_globalConfig, "pyEnvPath", pyEnvPathLineEdit->text().toStdString());
         };
     
 
@@ -333,6 +376,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     centerLayout->addWidget(autoDownloadArea);
     centerLayout->addWidget(checkUpdateArea);
     centerLayout->addWidget(languageArea);
+    centerLayout->addWidget(pyEnvPathArea);
     centerLayout->addStretch();
     centerLayout->setContentsMargins(0, 0, 0, 0);
     addCentralWidget(centralWidget, true, true, 0);

@@ -73,7 +73,6 @@
     </style>
 </head>
 <body>
-
 <h1>GalTransl++</h1>
 <p><img src="https://github.com/julixian/GalTranslPP/blob/master/img/GalTranslPP.png?raw=true" alt="GalTransl++ GUI"></p>
 <p><strong>GalTransl++</strong> 是继承了 <a href="https://github.com/GalTransl/GalTransl" target="_blank">GalTransl</a>  <code>以项目为本</code>的主要理念及架构，凝练其两年间积累的精华部分，同时吸收了大量Gal补丁作者经验而进行优化的，轻量透明的、拥有高度且方便的扩展能力的翻译核心。</p>
@@ -111,7 +110,7 @@
 <li><strong><code># ForGalTsv</code></strong>: 实际翻译模式，向AI输入TSV格式的句子(包含<code>name</code>和<code>message</code>)并要求AI以TSV格式回复，程序将解析返回的TSV，可能比ForGalJson模式更省token。</li>
 <li><strong><code># ForNovelTsv</code></strong>: 实际翻译模式，和 <code>ForGalTsv</code> 的区别主要是变动提示词，向AI输入和解析的时候都不带<code>name</code>键。</li>
 <li><strong><code># Sakura</code></strong>: 实际翻译模式，向AI输入自然语言形式的句子(包含<code>name</code>和<code>message</code>)，由于Sakura是翻译特化模型，不必要求即会返回同样形式的的句子，程序解析返回的自然语言。</li>
-<li><strong><code># DumpName</code></strong>: 提取所有的 <code>name</code> 键，在项目文件夹下生成(已有则仅更新) <code>人名替换表.toml</code> 以供统一替换人名。</li>
+<li><strong><code># DumpName</code></strong>: 提取所有的 <code>name</code> 键，在项目文件夹下生成 <code>人名替换表.toml</code> 以供统一替换人名(已有则仅更新)。</li>
 <li><strong><code># GenDict</code></strong>: 借助AI自动生成术语表，保存在项目文件夹下的 <code>项目GPT字典-生成.toml</code> 中。</li>
 <li><strong><code># Rebuild</code></strong>: 即使 <code>problem</code> 或 <code>orig_text</code> 中包含 <code>retranslKey</code> 也不会重翻，只根据缓存重建结果。</li>
 <li><strong><code># ShowNormal</code></strong>: 保存预处理后的内容及句子到项目文件夹下带 <code>show_normal</code> 字段的文件夹中，如Epub格式下可生成预处理后的html/xhtml文件以及生成的json，可用于检查和排错。</li>
@@ -207,6 +206,7 @@
 </blockquote>
 <h2>其它翻译说明</h2>
 <h3>问题分析 语法示例:</h3>
+<p>retranslKeys 语法示例</p>
 <div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code># 正则表达式列表，如果句子缓存中的某条 problem 能被以下任一正则 search 通过，则进行重翻
 # 如果想对指定原文/译文进行重翻，请通过内联表数组指定 conditionTarget 和 conditionReg
 retranslKeys = [
@@ -223,16 +223,34 @@ retranslKeys = [
           <path d="M832 64H296c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h496v688c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V96c0-17.7-14.3-32-32-32zM704 192H192c-17.7 0-32 14.3-32 32v530.7c0 8.5 3.4 16.6 9.4 22.6l173.3 173.3c2.2 2.2 4.7 4 7.4 5.5v1.9h4.2c3.5 1.3 7.2 2 11 2H704c17.7 0 32-14.3 32-32V224c0-17.7-14.3-32-32-32zM350 856.2L263.9 770H350v86.2zM664 888H414V746c0-22.1-17.9-40-40-40H232V264h432v624z"></path>
         </svg>
       </i>
-    </button><!--beforeend--></div><!--afterend--></div><p>问题比较对象设定语法示例:</p>
+    </button><!--beforeend--></div><!--afterend--></div><p>skipProblems 语法示例</p>
+<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code># 正则表达式列表，如果一条 problem 能被以下任一正则 search 通过，则不加入 problems 列表
+# 如果想忽略指定原文/译文的指定问题，请通过内联表数组指定 conditionTarget 和 conditionReg
+# 并在表数组第一项填入要忽略的 problem(同样也是正则表达式)
+skipProblems = [
+  # "^引入拉丁字母: Live$"  # 不加任何条件
+  # 如果 原文中包含'モチモチ'且译文中包含'Q弹'，则忽略此句子中所有能被 '引入拉丁字母' search 通过的 problem
+  [ '引入拉丁字母', { conditionTarget = 'preproc_text', conditionReg = 'モチモチ'},
+    { conditionTarget = 'trans_preview', conditionReg = 'Q弹'}], 
+]
+</code></pre>
+
+    <button class="v-md-copy-code-btn" type="button">
+      <i>
+        <svg viewBox="64 64 896 896" focusable="false" data-icon="copy" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+          <path d="M832 64H296c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h496v688c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V96c0-17.7-14.3-32-32-32zM704 192H192c-17.7 0-32 14.3-32 32v530.7c0 8.5 3.4 16.6 9.4 22.6l173.3 173.3c2.2 2.2 4.7 4 7.4 5.5v1.9h4.2c3.5 1.3 7.2 2 11 2H704c17.7 0 32-14.3 32-32V224c0-17.7-14.3-32-32-32zM350 856.2L263.9 770H350v86.2zM664 888H414V746c0-22.1-17.9-40-40-40H232V264h432v624z"></path>
+        </svg>
+      </i>
+    </button><!--beforeend--></div><!--afterend--></div><p>问题比较对象设定 语法示例:</p>
 <div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>overwriteCompareObj = [
-    { problemKey = "词频过高", base = "orig_text", check = "trans_preview" },
-    { problemKey = "标点错漏", base = "orig_text", check = "trans_preview" },
-    { problemKey = "引入拉丁字母", base = "preproc_text", check = "trans_preview" },
-    { problemKey = "引入韩文", base = "preproc_text", check = "trans_preview" },
-    { problemKey = "丢失换行", base = "orig_text", check = "trans_preview" },
-    { problemKey = "多加换行", base = "orig_text", check = "trans_preview" },
-    { problemKey = "字典未使用", base = "preproc_text", check = "trans_preview" },
-    { problemKey = "语言不通", base = "preproc_text", check = "trans_preview" },
+    { check = 'trans_preview', problemKey = '残留日文' },
+    { base = 'preproc_text', check = 'trans_preview', problemKey = '标点错漏' },
+    { base = 'preproc_text', check = 'trans_preview', problemKey = '引入拉丁字母' },
+    { base = 'preproc_text', check = 'trans_preview', problemKey = '引入韩文' },
+    { base = 'orig_text', check = 'trans_preview', problemKey = '丢失换行' },
+    { base = 'orig_text', check = 'trans_preview', problemKey = '多加换行' },
+    { base = 'preproc_text', check = 'trans_preview', problemKey = '字典未使用' },
+    { base = 'preproc_text', check = 'trans_preview', problemKey = '语言不通' }
 ]
 </code></pre>
 
@@ -263,7 +281,7 @@ retranslKeys = [
 <p>Epub正则设置依然使用toml语法解析配置，并支持两种正则写法: <strong>一般正则</strong>和<strong>回调正则</strong>。</p>
 <h4>一般正则</h4>
 <p>一般正则执行简单的匹配替换，例如使用下面的预处理正则，</p>
-<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.preprocRegex]]
+<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.'预处理正则']]
 org = '&lt;ruby&gt;&lt;rb&gt;(.+?)&lt;/rb&gt;&lt;rt&gt;(.+?)&lt;/rt&gt;&lt;/ruby&gt;'
 rep = '[$2/$1]'
 </code></pre>
@@ -285,7 +303,7 @@ rep = '[$2/$1]'
         </svg>
       </i>
     </button><!--beforeend--></div><!--afterend--></div><p>之后再遍历到此处时，「モテる男は[つら/辛]いね」 将被作为一个完整的句子被提取出来。如果之后搭配如下后处理正则，</p>
-<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.postprocRegex]]
+<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.'后处理正则']]
 org = '\[([^/\[\]]+?)/([^/\[\]]+?)\]'
 rep = '&lt;ruby&gt;&lt;rb&gt;$2&lt;/rb&gt;&lt;rt&gt;$1&lt;/rt&gt;&lt;/ruby&gt;'
 </code></pre>
@@ -311,7 +329,7 @@ rep = '&lt;ruby&gt;&lt;rb&gt;$2&lt;/rb&gt;&lt;rt&gt;$1&lt;/rt&gt;&lt;/ruby&gt;'
       </i>
     </button><!--beforeend--></div><!--afterend--></div><p>假如我不想一个一个文件的看标签写正则，而是想要直接『删除所有<code>&lt;p&gt;&lt;/p&gt;</code>标签内的其余标签并保留非标签部分』来快速过滤的话，面对不擅长处理嵌套的简单正则，显然我们很难写出这样的正则/正则组来处理这个问题，那么此时就需要使用回调正则。</p>
 <p>我们可以编写如下回调正则，</p>
-<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.preprocRegex]]
+<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code>[[plugins.Epub.'预处理正则']]
 org = '(&lt;p[^&gt;/]*&gt;)(.*?)(&lt;/p&gt;)'
 callback = [ { group = 2, org = '&lt;[^&gt;]*&gt;', rep = '' } ]
 </code></pre>
@@ -344,23 +362,11 @@ callback = [ { group = 2, org = '&lt;[^&gt;]*&gt;', rep = '' } ]
 <p>对于第一组文本，程序会寻找所有 <code>group = 1</code> 的回调正则，并依次执行替换。显然上面的回调正则并没有 <code>group = 1</code> 的正则，则忽略替换，第一组原样输出，现在的替换字符串暂定为: <code>&lt;p class="class_s2C-0"&gt;</code></p>
 <p>对于第二组文本，程序找到了 <code>group = 2</code> 的正则，则对第二组文本使用 <code>org = '&lt;[^&gt;]*&gt;', rep = ''</code> 进行替换，替换后得到 <code>「うっ、レナ!?」</code> ，则现在的替换字符串暂定为 <code>&lt;p class="class_s2C-0"&gt;「うっ、レナ!?」</code></p>
 <p>第三组文本与第一组文本同理，则最终的替换字符串为 <code>&lt;p class="class_s2C-0"&gt;「うっ、レナ!?」&lt;/p&gt;</code> ，与预期相符。</p>
-<h3>PDF 翻译说明</h3>
-<p>与Epub不同，GalTransl++将PDF转为NormalJson是通过调用外部脚本完成的，因为目前能较好重建PDF的只有python库。</p>
-<p>此脚本需要能通过CLI参数对指定pdf执行提取/回注操作，具体参数详见<a href="https://github.com/julixian/GalTranslPP/blob/master/GalTranslPP/PDFTranslator.ixx">PDFTranslator</a></p>
-<p>示例脚本为 (Example/)BaseConfig/PDFConverter/PDFConverter.py</p>
-<p>显而易见地，运行此脚本需要python环境(推荐3.12)并安装 <code>babeldoc</code> 库，</p>
-<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper-cmd extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-cmd"><code>pip install babeldoc
-</code></pre>
-
-    <button class="v-md-copy-code-btn" type="button">
-      <i>
-        <svg viewBox="64 64 896 896" focusable="false" data-icon="copy" width="1em" height="1em" fill="currentColor" aria-hidden="true">
-          <path d="M832 64H296c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h496v688c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V96c0-17.7-14.3-32-32-32zM704 192H192c-17.7 0-32 14.3-32 32v530.7c0 8.5 3.4 16.6 9.4 22.6l173.3 173.3c2.2 2.2 4.7 4 7.4 5.5v1.9h4.2c3.5 1.3 7.2 2 11 2H704c17.7 0 32-14.3 32-32V224c0-17.7-14.3-32-32-32zM350 856.2L263.9 770H350v86.2zM664 888H414V746c0-22.1-17.9-40-40-40H232V264h432v624z"></path>
-        </svg>
-      </i>
-    </button><!--beforeend--></div><!--afterend--></div><p>Release里也提供了此脚本打包后的exe，如果不想或者不会配置环境的可以<a href="https://github.com/julixian/GalTranslPP/releases/download/v1.0.2/PDFConverter.zip" target="_blank">点此下载</a>(不过非常大就是了)。</p>
-<div>
-</div><h2>其它程序说明</h2>
+<h3>Python 模块使用</h3>
+<p>由于许多有关深度学习的库(如分词器、PDF提取器等)只有python能方便的调用，本程序在发行时会默认附带小型的嵌入式Python环境，你无需手动下载。</p>
+<p>当遇到需要使用Python库的情况时(如<strong>翻译PDF</strong>或<strong>使用依赖Python的分词器</strong>)，程序会自动为嵌入式环境下载对应的库。</p>
+<p>但可能在下载之后需要<strong>重启程序</strong>以重新加载Python解释器。请留意日志输出窗口的提示，避免造成程序卡死或崩溃。</p>
+<h2>其它程序说明</h2>
 <h3>自定义主页Popular卡片</h3>
 <p>具体示例详见 (Example/)BaseConfig/globalConfig.toml 中的 [[popularCards]] 数组。</p>
 <p>卡片数组至少六个，不足六个的将使用程序默认的卡片补齐，最高不限数量。</p>
@@ -370,7 +376,7 @@ callback = [ { group = 2, org = '&lt;[^&gt;]*&gt;', rep = '' } ]
 <p>这种情况可以写一个中转脚本，</p>
 <div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper-cmd extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-cmd"><code>chcp 65001
 cd /d %~dp0
-call ./要运行文件的文件名
+start /b 要运行文件的文件名
 </code></pre>
 
     <button class="v-md-copy-code-btn" type="button">
@@ -385,7 +391,7 @@ call ./要运行文件的文件名
 <p>GUI界面所有的以标签页形式呈现的字典、人名表、提示词等均可以拖出来在新窗口中打开，如下图所示:</p>
 <p><img src="https://github.com/julixian/GalTranslPP/blob/master/img/tabView.png?raw=true" alt="tabView"></p>
 <h2>⚙️ 编译指南</h2>
-<p>详见<a href="how-to-build.md">how-to-build.md</a></p>
+<p>详见<a href="https://github.com/julixian/GalTranslPP/blob/master/how-to-build.md">how-to-build.md</a></p>
 <h2>🤝 贡献指南</h2>
 <p>GalTransl++在文件支持和插件支持上仍处于起步阶段，也不排除有其它优化的思路或需要修改的bug，如果有疑问或建议，欢迎提出 issue 或 PR。接下来主要说一下如何添加文件处理器/插件。</p>
 <h3>添加文件处理器 (Translator)</h3>
@@ -411,7 +417,6 @@ call ./要运行文件的文件名
 <p>但是跨平台的事我自己是不会主动考虑的。</p>
 <p>另外由于我所使用的环境较新，也可能会有一些比较罕见的问题。</p>
 <p>目前已知项目依赖 <code>mecab:x64-windows</code> 在VS2026(工具集 v145)下不过编，但是VS2022(工具集 v143)能过，安装依赖可能需要切回VS2022</p>
-
 
 </body>
 </html>

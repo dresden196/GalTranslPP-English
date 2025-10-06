@@ -211,8 +211,8 @@
         <location filename="CommonGptDictPage.cpp" line="384"/>
         <location filename="CommonGptDictPage.cpp" line="388"/>
         <location filename="CommonGptDictPage.cpp" line="438"/>
-        <location filename="CommonGptDictPage.cpp" line="508"/>
-        <location filename="CommonGptDictPage.cpp" line="539"/>
+        <location filename="CommonGptDictPage.cpp" line="509"/>
+        <location filename="CommonGptDictPage.cpp" line="540"/>
         <source>字典 </source>
         <translation>dict </translation>
     </message>
@@ -278,72 +278,72 @@
         <translation>choose dict file</translation>
     </message>
     <message>
-        <location filename="CommonGptDictPage.cpp" line="499"/>
-        <location filename="CommonGptDictPage.cpp" line="508"/>
+        <location filename="CommonGptDictPage.cpp" line="500"/>
+        <location filename="CommonGptDictPage.cpp" line="509"/>
         <source>导入失败</source>
         <translation>Fail to import</translation>
     </message>
     <message>
         <location filename="CommonGptDictPage.cpp" line="359"/>
-        <location filename="CommonGptDictPage.cpp" line="509"/>
-        <location filename="CommonGptDictPage.cpp" line="540"/>
+        <location filename="CommonGptDictPage.cpp" line="510"/>
+        <location filename="CommonGptDictPage.cpp" line="541"/>
         <source> 已存在</source>
         <translation> already existed</translation>
     </message>
     <message>
-        <location filename="CommonGptDictPage.cpp" line="499"/>
+        <location filename="CommonGptDictPage.cpp" line="500"/>
         <source>文件删除失败</source>
         <translation type="unfinished">Fail to delete file</translation>
     </message>
     <message>
-        <location filename="CommonGptDictPage.cpp" line="515"/>
-        <location filename="CommonGptDictPage.cpp" line="556"/>
+        <location filename="CommonGptDictPage.cpp" line="516"/>
+        <location filename="CommonGptDictPage.cpp" line="557"/>
         <source>创建成功</source>
         <translation>created successfully</translation>
     </message>
     <message>
-        <location filename="CommonGptDictPage.cpp" line="515"/>
-        <location filename="CommonGptDictPage.cpp" line="556"/>
+        <location filename="CommonGptDictPage.cpp" line="516"/>
+        <location filename="CommonGptDictPage.cpp" line="557"/>
         <source>字典页 </source>
         <translation>dict page </translation>
     </message>
     <message>
-        <location filename="CommonGptDictPage.cpp" line="515"/>
-        <location filename="CommonGptDictPage.cpp" line="556"/>
+        <location filename="CommonGptDictPage.cpp" line="516"/>
+        <location filename="CommonGptDictPage.cpp" line="557"/>
         <source> 已创建</source>
         <translation> created successfully</translation>
     </message>
     <message>
-        <location filename="CommonGptDictPage.cpp" line="522"/>
+        <location filename="CommonGptDictPage.cpp" line="523"/>
         <source>请输入字典表名称</source>
         <translation>please type in dict name</translation>
     </message>
     <message>
-        <location filename="CommonGptDictPage.cpp" line="522"/>
+        <location filename="CommonGptDictPage.cpp" line="523"/>
         <source>新建字典</source>
         <translation>create a new dict</translation>
     </message>
     <message>
         <location filename="CommonGptDictPage.cpp" line="358"/>
-        <location filename="CommonGptDictPage.cpp" line="530"/>
-        <location filename="CommonGptDictPage.cpp" line="539"/>
-        <location filename="CommonGptDictPage.cpp" line="547"/>
+        <location filename="CommonGptDictPage.cpp" line="531"/>
+        <location filename="CommonGptDictPage.cpp" line="540"/>
+        <location filename="CommonGptDictPage.cpp" line="548"/>
         <source>新建失败</source>
         <translation>Fail to create</translation>
     </message>
     <message>
         <location filename="CommonGptDictPage.cpp" line="349"/>
-        <location filename="CommonGptDictPage.cpp" line="530"/>
+        <location filename="CommonGptDictPage.cpp" line="531"/>
         <source>字典名称不能为空，且不能包含点号、斜杠或反斜杠！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonGptDictPage.cpp" line="547"/>
+        <location filename="CommonGptDictPage.cpp" line="548"/>
         <source>无法创建 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonGptDictPage.cpp" line="548"/>
+        <location filename="CommonGptDictPage.cpp" line="549"/>
         <source> 文件</source>
         <translation></translation>
     </message>
@@ -526,8 +526,8 @@
         <location filename="CommonNormalDictPage.cpp" line="412"/>
         <location filename="CommonNormalDictPage.cpp" line="416"/>
         <location filename="CommonNormalDictPage.cpp" line="466"/>
-        <location filename="CommonNormalDictPage.cpp" line="533"/>
-        <location filename="CommonNormalDictPage.cpp" line="565"/>
+        <location filename="CommonNormalDictPage.cpp" line="534"/>
+        <location filename="CommonNormalDictPage.cpp" line="566"/>
         <source>字典 </source>
         <translation>dict </translation>
     </message>
@@ -594,76 +594,76 @@
         <translation>Choose dict file</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="524"/>
-        <location filename="CommonNormalDictPage.cpp" line="533"/>
+        <location filename="CommonNormalDictPage.cpp" line="525"/>
+        <location filename="CommonNormalDictPage.cpp" line="534"/>
         <source>导入失败</source>
         <translation>Fail to import</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="524"/>
+        <location filename="CommonNormalDictPage.cpp" line="525"/>
         <source>文件删除失败</source>
         <translation>Fail to delete file</translation>
     </message>
     <message>
         <location filename="CommonNormalDictPage.cpp" line="387"/>
-        <location filename="CommonNormalDictPage.cpp" line="534"/>
-        <location filename="CommonNormalDictPage.cpp" line="566"/>
+        <location filename="CommonNormalDictPage.cpp" line="535"/>
+        <location filename="CommonNormalDictPage.cpp" line="567"/>
         <source> 已存在</source>
         <translation> already existed</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="540"/>
+        <location filename="CommonNormalDictPage.cpp" line="541"/>
         <source>创建成功</source>
         <translation>Created successfully</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="540"/>
-        <location filename="CommonNormalDictPage.cpp" line="581"/>
+        <location filename="CommonNormalDictPage.cpp" line="541"/>
+        <location filename="CommonNormalDictPage.cpp" line="582"/>
         <source>字典页 </source>
         <translation>dict page </translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="540"/>
-        <location filename="CommonNormalDictPage.cpp" line="582"/>
+        <location filename="CommonNormalDictPage.cpp" line="541"/>
+        <location filename="CommonNormalDictPage.cpp" line="583"/>
         <source> 已创建</source>
         <translation> created successfully</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="547"/>
+        <location filename="CommonNormalDictPage.cpp" line="548"/>
         <source>请输入字典表名称</source>
         <translation>Please type in dict name</translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="547"/>
+        <location filename="CommonNormalDictPage.cpp" line="548"/>
         <source>新建字典</source>
         <translation>Create a new dict page</translation>
     </message>
     <message>
         <location filename="CommonNormalDictPage.cpp" line="386"/>
-        <location filename="CommonNormalDictPage.cpp" line="555"/>
-        <location filename="CommonNormalDictPage.cpp" line="565"/>
-        <location filename="CommonNormalDictPage.cpp" line="572"/>
+        <location filename="CommonNormalDictPage.cpp" line="556"/>
+        <location filename="CommonNormalDictPage.cpp" line="566"/>
+        <location filename="CommonNormalDictPage.cpp" line="573"/>
         <source>新建失败</source>
         <translation>Fail to create</translation>
     </message>
     <message>
         <location filename="CommonNormalDictPage.cpp" line="377"/>
-        <location filename="CommonNormalDictPage.cpp" line="555"/>
+        <location filename="CommonNormalDictPage.cpp" line="556"/>
         <source>字典名称不能为空，且不能包含点号、斜杠或反斜杠！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="572"/>
+        <location filename="CommonNormalDictPage.cpp" line="573"/>
         <source>无法创建 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="573"/>
+        <location filename="CommonNormalDictPage.cpp" line="574"/>
         <source> 文件</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="CommonNormalDictPage.cpp" line="581"/>
+        <location filename="CommonNormalDictPage.cpp" line="582"/>
         <source>新建成功</source>
         <translation>Created successfully</translation>
     </message>
@@ -710,163 +710,218 @@
 <context>
     <name>CommonSettingsPage</name>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="25"/>
+        <location filename="CommonSettingsPage.cpp" line="26"/>
         <source>一般设置</source>
         <translation>Common settings</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="45"/>
+        <location filename="CommonSettingsPage.cpp" line="46"/>
         <source>单次请求翻译句子数量</source>
         <translation>Number per request to translate</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="49"/>
+        <location filename="CommonSettingsPage.cpp" line="50"/>
         <source>推荐值 &lt; 15</source>
         <translation>recommend &lt; 15</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="63"/>
+        <location filename="CommonSettingsPage.cpp" line="64"/>
         <source>最大线程数</source>
         <translation>Max threads num</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="77"/>
+        <location filename="CommonSettingsPage.cpp" line="78"/>
         <source>翻译顺序</source>
         <translation>Translate order</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="80"/>
+        <location filename="CommonSettingsPage.cpp" line="81"/>
         <source>name为文件名，size为大文件优先，多线程时大文件优先可以提高整体速度</source>
         <translation>name: sorted by filename; size: prior for larger file, can increase speed when using multi-thread</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="84"/>
+        <location filename="CommonSettingsPage.cpp" line="85"/>
         <source>文件名</source>
         <translation>name</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="87"/>
+        <location filename="CommonSettingsPage.cpp" line="88"/>
         <source>文件大小</source>
         <translation>size</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="99"/>
+        <location filename="CommonSettingsPage.cpp" line="100"/>
         <source>翻译到的目标语言</source>
         <translation>target language</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="102"/>
+        <location filename="CommonSettingsPage.cpp" line="103"/>
         <source>包括但不限于[zh-cn/zh-tw/en/ja/ko/ru/fr]</source>
         <translation>include but not limited to[zh-cn/zh-tw/en/ja/ko/ru/fr]</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="117"/>
+        <location filename="CommonSettingsPage.cpp" line="118"/>
         <source>单文件分割</source>
         <translation>split single file</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="120"/>
+        <location filename="CommonSettingsPage.cpp" line="121"/>
         <source>Num: 每n条分割一次，Equal: 每个文件均分n份，No: 关闭单文件分割。</source>
         <translation>Num: split every n sentences; Equal: split every file to n parts equally; No: do not use single file split.</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="160"/>
+        <location filename="CommonSettingsPage.cpp" line="161"/>
         <source>分割数量</source>
         <translation>Split num</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="163"/>
+        <location filename="CommonSettingsPage.cpp" line="164"/>
         <source>Num时，表示n句拆分一次；Equal时，表示每个文件均分拆成n部分。</source>
         <translation>n.</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="182"/>
+        <location filename="CommonSettingsPage.cpp" line="183"/>
         <source>缓存保存间隔</source>
         <translation>Save interval</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="185"/>
+        <location filename="CommonSettingsPage.cpp" line="186"/>
         <source>每翻译n次保存一次缓存</source>
         <translation>Save cache after every n translation rounds</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="198"/>
+        <location filename="CommonSettingsPage.cpp" line="199"/>
         <source>最大重试次数</source>
         <translation>Max retry count</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="212"/>
+        <location filename="CommonSettingsPage.cpp" line="213"/>
         <source>携带上文数量</source>
         <translation>Num of context to attached</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="226"/>
+        <location filename="CommonSettingsPage.cpp" line="227"/>
         <source>智能重试</source>
         <translation>Smart retry</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="229"/>
+        <location filename="CommonSettingsPage.cpp" line="230"/>
         <source>解析结果失败时尝试折半重翻与清空上下文，避免无效重试。</source>
         <translation>If parsing the result fails, try re-translating by halving the content and clearing the context to avoid ineffective retries.</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="241"/>
+        <location filename="CommonSettingsPage.cpp" line="242"/>
         <source>额度检测</source>
         <translation>Check quota</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="244"/>
+        <location filename="CommonSettingsPage.cpp" line="245"/>
         <source>运行时动态检测key额度</source>
         <translation>check quota dynamically during running</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="257"/>
+        <location filename="CommonSettingsPage.cpp" line="258"/>
         <source>日志级别</source>
         <translation>Log level</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="281"/>
+        <location filename="CommonSettingsPage.cpp" line="282"/>
         <source>保存项目日志</source>
         <translation>Save project logs</translation>
     </message>
     <message>
+        <location filename="CommonSettingsPage.cpp" line="292"/>
+        <source>分词器设置</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="CommonSettingsPage.cpp" line="295"/>
+        <source>用于生成字典和查错的分词器后端及其设置(应选择适合原文的后端/模型/字典)</source>
+        <oldsource>用于生成字典和查错的分词器后端及其设置(针对原文)</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="302"/>
+        <source>分词器后端</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="305"/>
+        <source>除了MeCab，剩下的都依赖Python，所以速度变慢或内存占用变大是正常的</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="322"/>
+        <source>MeCab词典目录</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="324"/>
+        <source>MeCab词典目录，程序自带一个</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="337"/>
+        <source>选择MeCab词典目录</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="347"/>
+        <source>spaCy模型名称</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="349"/>
+        <source>spaCy模型名称，新模型下载后需重启程序</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="369"/>
+        <source>Stanza语言ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="371"/>
+        <source>Stanza语言ID，新模型下载后需重启程序</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>分词器词典路径</source>
-        <translation>Tokenizer dict path</translation>
+        <translation type="vanished">Tokenizer dict path</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="297"/>
         <source>可以使用相对路径</source>
-        <translation>can use relative path</translation>
+        <translation type="vanished">can use relative path</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="306"/>
+        <location filename="CommonSettingsPage.cpp" line="333"/>
+        <location filename="CommonSettingsPage.cpp" line="358"/>
+        <location filename="CommonSettingsPage.cpp" line="380"/>
         <source>浏览</source>
         <translation>browse</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="312"/>
         <source>选择词典文件夹</source>
-        <translation>Choose dict dir</translation>
+        <translation type="vanished">Choose dict dir</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="326"/>
+        <location filename="CommonSettingsPage.cpp" line="394"/>
         <source>本项目所使用的换行符</source>
         <translation>linebreak symbol used in this project</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="329"/>
+        <location filename="CommonSettingsPage.cpp" line="397"/>
         <source>将换行符统一规范为 &amp;lt;br&amp;gt; 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行。&lt;br&gt;具体替换时机详见使用说明，auto为自动检测</source>
         <oldsource>将换行符统一规范为 &amp;lt;br&amp;gt; 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行，具体替换时机详见使用说明，auto为自动检测</oldsource>
         <translation type="unfinished">All linebreak symbols will be replaced to &lt;br&gt; for programming use</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="372"/>
+        <location filename="CommonSettingsPage.cpp" line="444"/>
         <source>解析失败</source>
         <translation>Fail to analyze</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="372"/>
+        <location filename="CommonSettingsPage.cpp" line="444"/>
         <source>linebreakSymbol不符合 toml 规范</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1065,57 +1120,57 @@
         <translation>Choose dict file</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="257"/>
+        <location filename="DictSettingsPage.cpp" line="258"/>
         <source>导入失败</source>
         <translation>Fail to import</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="257"/>
+        <location filename="DictSettingsPage.cpp" line="258"/>
         <source>字典文件中没有词条</source>
         <translation>No dicts in the file</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="262"/>
+        <location filename="DictSettingsPage.cpp" line="263"/>
         <source>导入成功</source>
         <translation>Import successfully</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="262"/>
+        <location filename="DictSettingsPage.cpp" line="263"/>
         <source>从文件 </source>
         <translation>From </translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="263"/>
+        <location filename="DictSettingsPage.cpp" line="264"/>
         <source> 中导入了 </source>
         <translation> import </translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="263"/>
+        <location filename="DictSettingsPage.cpp" line="264"/>
         <source> 个词条</source>
         <translation> dicts</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="287"/>
+        <location filename="DictSettingsPage.cpp" line="288"/>
         <source>保存成功</source>
         <translation>Saved successfully</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="287"/>
+        <location filename="DictSettingsPage.cpp" line="288"/>
         <source> 已保存</source>
         <translation> is saved</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="336"/>
+        <location filename="DictSettingsPage.cpp" line="337"/>
         <source>项目GPT字典.toml</source>
         <translation>Project GptDict.toml</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="348"/>
+        <location filename="DictSettingsPage.cpp" line="349"/>
         <source>项目译前字典.toml</source>
         <translation>Project PreDict.toml</translation>
     </message>
     <message>
-        <location filename="DictSettingsPage.cpp" line="360"/>
+        <location filename="DictSettingsPage.cpp" line="361"/>
         <source>项目译后字典.toml</source>
         <translation>Project PostDict.toml</translation>
     </message>
@@ -1260,9 +1315,9 @@
     </message>
     <message>
         <location filename="mainwindow.cpp" line="83"/>
-        <location filename="mainwindow.cpp" line="500"/>
-        <location filename="mainwindow.cpp" line="556"/>
-        <location filename="mainwindow.cpp" line="574"/>
+        <location filename="mainwindow.cpp" line="501"/>
+        <location filename="mainwindow.cpp" line="557"/>
+        <location filename="mainwindow.cpp" line="575"/>
         <source>项目 </source>
         <translation>Project </translation>
     </message>
@@ -1283,7 +1338,7 @@
     </message>
     <message>
         <location filename="mainwindow.cpp" line="176"/>
-        <location filename="mainwindow.cpp" line="330"/>
+        <location filename="mainwindow.cpp" line="331"/>
         <source>新建项目</source>
         <translation>New Project</translation>
     </message>
@@ -1383,183 +1438,183 @@
         <translation>Choose new dir to store project</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="330"/>
+        <location filename="mainwindow.cpp" line="331"/>
         <source>请输入项目名称</source>
         <translation>Please type in project name</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="342"/>
-        <location filename="mainwindow.cpp" line="348"/>
-        <location filename="mainwindow.cpp" line="354"/>
-        <location filename="mainwindow.cpp" line="368"/>
-        <location filename="mainwindow.cpp" line="373"/>
-        <location filename="mainwindow.cpp" line="413"/>
+        <location filename="mainwindow.cpp" line="343"/>
+        <location filename="mainwindow.cpp" line="349"/>
+        <location filename="mainwindow.cpp" line="355"/>
+        <location filename="mainwindow.cpp" line="369"/>
+        <location filename="mainwindow.cpp" line="374"/>
+        <location filename="mainwindow.cpp" line="414"/>
         <source>创建失败</source>
         <translation>Fail to create</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="342"/>
-        <location filename="mainwindow.cpp" line="445"/>
+        <location filename="mainwindow.cpp" line="343"/>
+        <location filename="mainwindow.cpp" line="446"/>
         <source>已存在同名项目！</source>
         <translation>Same name exists!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="348"/>
+        <location filename="mainwindow.cpp" line="349"/>
         <source>项目名称不能为空，且不能包含斜杠或反斜杠！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="354"/>
+        <location filename="mainwindow.cpp" line="355"/>
         <source>目录下存在同名文件或文件夹！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="368"/>
+        <location filename="mainwindow.cpp" line="369"/>
         <source>无法创建新文件！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="373"/>
+        <location filename="mainwindow.cpp" line="374"/>
         <source>无法读取模板文件！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="413"/>
+        <location filename="mainwindow.cpp" line="414"/>
         <source>无法写入配置文件！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="422"/>
+        <location filename="mainwindow.cpp" line="423"/>
         <source>创建成功</source>
         <translation type="unfinished">created successfully</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="422"/>
+        <location filename="mainwindow.cpp" line="423"/>
         <source>请将待翻译的文件放入 gt_input 中！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="427"/>
+        <location filename="mainwindow.cpp" line="428"/>
         <source>选择已有项目的文件夹路径</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="434"/>
-        <location filename="mainwindow.cpp" line="445"/>
+        <location filename="mainwindow.cpp" line="435"/>
+        <location filename="mainwindow.cpp" line="446"/>
         <source>打开失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="434"/>
+        <location filename="mainwindow.cpp" line="435"/>
         <source>目录下不存在 config.toml 文件！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="454"/>
+        <location filename="mainwindow.cpp" line="455"/>
         <source>打开成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="454"/>
+        <location filename="mainwindow.cpp" line="455"/>
         <source> 已纳入项目管理！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="465"/>
-        <location filename="mainwindow.cpp" line="469"/>
+        <location filename="mainwindow.cpp" line="466"/>
+        <location filename="mainwindow.cpp" line="470"/>
         <source>移除失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="465"/>
-        <location filename="mainwindow.cpp" line="513"/>
-        <location filename="mainwindow.cpp" line="569"/>
+        <location filename="mainwindow.cpp" line="466"/>
+        <location filename="mainwindow.cpp" line="514"/>
+        <location filename="mainwindow.cpp" line="570"/>
         <source>当前页面不是项目页面！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="469"/>
-        <location filename="mainwindow.cpp" line="517"/>
+        <location filename="mainwindow.cpp" line="470"/>
+        <location filename="mainwindow.cpp" line="518"/>
         <source>当前项目正在运行，请先停止运行！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="474"/>
-        <location filename="mainwindow.cpp" line="522"/>
+        <location filename="mainwindow.cpp" line="475"/>
+        <location filename="mainwindow.cpp" line="523"/>
         <source>是</source>
         <translation type="unfinished">Yes</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="475"/>
-        <location filename="mainwindow.cpp" line="523"/>
+        <location filename="mainwindow.cpp" line="476"/>
+        <location filename="mainwindow.cpp" line="524"/>
         <source>思考人生</source>
         <translation type="unfinished">Thinking of life</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="476"/>
-        <location filename="mainwindow.cpp" line="524"/>
+        <location filename="mainwindow.cpp" line="477"/>
+        <location filename="mainwindow.cpp" line="525"/>
         <source>否</source>
         <translation type="unfinished">No</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="480"/>
+        <location filename="mainwindow.cpp" line="481"/>
         <source>你确定要移除当前项目吗？</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="481"/>
+        <location filename="mainwindow.cpp" line="482"/>
         <source>从项目管理中移除该项目，但不会删除其项目文件夹</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="500"/>
+        <location filename="mainwindow.cpp" line="501"/>
         <source>移除成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="500"/>
+        <location filename="mainwindow.cpp" line="501"/>
         <source> 已从项目管理中移除！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="513"/>
-        <location filename="mainwindow.cpp" line="517"/>
-        <location filename="mainwindow.cpp" line="543"/>
+        <location filename="mainwindow.cpp" line="514"/>
+        <location filename="mainwindow.cpp" line="518"/>
+        <location filename="mainwindow.cpp" line="544"/>
         <source>删除失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="529"/>
+        <location filename="mainwindow.cpp" line="530"/>
         <source>你确定要删除当前项目吗？</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="530"/>
+        <location filename="mainwindow.cpp" line="531"/>
         <source>将删除该项目的项目文件夹，如果不备份，再次翻译将必须从头开始！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="556"/>
+        <location filename="mainwindow.cpp" line="557"/>
         <source>删除成功</source>
         <translation type="unfinished">delete successfully</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="556"/>
+        <location filename="mainwindow.cpp" line="557"/>
         <source> 已从项目管理和磁盘中移除！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="569"/>
+        <location filename="mainwindow.cpp" line="570"/>
         <source>保存失败</source>
         <translation type="unfinished">Fail to save</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="574"/>
+        <location filename="mainwindow.cpp" line="575"/>
         <source>保存成功</source>
         <translation type="unfinished">saved successfully</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="574"/>
+        <location filename="mainwindow.cpp" line="575"/>
         <source> 配置信息已保存！</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2025,37 +2080,37 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="160"/>
+        <location filename="PASettingsPage.cpp" line="163"/>
         <source>不符合 toml 规范</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="167"/>
+        <location filename="PASettingsPage.cpp" line="170"/>
         <source>重翻关键字设定</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="182"/>
+        <location filename="PASettingsPage.cpp" line="185"/>
         <source>查看 重翻关键字/跳过问题关键字/问题比较对象 设定的语法示例</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="171"/>
+        <location filename="PASettingsPage.cpp" line="174"/>
         <source>跳过问题关键字设定</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="175"/>
+        <location filename="PASettingsPage.cpp" line="178"/>
         <source>问题比较对象设定</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="180"/>
+        <location filename="PASettingsPage.cpp" line="183"/>
         <source>语法示例</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="160"/>
+        <location filename="PASettingsPage.cpp" line="163"/>
         <source>解析错误</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2064,7 +2119,7 @@
     <name>PDFCfgPage</name>
     <message>
         <location filename="PDFCfgPage.cpp" line="18"/>
-        <location filename="PDFCfgPage.cpp" line="80"/>
+        <location filename="PDFCfgPage.cpp" line="44"/>
         <source>PDF 输出配置</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2074,24 +2129,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PDFCfgPage.cpp" line="42"/>
-        <source>PDF转换器路径</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="PDFCfgPage.cpp" line="50"/>
         <source>浏览</source>
-        <translation type="unfinished">browse</translation>
+        <translation type="obsolete">browse</translation>
     </message>
     <message>
-        <location filename="PDFCfgPage.cpp" line="55"/>
-        <source>选择PDF转换器</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="PDFCfgPage.cpp" line="65"/>
         <source>说明</source>
-        <translation type="unfinished">Description</translation>
+        <translation type="obsolete">Description</translation>
     </message>
 </context>
 <context>
@@ -2382,95 +2425,106 @@
 <context>
     <name>SettingPage</name>
     <message>
-        <location filename="SettingPage.cpp" line="26"/>
+        <location filename="SettingPage.cpp" line="29"/>
         <source>主题设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="33"/>
+        <location filename="SettingPage.cpp" line="36"/>
         <source>日间模式</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="34"/>
+        <location filename="SettingPage.cpp" line="37"/>
         <source>夜间模式</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="38"/>
+        <location filename="SettingPage.cpp" line="41"/>
         <source>主题切换</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="108"/>
+        <location filename="SettingPage.cpp" line="111"/>
         <source>窗口效果</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="127"/>
+        <location filename="SettingPage.cpp" line="130"/>
         <source>导航栏模式选择</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="156"/>
+        <location filename="SettingPage.cpp" line="159"/>
         <source>应用程序设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="163"/>
+        <location filename="SettingPage.cpp" line="166"/>
         <source>DumpName/GenDict任务成功后自动刷新人名表/项目GPT字典</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="179"/>
+        <location filename="SettingPage.cpp" line="182"/>
         <source>新项目人名表默认打开模式</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="182"/>
-        <location filename="SettingPage.cpp" line="211"/>
+        <location filename="SettingPage.cpp" line="185"/>
+        <location filename="SettingPage.cpp" line="214"/>
         <source>纯文本模式</source>
         <translation type="unfinished">plaintext mode</translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="183"/>
-        <location filename="SettingPage.cpp" line="212"/>
+        <location filename="SettingPage.cpp" line="186"/>
+        <location filename="SettingPage.cpp" line="215"/>
         <source>表格模式</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="208"/>
+        <location filename="SettingPage.cpp" line="211"/>
         <source>新项目字典默认打开模式</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="237"/>
+        <location filename="SettingPage.cpp" line="240"/>
         <source>允许在项目仍在运行的情况下关闭程序(危险)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="253"/>
+        <location filename="SettingPage.cpp" line="256"/>
         <source>检测到更新后自动下载</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="270"/>
+        <location filename="SettingPage.cpp" line="273"/>
         <source>自动检查更新</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="283"/>
-        <source>语言设置(重启生效)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="SettingPage.cpp" line="289"/>
-        <source>zh_CN</source>
+        <location filename="SettingPage.cpp" line="288"/>
+        <source>语言设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="SettingPage.cpp" line="290"/>
-        <source>en</source>
+        <location filename="SettingPage.cpp" line="316"/>
+        <source>重启生效</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="SettingPage.cpp" line="312"/>
+        <source>Python环境路径</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="SettingPage.cpp" line="325"/>
+        <source>浏览</source>
+        <translation type="unfinished">browse</translation>
+    </message>
+    <message>
+        <location filename="SettingPage.cpp" line="329"/>
+        <source>选择Python环境路径</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2621,69 +2675,137 @@
 <context>
     <name>TLFCfgPage</name>
     <message>
-        <location filename="TLFCfgPage.cpp" line="17"/>
-        <location filename="TLFCfgPage.cpp" line="115"/>
+        <location filename="TLFCfgPage.cpp" line="20"/>
+        <location filename="TLFCfgPage.cpp" line="231"/>
         <source>换行修复设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="26"/>
+        <location filename="TLFCfgPage.cpp" line="29"/>
         <source>优先标点</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="26"/>
+        <location filename="TLFCfgPage.cpp" line="29"/>
         <source>保持位置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="26"/>
+        <location filename="TLFCfgPage.cpp" line="29"/>
         <source>固定字数</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="26"/>
+        <location filename="TLFCfgPage.cpp" line="29"/>
         <source>平均</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="30"/>
+        <location filename="TLFCfgPage.cpp" line="33"/>
         <source>换行模式</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="49"/>
+        <location filename="TLFCfgPage.cpp" line="52"/>
         <source>仅在标点后添加</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="51"/>
+        <location filename="TLFCfgPage.cpp" line="54"/>
         <source>仅在优先标点模式有效</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="64"/>
+        <location filename="TLFCfgPage.cpp" line="67"/>
         <source>分段字数阈值</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="66"/>
+        <location filename="TLFCfgPage.cpp" line="69"/>
         <source>仅在固定字数模式有效</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="80"/>
+        <location filename="TLFCfgPage.cpp" line="83"/>
         <source>强制修复</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="93"/>
+        <location filename="TLFCfgPage.cpp" line="96"/>
         <source>报错阈值</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="95"/>
+        <location filename="TLFCfgPage.cpp" line="98"/>
         <source>单行字符数超过此阈值时报错</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="109"/>
+        <source>分词器设置</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="120"/>
+        <source>使用分词器</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="122"/>
+        <source>可能可以获得更好的换行效果(不过感觉用处不大)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="136"/>
+        <source>分词器后端</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="138"/>
+        <source>应选择适合目标语言的后端/模型/字典</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="157"/>
+        <source>MeCab词典目录</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="159"/>
+        <source>MeCab中文词典需手动下载</source>
+        <oldsource>MeCab词典需手动下载</oldsource>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="173"/>
+        <source>spaCy模型名称</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="175"/>
+        <source>spaCy模型名称，新模型下载后需重启程序</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="183"/>
+        <location filename="TLFCfgPage.cpp" line="206"/>
+        <source>浏览</source>
+        <translation type="unfinished">browse</translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="184"/>
+        <location filename="TLFCfgPage.cpp" line="207"/>
+        <source>浏览模型目录</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="196"/>
+        <source>Stanza语言ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="198"/>
+        <source>Stanza语言ID，新模型下载后需重启程序</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

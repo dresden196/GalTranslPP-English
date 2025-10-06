@@ -1,10 +1,10 @@
 module;
 
 #include <spdlog/spdlog.h>
+#include <toml.hpp>
 
 export module TextLinebreakFix;
 
-import <toml.hpp>;
 import Tool;
 import PythonManager;
 export import IPlugin;
@@ -69,6 +69,12 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, const toml::value
 				m_logger->info("TextLinebreakFix 正在检查 spaCy 环境...");
 				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, m_needReboot, m_logger);
 				m_logger->info("TextLinebreakFix spaCy 环境检查完毕。");
+			}
+			else if (tokenizerBackend == "Stanza") {
+				const std::string& stanzaLang = parseToml<std::string>(projectConfig, pluginConfig, "plugins.TextLinebreakFix.stanzaLang");
+				m_logger->info("TextLinebreakFix 正在检查 Stanza 环境...");
+				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "stanza" }, "tokenizer_stanza", stanzaLang, m_needReboot, m_logger);
+				m_logger->info("TextLinebreakFix Stanza 环境检查完毕。");
 			}
 			else {
 				throw std::invalid_argument("TextLinebreakFix 无效的 tokenizerBackend");

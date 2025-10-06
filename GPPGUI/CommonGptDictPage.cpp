@@ -484,11 +484,12 @@ void CommonGptDictPage::_setupUI()
 
 	connect(importButton, &ElaPushButton::clicked, this, [=]()
 		{
-			QString importDictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), "./",
+			QString importDictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), QString::fromStdString(toml::get_or(_globalConfig["lastCommonGptDictPath"], "./")),
 				"TOML files (*.toml);;JSON files (*.json);;TSV files (*.tsv *.txt)");
 			if (importDictPathStr.isEmpty()) {
 				return;
 			}
+			insertToml(_globalConfig, "lastCommonGptDictPath", importDictPathStr.toStdString());
 			fs::path importDictPath = importDictPathStr.toStdWString();
 			fs::path newDictPath = L"BaseConfig/Dict/gpt" / fs::path(importDictPath.filename()).replace_extension(".toml");
 			if (fs::exists(newDictPath) && !fs::equivalent(importDictPath, newDictPath)) {

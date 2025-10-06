@@ -320,11 +320,12 @@ void MainWindow::initContent()
 
 void MainWindow::_onNewProjectTriggered()
 {
-    QString parentPath = QFileDialog::getExistingDirectory(this, tr("选择新项目的存放位置"), QDir::currentPath() + "/Projects");
+    QString parentPath = QFileDialog::getExistingDirectory(this, tr("选择新项目的存放位置"), QString::fromStdString(toml::get_or(_globalConfig["lastProjectPath"], "./Projects")));
     if (parentPath.isEmpty()) {
         return;
     }
 
+    insertToml(_globalConfig, "lastProjectPath", parentPath.toStdString());
     QString projectName;
     bool ok;
     ElaInputDialog inputDialog(this, tr("请输入项目名称"), tr("新建项目"), projectName, &ok);
@@ -424,11 +425,11 @@ void MainWindow::_onNewProjectTriggered()
 
 void MainWindow::_onOpenProjectTriggered()
 {
-    QString projectPath = QFileDialog::getExistingDirectory(this, tr("选择已有项目的文件夹路径"), QDir::currentPath() + "/Projects");
+    QString projectPath = QFileDialog::getExistingDirectory(this, tr("选择已有项目的文件夹路径"), QString::fromStdString(toml::get_or(_globalConfig["lastProjectPath"], "./Projects")));
     if (projectPath.isEmpty()) {
         return;
     }
-
+    insertToml(_globalConfig, "lastProjectPath", projectPath.toStdString());
     fs::path projectDir(projectPath.toStdWString());
     if (!fs::exists(projectDir / L"config.toml")) {
         ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("打开失败"), tr("目录下不存在 config.toml 文件！"), 3000);
@@ -591,7 +592,7 @@ void MainWindow::_onCloseWindowClicked(bool restart)
         page->apply2Config();
         projects.push_back(wide2Ascii(page->getProjectDir()));
     }
-    _globalConfig["projects"] = projects;
+    insertToml(_globalConfig, "projects", projects);
 
     _settingPage->apply2Config();
 

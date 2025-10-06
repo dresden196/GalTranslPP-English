@@ -509,11 +509,12 @@ void CommonNormalDictPage::_setupUI()
 
 	connect(importButton, &ElaPushButton::clicked, this, [=]()
 		{
-			QString importDictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), "./",
+			QString importDictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), QString::fromStdString(toml::get_or(_globalConfig["lastCommonNormalDictPath"], "./")),
 				"TOML files (*.toml);;JSON files (*.json)");
 			if (importDictPathStr.isEmpty()) {
 				return;
 			}
+			insertToml(_globalConfig, "lastCommonNormalDictPath", importDictPathStr.toStdString());
 			fs::path importDictPath = importDictPathStr.toStdWString();
 			fs::path newDictPath = L"BaseConfig/Dict/" + ascii2Wide(_modePath) + L"/" + importDictPath.stem().wstring() + L".toml";
 			if (fs::exists(newDictPath) && !fs::equivalent(importDictPath, newDictPath)) {

@@ -3,6 +3,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QButtonGroup>
+#include <QDesktopServices>
 #include <QFileDialog>
 
 #include "ElaText.h"
@@ -287,34 +288,101 @@ void CommonSettingsPage::_setupUI()
 	saveLogLayout->addWidget(saveLogToggle);
 	mainLayout->addWidget(saveLogArea);
 
-	// 分词器所用的词典的路径
-	std::string dictPath = toml::get_or(_projectConfig["common"]["dictDir"], "DictGenerator/mecab-ipadic-utf8");
-	QString dictPathStr = QString::fromStdString(dictPath);
-	ElaScrollPageArea* dictArea = new ElaScrollPageArea(mainWidget);
-	QHBoxLayout* dictLayout = new QHBoxLayout(dictArea);
-	ElaText* dictText = new ElaText(tr("分词器词典路径"), dictArea);
-	ElaToolTip* dictTip = new ElaToolTip(dictText);
-	dictTip->setToolTip(tr("可以使用相对路径"));
-	dictText->setTextPixelSize(16);
-	dictLayout->addWidget(dictText);
-	dictLayout->addStretch();
-	ElaLineEdit* dictLineEdit = new ElaLineEdit(dictArea);
-	dictLineEdit->setReadOnly(true);
-	dictLineEdit->setFixedWidth(400);
-	dictLineEdit->setText(dictPathStr);
-	dictLayout->addWidget(dictLineEdit);
-	ElaPushButton* dictButton = new ElaPushButton(tr("浏览"), dictArea);
-	dictLayout->addWidget(dictButton);
+	mainLayout->addSpacing(15);
+	ElaText* tokenizerConfigText = new ElaText(tr("分词器设置"), this);
+	tokenizerConfigText->setTextPixelSize(18);
+	ElaToolTip* tokenizerConfigTip = new ElaToolTip(tokenizerConfigText);
+	tokenizerConfigTip->setToolTip(tr("用于生成字典和查错的分词器后端及其设置(应选择适合原文的后端/模型/字典)"));
+	mainLayout->addWidget(tokenizerConfigText);
 
-	connect(dictButton, &QPushButton::clicked, this, [=](bool checked)
+	// tokenizerBackend
+	std::string tokenizerBackend = toml::get_or(_projectConfig["common"]["tokenizerBackend"], "MeCab");
+	ElaScrollPageArea* tokenizerBackendArea = new ElaScrollPageArea(mainWidget);
+	QHBoxLayout* tokenizerBackendLayout = new QHBoxLayout(tokenizerBackendArea);
+	ElaText* tokenizerBackendText = new ElaText(tr("分词器后端"), tokenizerBackendArea);
+	tokenizerBackendText->setTextPixelSize(16);
+	ElaToolTip* tokenizerBackendTip = new ElaToolTip(tokenizerBackendText);
+	tokenizerBackendTip->setToolTip(tr("除了MeCab，剩下的都依赖Python，所以速度变慢或内存占用变大是正常的"));
+	tokenizerBackendLayout->addWidget(tokenizerBackendText);
+	tokenizerBackendLayout->addStretch();
+	ElaComboBox* tokenizerBackendComboBox = new ElaComboBox(tokenizerBackendArea);
+	tokenizerBackendComboBox->addItem("MeCab");
+	tokenizerBackendComboBox->addItem("spaCy");
+	tokenizerBackendComboBox->addItem("Stanza");
+	if (int index = tokenizerBackendComboBox->findText(QString::fromStdString(tokenizerBackend)); index >= 0) {
+		tokenizerBackendComboBox->setCurrentIndex(index);
+	}
+	tokenizerBackendLayout->addWidget(tokenizerBackendComboBox);
+	mainLayout->addWidget(tokenizerBackendArea);
+
+	// mecabDictDir
+	std::string mecabDictDir = toml::get_or(_projectConfig["common"]["mecabDictDir"], "BaseConfig/mecabDict/mecab-ipadic-utf8");
+	ElaScrollPageArea* mecabDictDirArea = new ElaScrollPageArea(mainWidget);
+	QHBoxLayout* mecabDictDirLayout = new QHBoxLayout(mecabDictDirArea);
+	ElaText* mecabDictDirText = new ElaText(tr("MeCab词典目录"), mecabDictDirArea);
+	ElaToolTip* mecabDictDirTip = new ElaToolTip(mecabDictDirText);
+	mecabDictDirTip->setToolTip(tr("MeCab词典目录，程序自带一个"));
+	mecabDictDirText->setTextPixelSize(16);
+	mecabDictDirLayout->addWidget(mecabDictDirText);
+	mecabDictDirLayout->addStretch();
+	ElaLineEdit* mecabDictDirLineEdit = new ElaLineEdit(mecabDictDirArea);
+	mecabDictDirLineEdit->setFixedWidth(400);
+	mecabDictDirLineEdit->setText(QString::fromStdString(mecabDictDir));
+	mecabDictDirLayout->addWidget(mecabDictDirLineEdit);
+	mainLayout->addWidget(mecabDictDirArea);
+	ElaPushButton* mecabDictDirButton = new ElaPushButton(tr("浏览"), mecabDictDirArea);
+	mecabDictDirLayout->addWidget(mecabDictDirButton);
+	connect(mecabDictDirButton, &QPushButton::clicked, this, [=]()
 		{
-			// 打开文件夹选择对话框
-			QString path = QFileDialog::getExistingDirectory(this, tr("选择词典文件夹"), dictLineEdit->text());
-			if (!path.isEmpty()) {
-				dictLineEdit->setText(path);
+			QString dir = QFileDialog::getExistingDirectory(this, tr("选择MeCab词典目录"), mecabDictDirLineEdit->text());
+			if (!dir.isEmpty()) {
+				mecabDictDirLineEdit->setText(dir);
 			}
 		});
-	mainLayout->addWidget(dictArea);
+
+	// spaCyModelName  https://spacy.io/models
+	std::string spaCyModelName = toml::get_or(_projectConfig["common"]["spaCyModelName"], "ja_core_news_trf");
+	ElaScrollPageArea* spaCyModelNameArea = new ElaScrollPageArea(mainWidget);
+	QHBoxLayout* spaCyModelNameLayout = new QHBoxLayout(spaCyModelNameArea);
+	ElaText* spaCyModelNameText = new ElaText(tr("spaCy模型名称"), spaCyModelNameArea);
+	ElaToolTip* spaCyModelNameTip = new ElaToolTip(spaCyModelNameText);
+	spaCyModelNameTip->setToolTip(tr("spaCy模型名称，新模型下载后需重启程序"));
+	spaCyModelNameText->setTextPixelSize(16);
+	spaCyModelNameLayout->addWidget(spaCyModelNameText);
+	spaCyModelNameLayout->addStretch();
+	ElaLineEdit* spaCyModelNameLineEdit = new ElaLineEdit(spaCyModelNameArea);
+	spaCyModelNameLineEdit->setFixedWidth(200);
+	spaCyModelNameLineEdit->setText(QString::fromStdString(spaCyModelName));
+	spaCyModelNameLayout->addWidget(spaCyModelNameLineEdit);
+	mainLayout->addWidget(spaCyModelNameArea);
+	ElaPushButton* spaCyModelNameButton = new ElaPushButton(tr("浏览"), spaCyModelNameArea);
+	spaCyModelNameLayout->addWidget(spaCyModelNameButton);
+	connect(spaCyModelNameButton, &QPushButton::clicked, this, [=]()
+		{
+			QDesktopServices::openUrl(QUrl("https://spacy.io/models"));
+		});
+
+	// stanzaLang https://stanfordnlp.github.io/stanza/ner_models.html
+	std::string stanzaLang = toml::get_or(_projectConfig["common"]["stanzaLang"], "ja");
+	ElaScrollPageArea* stanzaLangArea = new ElaScrollPageArea(mainWidget);
+	QHBoxLayout* stanzaLangLayout = new QHBoxLayout(stanzaLangArea);
+	ElaText* stanzaLangText = new ElaText(tr("Stanza语言ID"), stanzaLangArea);
+	ElaToolTip* stanzaLangTip = new ElaToolTip(stanzaLangText);
+	stanzaLangTip->setToolTip(tr("Stanza语言ID，新模型下载后需重启程序"));
+	stanzaLangText->setTextPixelSize(16);
+	stanzaLangLayout->addWidget(stanzaLangText);
+	stanzaLangLayout->addStretch();
+	ElaLineEdit* stanzaLangLineEdit = new ElaLineEdit(stanzaLangArea);
+	stanzaLangLineEdit->setFixedWidth(200);
+	stanzaLangLineEdit->setText(QString::fromStdString(stanzaLang));
+	stanzaLangLayout->addWidget(stanzaLangLineEdit);
+	mainLayout->addWidget(stanzaLangArea);
+	ElaPushButton* stanzaLangButton = new ElaPushButton(tr("浏览"), stanzaLangArea);
+	stanzaLangLayout->addWidget(stanzaLangButton);
+	connect(stanzaLangButton, &QPushButton::clicked, this, [=]()
+		{
+			QDesktopServices::openUrl(QUrl("https://stanfordnlp.github.io/stanza/ner_models.html"));
+		});
 
 
 	// 项目所用的换行
@@ -322,7 +390,7 @@ void CommonSettingsPage::_setupUI()
 	toml::ordered_value lbsVal = linebreakSymbol;
 	lbsVal.as_string_fmt().fmt = toml::string_format::basic;
 	QString linebreakSymbolStr = QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{"linebreakSymbol", lbsVal}} }));
-	mainLayout->addSpacing(10);
+	mainLayout->addSpacing(15);
 	ElaText* linebreakText = new ElaText(tr("本项目所使用的换行符"), mainWidget);
 	linebreakText->setTextPixelSize(18);
 	ElaToolTip* linebreakTip = new ElaToolTip(linebreakText);
@@ -357,7 +425,11 @@ void CommonSettingsPage::_setupUI()
 			insertToml(_projectConfig, "common.checkQuota", checkQuotaToggle->getIsToggled());
 			insertToml(_projectConfig, "common.logLevel", logComboBox->currentText().toStdString());
 			insertToml(_projectConfig, "common.saveLog", saveLogToggle->getIsToggled());
-			insertToml(_projectConfig, "common.dictDir", dictLineEdit->text().toStdString());
+
+			insertToml(_projectConfig, "common.tokenizerBackend", tokenizerBackendComboBox->currentText().toStdString());
+			insertToml(_projectConfig, "common.mecabDictDir", mecabDictDirLineEdit->text().toStdString());
+			insertToml(_projectConfig, "common.spaCyModelName", spaCyModelNameLineEdit->text().toStdString());
+			insertToml(_projectConfig, "common.stanzaLang", stanzaLangLineEdit->text().toStdString());
 			try {
 				toml::ordered_value newTbl = toml::parse_str<toml::ordered_type_config>(linebreakEdit->toPlainText().toStdString());
 				auto& newLinebreakSymbol = newTbl["linebreakSymbol"];

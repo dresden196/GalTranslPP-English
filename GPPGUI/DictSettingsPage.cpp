@@ -241,10 +241,11 @@ void DictSettingsPage::_setupUI()
 				else {
 					filter = "TOML files (*.toml);;JSON files (*.json)";
 				}
-				QString dictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), QString(_projectDir.wstring()), filter);
+				QString dictPathStr = QFileDialog::getOpenFileName(this, tr("选择字典文件"), QString::fromStdString(toml::get_or(_globalConfig["lastProjectDictPath"], wide2Ascii(_projectDir))), filter);
 				if (dictPathStr.isEmpty()) {
 					return;
 				}
+				insertToml(_globalConfig, "lastProjectDictPath", dictPathStr.toStdString());
 				fs::path importDictPath = dictPathStr.toStdWString();
 				QList<EntryType> entries;
 				if constexpr (std::is_same_v<EntryType, GptDictEntry>) {

@@ -192,11 +192,11 @@ void PythonManager::checkDependency(const std::vector<std::string>& dependencies
                         throw std::runtime_error("检查依赖 " + dependency + " 时出现异常: " + e.what());
                     }
                     logger->error("依赖 {} 未安装，正在尝试安装", dependency);
-                    std::string installCommand = "\"" + wide2Ascii(fs::absolute(Py_GetPrefix()) / L"python.exe") + "\" -m pip install " + dependency;
+                    std::string installCommand = "-m pip install " + dependency;
                     logger->info("将在 3s 后开始安装依赖，请勿关闭接下来出现的窗口！");
                     std::this_thread::sleep_for(std::chrono::seconds(3));
                     logger->info("正在执行安装命令: {}", installCommand);
-                    if (!executeCommand(installCommand, true)) {
+                    if (!executeCommand((fs::absolute(Py_GetPrefix()) / L"python.exe").wstring(), ascii2Wide(installCommand), true)) {
                         throw std::runtime_error("安装依赖 " + dependency + " 的命令失败");
                     }
                     try {
@@ -273,22 +273,22 @@ bool NLPManager::checkModuleAndModel(const std::vector<std::string>& dependencie
                 if (!modelInstalled) {
                     logger->error("模块 {} 的模型 {} 未安装，正在尝试安装", moduleName, modelName);
                     std::vector<std::string> installArgs = nlpModuleProcessors.module_.attr("get_download_command")(modelName).cast<std::vector<std::string>>();
-                    std::string installCommand = "\"" + wide2Ascii(fs::absolute(Py_GetPrefix()) / L"python.exe") + "\" ";
-                    for (auto& arg : installArgs) {
+                    std::string installCommand;
+                    for (const auto& arg : installArgs) {
                         installCommand += arg + " ";
                     }
                     // 这个安装时间长，搞个窗口出来显示进度条吧
                     logger->info("将在 3s 后开始安装模型，请勿关闭接下来出现的窗口！");
                     std::this_thread::sleep_for(std::chrono::seconds(3));
                     logger->info("正在执行安装命令: {}", installCommand);
-                    if (!executeCommand(installCommand, true)) {
+                    if (!executeCommand((fs::absolute(Py_GetPrefix()) / L"python.exe").wstring(), ascii2Wide(installCommand), true)) {
                         throw std::runtime_error("安装模型 " + modelName + " 的命令失败");
                     }
                     modelInstalled = nlpModuleProcessors.module_.attr("check_model")(modelName).cast<bool>();
                     if (modelInstalled) {
                         logger->info("模块 {} 的模型 {} 安装成功", moduleName, modelName);
                         nlpModuleProcessors.processors_.insert(std::make_pair(modelName, py::none()));
-                        // 不重启就卡死...
+                        // 不重启会找不到新下载的模型...
                         needReboot = true;
                         return;
                     }

@@ -3,86 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>语法示例</title>
+    <title>问题分析 语法示例</title>
     <style>
-        /* 页面整体样式 */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
             line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            margin: 0;
             padding: 20px;
         }
-
-        /* 内容容器 */
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background-color: #ffffff;
-            padding: 25px;
+            background-color: #fff;
+            padding: 25px 40px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-
-        /* 标题样式 */
-        h2 {
-            border-bottom: 2px solid #e0e0e0;
+        h1 {
+            border-bottom: 2px solid #eee;
             padding-bottom: 10px;
-            margin-top: 0;
-            color: #1a237e;
+            margin-bottom: 20px;
+            color: #2c3e50;
         }
-
-        /* 代码块样式 */
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 8px;
+        }
         pre {
-            background-color: #2d2d2d; /* 深色背景 */
-            color: #f8f8f2; /* 亮色文字 */
+            background-color: #2d2d2d;
+            color: #f8f8f2;
             padding: 15px;
             border-radius: 5px;
-            overflow-x: auto; /* 内容过长时显示滚动条 */
+            overflow-x: auto;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
             font-size: 0.9em;
         }
-
         code {
-            font-family: "Fira Code", "Consolas", "Monaco", monospace;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            background-color: #e8eaed;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.9em;
         }
-
-        /* --- 语法高亮 --- */
-        .code-comment { color: #75715e; } /* 注释 */
-        .code-key { color: #66d9ef; } /* 键名，如 retranslKeys, base */
-        .code-operator { color: #f92672; } /* 操作符，如 = */
-        .code-string { color: #a6e22e; } /* 字符串 */
-        .code-punctuation { color: #f8f8f2; } /* 标点，如 [] {} , */
-        .code-variable { color: #fd971f; } /* 变量名 */
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+        }
+        .comment {
+            color: #7f7f7f;
+        }
+        ul {
+            padding-left: 20px;
+            list-style-type: disc;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        blockquote {
+            border-left: 4px solid #76c7c0;
+            padding-left: 15px;
+            margin: 20px 0;
+            color: #555;
+            background-color: #f1f8f8;
+        }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h2>retranslKey语法示例:</h2>
-        <pre><code><span class="code-variable">retranslKeys</span> <span class="code-operator">=</span> <span class="code-punctuation">[</span>
-  <span class="code-string">"翻译失败"</span><span class="code-punctuation">,</span>
-  <span class="code-string">"残留日文"</span><span class="code-punctuation">,</span>
-  <span class="code-string">"本有"</span><span class="code-punctuation">,</span>
-  <span class="code-string">"本无"</span><span class="code-punctuation">,</span>
-  <span class="code-comment"># ...</span>
-<span class="code-punctuation">]</span></code></pre>
+        <h1>问题分析 语法示例</h1>
 
-        <h2>问题比较对象设定语法示例:</h2>
-        <p>如 <code>{ base = 'orig_text', check = 'trans_preview', problemKey = '比原文长严格' }</code>，<br>意思是当 trans_preview 比 orig_text 严格长时，在 problem 中留下对应的问题。</p>
-        <pre><code><span class="code-variable">overwriteCompareObj</span> <span class="code-operator">=</span> <span class="code-punctuation">[</span>
-    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'orig_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'词频过高'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
-    <span class="code-punctuation">{</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'残留日文'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
-    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'preproc_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'标点错漏'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
-    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'preproc_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'引入拉丁字母'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
-    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'preproc_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'引入韩文'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
-    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'orig_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'丢失换行'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
-    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'orig_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'多加换行'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
-    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'orig_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'比原文长'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
-    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'orig_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'比原文长严格'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
-    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'preproc_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'字典未使用'</span> <span class="code-punctuation">}</span><span class="code-punctuation">,</span>
-    <span class="code-punctuation">{</span> <span class="code-key">base</span> <span class="code-operator">=</span> <span class="code-string">'preproc_text'</span><span class="code-punctuation">,</span> <span class="code-key">check</span> <span class="code-operator">=</span> <span class="code-string">'trans_preview'</span><span class="code-punctuation">,</span> <span class="code-key">problemKey</span> <span class="code-operator">=</span> <span class="code-string">'语言不通'</span> <span class="code-punctuation">}</span>
-<span class="code-punctuation">]</span></code></pre>
+        <!-- retranslKeys Section -->
+        <h2>retranslKeys 语法示例</h2>
+        <p>
+            此配置项用于定义需要触发<b>重翻</b>的条件。它是一个规则列表，如果句子缓存中的某条 <code>problem</code> 能被列表中的任一规则匹配通过，则会进行重翻。
+        </p>
+        <pre><code class="language-toml"><span class="comment"># 正则表达式列表，如果句子缓存中的某条 problem 能被以下任一正则 search 通过，则进行重翻</span>
+<span class="comment"># 如果想对指定原文/译文进行重翻，请通过内联表数组指定 conditionTarget 和 conditionReg</span>
+retranslKeys = [
+  <span class="comment">#"残留日文",</span>
+  [{ conditionTarget = 'orig_text', conditionReg = '^(?!.*隠さん).*$'},
+   { conditionTarget = 'trans_preview', conditionReg = '隐同学' }], <span class="comment"># 重翻所有 原文中不含'隠さん'且译文中含'隐同学' 的句子</span>
+  "翻译失败", <span class="comment"># 等效于 [{ conditionTarget = 'problems', conditionReg = '翻译失败' }]</span>
+]</code></pre>
+        <h3>语法说明</h3>
+        <ul>
+            <li><b>简单规则：</b>可以直接提供一个字符串（正则表达式），例如 <code>"翻译失败"</code>。这会匹配 <code>problems</code> 字段中包含“翻译失败”的句子。</li>
+            <li><b>条件规则：</b>可以提供一个内联表数组，用于设置更复杂的匹配条件。
+                <ul>
+                    <li><code>conditionTarget</code>: 指定要检查的目标，如 <code>'orig_text'</code> (原文), <code>'trans_preview'</code> (译文预览) 等。</li>
+                    <li><code>conditionReg</code>: 作用于 <code>conditionTarget</code> 的正则表达式。</li>
+                </ul>
+                当数组中所有条件都满足时，规则才算匹配成功。
+            </li>
+        </ul>
+
+        <!-- skipProblems Section -->
+        <h2>skipProblems 语法示例</h2>
+        <p>
+            此配置项用于定义需要<b>忽略</b>的特定问题。如果一个 <code>problem</code> 能被列表中的任一规则匹配通过，它就不会被添加到最终的 <code>problems</code> 列表中。
+        </p>
+        <pre><code class="language-toml"><span class="comment"># 正则表达式列表，如果一条 problem 能被以下任一正则 search 通过，则不加入 problems 列表</span>
+<span class="comment"># 如果想忽略指定原文/译文的指定问题，请通过内联表数组指定 conditionTarget 和 conditionReg</span>
+<span class="comment"># 并在表数组第一项填入要忽略的 problem(同样也是正则表达式)</span>
+skipProblems = [
+  <span class="comment"># "^引入拉丁字母: Live$"  # 不加任何条件</span>
+  <span class="comment"># 如果 原文中包含'モチモチ'且译文中包含'Q弹'，则忽略此句子中所有能被 '引入拉丁字母' search 通过的 problem</span>
+  [ '引入拉丁字母', { conditionTarget = 'preproc_text', conditionReg = 'モチモチ'},
+    { conditionTarget = 'trans_preview', conditionReg = 'Q弹'}], 
+]</code></pre>
+        <h3>语法说明</h3>
+        <ul>
+            <li><b>简单规则：</b>可以直接提供一个字符串（正则表达式），例如 <code>"^引入拉丁字母: Live$"</code>。这会忽略所有完全匹配此字符串的问题。</li>
+            <li><b>条件规则：</b>可以提供一个数组，其中：
+                <ul>
+                    <li><b>第一项</b>是要忽略的 <code>problem</code> 的正则表达式，例如 <code>'引入拉丁字母'</code>。</li>
+                    <li><b>后续项</b>是定义触发条件的内联表（包含 <code>conditionTarget</code> 和 <code>conditionReg</code>）。</li>
+                </ul>
+                当所有附加条件都满足时，才会忽略匹配第一项的那个问题。
+            </li>
+        </ul>
+
+        <!-- overwriteCompareObj Section -->
+        <h2>问题比较对象设定 语法示例</h2>
+        <p>
+            此配置项用于<b>覆盖</b>特定问题检查时的比较对象。默认情况下，很多检查是在预处理文本 (<code>preproc_text</code>) 和译文预览 (<code>trans_preview</code>) 之间进行的。通过此设置，可以为特定的问题检查 (<code>problemKey</code>) 指定不同的比较基准 (<code>base</code>) 和检查对象 (<code>check</code>)。
+        </p>
+        <pre><code class="language-toml">overwriteCompareObj = [
+    { check = 'trans_preview', problemKey = '残留日文' },
+    { base = 'preproc_text', check = 'trans_preview', problemKey = '标点错漏' },
+    { base = 'preproc_text', check = 'trans_preview', problemKey = '引入拉丁字母' },
+    { base = 'preproc_text', check = 'trans_preview', problemKey = '引入韩文' },
+    { base = 'orig_text', check = 'trans_preview', problemKey = '丢失换行' },
+    { base = 'orig_text', check = 'trans_preview', problemKey = '多加换行' },
+    { base = 'preproc_text', check = 'trans_preview', problemKey = '字典未使用' },
+    { base = 'preproc_text', check = 'trans_preview', problemKey = '语言不通' }
+]</code></pre>
+        <h3>语法说明</h3>
+        <blockquote>
+            <p>例如，规则 <code>{ base = 'orig_text', check = 'trans_preview', problemKey = '比原文长严格' }</code> 的意思是：</p>
+            <p>对于键名为 <code>'比原文长严格'</code> 的这个问题，程序会将 <code>trans_preview</code> (译文预览) 作为检查对象 (<code>check</code>)，与 <code>orig_text</code> (原始文本) 这个基准 (<code>base</code>) 进行比较。只有当译文预览严格比原文长时，才会记录这个问题。</p>
+        </blockquote>
     </div>
-
 </body>
 </html>

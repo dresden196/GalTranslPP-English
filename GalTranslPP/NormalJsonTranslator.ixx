@@ -11,11 +11,11 @@ module;
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
+#include <toml.hpp>
 
 export module NormalJsonTranslator;
 
 import <nlohmann/json.hpp>;
-import <toml.hpp>;
 import <ctpl_stl.h>;
 import APIPool;
 import Dictionary;
@@ -262,6 +262,12 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             m_tokenizeSourceLangFunc = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, needReboot, m_logger);
             m_logger->info("spaCy 环境检查完毕。");
         }
+        else if (tokenizerBackend == "Stanza") {
+            const std::string& stanzaLang = toml::find_or(configData, "common", "stanzaLang", "zh");
+            m_logger->info("正在检查 Stanza 环境...");
+            m_tokenizeSourceLangFunc = getNLPTokenizeFunc({ "stanza" }, "tokenizer_stanza", stanzaLang, needReboot, m_logger);
+            m_logger->info("Stanza 环境检查完毕。");
+        }
         else {
             throw std::invalid_argument("无效的 tokenizerBackend");
         }
@@ -295,7 +301,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         >(configData, "problemAnalyze", "problemList");
         if (problemList) {
             const std::string& punctSet = toml::find_or(configData, "problemAnalyze", "punctSet", "");
-            double langProbability = toml::find_or(configData, "problemAnalyze", "langProbability", 0.85);
+            double langProbability = toml::find_or(configData, "problemAnalyze", "langProbability", 0.94);
             m_problemAnalyzer.loadProblems(*problemList, punctSet, langProbability);
         }
 

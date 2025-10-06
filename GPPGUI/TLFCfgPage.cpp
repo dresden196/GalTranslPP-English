@@ -2,12 +2,15 @@
 
 #include <QVBoxLayout>
 #include <QFormLayout>
+#include <QDesktopServices>
 
 #include "ElaScrollPageArea.h"
 #include "ElaSpinBox.h"
 #include "ElaComboBox.h"
 #include "ElaToggleSwitch.h"
 #include "ElaText.h"
+#include "ElaLineEdit.h"
+#include "ElaPushButton.h"
 #include "ElaToolTip.h"
 
 import Tool;
@@ -87,7 +90,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mainLayout->addWidget(forceFixArea);
 
 	// 报错阈值
-	int errorThreshold = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["报错阈值"], 35);
+	int errorThreshold = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["报错阈值"], 28);
 	ElaScrollPageArea* errorThresholdArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* errorThresholdLayout = new QHBoxLayout(errorThresholdArea);
 	ElaText* errorThresholdText = new ElaText(tr("报错阈值"), errorThresholdArea);
@@ -102,6 +105,114 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	errorThresholdLayout->addWidget(errorThresholdSpinBox);
 	mainLayout->addWidget(errorThresholdArea);
 
+	mainLayout->addSpacing(15);
+	ElaText* tokenizerConfigText = new ElaText(tr("分词器设置"), this);
+	tokenizerConfigText->setWordWrap(false);
+	tokenizerConfigText->setTextPixelSize(18);
+	mainLayout->addWidget(tokenizerConfigText);
+
+	mainLayout->addSpacing(10);
+
+	// 使用分词器
+	bool useTokenizer = toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["使用分词器"], false);
+	ElaScrollPageArea* useTokenizerArea = new ElaScrollPageArea(centerWidget);
+	QHBoxLayout* useTokenizerLayout = new QHBoxLayout(useTokenizerArea);
+	ElaText* useTokenizerText = new ElaText(tr("使用分词器"), useTokenizerArea);
+	ElaToolTip* useTokenizerTip = new ElaToolTip(useTokenizerArea);
+	useTokenizerTip->setToolTip(tr("可能可以获得更好的换行效果(不过感觉用处不大)"));
+	useTokenizerText->setTextPixelSize(16);
+	useTokenizerLayout->addWidget(useTokenizerText);
+	useTokenizerLayout->addStretch();
+	ElaToggleSwitch* useTokenizerToggleSwitch = new ElaToggleSwitch(useTokenizerArea);
+	useTokenizerToggleSwitch->setIsToggled(useTokenizer);
+	useTokenizerLayout->addWidget(useTokenizerToggleSwitch);
+	mainLayout->addWidget(useTokenizerArea);
+
+	// tokenizerBackend
+	QStringList tokenizerBackends = { "MeCab", "spaCy", "Stanza" };
+	QString tokenizerBackend = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["tokenizerBackend"], "MeCab"));
+	ElaScrollPageArea* tokenizerBackendArea = new ElaScrollPageArea(centerWidget);
+	QHBoxLayout* tokenizerBackendLayout = new QHBoxLayout(tokenizerBackendArea);
+	ElaText* tokenizerBackendText = new ElaText(tr("分词器后端"), tokenizerBackendArea);
+	ElaToolTip* tokenizerBackendTip = new ElaToolTip(tokenizerBackendArea);
+	tokenizerBackendTip->setToolTip(tr("应选择适合目标语言的后端/模型/字典"));
+	tokenizerBackendText->setTextPixelSize(16);
+	tokenizerBackendLayout->addWidget(tokenizerBackendText);
+	tokenizerBackendLayout->addStretch();
+	ElaComboBox* tokenizerBackendComboBox = new ElaComboBox(tokenizerBackendArea);
+	tokenizerBackendComboBox->addItems(tokenizerBackends);
+	if (!tokenizerBackend.isEmpty()) {
+		int index = tokenizerBackends.indexOf(tokenizerBackend);
+		if (index >= 0) {
+			tokenizerBackendComboBox->setCurrentIndex(index);
+		}
+	}
+	tokenizerBackendLayout->addWidget(tokenizerBackendComboBox);
+	mainLayout->addWidget(tokenizerBackendArea);
+
+	// mecabDictDir
+	QString mecabDictDir = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["mecabDictDir"], "BaseConfig/mecabDict/mecab-chinese"));
+	ElaScrollPageArea* mecabDictDirArea = new ElaScrollPageArea(centerWidget);
+	QHBoxLayout* mecabDictDirLayout = new QHBoxLayout(mecabDictDirArea);
+	ElaText* mecabDictDirText = new ElaText(tr("MeCab词典目录"), mecabDictDirArea);
+	ElaToolTip* mecabDictDirTip = new ElaToolTip(mecabDictDirText);
+	mecabDictDirTip->setToolTip(tr("MeCab中文词典需手动下载"));
+	mecabDictDirText->setTextPixelSize(16);
+	mecabDictDirLayout->addWidget(mecabDictDirText);
+	mecabDictDirLayout->addStretch();
+	ElaLineEdit* mecabDictDirLineEdit = new ElaLineEdit(mecabDictDirArea);
+	mecabDictDirLineEdit->setFixedWidth(400);
+	mecabDictDirLineEdit->setText(mecabDictDir);
+	mecabDictDirLayout->addWidget(mecabDictDirLineEdit);
+	mainLayout->addWidget(mecabDictDirArea);
+
+	// spaCyModelName https://spacy.io/models
+	QString spaCyModelName = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["spaCyModelName"], "zh_core_web_trf"));
+	ElaScrollPageArea* spaCyModelNameArea = new ElaScrollPageArea(centerWidget);
+	QHBoxLayout* spaCyModelNameLayout = new QHBoxLayout(spaCyModelNameArea);
+	ElaText* spaCyModelNameText = new ElaText(tr("spaCy模型名称"), spaCyModelNameArea);
+	ElaToolTip* spaCyModelNameTip = new ElaToolTip(spaCyModelNameText);
+	spaCyModelNameTip->setToolTip(tr("spaCy模型名称，新模型下载后需重启程序"));
+	spaCyModelNameText->setTextPixelSize(16);
+	spaCyModelNameLayout->addWidget(spaCyModelNameText);
+	spaCyModelNameLayout->addStretch();
+	ElaLineEdit* spaCyModelNameLineEdit = new ElaLineEdit(spaCyModelNameArea);
+	spaCyModelNameLineEdit->setFixedWidth(200);
+	spaCyModelNameLineEdit->setText(spaCyModelName);
+	spaCyModelNameLayout->addWidget(spaCyModelNameLineEdit);
+	ElaPushButton* browseSpaCyModelButton = new ElaPushButton(tr("浏览"), spaCyModelNameArea);
+	browseSpaCyModelButton->setToolTip(tr("浏览模型目录"));
+	spaCyModelNameLayout->addWidget(browseSpaCyModelButton);
+	connect(browseSpaCyModelButton, &ElaPushButton::clicked, this, [=]()
+		{
+			QDesktopServices::openUrl(QUrl("https://spacy.io/models"));
+		});
+	mainLayout->addWidget(spaCyModelNameArea);
+
+	// Stanza https://stanfordnlp.github.io/stanza/ner_models.html
+	QString stanzaLang = QString::fromStdString(toml::get_or(_projectConfig["plugins"]["TextLinebreakFix"]["stanzaLang"], "zh"));
+	ElaScrollPageArea* stanzaArea = new ElaScrollPageArea(centerWidget);
+	QHBoxLayout* stanzaLayout = new QHBoxLayout(stanzaArea);
+	ElaText* stanzaText = new ElaText(tr("Stanza语言ID"), stanzaArea);
+	ElaToolTip* stanzaTip = new ElaToolTip(stanzaText);
+	stanzaTip->setToolTip(tr("Stanza语言ID，新模型下载后需重启程序"));
+	stanzaText->setTextPixelSize(16);
+	stanzaLayout->addWidget(stanzaText);
+	stanzaLayout->addStretch();
+	ElaLineEdit* stanzaLineEdit = new ElaLineEdit(stanzaArea);
+	stanzaLineEdit->setFixedWidth(200);
+	stanzaLineEdit->setText(stanzaLang);
+	stanzaLayout->addWidget(stanzaLineEdit);
+	ElaPushButton* browseStanzaModelButton = new ElaPushButton(tr("浏览"), stanzaArea);
+	browseStanzaModelButton->setToolTip(tr("浏览模型目录"));
+	stanzaLayout->addWidget(browseStanzaModelButton);
+	connect(browseStanzaModelButton, &ElaPushButton::clicked, this, [=]()
+		{
+			QDesktopServices::openUrl(QUrl("https://stanfordnlp.github.io/stanza/ner_models.html"));
+		});
+	mainLayout->addWidget(stanzaArea);
+
+
 	_applyFunc = [=]()
 		{
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.换行模式", fixModes[fixModeComboBox->currentIndex()].toStdString());
@@ -109,11 +220,16 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.分段字数阈值", segmentThresholdSpinBox->value());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.强制修复", forceFixToggleSwitch->getIsToggled());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.报错阈值", errorThresholdSpinBox->value());
+			insertToml(_projectConfig, "plugins.TextLinebreakFix.使用分词器", useTokenizerToggleSwitch->getIsToggled());
+			insertToml(_projectConfig, "plugins.TextLinebreakFix.tokenizerBackend", tokenizerBackends[tokenizerBackendComboBox->currentIndex()].toStdString());
+			insertToml(_projectConfig, "plugins.TextLinebreakFix.mecabDictDir", mecabDictDirLineEdit->text().toStdString());
+			insertToml(_projectConfig, "plugins.TextLinebreakFix.spaCyModelName", spaCyModelNameLineEdit->text().toStdString());
+			insertToml(_projectConfig, "plugins.TextLinebreakFix.stanzaLang", stanzaLineEdit->text().toStdString());
 		};
 
 	mainLayout->addStretch();
 	centerWidget->setWindowTitle(tr("换行修复设置"));
-	addCentralWidget(centerWidget);
+	addCentralWidget(centerWidget, true, true, 0);
 }
 
 TLFCfgPage::~TLFCfgPage()

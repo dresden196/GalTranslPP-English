@@ -1,3 +1,4 @@
+#include <toml.hpp>
 #include <pybind11/embed.h>
 #include <QDir>
 #include <QApplication>
@@ -8,7 +9,6 @@
 #include <QSharedMemory>
 #include <QLocalServer>
 #include <QLocalSocket>
-#include <toml.hpp>
 
 #ifdef Q_OS_WIN
 #include <Windows.h>

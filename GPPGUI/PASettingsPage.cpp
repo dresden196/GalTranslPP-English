@@ -143,6 +143,9 @@ void PASettingsPage::_setupUI()
 						if (newRetranslKeysArr.is_array()) {
 							if (configKey == "retranslKeys") {
 								for (auto& rkey : newRetranslKeysArr.as_array()) {
+									if (!rkey.is_string()) {
+										continue;
+									}
 									int index = problemListToShow.indexOf(rkey.as_string());
 									if (index < 0) {
 										continue;
