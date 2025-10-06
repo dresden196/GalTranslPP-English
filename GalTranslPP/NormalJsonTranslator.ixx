@@ -12,6 +12,7 @@ module;
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
+#pragma comment(lib, "../lib/python312.lib")
 
 export module NormalJsonTranslator;
 
@@ -24,6 +25,7 @@ import DictionaryGenerator;
 import ProblemAnalyzer;
 import IPlugin;
 import NJ_ImplTool;
+import PythonManager;
 export import ITranslator;
 
 using json = nlohmann::json;
@@ -90,14 +92,14 @@ export {
         std::function<void(fs::path)> m_onFileProcessed;
         std::shared_mutex m_cacheMutex;
         std::mutex m_outputMutex;
+        std::mutex m_tokenizeFuncMutex;
 
         APIPool m_apiPool;
         GptDictionary m_gptDictionary;
         NormalDictionary m_preDictionary;
         NormalDictionary m_postDictionary;
         ProblemAnalyzer m_problemAnalyzer;
-        std::shared_ptr<MeCab::Model> m_model;
-        std::shared_ptr<MeCab::Tagger> m_tagger;
+        std::function<NLPResult(const std::string&)> m_tokenizeSourceLangFunc;
         std::vector<std::shared_ptr<IPlugin>> m_prePlugins;
         std::vector<std::shared_ptr<IPlugin>> m_postPlugins;
 
@@ -144,6 +146,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         throw std::runtime_error("找不到 config.toml 文件");
     }
     try {
+        bool needReboot = false;
         const auto configData = toml::parse(configPath);
         
         const std::string& transEngineStr = toml::find_or(configData, "plugins", "transEngine", "ForGalJson");
@@ -231,20 +234,6 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             }
         }
 
-        const auto& textPrePlugins = toml::find<
-            std::optional<std::vector<std::string>>
-        >(configData, "plugins", "textPrePlugins");
-        if (textPrePlugins) {
-            m_prePlugins = registerPlugins(*textPrePlugins, m_projectDir, m_logger);
-        }
-
-        const auto& textPostPlugins = toml::find<
-            std::optional<std::vector<std::string>>
-        >(configData, "plugins", "textPostPlugins");
-        if (textPostPlugins) {
-            m_postPlugins = registerPlugins(*textPostPlugins, m_projectDir, m_logger);
-        }
-
         const auto pluginConfigData = toml::parse(pluginConfigsPath / L"filePlugins/NormalJson.toml");
         m_outputWithSrc = parseToml<bool>(configData, pluginConfigData, "plugins.NormalJson.output_with_src");
 
@@ -260,21 +249,48 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         m_contextHistorySize = toml::find_or(configData, "common", "contextHistorySize", 8);
         m_smartRetry = toml::find_or(configData, "common", "smartRetry", true);
         m_checkQuota = toml::find_or(configData, "common", "checkQuota", true);
-        std::string dictDir = toml::find_or(configData, "common", "dictDir", "DictGenerator/mecab-ipadic-utf8");
 
-        m_model.reset(
-            MeCab::Model::create(("-r BaseConfig/DictGenerator/mecabrc -d " + ascii2Ascii(dictDir)).c_str())
-        );
-        if (!m_model) {
-            throw std::runtime_error("无法初始化 MeCab Model。请确保 BaseConfig/DictGenerator/mecabrc 和 " + dictDir + " 存在且无特殊字符\n"
-                "错误信息: " + MeCab::getLastError());
+        const std::string& tokenizerBackend = toml::find_or(configData, "common", "tokenizerBackend", "MeCab");
+
+        if (tokenizerBackend == "MeCab") {
+            const std::string& mecabDictDir = toml::find_or(configData, "common", "mecabDictDir", "BaseConfig/DictGenerator/mecab-ipadic-utf8");
+            m_logger->info("正在检查 MeCab 环境...");
+            m_tokenizeSourceLangFunc = getMeCabTokenizeFunc(mecabDictDir);
+            m_logger->info("MeCab 环境检查完毕。");
         }
-        m_tagger.reset(m_model->createTagger());
-        if (!m_tagger) {
-            throw std::runtime_error("无法初始化 MeCab Tagger。请确保 BaseConfig/DictGenerator/mecabrc 和 " + dictDir + " 存在且无特殊字符\n"
-                "错误信息: " + MeCab::getLastError());
+        else if (tokenizerBackend == "spaCy") {
+            const std::string& spaCyModelName = toml::find_or(configData, "common", "spaCyModelName", "ja_core_news_trf");
+            m_logger->info("正在检查 spaCy 环境...");
+            m_tokenizeSourceLangFunc = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, needReboot, m_logger);
+            m_logger->info("spaCy 环境检查完毕。");
         }
-        m_gptDictionary.getModelAndTagger(m_model, m_tagger);
+        else {
+            throw std::invalid_argument("无效的 tokenizerBackend");
+        }
+
+        m_gptDictionary.getModelAndTagger(m_tokenizeSourceLangFunc);
+
+        const auto& textPrePlugins = toml::find<
+            std::optional<std::vector<std::string>>
+        >(configData, "plugins", "textPrePlugins");
+        if (textPrePlugins) {
+            m_prePlugins = registerPlugins(*textPrePlugins, m_projectDir, m_logger, configData);
+        }
+
+        const auto& textPostPlugins = toml::find<
+            std::optional<std::vector<std::string>>
+        >(configData, "plugins", "textPostPlugins");
+        if (textPostPlugins) {
+            m_postPlugins = registerPlugins(*textPostPlugins, m_projectDir, m_logger, configData);
+        }
+
+
+        needReboot = needReboot 
+            || std::ranges::any_of(m_prePlugins, [](const auto& plugin) { return plugin->needReboot(); }) 
+            || std::ranges::any_of(m_postPlugins, [](const auto& plugin) { return plugin->needReboot(); });
+        if (needReboot) {
+            throw std::runtime_error("需要重启程序以应用新安装的 Python 模块");
+        }
 
         const auto& problemList = toml::find<
             std::optional<std::vector<std::string>>
@@ -585,14 +601,14 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
     m_problemAnalyzer.analyze(se, m_gptDictionary, m_targetLang);
     std::erase_if(se->problems, [&](const auto& problem)
         {
-            return std::ranges::any_of(m_skipProblems, [&](const SkipProblemCondition& skipProblem)
+            return std::ranges::any_of(m_skipProblems, [&](const SkipProblemCondition& skipProblemCondition)
                 {
-                    bool problemMatch = checkString(skipProblem.first, problem);
-                    if (!skipProblem.second.has_value()) {
+                    bool problemMatch = checkString(skipProblemCondition.first, problem);
+                    if (!skipProblemCondition.second.has_value()) {
                         return problemMatch;
                     }
                     else {
-                        return problemMatch && checkCondition(*skipProblem.second, se);
+                        return problemMatch && checkCondition(skipProblemCondition.second.value(), se);
                     }
                 });
         });
@@ -1054,7 +1070,8 @@ void NormalJsonTranslator::run() {
     m_logger->info("GalTransl++ NormalJsonTranlator 启动...");
 
     if (fs::exists(m_cacheDir)) {
-        fs::copy(m_cacheDir, m_cacheDir.parent_path() / L"transl_cache_bak", fs::copy_options::recursive | fs::copy_options::overwrite_existing);
+        std::error_code ec;
+        fs::copy(m_cacheDir, m_cacheDir.parent_path() / L"transl_cache_bak", fs::copy_options::recursive | fs::copy_options::overwrite_existing, ec);
     }
     for (const auto& dir : { m_inputDir, m_outputDir, m_cacheDir }) {
         if (!fs::exists(dir)) {
@@ -1177,7 +1194,7 @@ void NormalJsonTranslator::run() {
 
     // 字典生成
     if (m_transEngine == TransEngine::GenDict) {
-        DictionaryGenerator generator(m_controller, m_logger, m_apiPool, m_tagger, 
+        DictionaryGenerator generator(m_controller, m_logger, m_apiPool, m_tokenizeSourceLangFunc, 
             m_preDictionary, m_systemPrompt, m_userPrompt, m_apiStrategy,
             m_maxRetries, m_threadsNum, m_apiTimeOutMs, m_checkQuota, m_usePreDictInName, m_usePreDictInMsg);
         fs::path outputFilePath = m_projectDir / L"项目GPT字典-生成.toml";

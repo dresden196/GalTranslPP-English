@@ -2482,138 +2482,138 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="78"/>
+        <location filename="StartSettingsPage.cpp" line="79"/>
         <source>日志输出</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="92"/>
+        <location filename="StartSettingsPage.cpp" line="93"/>
         <source>文件格式:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="108"/>
+        <location filename="StartSettingsPage.cpp" line="109"/>
         <source>文件输出设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="115"/>
+        <location filename="StartSettingsPage.cpp" line="116"/>
         <source>工作线程数:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="130"/>
+        <location filename="StartSettingsPage.cpp" line="131"/>
         <source>已用时间:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="139"/>
+        <location filename="StartSettingsPage.cpp" line="140"/>
         <source>剩余时间:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="150"/>
+        <location filename="StartSettingsPage.cpp" line="151"/>
         <source>翻译模式:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="172"/>
+        <location filename="StartSettingsPage.cpp" line="173"/>
         <source>开始翻译</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="189"/>
+        <location filename="StartSettingsPage.cpp" line="190"/>
         <source>停止翻译</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="400"/>
+        <location filename="StartSettingsPage.cpp" line="401"/>
         <source>停止中</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="400"/>
+        <location filename="StartSettingsPage.cpp" line="401"/>
         <source>正在等待最后一批翻译完成，请稍候...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="412"/>
-        <location filename="StartSettingsPage.cpp" line="416"/>
-        <location filename="StartSettingsPage.cpp" line="423"/>
+        <location filename="StartSettingsPage.cpp" line="413"/>
+        <location filename="StartSettingsPage.cpp" line="417"/>
+        <location filename="StartSettingsPage.cpp" line="424"/>
         <source>翻译失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="412"/>
-        <location filename="StartSettingsPage.cpp" line="417"/>
-        <location filename="StartSettingsPage.cpp" line="423"/>
-        <location filename="StartSettingsPage.cpp" line="427"/>
-        <location filename="StartSettingsPage.cpp" line="430"/>
-        <location filename="StartSettingsPage.cpp" line="455"/>
+        <location filename="StartSettingsPage.cpp" line="413"/>
+        <location filename="StartSettingsPage.cpp" line="418"/>
+        <location filename="StartSettingsPage.cpp" line="424"/>
+        <location filename="StartSettingsPage.cpp" line="428"/>
+        <location filename="StartSettingsPage.cpp" line="431"/>
+        <location filename="StartSettingsPage.cpp" line="456"/>
         <source>项目 </source>
         <translation type="unfinished">Project </translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="412"/>
-        <location filename="StartSettingsPage.cpp" line="417"/>
+        <location filename="StartSettingsPage.cpp" line="413"/>
+        <location filename="StartSettingsPage.cpp" line="418"/>
         <source> 翻译任务失败，请检查日志输出。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="423"/>
+        <location filename="StartSettingsPage.cpp" line="424"/>
         <source> 连工厂函数都失败了，玩毛啊</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="427"/>
-        <location filename="StartSettingsPage.cpp" line="429"/>
-        <location filename="StartSettingsPage.cpp" line="436"/>
-        <location filename="StartSettingsPage.cpp" line="438"/>
+        <location filename="StartSettingsPage.cpp" line="428"/>
+        <location filename="StartSettingsPage.cpp" line="430"/>
+        <location filename="StartSettingsPage.cpp" line="437"/>
+        <location filename="StartSettingsPage.cpp" line="439"/>
         <source>生成完成</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="427"/>
-        <location filename="StartSettingsPage.cpp" line="430"/>
+        <location filename="StartSettingsPage.cpp" line="428"/>
+        <location filename="StartSettingsPage.cpp" line="431"/>
         <source> 的生成任务已完成。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="436"/>
-        <location filename="StartSettingsPage.cpp" line="439"/>
+        <location filename="StartSettingsPage.cpp" line="437"/>
+        <location filename="StartSettingsPage.cpp" line="440"/>
         <source>请在 show_normal 文件夹中查收项目 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="436"/>
-        <location filename="StartSettingsPage.cpp" line="439"/>
+        <location filename="StartSettingsPage.cpp" line="437"/>
+        <location filename="StartSettingsPage.cpp" line="440"/>
         <source> 的预处理结果。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="445"/>
-        <location filename="StartSettingsPage.cpp" line="447"/>
+        <location filename="StartSettingsPage.cpp" line="446"/>
+        <location filename="StartSettingsPage.cpp" line="448"/>
         <source>翻译完成</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="445"/>
-        <location filename="StartSettingsPage.cpp" line="448"/>
+        <location filename="StartSettingsPage.cpp" line="446"/>
+        <location filename="StartSettingsPage.cpp" line="449"/>
         <source>请在 gt_output 文件夹中查收项目 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="448"/>
+        <location filename="StartSettingsPage.cpp" line="449"/>
         <source> 的翻译结果。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="455"/>
+        <location filename="StartSettingsPage.cpp" line="456"/>
         <source>停止成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="455"/>
+        <location filename="StartSettingsPage.cpp" line="456"/>
         <source> 的翻译任务已终止</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2690,121 +2690,121 @@
 <context>
     <name>UpdateChecker</name>
     <message>
-        <location filename="UpdateChecker.cpp" line="110"/>
-        <location filename="UpdateChecker.cpp" line="119"/>
+        <location filename="UpdateChecker.cpp" line="117"/>
+        <location filename="UpdateChecker.cpp" line="126"/>
         <source>更新检测失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="110"/>
-        <location filename="UpdateChecker.cpp" line="222"/>
+        <location filename="UpdateChecker.cpp" line="117"/>
+        <location filename="UpdateChecker.cpp" line="231"/>
         <source>网络连接失败，请检查网络设置。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="119"/>
+        <location filename="UpdateChecker.cpp" line="126"/>
         <source>获取更新信息失败。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="132"/>
+        <location filename="UpdateChecker.cpp" line="139"/>
         <source>检测到新版本</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="132"/>
+        <location filename="UpdateChecker.cpp" line="139"/>
         <source>最新版本: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="136"/>
+        <location filename="UpdateChecker.cpp" line="143"/>
         <source>不兼容更新</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="136"/>
+        <location filename="UpdateChecker.cpp" line="143"/>
         <source>最新版含有不兼容当前版本的内容，请在确认 github 发布页更新日志后再酌情下载。</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="149"/>
+        <location filename="UpdateChecker.cpp" line="156"/>
         <source>更新下载已完成</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="154"/>
-        <location filename="UpdateChecker.cpp" line="240"/>
+        <location filename="UpdateChecker.cpp" line="161"/>
+        <location filename="UpdateChecker.cpp" line="249"/>
         <source>下载完成</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="75"/>
-        <location filename="UpdateChecker.cpp" line="155"/>
-        <location filename="UpdateChecker.cpp" line="241"/>
+        <location filename="UpdateChecker.cpp" line="80"/>
+        <location filename="UpdateChecker.cpp" line="162"/>
+        <location filename="UpdateChecker.cpp" line="250"/>
         <source>点击以关闭程序并安装更新</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="169"/>
+        <location filename="UpdateChecker.cpp" line="178"/>
         <source>检测到新版本！</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="175"/>
+        <location filename="UpdateChecker.cpp" line="184"/>
         <source>下载更新</source>
         <translation type="unfinished">Download update</translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="67"/>
-        <location filename="UpdateChecker.cpp" line="175"/>
+        <location filename="UpdateChecker.cpp" line="72"/>
+        <location filename="UpdateChecker.cpp" line="184"/>
         <source>正在下载更新包...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="67"/>
+        <location filename="UpdateChecker.cpp" line="72"/>
         <source>别急别急</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="71"/>
-        <location filename="UpdateChecker.cpp" line="74"/>
+        <location filename="UpdateChecker.cpp" line="76"/>
+        <location filename="UpdateChecker.cpp" line="79"/>
         <source>下载已完成</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="71"/>
+        <location filename="UpdateChecker.cpp" line="76"/>
         <source>点击卡片以关闭程序并安装更新</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="176"/>
+        <location filename="UpdateChecker.cpp" line="185"/>
         <source>下载更新...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="185"/>
+        <location filename="UpdateChecker.cpp" line="194"/>
         <source>版本检测</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="185"/>
+        <location filename="UpdateChecker.cpp" line="194"/>
         <source>当前已是最新的版本</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="222"/>
-        <location filename="UpdateChecker.cpp" line="223"/>
+        <location filename="UpdateChecker.cpp" line="231"/>
+        <location filename="UpdateChecker.cpp" line="232"/>
         <source>更新下载失败</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="233"/>
-        <location filename="UpdateChecker.cpp" line="234"/>
+        <location filename="UpdateChecker.cpp" line="242"/>
+        <location filename="UpdateChecker.cpp" line="243"/>
         <source>更新下载成功</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="UpdateChecker.cpp" line="233"/>
+        <location filename="UpdateChecker.cpp" line="242"/>
         <source>将在程序关闭后自动安装更新</source>
         <translation type="unfinished"></translation>
     </message>

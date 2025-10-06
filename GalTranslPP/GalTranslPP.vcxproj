@@ -135,6 +135,7 @@
       <BuildStlModules>true</BuildStlModules>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <AdditionalIncludeDirectories>Python\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,6 +156,7 @@
     <ClCompile Include="ITranslator.cpp" />
     <ClCompile Include="ITranslator.ixx" />
     <ClCompile Include="NJ_ImplTool.ixx" />
+    <ClCompile Include="PythonManager.ixx" />
     <ClCompile Include="NormalJsonTranslator.ixx" />
     <ClCompile Include="PDFTranslator.ixx" />
     <ClCompile Include="ProblemAnalyzer.ixx" />

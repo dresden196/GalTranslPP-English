@@ -1,6 +1,5 @@
 module;
 
-#include <mecab/mecab.h>
 #include <spdlog/spdlog.h>
 #include <boost/regex.hpp>
 #include <cpr/cpr.h>
@@ -45,15 +44,14 @@ export {
         std::map<std::string, int> m_finalCounter;
         std::mutex m_resultMutex;
 
-        // MeCab 解析器
-        std::shared_ptr<MeCab::Tagger> m_tagger;
+        std::function<NLPResult(const std::string&)> m_tokenizeSourceLangFunc;
 
         void preprocessAndTokenize(const std::vector<fs::path>& jsonFiles);
         std::vector<int> solveSentenceSelection();
         void callLLMToGenerate(int segmentIndex, int threadId);
 
     public:
-        DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::shared_ptr<MeCab::Tagger> tagger,
+        DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::function<NLPResult(const std::string&)> tokenizeFunc,
             NormalDictionary& preDict, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
             int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota, bool usePreDictInName, bool usePreDictInMsg);
         void generate(const std::vector<fs::path>& jsonFiles, const fs::path& outputFilePath);
@@ -63,10 +61,10 @@ export {
 
 module :private;
 
-DictionaryGenerator::DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::shared_ptr<MeCab::Tagger> tagger,
+DictionaryGenerator::DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::function<NLPResult(const std::string&)> tokenizeFunc,
     NormalDictionary& preDict, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
     int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota, bool usePreDictInName, bool usePreDictInMsg)
-    : m_controller(controller), m_logger(logger), m_apiPool(apiPool), m_tagger(tagger),
+    : m_controller(controller), m_logger(logger), m_apiPool(apiPool), m_tokenizeSourceLangFunc(tokenizeFunc),
     m_preDict(preDict), m_systemPrompt(systemPrompt), m_userPrompt(userPrompt), m_apiStrategy(apiStrategy), m_maxRetries(maxRetries),
     m_threadsNum(threadsNum), m_apiTimeoutMs(apiTimeoutMs), m_checkQuota(checkQuota), m_usePreDictInName(usePreDictInName), m_usePreDictInMsg(usePreDictInMsg)
 {
@@ -137,21 +135,11 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
     m_segmentWords.reserve(m_segments.size());
     for (const auto& segment : m_segments) {
         std::set<std::string> wordsInSegment;
-        const MeCab::Node* node = m_tagger->parseToNode(segment.c_str());
-        for (; node; node = node->next) {
-            if (node->stat == MECAB_BOS_NODE || node->stat == MECAB_EOS_NODE) continue;
-
-            std::string surface(node->surface, node->length);
-            std::string feature = node->feature;
-
-            m_logger->trace("分词结果：{} ({})", surface, feature);
-
-            if (surface.length() <= 1) continue;
-
-            if (feature.find("固有名詞") != std::string::npos || !extractKatakana(surface).empty()) {
-                wordsInSegment.insert(surface);
-                m_wordCounter[surface]++;
-            }
+        NLPResult result = m_tokenizeSourceLangFunc(segment);
+        const std::vector<std::vector<std::string>>& entityList = std::get<1>(result);
+        for (const auto& entity : entityList) {
+            wordsInSegment.insert(entity.front());
+            m_wordCounter[entity.front()]++;
         }
         m_segmentWords.push_back(wordsInSegment);
     }

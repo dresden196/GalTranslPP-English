@@ -24,7 +24,7 @@ export {
         std::string convertText(const std::string& text);
 
     public:
-        TextPostFull2Half(const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger);
+        TextPostFull2Half(const fs::path& projectDir, const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger);
         virtual void run(Sentence* se) override;
         virtual ~TextPostFull2Half() = default;
     };
@@ -32,11 +32,10 @@ export {
 
 module :private;
 
-TextPostFull2Half::TextPostFull2Half(const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger)
+TextPostFull2Half::TextPostFull2Half(const fs::path& projectDir, const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger)
     : IPlugin(projectDir, logger)
 {
     try {
-        const auto projectConfig = toml::parse(projectDir / L"config.toml");
         const auto pluginConfig = toml::parse(pluginConfigsPath / L"textPostPlugins/TextPostFull2Half.toml");
 
         m_replacePunctuation = parseToml<bool>(projectConfig, pluginConfig, "plugins.TextPostFull2Half.是否替换标点");

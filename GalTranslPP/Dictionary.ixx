@@ -1,6 +1,5 @@
 module;
 
-#include <mecab/mecab.h>
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
@@ -26,9 +25,8 @@ export {
     private:
         std::vector<GptTabEntry> m_entries;
 
-        std::shared_ptr<MeCab::Model> m_model;
-        std::shared_ptr<MeCab::Tagger> m_tagger;
         std::shared_ptr<spdlog::logger> m_logger;
+        std::function<NLPResult(const std::string&)> m_tokenizeSourceLangFunc;
 
     public:
 
@@ -36,7 +34,7 @@ export {
 
         void sort();
 
-        void getModelAndTagger(std::shared_ptr<MeCab::Model> model, std::shared_ptr<MeCab::Tagger> tagger);
+        void getModelAndTagger(std::function<NLPResult(const std::string&)> tokenizeFunc);
 
         void loadFromFile(const fs::path& filePath);
 
@@ -91,9 +89,8 @@ void GptDictionary::sort() {
         });
 }
 
-void GptDictionary::getModelAndTagger(std::shared_ptr<MeCab::Model> model, std::shared_ptr<MeCab::Tagger> tagger) {
-    m_model = model;
-    m_tagger = tagger;
+void GptDictionary::getModelAndTagger(std::function<NLPResult(const std::string&)> tokenizeFunc) {
+    m_tokenizeSourceLangFunc = tokenizeFunc;
 }
 
 std::string GptDictionary::generatePrompt(const std::vector<Sentence*>& batch, TransEngine transEngine) {
@@ -215,8 +212,8 @@ std::string GptDictionary::doReplace(const Sentence* se, CachePart targetToModif
 }
 
 void GptDictionary::checkDicUse(Sentence* sentence, CachePart base, CachePart check) {
-    if (!m_tagger) {
-        throw std::runtime_error("MeCab Tagger 未初始化，无法进行 GPT 字典检查");
+    if (!m_tokenizeSourceLangFunc) {
+        throw std::runtime_error("分词器 未初始化，无法进行 GPT 字典检查");
     }
     const std::string& origText = chooseStringRef(sentence, base);
     const std::string& transView = chooseStringRef(sentence, check);
@@ -244,21 +241,10 @@ void GptDictionary::checkDicUse(Sentence* sentence, CachePart base, CachePart ch
             continue;
         }
         // 未出现则分词检查原文中是否有完整的 searchStr 词组
-        std::unique_ptr<MeCab::Lattice> lattice(m_model->createLattice());
-        lattice->set_sentence(origText.c_str());
-        if (!m_tagger->parse(lattice.get())) {
-            throw std::runtime_error(std::format("分词器解析失败，错误信息: {}", MeCab::getLastError()));
-        }
-        
-        for (const MeCab::Node* node = lattice->bos_node(); node; node = node->next) {
-            if (node->stat == MECAB_BOS_NODE || node->stat == MECAB_EOS_NODE) continue;
-
-            std::string surface(node->surface, node->length);
-            std::string feature = node->feature;
-
-            m_logger->trace("分词结果：{} ({})", surface, feature);
-
-            if (surface == entry.searchStr) {
+        NLPResult tokens = m_tokenizeSourceLangFunc(origText);
+        const std::vector<std::vector<std::string>>& wordPosList = std::get<0>(tokens);
+        for (const auto& wordPos : wordPosList) {
+            if (wordPos[0] == entry.searchStr) {
                 found = true;
                 break;
             }

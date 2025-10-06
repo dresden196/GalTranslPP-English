@@ -27,7 +27,8 @@ UpdateWidget::UpdateWidget(QWidget* parent)
         "7. 问题分析设定更加灵活，详见说明",
         "8. 增加插件 CodePageChecker",
         "9. 优化换行修复的优先标点在某些对称左标点后加换行的问题。修复 orig_text 中无换行时不会处理的bug",
-        //"8. toml++这个库真的很烂怂...",
+        "10. 【需自己下载覆盖】默认提示词优化"
+        //"11. toml++这个库真的很烂怂...",
 
     };
 

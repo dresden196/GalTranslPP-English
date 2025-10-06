@@ -44,6 +44,7 @@ StartSettingsPage::StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, 
 
 StartSettingsPage::~StartSettingsPage()
 {
+	_trayIcon = nullptr;
 	if (_workThread && _workThread->isRunning()) {
 		_worker->stopTranslation();
 		_workThread->quit();
@@ -460,7 +461,9 @@ void StartSettingsPage::_workFinished(int exitCode)
 	std::thread([this]()
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(5));
-			_trayIcon->hide();
+			if (_trayIcon) {
+				_trayIcon->hide();
+			}
 		}).detach();
 
 	Q_EMIT finishTranslatingSignal(_transEngine, exitCode);

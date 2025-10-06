@@ -6,7 +6,7 @@ namespace fs = std::filesystem;
 
 export {
 
-    const std::string GPPVERSION = "2.0.0P";
+    const std::string GPPVERSION = "2.0.0";
 
     const fs::path pluginConfigsPath = L"BaseConfig/pluginConfigs";
 
@@ -44,5 +44,8 @@ export {
     enum class CachePart { None, Name, NamePreview, Names, NamesPreview, OrigText, PreprocText, PretransText, Problems, OtherInfo, TranslatedBy, TransPreview };
 
 
+    using WordPosVec = std::vector<std::vector<std::string>>;
+    using EntityVec = std::vector<std::vector<std::string>>;
+    using NLPResult = std::tuple<WordPosVec, EntityVec>;
 
 }

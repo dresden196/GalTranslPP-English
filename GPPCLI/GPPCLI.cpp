@@ -2,12 +2,16 @@
 #include <Windows.h>
 #endif
 
+#include <pybind11/embed.h>
 #include <spdlog/spdlog.h>
+#include <toml.hpp>
 
 import Tool;
+import PythonManager;
 import TerminalController;
 
 namespace fs = std::filesystem;
+namespace py = pybind11;
 
 #pragma comment(lib, "../lib/GalTranslPP.lib")
 
@@ -17,6 +21,30 @@ int main(int argc, char* argv[])
     SetConsoleCP(CP_UTF8);
     SetConsoleOutputCP(CP_UTF8);
 #endif
+
+    std::unique_ptr<py::gil_scoped_release> release;
+
+    try {
+        const auto globalConfig = toml::parse(fs::path(L"BaseConfig/globalConfig.toml"));
+        const std::string& pyEnvPathStr = toml::find_or(globalConfig, "pyEnvPath", "BaseConfig/python-3.12.10-embed-amd64");
+
+        const fs::path pyEnvPath = ascii2Wide(pyEnvPathStr);
+        if (fs::exists(pyEnvPath) && fs::exists(pyEnvPath / L"python.exe")) {
+            PyConfig config;
+            PyConfig_InitPythonConfig(&config);
+            PyConfig_SetString(&config, &config.home, pyEnvPath.c_str());
+            PyConfig_SetString(&config, &config.pythonpath_env, (pyEnvPath / L"python312.zip").c_str());
+            py::initialize_interpreter(&config);
+            py::module_::import("sys").attr("path").attr("append")("BaseConfig/pyScripts");
+            release.reset(new py::gil_scoped_release);
+        }
+        else {
+            spdlog::info("未设置 Python 环境，将无法使用需要 Python 环境的模块。");
+        }
+    }
+    catch (...) {
+        spdlog::critical("无法读取全局配置，请检查 BaseConfig/globalConfig.toml 是否存在。");
+    }
 
     fs::path currentProjectPath;
 
@@ -94,6 +122,8 @@ int main(int argc, char* argv[])
             spdlog::critical("发生未知错误。");
         }
     }
+
+    PythonManager::getInstance().stop();
 
     return 0;
 }

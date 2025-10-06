@@ -3,6 +3,8 @@ module;
 #ifdef _WIN32
 #include <Windows.h>
 #endif
+
+
 #include <ranges>
 #include <spdlog/spdlog.h>
 #include <zip.h>
@@ -13,6 +15,7 @@ module;
 #include <unicode/regex.h>
 #include <unicode/uscript.h>
 #include <unicode/translit.h>
+
 #include <opencc/opencc.h>
 #pragma comment(lib, "../lib/marisa.lib")
 #pragma comment(lib, "../lib/opencc.lib")
@@ -38,7 +41,7 @@ export {
 
     std::string ascii2Ascii(const std::string& ascii, UINT src = 65001, UINT dst = 0, LPBOOL usedDefaultChar = nullptr);
 
-    bool executeCommand(const std::string& utf8Command);
+    bool executeCommand(const std::string& utf8Command, bool showWindow = false);
 
     int getConsoleWidth();
 #endif
@@ -67,6 +70,8 @@ export {
 
     std::string removePunctuation(const std::string& text);
 
+    std::string removeWhitespace(const std::string& text);
+
     std::pair<std::string, int> getMostCommonChar(const std::string& s);
 
     std::vector<std::string> splitIntoGraphemes(const std::string& sourceString);
@@ -90,7 +95,6 @@ export {
     std::function<std::string(const std::string&)> getTraditionalChineseExtractor(std::shared_ptr<spdlog::logger> logger);
 
     void extractZip(const fs::path& zipPath, const fs::path& outputDir);
-
 
 
     struct ConditionPattern {
@@ -240,7 +244,7 @@ std::string ascii2Ascii(const std::string& ascii, UINT src, UINT dst, LPBOOL use
     return wide2Ascii(ascii2Wide(ascii, src), dst, usedDefaultChar);
 }
 
-bool executeCommand(const std::string& utf8Command) {
+bool executeCommand(const std::string& utf8Command, bool showWindow) {
     std::wstring utf16Command = ascii2Wide("cmd.exe /c " + utf8Command);
 
     STARTUPINFOW si;
@@ -248,7 +252,7 @@ bool executeCommand(const std::string& utf8Command) {
 
     ZeroMemory(&si, sizeof(si));
     si.dwFlags |= STARTF_USESHOWWINDOW; // 指定 wShowWindow 成员有效
-    si.wShowWindow = SW_HIDE;          // 将窗口设置为隐藏
+    si.wShowWindow = showWindow ? SW_SHOW : SW_HIDE;          // 将窗口设置为隐藏
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
 
@@ -477,36 +481,38 @@ bool isSameExtension(const fs::path& filePath, const std::wstring& ext) {
     return _wcsicmp(filePath.extension().wstring().c_str(), ext.c_str()) == 0;
 }
 
+
 std::string removePunctuation(const std::string& text) {
-    UErrorCode errorCode = U_ZERO_ERROR;
     icu::UnicodeString ustr = icu::UnicodeString::fromUTF8(text);
-    icu::UnicodeString result;
-
-    // 创建一个用于遍历字形簇的 BreakIterator
-    std::unique_ptr<icu::BreakIterator> boundary(icu::BreakIterator::createCharacterInstance(icu::Locale::getRoot(), errorCode));
-    if (U_FAILURE(errorCode)) {
-        throw std::runtime_error(std::format("Failed to create a character break iterator: {}", u_errorName(errorCode)));
-    }
-    boundary->setText(ustr);
-
-    int32_t start = boundary->first();
-    // 遍历每个字形簇
-    for (int32_t end = boundary->next(); end != icu::BreakIterator::DONE; start = end, end = boundary->next()) {
-        icu::UnicodeString grapheme;
-        ustr.extract(start, end - start, grapheme); // 提取一个完整的字形簇
-        // 判断这个字形簇是否是标点
-        // 一个标点符号通常自身就是一个单独的码点构成的字形簇。
-        // 如果一个字形簇包含多个码点（如 'e' + '´'），它几乎不可能是标点。
-        bool isPunctuationCluster = (grapheme.length() == 1 && u_ispunct(grapheme.char32At(0)));
-        if (!isPunctuationCluster) {
-            result.append(grapheme); // 如果不是标点，则保留整个字形簇
+    icu::UnicodeString resultUstr;
+    icu::StringCharacterIterator iter(ustr);
+    UChar32 codePoint;
+    while (iter.hasNext()) {
+        codePoint = iter.next32PostInc();
+        if (!u_ispunct(codePoint)) {
+            resultUstr.append(codePoint);
         }
     }
-
-    std::string resultStr;
-    return result.toUTF8String(resultStr);
+    std::string utf8Output;
+    return resultUstr.toUTF8String(utf8Output);
 }
 
+std::string removeWhitespace(const std::string& text) {
+    icu::UnicodeString ustr = icu::UnicodeString::fromUTF8(text);
+    icu::UnicodeString resultUstr;
+    icu::StringCharacterIterator iter(ustr);
+    UChar32 codePoint;
+    while (iter.hasNext()) {
+        codePoint = iter.next32PostInc();
+        if (!u_isspace(codePoint)) {
+            resultUstr.append(codePoint);
+        }
+    }
+    std::string utf8Output;
+    return resultUstr.toUTF8String(utf8Output);
+}
+
+// 这两个函数遍历字形簇
 std::pair<std::string, int> getMostCommonChar(const std::string& s) {
     if (s.empty()) {
         return { {}, 0 };
@@ -633,7 +639,7 @@ std::string extractCharactersByScripts(const std::string& sourceString, const st
         UScriptCode script = uscript_getScript(codePoint, &errorCode);
 
         if (U_SUCCESS(errorCode)) {
-            auto it = std::find(targetScripts.begin(), targetScripts.end(), script);
+            auto it = std::ranges::find(targetScripts, script);
             if (it != targetScripts.end()) {
                 resultUString.append(codePoint);
             }
@@ -668,9 +674,13 @@ std::function<std::string(const std::string&)> getTraditionalChineseExtractor(st
         opencc::SimpleConverter converter("BaseConfig/t2s.json");
         result = [=](const std::string& sourceString)
             {
+                static const std::set<std::string> excludeList =
+                {
+                    "乾", "阪",
+                };
                 std::string resultStr;
                 std::vector<std::string> graphemes = splitIntoGraphemes(sourceString);
-                for (const auto& grapheme : graphemes) {
+                for (const auto& grapheme : graphemes | std::views::filter([&](const std::string& g) { return !excludeList.contains(g); })) {
                     std::string simplified = converter.Convert(grapheme);
                     if (simplified != grapheme) {
                         resultStr += grapheme;
@@ -797,31 +807,28 @@ bool checkString(std::shared_ptr<icu::RegexPattern> conditionReg, const std::str
 bool checkCondition(const GPPCondition& conditions, const Sentence* se) {
     return std::ranges::all_of(conditions, [&](const ConditionPattern& pattern)
         {
-            if (pattern.conditionTarget == CachePart::Names) {
-                return std::ranges::any_of(se->names, [&](const auto& name)
+            auto checkAnyOf = [&]<typename ContainerType>(const ContainerType & container) -> bool
+            {
+                return std::ranges::any_of(container, [&](const auto& item)
                     {
-                        return checkString(pattern.conditionReg, name);
+                        if constexpr (std::is_same_v<ContainerType, std::map<std::string, std::string>>) {
+                            return checkString(pattern.conditionReg, item.second);
+                        }
+                        else {
+                            return checkString(pattern.conditionReg, item);
+                        }
                     });
-            }
-            else if (pattern.conditionTarget == CachePart::NamesPreview) {
-                return std::ranges::any_of(se->names_preview, [&](const auto& name_preview)
-                    {
-                        return checkString(pattern.conditionReg, name_preview);
-                    });
-            }
-            else if (pattern.conditionTarget == CachePart::Problems) {
-                return std::ranges::any_of(se->problems, [&](const auto& problem)
-                    {
-                        return checkString(pattern.conditionReg, problem);
-                    });
-            }
-            else if (pattern.conditionTarget == CachePart::OtherInfo) {
-                return std::ranges::any_of(se->other_info, [&](const auto& info)
-                    {
-                        return checkString(pattern.conditionReg, info.second);
-                    });
-            }
-            else {
+            };
+            switch (pattern.conditionTarget) {
+            case CachePart::Names:
+                return checkAnyOf(se->names);
+            case CachePart::NamesPreview:
+                return checkAnyOf(se->names_preview);
+            case CachePart::Problems:
+                return checkAnyOf(se->problems);
+            case CachePart::OtherInfo:
+                return checkAnyOf(se->other_info);
+            default:
                 return checkString(pattern.conditionReg, chooseStringRef(se, pattern.conditionTarget));
             }
             return false;

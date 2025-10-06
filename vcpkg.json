@@ -4,6 +4,7 @@
   "version": "2.0.0",
   "dependencies": [
     "nlohmann-json",
+    "pybind11",
     "toml11",
     "spdlog",
     "cpr",

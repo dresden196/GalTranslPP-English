@@ -4,6 +4,7 @@ module;
 
 export module IPlugin;
 
+import <toml.hpp>;
 export import std;
 export import GPPDefines;
 
@@ -21,10 +22,13 @@ export {
 
 		virtual void run(Sentence* se) = 0;
 
+		virtual bool needReboot();
+
 		IPlugin(const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger);
 
 		virtual ~IPlugin();
 	};
 
-	std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::string>& pluginNames, const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger);
+	std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::string>& pluginNames, const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger,
+		const toml::value& projectConfig);
 }

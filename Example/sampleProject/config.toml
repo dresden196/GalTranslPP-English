@@ -78,8 +78,11 @@ checkQuota = true           # 运行时动态检测key额度
 logLevel = "info"
 saveLog = true
 
-# 分词器所用的词典的路径
-dictDir = "BaseConfig/DictGenerator/mecab-ipadic-utf8" # 也可以用 mecab-ipadic-neologd 或 unidic(均需从网上下载字典)
+tokenizerBackend = "MeCab" # MeCab, spaCy
+# MeCab 分词器所用的词典的路径
+mecabDictDir = "BaseConfig/mecabDict/mecab-ipadic-utf8" # 也可以用 mecab-ipadic-neologd 或 unidic(均需从网上下载字典)
+# spaCy(Python) 分词器所用的模型名，可从 https://spacy.io/models 查询，自动下载需重启程序
+spaCyModelName = "ja_core_news_trf"
 
 
 [problemAnalyze]
@@ -139,7 +142,7 @@ overwriteCompareObj = [
 ]
 
 # 如果出现同名字典文件，则只读取项目文件夹中的
-# 否则读取defaultDictFolder中对应pre/gpt/post文件夹下的字典
+# 否则读取 defaultDictFolder 中对应 pre/gpt/post 文件夹下的字典
 # 翻译执行顺序详见使用说明
 [dictionary]
 defaultDictFolder = "BaseConfig/Dict" 

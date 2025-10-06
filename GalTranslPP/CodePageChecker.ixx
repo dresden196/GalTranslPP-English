@@ -43,7 +43,7 @@ export {
         const std::string& findUnmappableChars(const std::string& transViewToCheck);
 
     public:
-        CodePageChecker(const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger);
+        CodePageChecker(const fs::path& projectDir, const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger);
         virtual void run(Sentence* se) override;
         virtual ~CodePageChecker() = default;
     };
@@ -51,11 +51,10 @@ export {
 
 module :private;
 
-CodePageChecker::CodePageChecker(const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger)
+CodePageChecker::CodePageChecker(const fs::path& projectDir, const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger)
     : IPlugin(projectDir, logger)
 {
     try {
-        const auto projectConfig = toml::parse(projectDir / L"config.toml");
         const auto pluginConfig = toml::parse(pluginConfigsPath / L"textPostPlugins/CodePageChecker.toml");
 
         m_codePage = parseToml<std::string>(projectConfig, pluginConfig, "plugins.CodePageChecker.codePage");

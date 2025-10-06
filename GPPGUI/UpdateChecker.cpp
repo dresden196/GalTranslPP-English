@@ -60,6 +60,11 @@ UpdateChecker::UpdateChecker(toml::ordered_value& globalConfig, ElaText* statusT
     connect(m_downloadTimer, &QTimer::timeout, this, &UpdateChecker::onDownloadTimeout);
 }
 
+UpdateChecker::~UpdateChecker()
+{
+    m_trayIcon = nullptr;
+}
+
 void UpdateChecker::check(bool forDownload)
 {
     // GitHub API for the latest release
@@ -79,7 +84,9 @@ void UpdateChecker::check(bool forDownload)
         std::thread([this]()
             {
                 std::this_thread::sleep_for(std::chrono::seconds(5));
-                m_trayIcon->hide();
+                if (m_trayIcon) {
+                    m_trayIcon->hide();
+                }
             }).detach();
         return;
     }
@@ -159,7 +166,9 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
                             std::thread([this]()
                                 {
                                     std::this_thread::sleep_for(std::chrono::seconds(5));
-                                    m_trayIcon->hide();
+                                    if (m_trayIcon) {
+                                        m_trayIcon->hide();
+                                    }
                                 }).detach();
                         }
                         break;
@@ -245,7 +254,9 @@ void UpdateChecker::onDownloadFinished(QNetworkReply* reply)
     std::thread([this]()
         {
             std::this_thread::sleep_for(std::chrono::seconds(5));
-            m_trayIcon->hide();
+            if (m_trayIcon) {
+                m_trayIcon->hide();
+            }
         }).detach();
 
     reply->deleteLater();

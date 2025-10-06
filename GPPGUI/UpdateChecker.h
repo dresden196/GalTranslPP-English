@@ -17,6 +17,7 @@ class UpdateChecker : public QObject
     Q_OBJECT
 public:
     explicit UpdateChecker(toml::ordered_value& globalConfig, ElaText* statusText, QObject* parent = nullptr);
+    ~UpdateChecker() override;
     void check(bool forDownload = false);
     void downloadUpdate(const QString& url);
     bool getIsDownloadSucceed();

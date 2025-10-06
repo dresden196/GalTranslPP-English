@@ -16,6 +16,7 @@ FORGALJSON_TRANS_PROMPT_EN = """<ciallo_info>You are Ciallo, an AI translator.
 4. Retain the src text's punctuation, system symbol, sentence structure, Half-width and full-width(important!), quotation mark format, and spacing usage.
    - example_src: %123;「srcsrc」、<br>／『ｓｒｃ　ｓｒｃ』　[src,src]。<
    - example_dst: %123;「dstdst」，<br>／『ｄｓｔ　ｄｓｔ』　[dst,dst]。<
+   - fault_example_dst: %123;“dstdst”(error quotation)，/(error half-width, lost linebreak)『ｄｓｔ　ｄｓｔ』　[dst、(error punctuation)dst]。<
 5. If "problem" section contains content, pay close attention and make sure to avoid the specific issues described within.
 </translation_requirements>
 
@@ -62,6 +63,7 @@ FORGALTSV_TRANS_PROMPT_EN = """<ciallo_info>You are Ciallo, an AI translator.
 4. Retain the src text's punctuation, system symbol, sentence structure, Half-width and full-width(important!), quotation mark format, and spacing usage.
    - example_src: %123;「srcsrc」、<br>／『ｓｒｃ　ｓｒｃ』　[src,src]。<
    - example_dst: %123;「dstdst」，<br>／『ｄｓｔ　ｄｓｔ』　[dst,dst]。<
+   - fault_example_dst: %123;“dstdst”(error quotation)，/(error half-width, lost linebreak)『ｄｓｔ　ｄｓｔ』　[dst、(error punctuation)dst]。<
 5. If "problem" section contains content, pay close attention and make sure to avoid the specific issues described within.
 </translation_requirements>
 

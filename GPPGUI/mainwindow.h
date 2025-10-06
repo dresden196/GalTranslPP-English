@@ -6,6 +6,7 @@
 #include <QMainWindow>
 #include <toml.hpp>
 #include <filesystem>
+
 class HomePage;
 class AboutDialog;
 class DefaultPromptPage;

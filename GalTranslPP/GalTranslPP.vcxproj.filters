@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="IPlugin.cpp">
-      <Filter>textPlugins</Filter>
-    </ClCompile>
     <ClCompile Include="IPlugin.ixx">
       <Filter>textPlugins</Filter>
     </ClCompile>
@@ -54,6 +51,12 @@
     </ClCompile>
     <ClCompile Include="CodePageChecker.ixx">
       <Filter>textPlugins</Filter>
+    </ClCompile>
+    <ClCompile Include="IPlugin.cpp">
+      <Filter>textPlugins</Filter>
+    </ClCompile>
+    <ClCompile Include="PythonManager.ixx">
+      <Filter>Tools</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
