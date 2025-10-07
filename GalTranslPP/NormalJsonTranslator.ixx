@@ -281,7 +281,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             m_prePlugins = registerPlugins(*textPrePlugins, m_projectDir, m_logger, configData);
         }
 
-        if (m_transEngine != TransEngine::DumpName && m_transEngine != TransEngine::Rebuild && m_transEngine != TransEngine::ShowNormal) {
+        if (m_transEngine != TransEngine::DumpName && m_transEngine != TransEngine::ShowNormal && m_transEngine != TransEngine::GenDict) {
             const auto& textPostPlugins = toml::find<
                 std::optional<std::vector<std::string>>
             >(configData, "plugins", "textPostPlugins");

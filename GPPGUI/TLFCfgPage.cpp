@@ -13,6 +13,7 @@
 #include "ElaLineEdit.h"
 #include "ElaPushButton.h"
 #include "ElaToolTip.h"
+#include "ValueSliderWidget.h"
 
 import Tool;
 
@@ -46,20 +47,21 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	fixModeLayout->addWidget(fixModeComboBox);
 	mainLayout->addWidget(fixModeArea);
 
-	// 仅在标点后添加
-	bool onlyAddAfterPunct = toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "仅在标点后添加", true);
-	ElaScrollPageArea* onlyAddAfterPunctArea = new ElaScrollPageArea(centerWidget);
-	QHBoxLayout* onlyAddAfterPunctLayout = new QHBoxLayout(onlyAddAfterPunctArea);
-	ElaText* onlyAddAfterPunctText = new ElaText(tr("仅在标点后添加"), onlyAddAfterPunctArea);
-	ElaToolTip* onlyAddAfterPunctTip = new ElaToolTip(onlyAddAfterPunctArea);
-	onlyAddAfterPunctTip->setToolTip(tr("仅在优先标点模式有效"));
-	onlyAddAfterPunctText->setTextPixelSize(16);
-	onlyAddAfterPunctLayout->addWidget(onlyAddAfterPunctText);
-	onlyAddAfterPunctLayout->addStretch();
-	ElaToggleSwitch* onlyAddAfterPunctToggleSwitch = new ElaToggleSwitch(onlyAddAfterPunctArea);
-	onlyAddAfterPunctToggleSwitch->setIsToggled(onlyAddAfterPunct);
-	onlyAddAfterPunctLayout->addWidget(onlyAddAfterPunctToggleSwitch);
-	mainLayout->addWidget(onlyAddAfterPunctArea);
+	// 优先阈值
+	double priorityThreshold = toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "优先阈值", 0.2);
+	ElaScrollPageArea* priorityThresholdArea = new ElaScrollPageArea(centerWidget);
+	QHBoxLayout* priorityThresholdLayout = new QHBoxLayout(priorityThresholdArea);
+	ElaText* priorityThresholdText = new ElaText(tr("优先阈值"), priorityThresholdArea);
+	ElaToolTip* priorityThresholdTip = new ElaToolTip(priorityThresholdArea);
+	priorityThresholdTip->setToolTip(tr("仅在 优先标点 模式有效，值越高，换行的相对位置的可以变动以去匹配标点的限度就越大"));
+	priorityThresholdText->setTextPixelSize(16);
+	priorityThresholdLayout->addWidget(priorityThresholdText);
+	priorityThresholdLayout->addStretch();
+	ValueSliderWidget* priorityThresholdSlider = new ValueSliderWidget(priorityThresholdArea);
+	priorityThresholdSlider->setValue(priorityThreshold);
+	priorityThresholdSlider->setDecimals(3);
+	priorityThresholdLayout->addWidget(priorityThresholdSlider);
+	mainLayout->addWidget(priorityThresholdArea);
 
 	// 分段字数阈值
 	int threshold = toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "分段字数阈值", 21);
@@ -101,7 +103,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	errorThresholdLayout->addWidget(errorThresholdText);
 	errorThresholdLayout->addStretch();
 	ElaSpinBox* errorThresholdSpinBox = new ElaSpinBox(errorThresholdArea);
-	errorThresholdSpinBox->setRange(1, 999);
+	errorThresholdSpinBox->setRange(1, 9999);
 	errorThresholdSpinBox->setValue(errorThreshold);
 	errorThresholdLayout->addWidget(errorThresholdSpinBox);
 	mainLayout->addWidget(errorThresholdArea);
@@ -120,7 +122,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	QHBoxLayout* useTokenizerLayout = new QHBoxLayout(useTokenizerArea);
 	ElaText* useTokenizerText = new ElaText(tr("使用分词器"), useTokenizerArea);
 	ElaToolTip* useTokenizerTip = new ElaToolTip(useTokenizerArea);
-	useTokenizerTip->setToolTip(tr("可能可以获得更好的换行效果(不过感觉用处不大)"));
+	useTokenizerTip->setToolTip(tr("可能可以获得更好的换行效果"));
 	useTokenizerText->setTextPixelSize(16);
 	useTokenizerLayout->addWidget(useTokenizerText);
 	useTokenizerLayout->addStretch();
@@ -226,7 +228,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	_applyFunc = [=]()
 		{
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.换行模式", fixModes[fixModeComboBox->currentIndex()].toStdString());
-			insertToml(_projectConfig, "plugins.TextLinebreakFix.仅在标点后添加", onlyAddAfterPunctToggleSwitch->getIsToggled());
+			insertToml(_projectConfig, "plugins.TextLinebreakFix.优先阈值", priorityThresholdSlider->value());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.分段字数阈值", segmentThresholdSpinBox->value());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.强制修复", forceFixToggleSwitch->getIsToggled());
 			insertToml(_projectConfig, "plugins.TextLinebreakFix.报错阈值", errorThresholdSpinBox->value());

@@ -2680,142 +2680,142 @@
 <context>
     <name>TLFCfgPage</name>
     <message>
-        <location filename="TLFCfgPage.cpp" line="21"/>
-        <location filename="TLFCfgPage.cpp" line="241"/>
+        <location filename="TLFCfgPage.cpp" line="22"/>
+        <location filename="TLFCfgPage.cpp" line="243"/>
         <source>换行修复设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="30"/>
+        <location filename="TLFCfgPage.cpp" line="31"/>
         <source>优先标点</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="30"/>
+        <location filename="TLFCfgPage.cpp" line="31"/>
         <source>保持位置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="30"/>
+        <location filename="TLFCfgPage.cpp" line="31"/>
         <source>固定字数</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="30"/>
+        <location filename="TLFCfgPage.cpp" line="31"/>
         <source>平均</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="34"/>
+        <location filename="TLFCfgPage.cpp" line="35"/>
         <source>换行模式</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="53"/>
-        <source>仅在标点后添加</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="TLFCfgPage.cpp" line="55"/>
-        <source>仅在优先标点模式有效</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="TLFCfgPage.cpp" line="68"/>
+        <location filename="TLFCfgPage.cpp" line="70"/>
         <source>分段字数阈值</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="70"/>
+        <location filename="TLFCfgPage.cpp" line="72"/>
         <source>仅在固定字数模式有效</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="84"/>
+        <location filename="TLFCfgPage.cpp" line="86"/>
         <source>强制修复</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="97"/>
+        <location filename="TLFCfgPage.cpp" line="99"/>
         <source>报错阈值</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="99"/>
+        <location filename="TLFCfgPage.cpp" line="101"/>
         <source>单行字符数超过此阈值时报错</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="110"/>
+        <location filename="TLFCfgPage.cpp" line="112"/>
         <source>分词器设置</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="121"/>
+        <location filename="TLFCfgPage.cpp" line="123"/>
         <source>使用分词器</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="123"/>
-        <source>可能可以获得更好的换行效果(不过感觉用处不大)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="TLFCfgPage.cpp" line="137"/>
+        <location filename="TLFCfgPage.cpp" line="139"/>
         <source>分词器后端</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="139"/>
+        <location filename="TLFCfgPage.cpp" line="141"/>
         <source>应选择适合目标语言的后端/模型/字典</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="158"/>
+        <location filename="TLFCfgPage.cpp" line="160"/>
         <source>MeCab词典目录</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="160"/>
+        <location filename="TLFCfgPage.cpp" line="162"/>
         <source>MeCab中文词典需手动下载</source>
         <oldsource>MeCab词典需手动下载</oldsource>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="172"/>
+        <location filename="TLFCfgPage.cpp" line="174"/>
         <source>选择MeCab词典目录</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="183"/>
+        <location filename="TLFCfgPage.cpp" line="185"/>
         <source>spaCy模型名称</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="185"/>
+        <location filename="TLFCfgPage.cpp" line="187"/>
         <source>spaCy模型名称，新模型下载后需重启程序</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="168"/>
-        <location filename="TLFCfgPage.cpp" line="193"/>
-        <location filename="TLFCfgPage.cpp" line="216"/>
+        <location filename="TLFCfgPage.cpp" line="170"/>
+        <location filename="TLFCfgPage.cpp" line="195"/>
+        <location filename="TLFCfgPage.cpp" line="218"/>
         <source>浏览</source>
         <translation type="unfinished">browse</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="194"/>
-        <location filename="TLFCfgPage.cpp" line="217"/>
+        <location filename="TLFCfgPage.cpp" line="54"/>
+        <source>优先阈值</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="56"/>
+        <source>仅在 优先标点 模式有效，值越高，换行的相对位置的可以变动以去匹配标点的限度就越大</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="125"/>
+        <source>可能可以获得更好的换行效果</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="TLFCfgPage.cpp" line="196"/>
+        <location filename="TLFCfgPage.cpp" line="219"/>
         <source>浏览模型目录</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="206"/>
+        <location filename="TLFCfgPage.cpp" line="208"/>
         <source>Stanza语言ID</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="208"/>
+        <location filename="TLFCfgPage.cpp" line="210"/>
         <source>Stanza语言ID，新模型下载后需重启程序</source>
         <translation type="unfinished"></translation>
     </message>
