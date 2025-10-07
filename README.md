@@ -298,15 +298,44 @@ callback = [ { group = 2, org = '<[^>]*>', rep = '' } ]
 
 <summary>
 
-### Python 模块使用
+### Python 模块使用及 GPU 加速
 
 </summary>
 由于许多有关深度学习的库(如分词器、PDF提取器等)只有python能方便的调用，本程序在发行时会默认附带小型的嵌入式Python环境，你无需手动下载。
 
-
 当遇到需要使用Python库的情况时(如**翻译PDF**或**使用依赖Python的分词器**)，程序会自动为嵌入式环境下载对应的库。
 
 但可能在下载之后需要**重启程序**以重新加载Python解释器。请留意日志输出窗口的提示，避免造成程序卡死或崩溃。
+
+然而在不启用 GPU加速 的情况下使用如 `spaCy` 或 `Stanza` 进行全文分词的速度是比较灾难性的，如果想启用 GPU 加速，请跟随以下教程。
+
+**请确保自己有一定的动手和思考能力！**
+
+#### 为 `Staqnza` 启用 GPU加速
+
+- 1、 首先确保你安装了适配你显卡的 **最新的N卡驱动**，然后去[NVIDIA CUDA Toolkit官网](https://developer.nvidia.com/cuda-toolkit-archive) **Download Latest CUDA Toolkit**, 下载 CUDA Toolkit Installer 并安装。 **安装完毕后请重启电脑！**
+- 2、 访问[PyTorch官网](https://pytorch.org/get-started/locally/)，选择合适的 CUDA 版本获取安装命令。
+不知道选什么版本的可以在 cmd 里运行
+```cmd
+nvidia-smi
+```
+以获取 CUDA 版本，一般都向后兼容，选哪个问题都不大。
+- 3、 为嵌入式环境安装 PyTorch，注意启动的必须是 **嵌入式环境中的 Python(之后的操作默认均在此环境中进行)**。
+默认目录在 `BaseConfig\python-3.12.10-embed-amd64`，请在此目录下打开 cmd 或在 cmd 每次执行命令时输入此环境的 python.exe 的**绝对路径**以避免与你可能安装过的 python 混淆。
+- 4、 比如官网给我的命令是 `pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu129`，那我就可以在如上目录中打开 cmd (直接在路径栏输入 cmd 后回车)并运行 `python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu129`。
+注意: 如果你已经安装了CPU版本的torch，最好先卸载它：`python -m pip uninstall torch`
+- 5、 重装 Stanza，`python -m pip uninstall stanza`  `python -m pip install stanza`
+- 6、 尝试运行 `BaseConfig\pyScripts\check_stanza_gpu.py`，如果成功，则代表所有配置均已就绪。
+- 7、 此时打开 `BaseConfig\pyScripts\tokenizer_stanza.py` 文件，将 `self.nlp = stanza.Pipeline(lang=model_name, processors='tokenize,pos,ner', use_gpu=False, verbose=False)` 中的 `use_gpu` 参数改为 `True`，即可为 Stanza 启用 GPU加速。
+
+#### 为 `spaCy` 启用 GPU加速
+
+- 1、 同 Stanza 第一条。
+- 2、 在 **嵌入式 Python环境(详见 Stanza第三条)中** 重新安装 spacy。`python -m pip uninstall spacy`，并确保此环境中没有安装 `cupy`。
+- 3、 根据自己的 CUDA 版本(查看 Stanza 第二条以查看如何获取 CUDA 版本)，安装 `cupy` 的特定版本，如 `cupy-cuda13x`: `python -m pip install cupy-cuda13x`，然后再把 spacy 装回来 `python -m pip install spacy`。
+- 4、 尝试运行 `BaseConfig\pyScripts\check_spacy_gpu.py`，如果成功，则代表所有配置均已就绪。
+- 5、 此时打开 `BaseConfig\pyScripts\tokenizer_spacy.py` 文件，将 `#spacy.require_gpu()` 的#注释去掉，即可为 spaCy 启用 GPU加速。
+
 </details>
 
 ## 其它程序说明

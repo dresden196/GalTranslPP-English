@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -1207,7 +1207,6 @@ void NormalJsonTranslator::run() {
             inputPath = m_inputDir / inputPath;
         }
         generator.generate(inputPaths, outputFilePath);
-        m_logger->info("已生成 项目GPT字典-生成.toml 文件");
         return;
     }
     // 字典生成完毕

@@ -131,7 +131,7 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
         }
         currentText += se.pre_processed_text + "\n";
         currentSegment += currentText;
-        if (currentSegment.length() > MAX_SEGMENT_LEN) {
+        if (countGraphemes(currentSegment) > MAX_SEGMENT_LEN) {
             m_segments.push_back(currentSegment);
             currentSegment.clear();
         }

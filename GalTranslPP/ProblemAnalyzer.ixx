@@ -153,8 +153,8 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
     if (m_problems.strictlyLonger.use) {
         const std::string& origText = chooseStringRef(sentence, m_problems.strictlyLonger.base);
         const std::string& transView = chooseStringRef(sentence, m_problems.strictlyLonger.check);
-        size_t origTextCharCount = splitIntoGraphemes(origText).size();
-        size_t transViewCharCount = splitIntoGraphemes(transView).size();
+        size_t origTextCharCount = countGraphemes(origText);
+        size_t transViewCharCount = countGraphemes(transView);
         if (transViewCharCount > origTextCharCount && origTextCharCount != 0) {
             sentence->problems.push_back(
                 std::format("比原文严格长 {:.2f} 倍({}/{}字符)", transViewCharCount / (double)origTextCharCount, transViewCharCount, origTextCharCount)
@@ -164,8 +164,8 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
     else if (m_problems.longer.use) {
         const std::string& origText = chooseStringRef(sentence, m_problems.longer.base);
         const std::string& transView = chooseStringRef(sentence, m_problems.longer.check);
-        size_t origTextCharCount = splitIntoGraphemes(origText).size();
-        size_t transViewCharCount = splitIntoGraphemes(transView).size();
+        size_t origTextCharCount = countGraphemes(origText);
+        size_t transViewCharCount = countGraphemes(transView);
         if (transViewCharCount > origTextCharCount * 1.3 && origTextCharCount != 0) {
             sentence->problems.push_back(
                 std::format("比原文长 {:.2f} 倍({}/{}字符)", transViewCharCount / (double)origTextCharCount, transViewCharCount, origTextCharCount)

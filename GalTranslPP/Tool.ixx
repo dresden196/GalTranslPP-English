@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -75,6 +75,8 @@ export {
     std::pair<std::string, int> getMostCommonChar(const std::string& s);
 
     std::vector<std::string> splitIntoGraphemes(const std::string& sourceString);
+
+    size_t countGraphemes(const std::string& sourceString);
 
     int countSubstring(const std::string& text, const std::string& sub);
 
@@ -598,6 +600,28 @@ std::vector<std::string> splitIntoGraphemes(const std::string& sourceString) {
     }
 
     return resultVector;
+}
+
+size_t countGraphemes(const std::string& sourceString) {
+    if (sourceString.empty()) {
+        return 0;
+    }
+    UErrorCode errorCode = U_ZERO_ERROR;
+    icu::UnicodeString uString = icu::UnicodeString::fromUTF8(sourceString);
+    std::unique_ptr<icu::BreakIterator> breakIterator(
+        icu::BreakIterator::createCharacterInstance(icu::Locale::getRoot(), errorCode)
+    );
+    if (U_FAILURE(errorCode)) {
+        throw std::runtime_error(std::format("Failed to create a character break iterator: {}", u_errorName(errorCode)));
+    }
+    breakIterator->setText(uString);
+    int32_t start = breakIterator->first();
+    size_t count = 0;
+    while (start != icu::BreakIterator::DONE) {
+        ++count;
+        start = breakIterator->next();
+    }
+    return count;
 }
 
 // 计算子串出现次数

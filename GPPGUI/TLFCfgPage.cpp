@@ -1,7 +1,8 @@
-#include "TLFCfgPage.h"
+﻿#include "TLFCfgPage.h"
 
 #include <QVBoxLayout>
 #include <QFormLayout>
+#include <QFileDialog>
 #include <QDesktopServices>
 
 #include "ElaScrollPageArea.h"
@@ -164,6 +165,15 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mecabDictDirLineEdit->setFixedWidth(400);
 	mecabDictDirLineEdit->setText(mecabDictDir);
 	mecabDictDirLayout->addWidget(mecabDictDirLineEdit);
+	ElaPushButton* browseMecabDictDirButton = new ElaPushButton(tr("浏览"), mecabDictDirArea);
+	mecabDictDirLayout->addWidget(browseMecabDictDirButton);
+	connect(browseMecabDictDirButton, &ElaPushButton::clicked, this, [=]()
+		{
+			QString dir = QFileDialog::getExistingDirectory(this, tr("选择MeCab词典目录"), mecabDictDirLineEdit->text());
+			if (!dir.isEmpty()) {
+				mecabDictDirLineEdit->setText(dir);
+			}
+		});
 	mainLayout->addWidget(mecabDictDirArea);
 
 	// spaCyModelName https://spacy.io/models

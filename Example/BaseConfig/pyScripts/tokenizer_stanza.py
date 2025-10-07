@@ -9,7 +9,7 @@ class NLPProcessor:
         构造函数，加载指定的Stanza模型。
         :param model_name: Stanza的语言代码, e.g., 'en', 'zh'
         """
-        self.nlp = stanza.Pipeline(lang=model_name, processors='tokenize,pos,ner', verbose=False)
+        self.nlp = stanza.Pipeline(lang=model_name, processors='tokenize,pos,ner', use_gpu=False, verbose=False)
 
     def process_text(self, text: str):
         """

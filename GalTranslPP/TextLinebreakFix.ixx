@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #include <spdlog/spdlog.h>
 #include <toml.hpp>
@@ -196,6 +196,8 @@ void TextLinebreakFix::run(Sentence* se)
 		}
 	}
 	else if (m_mode == "优先标点") {
+		static const std::set<std::string> excludePunct =
+		{ "『", "「", "“", "‘", "'", "《", "〈", "（", "【", "〔", "〖" };
 
 		std::vector<double> relPositons = getSubstringPositions(se->pre_processed_text, "<br>");
 
@@ -211,8 +213,6 @@ void TextLinebreakFix::run(Sentence* se)
 				punctPositions.push_back(std::make_pair(currentPos - graphemes[i].length(), currentPos));
 			}
 		}
-		std::set<std::string> excludePunct =
-		{ "『", "「", "“", "‘", "'", "《", "〈", "（", "【", "〔", "〖" };
 		std::erase_if(punctPositions, [&](auto& pos)
 			{
 				if (pos.second >= transViewToModify.length()) {

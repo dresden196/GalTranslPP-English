@@ -1,6 +1,15 @@
 import sys
 import spacy
 
+# 在模块加载时就尝试激活GPU
+# 这是一个全局设置，一旦调用，后续所有spacy操作都会尝试使用GPU
+try:
+    #spacy.require_gpu()
+    print("spaCy GPU requirement set successfully.", file=sys.stderr)
+except Exception as e:
+    # 如果没有GPU或CUDA环境不正确，会抛出异常
+    print(f"Warning: spacy.require_gpu() failed. Running on CPU. Error: {e}", file=sys.stderr)
+
 class NLPProcessor:
     """
     一个纯粹的NLP处理器，它假设模型已经存在。
