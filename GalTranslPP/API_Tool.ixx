@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #include <spdlog/spdlog.h>
 #include <boost/regex.hpp>
@@ -13,7 +13,7 @@ export import ITranslator;
 using json = nlohmann::json;
 
 export {
-    struct TranslationAPI {
+    struct TranslationApi {
         std::string apikey;
         std::string apiurl;
         std::string modelName;
@@ -28,7 +28,7 @@ export {
         long statusCode = 0;   // HTTP 状态码
     };
 
-    ApiResponse performApiRequest(json& payload, const TranslationAPI& api, int threadId,
+    ApiResponse performApiRequest(json& payload, const TranslationApi& api, int threadId,
         std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, int apiTimeOutMs);
 
     std::string cvt2StdApiUrl(const std::string& url);
@@ -37,8 +37,8 @@ export {
 
 module :private;
 
-ApiResponse performApiRequest(json& payload, const TranslationAPI& api, int threadId,
-    std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, int apiTimeOutMs) {
+ApiResponse performApiRequest(json& payload, const TranslationApi& api, int threadId,
+    std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, const int apiTimeOutMs) {
     ApiResponse apiResponse;
 
     if (api.stream) {

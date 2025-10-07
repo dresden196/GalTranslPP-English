@@ -45,7 +45,7 @@ export {
     public:
         CodePageChecker(const fs::path& projectDir, const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger);
         virtual void run(Sentence* se) override;
-        virtual ~CodePageChecker() = default;
+        virtual ~CodePageChecker() override = default;
     };
 }
 
@@ -82,15 +82,15 @@ CodePageChecker::CodePageChecker(const fs::path& projectDir, const toml::value& 
 }
 
 /**
- * @brief ICU转换失败时的回调函数。
+ * @brief ICU 回调函数，用于记录不能被转换为codePage的字符。
  *
- * 当一个Unicode码点无法被转换为目标编码（如GBK）时，此函数被调用。
- *
- * @param context 用户提供的上下文指针。我们将其转换为 std::string* 来存储无法映射的字符。
- * @param source 指向无法转换的源字符序列（UTF-8字节）的指针。
- * @param length source序列的长度（字节数）。
- * @param codeUnit UConverterCallbackReason，描述回调被触发的原因。
- * @param pErrorCode 指向UErrorCode的指针，用于报告错误。
+ * @param context 指向 std::string 的指针，用于记录不能被转换的字符。
+ * @param fromUArgs 转换参数。
+ * @param codeUnits 输入的码点序列。
+ * @param length 码点序列长度。
+ * @param codePoint 输入的码点。
+ * @param reason 回调原因。
+ * @param pErrorCode 错误码。
  */
 void U_CALLCONV codePageFromUCallback(
     const void* context,

@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
@@ -36,11 +36,11 @@ export {
         std::multimap<int, CallbackPattern> callbackPatterns;
     };
 
-    struct jsonInfo {
+    struct JsonInfo {
         std::vector<EpubTextNodeInfo> metadata;
-        // 存储json文件相对路径到原始HTML完整路径的映射
+        // 存储json文件相对路径到原始 HTML 完整路径的映射
         fs::path htmlPath;
-        // 存储json文件相对路径到其所属epub完整路径的映射
+        // 存储json文件相对路径到其所属 epub 完整路径的映射
         fs::path epubPath;
         // 存储json文件相对路径到 normal_post 完整路径的映射
         fs::path normalPostPath;
@@ -66,7 +66,7 @@ export {
 
 
         // 存储json文件相对路径到各种元数据的映射
-        std::map<fs::path, jsonInfo> m_jsonToInfoMap;
+        std::map<fs::path, JsonInfo> m_jsonToInfoMap;
 
         // 每个epub完整路径对应的多个json文件相对路径以及有没有处理完毕
         std::map<fs::path, std::map<fs::path, bool>> m_epubToJsonsMap;
@@ -77,9 +77,9 @@ export {
 
         EpubTranslator(const fs::path& projectDir, std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger);
 
-        virtual ~EpubTranslator()
+        virtual ~EpubTranslator() override
         {
-            m_logger->info("所有任务已完成！EpubTranlator结束。");
+            m_logger->info("所有任务已完成！EpubTranslator结束。");
         }
     };
 }
@@ -204,7 +204,7 @@ EpubTranslator::EpubTranslator(const fs::path& projectDir, std::shared_ptr<ICont
 
 void EpubTranslator::run()
 {
-    m_logger->info("GalTransl++ EpubTranlator 启动...");
+    m_logger->info("GalTransl++ EpubTranslator 启动...");
 
     for (const auto& dir : { m_epubInputDir, m_epubOutputDir }) {
         if (!fs::exists(dir)) {
@@ -314,7 +314,7 @@ void EpubTranslator::run()
 
 
                 // 存储映射关系
-                jsonInfo& info = m_jsonToInfoMap[relJsonPath];
+                JsonInfo& info = m_jsonToInfoMap[relJsonPath];
                 info.htmlPath = htmlEntry.path();
                 info.epubPath = epubPath;
                 info.normalPostPath = showNormalPostHtmlPath;
@@ -354,7 +354,7 @@ void EpubTranslator::run()
                 m_logger->warn("未找到与 {} 对应的元数据，跳过", wide2Ascii(relProcessedFile));
                 return;
             }
-            const jsonInfo& info = m_jsonToInfoMap[relProcessedFile];
+            const JsonInfo& info = m_jsonToInfoMap[relProcessedFile];
             const fs::path& epubPath = info.epubPath;
             std::map<fs::path, bool>& jsonsMap = m_epubToJsonsMap[epubPath];
             jsonsMap[relProcessedFile] = true;
@@ -369,7 +369,7 @@ void EpubTranslator::run()
             }
 
             // 这本epub的所有文件都翻译完毕，可以开始重组
-            for (const auto& [relJsonPath, isProcessed] : jsonsMap) {
+            for (const auto& relJsonPath : jsonsMap | std::views::keys) {
 
                 const fs::path& originalHtmlPath = info.htmlPath;
                 const fs::path rebuiltHtmlPath = m_tempRebuildDir / fs::relative(originalHtmlPath, m_tempUnpackDir);
@@ -465,7 +465,7 @@ void EpubTranslator::run()
             for (const auto& entry : fs::recursive_directory_iterator(bookRebuildPath)) {
                 fs::path relativePath = fs::relative(entry.path(), bookRebuildPath);
                 std::string entryName = wide2Ascii(relativePath);
-                std::replace(entryName.begin(), entryName.end(), '\\', '/');
+                std::ranges::replace(entryName, '\\', '/');
 
                 if (entryName == "mimetype") {
                     continue;
@@ -490,9 +490,8 @@ void EpubTranslator::run()
             if (zip_close(za) < 0) {
                 throw std::runtime_error("关闭 zip 存档时出错: " + std::string(zip_strerror(za)));
             }
-            else {
-                m_logger->info("已重建 EPUB 文件: {}", wide2Ascii(outputEpubPath));
-            }
+
+            m_logger->info("已重建 EPUB 文件: {}", wide2Ascii(outputEpubPath));
         };
 
 

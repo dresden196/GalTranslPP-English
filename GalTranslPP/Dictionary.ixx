@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
@@ -34,7 +34,7 @@ export {
 
         void sort();
 
-        void getModelAndTagger(std::function<NLPResult(const std::string&)> tokenizeFunc);
+        void setTokenizeFunc(std::function<NLPResult(const std::string&)> tokenizeFunc);
 
         void loadFromFile(const fs::path& filePath);
 
@@ -89,7 +89,7 @@ void GptDictionary::sort() {
         });
 }
 
-void GptDictionary::getModelAndTagger(std::function<NLPResult(const std::string&)> tokenizeFunc) {
+void GptDictionary::setTokenizeFunc(std::function<NLPResult(const std::string&)> tokenizeFunc) {
     m_tokenizeSourceLangFunc = tokenizeFunc;
 }
 
@@ -173,8 +173,8 @@ void GptDictionary::loadFromFile(const fs::path& filePath) {
         if (!dictData.contains("gptDict")) {
             return;
         }
-        const auto& dicts = dictData.at("gptDict").as_array();
-        for (const auto& el : dicts) {
+        const auto& dictTbls = dictData.at("gptDict").as_array();
+        for (const auto& el : dictTbls) {
             GptTabEntry entry;
             if (!el.contains("org") && !el.contains("searchStr")) {
                 continue;

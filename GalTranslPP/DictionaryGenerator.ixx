@@ -18,21 +18,22 @@ using json = nlohmann::json;
 
 export {
     class DictionaryGenerator {
+
     private:
         APIPool& m_apiPool;
-        NormalDictionary& m_preDict;
         std::shared_ptr<IController> m_controller;
+        std::shared_ptr<spdlog::logger> m_logger;
+        std::function<void(Sentence*)> m_preProcessFunc;
+        std::function<NLPResult(const std::string&)> m_tokenizeSourceLangFunc;
+
         std::string m_systemPrompt;
         std::string m_userPrompt;
+        std::string m_apiStrategy;
         int m_threadsNum;
         int m_apiTimeoutMs;
-        std::shared_ptr<spdlog::logger> m_logger;
-        std::string m_apiStrategy;
         int m_maxRetries;
-        int m_totalSentences = 0;
         bool m_checkQuota;
-        bool m_usePreDictInName;
-        bool m_usePreDictInMsg;
+        int m_totalSentences = 0;
 
         // 阶段一和二的结果
         std::vector<std::string> m_segments;
@@ -45,16 +46,14 @@ export {
         std::map<std::string, int> m_finalCounter;
         std::mutex m_resultMutex;
 
-        std::function<NLPResult(const std::string&)> m_tokenizeSourceLangFunc;
-
         void preprocessAndTokenize(const std::vector<fs::path>& jsonFiles);
         std::vector<int> solveSentenceSelection();
         void callLLMToGenerate(int segmentIndex, int threadId);
 
     public:
         DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::function<NLPResult(const std::string&)> tokenizeFunc,
-            NormalDictionary& preDict, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
-            int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota, bool usePreDictInName, bool usePreDictInMsg);
+            std::function<void(Sentence*)> preProcessFunc, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
+            int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota);
         void generate(const std::vector<fs::path>& jsonFiles, const fs::path& outputFilePath);
     };
 }
@@ -63,11 +62,11 @@ export {
 module :private;
 
 DictionaryGenerator::DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::function<NLPResult(const std::string&)> tokenizeFunc,
-    NormalDictionary& preDict, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
-    int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota, bool usePreDictInName, bool usePreDictInMsg)
+    std::function<void(Sentence*)> preProcessFunc, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
+    int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota)
     : m_controller(controller), m_logger(logger), m_apiPool(apiPool), m_tokenizeSourceLangFunc(tokenizeFunc),
-    m_preDict(preDict), m_systemPrompt(systemPrompt), m_userPrompt(userPrompt), m_apiStrategy(apiStrategy), m_maxRetries(maxRetries),
-    m_threadsNum(threadsNum), m_apiTimeoutMs(apiTimeoutMs), m_checkQuota(checkQuota), m_usePreDictInName(usePreDictInName), m_usePreDictInMsg(usePreDictInMsg)
+    m_preProcessFunc(preProcessFunc), m_systemPrompt(systemPrompt), m_userPrompt(userPrompt), m_apiStrategy(apiStrategy), m_maxRetries(maxRetries),
+    m_threadsNum(threadsNum), m_apiTimeoutMs(apiTimeoutMs), m_checkQuota(checkQuota)
 {
 
 }
@@ -75,7 +74,7 @@ DictionaryGenerator::DictionaryGenerator(std::shared_ptr<IController> controller
 void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jsonFiles) {
     m_logger->info("阶段一：预处理和分词...");
     std::string currentSegment;
-    const size_t MAX_SEGMENT_LEN = 512;
+    constexpr size_t MAX_SEGMENT_LEN = 512;
 
     Sentence se;
     std::ifstream ifs;
@@ -92,23 +91,20 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
         if (item.contains("name")) {
             se.nameType = NameType::Single;
             se.name = item.value("name", "");
-            if (m_usePreDictInName) {
-                se.name = m_preDict.doReplace(&se, CachePart::Name);
-            }
         }
         else if (item.contains("names")) {
             se.nameType = NameType::Multiple;
             se.names = item["names"].get<std::vector<std::string>>();
-            if (m_usePreDictInName) {
-                for (auto& name : se.names) {
-                    se.name = name;
-                    name = m_preDict.doReplace(&se, CachePart::Name);
-                }
-            }
         }
         else {
             se.nameType = NameType::None;
         }
+        se.original_text = item.value("message", "");
+
+        m_preProcessFunc(&se);
+        replaceStrInplace(se.pre_processed_text, "<br>", "");
+        replaceStrInplace(se.pre_processed_text, "<tab>", "");
+
         if (se.nameType == NameType::Single && !se.name.empty()) {
             m_nameSet.insert(se.name);
             m_wordCounter[se.name] += 2;
@@ -118,11 +114,6 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
                 m_nameSet.insert(name);
                 m_wordCounter[name] += 2;
             }
-        }
-
-        se.original_text = item.value("message", "");
-        if (m_usePreDictInMsg) {
-            se.pre_processed_text = m_preDict.doReplace(&se, CachePart::OrigText);
         }
 
         std::string currentText = getNameString(&se);
@@ -141,7 +132,7 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
         m_segments.push_back(currentSegment);
     }
 
-    m_logger->info("共分割成 {} 个文本块，开始进行分词(使用依赖Python的分词器这步会非常慢)...", m_segments.size());
+    m_logger->info("共分割成 {} 个文本块，开始进行分词(使用依赖 Python 且未进行 GPU加速 的分词器这步会非常慢)...", m_segments.size());
     m_controller->makeBar((int)m_segments.size(), 1);
     m_controller->addThreadNum();
     m_segmentWords.reserve(m_segments.size());
@@ -173,7 +164,7 @@ std::vector<int> DictionaryGenerator::solveSentenceSelection() {
     std::unordered_set<std::string> allWords;
     allWords.reserve(m_wordCounter.size()); // 预分配空间，减少哈希冲突
     for (const auto& [word, count] : m_wordCounter) {
-        if (count >= 2 || m_nameSet.count(word)) {
+        if (count >= 2 || m_nameSet.contains(word)) {
             allWords.insert(word);
         }
     }
@@ -209,7 +200,7 @@ std::vector<int> DictionaryGenerator::solveSentenceSelection() {
             size_t currentNewCoverage = 0;
             // 遍历候选段落中的词
             for (const auto& word : filteredSegmentWords[i]) {
-                if (coveredWords.find(word) == coveredWords.end()) {
+                if (!coveredWords.contains(word)) {
                     currentNewCoverage++;
                 }
             }
@@ -269,20 +260,20 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
             m_controller->reduceThreadNum();
             return;
         }
-        auto optAPI = m_apiStrategy == "random" ? m_apiPool.getAPI() : m_apiPool.getFirstAPI();
-        if (!optAPI) {
+        auto optApi = m_apiStrategy == "random" ? m_apiPool.getAPI() : m_apiPool.getFirstAPI();
+        if (!optApi) {
             throw std::runtime_error("没有可用的API Key了");
         }
-        TranslationAPI currentAPI = optAPI.value();
-        json payload = { {"model", currentAPI.modelName}, {"messages", messages}, /*{"temperature", 0.6}*/ };
+        TranslationApi currentApi = optApi.value();
+        json payload = { {"model", currentApi.modelName}, {"messages", messages}, /*{"temperature", 0.6}*/ };
 
         m_logger->info("[线程 {}] 开始从段落中生成术语表\ninputBlock: \n{}", threadId, text);
-        ApiResponse response = performApiRequest(payload, currentAPI, threadId, m_controller, m_logger, m_apiTimeoutMs);
+        ApiResponse response = performApiRequest(payload, currentApi, threadId, m_controller, m_logger, m_apiTimeoutMs);
 
-        /*bool checkResponse(const ApiResponse & response, const TranslationAPI & currentAPI, int& retryCount, const std::filesystem::path & relInputPath,
+        /*bool checkResponse(const ApiResponse & response, const TranslationApi & currentAPI, int& retryCount, const std::filesystem::path & relInputPath,
             int threadId, bool m_checkQuota, const std::string & m_apiStrategy, APIPool & m_apiPool, std::shared_ptr<spdlog::logger> m_logger);*/
         if (!checkResponse(
-            response, currentAPI, retryCount, L"字典生成——段落输入", threadId, m_checkQuota, m_apiStrategy, m_apiPool, m_logger
+            response, currentApi, retryCount, L"字典生成——段落输入", threadId, m_checkQuota, m_apiStrategy, m_apiPool, m_logger
         )) {
             continue;
         }
@@ -342,7 +333,7 @@ void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const
     std::vector<std::tuple<std::string, std::string, std::string>> finalList;
 
     // 按出现次数排序
-    std::sort(m_finalDict.begin(), m_finalDict.end(), [&](const auto& a, const auto& b) 
+    std::ranges::sort(m_finalDict, [&](const auto& a, const auto& b) 
         {
             return m_finalCounter[std::get<0>(a)] > m_finalCounter[std::get<0>(b)];
         });
@@ -351,21 +342,21 @@ void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const
     for (const auto& item : m_finalDict) {
         const auto& src = std::get<0>(item);
         const auto& note = std::get<2>(item);
-        if (m_finalCounter[src] > 1 || note.find("人名") != std::string::npos || note.find("地名") != std::string::npos || m_wordCounter.count(src) || m_nameSet.count(src)) {
+        if (m_finalCounter[src] > 1 || note.find("人名") != std::string::npos || note.find("地名") != std::string::npos || m_wordCounter.contains(src) || m_nameSet.contains(src)) {
             finalList.push_back(item);
         }
     }
 
     // 去重
     std::set<std::string> seen;
-    finalList.erase(std::remove_if(finalList.begin(), finalList.end(), [&](const auto& item) 
+    std::erase_if(finalList, [&](const auto& item)
         {
-            if (seen.count(std::get<0>(item))) {
+            if (seen.contains(std::get<0>(item))) {
                 return true;
             }
             seen.insert(std::get<0>(item));
             return false;
-        }), finalList.end());
+        });
 
 
     toml::ordered_value arr = toml::array{};

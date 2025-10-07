@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #include <spdlog/spdlog.h>
 #include <toml.hpp>
@@ -34,7 +34,7 @@ export {
 
         PDFTranslator(const fs::path& projectDir, std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger);
 
-        virtual ~PDFTranslator()
+        virtual ~PDFTranslator() override
         {
             m_logger->info("所有任务已完成！PDFTranslator结束。");
         }

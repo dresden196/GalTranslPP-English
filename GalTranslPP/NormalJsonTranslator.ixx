@@ -65,7 +65,7 @@ export {
         bool m_usePostDictInName;
         bool m_usePreDictInMsg;
         bool m_usePostDictInMsg;
-        bool m_useGPTDictToReplaceName;
+        bool m_useGptDictToReplaceName;
         bool m_outputWithSrc;
 
         std::string m_apiStrategy;
@@ -116,9 +116,9 @@ export {
             std::optional<fs::path> inputDir = std::nullopt, std::optional<fs::path> inputCacheDir = std::nullopt,
             std::optional<fs::path> outputDir = std::nullopt, std::optional<fs::path> outputCacheDir = std::nullopt);
 
-        virtual ~NormalJsonTranslator()
+        virtual ~NormalJsonTranslator() override
         {
-            m_logger->info("所有任务已完成！NormalJsonTranlator结束。");
+            m_logger->info("所有任务已完成！NormalJsonTranslator结束。");
         }
 
         virtual void run() override;
@@ -193,9 +193,9 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                 std::vector<toml::ordered_table>
             >(configData, "backendSpecific", "OpenAI-Compatible", "apis");
 
-            std::vector<TranslationAPI> apis;
+            std::vector<TranslationApi> apis;
             for (const auto& apiTbl : apisArr) {
-                TranslationAPI api;
+                TranslationApi api;
                 if (apiTbl.contains("apikey") && !apiTbl.at("apikey").as_string().empty()) {
                     api.apikey = apiTbl.at("apikey").as_string();
                 }
@@ -272,7 +272,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             throw std::invalid_argument("无效的 tokenizerBackend");
         }
 
-        m_gptDictionary.getModelAndTagger(m_tokenizeSourceLangFunc);
+        m_gptDictionary.setTokenizeFunc(m_tokenizeSourceLangFunc);
 
         const auto& textPrePlugins = toml::find<
             std::optional<std::vector<std::string>>
@@ -281,13 +281,14 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             m_prePlugins = registerPlugins(*textPrePlugins, m_projectDir, m_logger, configData);
         }
 
-        const auto& textPostPlugins = toml::find<
-            std::optional<std::vector<std::string>>
-        >(configData, "plugins", "textPostPlugins");
-        if (textPostPlugins) {
-            m_postPlugins = registerPlugins(*textPostPlugins, m_projectDir, m_logger, configData);
+        if (m_transEngine != TransEngine::DumpName && m_transEngine != TransEngine::Rebuild && m_transEngine != TransEngine::ShowNormal) {
+            const auto& textPostPlugins = toml::find<
+                std::optional<std::vector<std::string>>
+            >(configData, "plugins", "textPostPlugins");
+            if (textPostPlugins) {
+                m_postPlugins = registerPlugins(*textPostPlugins, m_projectDir, m_logger, configData);
+            }
         }
-
 
         needReboot = needReboot 
             || std::ranges::any_of(m_prePlugins, [](const auto& plugin) { return plugin->needReboot(); }) 
@@ -385,7 +386,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         m_usePostDictInName = toml::find_or(configData, "dictionary", "usePostDictInName", false);
         m_usePreDictInMsg = toml::find_or(configData, "dictionary", "usePreDictInMsg", true);
         m_usePostDictInMsg = toml::find_or(configData, "dictionary", "usePostDictInMsg", true);
-        m_useGPTDictToReplaceName = toml::find_or(configData, "dictionary", "useGPTDictInName", false);
+        m_useGptDictToReplaceName = toml::find_or(configData, "dictionary", "useGPTDictInName", false);
 
         auto loadDictsFunc = [&]<typename DictType>(const std::string& dictType, DictType& dict)
             {
@@ -575,7 +576,7 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
 
     auto replaceName = [&]() -> std::string
         {
-            if (m_useGPTDictToReplaceName) {
+            if (m_useGptDictToReplaceName) {
                 se->name_preview = m_gptDictionary.doReplace(se, CachePart::NamePreview);
             }
             if (!se->name_preview.empty()) {
@@ -695,19 +696,19 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         }
         messages.push_back({ {"role", "user"}, {"content", promptReq} });
 
-        auto optAPI = m_apiStrategy == "random" ? m_apiPool.getAPI() : m_apiPool.getFirstAPI();
-        if (!optAPI.has_value()) {
+        auto optApi = m_apiStrategy == "random" ? m_apiPool.getAPI() : m_apiPool.getFirstAPI();
+        if (!optApi.has_value()) {
             throw std::runtime_error("没有可用的API Key了");
         }
-        const TranslationAPI& currentAPI = optAPI.value();
+        const TranslationApi& currentApi = optApi.value();
 
-        json payload = { {"model", currentAPI.modelName}, {"messages", messages} };
+        json payload = { {"model", currentApi.modelName}, {"messages", messages} };
 
-        ApiResponse response = performApiRequest(payload, currentAPI, threadId, m_controller, m_logger, m_apiTimeOutMs);
-        /*bool checkResponse(const ApiResponse & response, const TranslationAPI & currentAPI, int& retryCount, const std::filesystem::path & relInputPath,
+        ApiResponse response = performApiRequest(payload, currentApi, threadId, m_controller, m_logger, m_apiTimeOutMs);
+        /*bool checkResponse(const ApiResponse & response, const TranslationApi & currentAPI, int& retryCount, const std::filesystem::path & relInputPath,
             int threadId, bool m_checkQuota, const std::string & m_apiStrategy, APIPool & m_apiPool, std::shared_ptr<spdlog::logger> m_logger)*/
         if (!checkResponse(
-            response, currentAPI, retryCount, relInputPath, threadId, m_checkQuota, m_apiStrategy, m_apiPool, m_logger
+            response, currentApi, retryCount, relInputPath, threadId, m_checkQuota, m_apiStrategy, m_apiPool, m_logger
         )) {
             continue;
         }
@@ -717,7 +718,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         int parsedCount = 0;
         bool parseError = false;
 
-        parseContent(response.content, batchToTransThisRound, id2SentenceMap, currentAPI.modelName, m_transEngine, parseError, parsedCount,
+        parseContent(response.content, batchToTransThisRound, id2SentenceMap, currentApi.modelName, m_transEngine, parseError, parsedCount,
             m_controller, m_completedSentences);
 
         if (parseError || parsedCount != batchToTransThisRound.size()) {
@@ -1071,7 +1072,7 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
 
 // ================================================         run           ========================================
 void NormalJsonTranslator::run() {
-    m_logger->info("GalTransl++ NormalJsonTranlator 启动...");
+    m_logger->info("GalTransl++ NormalJsonTranslator 启动...");
 
     if (fs::exists(m_cacheDir)) {
         std::error_code ec;
@@ -1162,7 +1163,7 @@ void NormalJsonTranslator::run() {
         }
 
         std::vector<std::string> nameTableKeys;
-        for (const auto& [name, count] : nameTableMap) {
+        for (const auto& name : nameTableMap | std::views::keys) {
             nameTableKeys.push_back(name);
         }
         std::ranges::sort(nameTableKeys, [&](const std::string& a, const std::string& b)
@@ -1198,9 +1199,13 @@ void NormalJsonTranslator::run() {
 
     // 字典生成
     if (m_transEngine == TransEngine::GenDict) {
+        auto preProcessFunc = [this](Sentence* se)
+            {
+                this->preProcess(se);
+            };
         DictionaryGenerator generator(m_controller, m_logger, m_apiPool, m_tokenizeSourceLangFunc, 
-            m_preDictionary, m_systemPrompt, m_userPrompt, m_apiStrategy,
-            m_maxRetries, m_threadsNum, m_apiTimeOutMs, m_checkQuota, m_usePreDictInName, m_usePreDictInMsg);
+            preProcessFunc, m_systemPrompt, m_userPrompt, m_apiStrategy,
+            m_maxRetries, m_threadsNum, m_apiTimeOutMs, m_checkQuota);
         fs::path outputFilePath = m_projectDir / L"项目GPT字典-生成.toml";
         std::vector<fs::path> inputPaths = std::move(relJsonPaths);
         for (auto& inputPath : inputPaths) {
@@ -1289,7 +1294,7 @@ void NormalJsonTranslator::run() {
             relFilePaths = std::move(relJsonPaths);
         }
         else {
-            for (const auto& [relPartPath, relJsonPath] : m_splitFilePartsToJson) {
+            for (const auto& relPartPath : m_splitFilePartsToJson | std::views::keys) {
                 relFilePaths.push_back(relPartPath);
             }
         }
@@ -1315,7 +1320,7 @@ void NormalJsonTranslator::run() {
         std::vector<std::future<void>> results;
 
         for (const auto& filePath : relFilePaths) {
-            results.emplace_back(pool.push([=](int id)
+            results.emplace_back(pool.push([=](const int id)
                 {
                     this->processFile(filePath, id);
                 }));

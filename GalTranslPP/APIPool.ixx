@@ -10,7 +10,7 @@ export {
 
     class APIPool {
     private:
-        std::vector<TranslationAPI> m_apis;
+        std::vector<TranslationApi> m_apis;
         std::shared_ptr<spdlog::logger> m_logger;
         std::mutex m_mutex;
 
@@ -20,20 +20,20 @@ export {
     public:
         APIPool(std::shared_ptr<spdlog::logger> logger);
 
-        void loadAPIs(const std::vector<TranslationAPI>& apis);
+        void loadAPIs(const std::vector<TranslationApi>& apis);
 
-        std::optional<TranslationAPI> getAPI();
+        std::optional<TranslationApi> getAPI();
 
-        std::optional<TranslationAPI> getFirstAPI();
+        std::optional<TranslationApi> getFirstAPI();
 
         void resortTokens();
 
-        void reportProblem(const TranslationAPI& badAPI);
+        void reportProblem(const TranslationApi& badAPI);
 
         bool isEmpty();
     };
 
-    bool checkResponse(const ApiResponse& response, const TranslationAPI& currentAPI, int& retryCount, const std::filesystem::path& relInputPath,
+    bool checkResponse(const ApiResponse& response, const TranslationApi& currentAPI, int& retryCount, const std::filesystem::path& relInputPath,
         int threadId, bool m_checkQuota, const std::string& m_apiStrategy, APIPool& m_apiPool, std::shared_ptr<spdlog::logger> m_logger);
 }
 
@@ -42,14 +42,14 @@ module :private;
 
 APIPool::APIPool(std::shared_ptr<spdlog::logger> logger) : m_logger(logger), m_gen(m_rd()) {}
 
-void APIPool::loadAPIs(const std::vector<TranslationAPI>& apis) {
+void APIPool::loadAPIs(const std::vector<TranslationApi>& apis) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     m_apis.insert(m_apis.end(), apis.begin(), apis.end());
     m_logger->info("令牌池新加载 {} 个 API Keys， 现共有 {} 个API Keys", apis.size(), m_apis.size());
 }
 
-std::optional<TranslationAPI> APIPool::getAPI() {
+std::optional<TranslationApi> APIPool::getAPI() {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     if (m_apis.empty()) {
@@ -63,7 +63,7 @@ std::optional<TranslationAPI> APIPool::getAPI() {
     return m_apis[index];
 }
 
-std::optional<TranslationAPI> APIPool::getFirstAPI() {
+std::optional<TranslationApi> APIPool::getFirstAPI() {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     if (m_apis.empty()) {
@@ -81,10 +81,10 @@ void APIPool::resortTokens() {
     }
 }
 
-void APIPool::reportProblem(const TranslationAPI& badAPI) {
+void APIPool::reportProblem(const TranslationApi& badAPI) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    auto it = std::ranges::find_if(m_apis, [&](const TranslationAPI& api)
+    auto it = std::ranges::find_if(m_apis, [&](const TranslationApi& api)
         {
             return api.apikey == badAPI.apikey;
         });
@@ -111,7 +111,7 @@ bool APIPool::isEmpty() {
     return m_apis.empty();
 }
 
-bool checkResponse(const ApiResponse& response, const TranslationAPI& currentAPI, int& retryCount, const std::filesystem::path& relInputPath,
+bool checkResponse(const ApiResponse& response, const TranslationApi& currentAPI, int& retryCount, const std::filesystem::path& relInputPath,
     int threadId, bool m_checkQuota, const std::string& m_apiStrategy, APIPool& m_apiPool, std::shared_ptr<spdlog::logger> m_logger)
 {
     if (response.success) {

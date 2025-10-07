@@ -362,10 +362,45 @@ callback = [ { group = 2, org = '&lt;[^&gt;]*&gt;', rep = '' } ]
 <p>对于第一组文本，程序会寻找所有 <code>group = 1</code> 的回调正则，并依次执行替换。显然上面的回调正则并没有 <code>group = 1</code> 的正则，则忽略替换，第一组原样输出，现在的替换字符串暂定为: <code>&lt;p class="class_s2C-0"&gt;</code></p>
 <p>对于第二组文本，程序找到了 <code>group = 2</code> 的正则，则对第二组文本使用 <code>org = '&lt;[^&gt;]*&gt;', rep = ''</code> 进行替换，替换后得到 <code>「うっ、レナ!?」</code> ，则现在的替换字符串暂定为 <code>&lt;p class="class_s2C-0"&gt;「うっ、レナ!?」</code></p>
 <p>第三组文本与第一组文本同理，则最终的替换字符串为 <code>&lt;p class="class_s2C-0"&gt;「うっ、レナ!?」&lt;/p&gt;</code> ，与预期相符。</p>
-<h3>Python 模块使用</h3>
+<h3>Python 模块使用及 GPU 加速</h3>
 <p>由于许多有关深度学习的库(如分词器、PDF提取器等)只有python能方便的调用，本程序在发行时会默认附带小型的嵌入式Python环境，你无需手动下载。</p>
 <p>当遇到需要使用Python库的情况时(如<strong>翻译PDF</strong>或<strong>使用依赖Python的分词器</strong>)，程序会自动为嵌入式环境下载对应的库。</p>
 <p>但可能在下载之后需要<strong>重启程序</strong>以重新加载Python解释器。请留意日志输出窗口的提示，避免造成程序卡死或崩溃。</p>
+<p>然而在不启用 GPU加速 的情况下使用如 <code>spaCy</code> 或 <code>Stanza</code> 进行全文分词的速度是比较灾难性的，如果想启用 GPU 加速，请跟随以下教程。</p>
+<p><strong>请确保自己有一定的动手和思考能力！</strong></p>
+<h4>为 <code>Staqnza</code> 启用 GPU加速</h4>
+<ul>
+<li>1、 首先确保你安装了适配你显卡的 <strong>最新的N卡驱动</strong>，然后去<a href="https://developer.nvidia.com/cuda-toolkit-archive" target="_blank">NVIDIA CUDA Toolkit官网</a> <strong>Download Latest CUDA Toolkit</strong>, 下载 CUDA Toolkit Installer 并安装。 <strong>安装完毕后请重启电脑！</strong></li>
+<li>2、 访问<a href="https://pytorch.org/get-started/locally/" target="_blank">PyTorch官网</a>，选择合适的 CUDA 版本获取安装命令。<br>
+不知道选什么版本的可以在 cmd 里运行</li>
+</ul>
+<div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper-cmd extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-cmd"><code>nvidia-smi
+</code></pre>
+
+    <button class="v-md-copy-code-btn" type="button">
+      <i>
+        <svg viewBox="64 64 896 896" focusable="false" data-icon="copy" width="1em" height="1em" fill="currentColor" aria-hidden="true">
+          <path d="M832 64H296c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h496v688c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V96c0-17.7-14.3-32-32-32zM704 192H192c-17.7 0-32 14.3-32 32v530.7c0 8.5 3.4 16.6 9.4 22.6l173.3 173.3c2.2 2.2 4.7 4 7.4 5.5v1.9h4.2c3.5 1.3 7.2 2 11 2H704c17.7 0 32-14.3 32-32V224c0-17.7-14.3-32-32-32zM350 856.2L263.9 770H350v86.2zM664 888H414V746c0-22.1-17.9-40-40-40H232V264h432v624z"></path>
+        </svg>
+      </i>
+    </button><!--beforeend--></div><!--afterend--></div><p>以获取 CUDA 版本，一般都向后兼容，选哪个问题都不大。</p>
+<ul>
+<li>3、 为嵌入式环境安装 PyTorch，注意启动的必须是 <strong>嵌入式环境中的 Python(之后的操作默认均在此环境中进行)</strong>。<br>
+默认目录在 <code>BaseConfig\python-3.12.10-embed-amd64</code>，请在此目录下打开 cmd 或在 cmd 每次执行命令时输入此环境的 python.exe 的<strong>绝对路径</strong>以避免与你可能安装过的 python 混淆。</li>
+<li>4、 比如官网给我的命令是 <code>pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu129</code>，那我就可以在如上目录中打开 cmd (直接在路径栏输入 cmd 后回车)并运行 <code>python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu129</code>。<br>
+注意: 如果你已经安装了CPU版本的torch，最好先卸载它：<code>python -m pip uninstall torch</code></li>
+<li>5、 重装 Stanza，<code>python -m pip uninstall stanza</code>  <code>python -m pip install stanza</code></li>
+<li>6、 尝试运行 <code>BaseConfig\pyScripts\check_stanza_gpu.py</code>，如果提示成功，则代表所有配置均已就绪。</li>
+<li>7、 此时打开 <code>BaseConfig\pyScripts\tokenizer_stanza.py</code> 文件，将 <code>self.nlp = stanza.Pipeline(lang=model_name, processors='tokenize,pos,ner', use_gpu=False, verbose=False)</code> 中的 <code>use_gpu</code> 参数改为 <code>True</code>，即可为 Stanza 启用 GPU加速。</li>
+</ul>
+<h4>为 <code>spaCy</code> 启用 GPU加速</h4>
+<ul>
+<li>1、 同 Stanza 第一条。</li>
+<li>2、 在 <strong>嵌入式 Python环境(详见 Stanza第三条)中</strong> 重新安装 spacy。<code>python -m pip uninstall spacy</code>，并确保此环境中没有安装 <code>cupy</code>。</li>
+<li>3、 根据自己的 CUDA 版本(查看 Stanza 第二条以查看如何获取 CUDA 版本)，安装 <code>cupy</code> 的特定版本，如 <code>cupy-cuda13x</code>: <code>python -m pip install cupy-cuda13x</code>，然后再把 spacy 装回来 <code>python -m pip install spacy</code>。</li>
+<li>4、 尝试运行 <code>BaseConfig\pyScripts\check_spacy_gpu.py</code>，如果提示成功，则代表所有配置均已就绪。</li>
+<li>5、 此时打开 <code>BaseConfig\pyScripts\tokenizer_spacy.py</code> 文件，将 <code>#spacy.require_gpu()</code> 的#注释去掉，即可为 spaCy 启用 GPU加速。</li>
+</ul>
 <h2>其它程序说明</h2>
 <h3>自定义主页Popular卡片</h3>
 <p>具体示例详见 (Example/)BaseConfig/globalConfig.toml 中的 [[popularCards]] 数组。</p>

@@ -19,7 +19,7 @@ export {
 
 	struct Problems {
         ProblemCompareObj highFrequency;
-        ProblemCompareObj punctMiss;
+        ProblemCompareObj punctsMiss;
         ProblemCompareObj remainJp;
         ProblemCompareObj introLatin;
         ProblemCompareObj introHangul;
@@ -82,9 +82,9 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
     }
 
     // 2. 标点错漏
-    if (m_problems.punctMiss.use) {
-        const std::string& origText = chooseStringRef(sentence, m_problems.punctMiss.base);
-        const std::string& transView = chooseStringRef(sentence, m_problems.punctMiss.check);
+    if (m_problems.punctsMiss.use) {
+        const std::string& origText = chooseStringRef(sentence, m_problems.punctsMiss.base);
+        const std::string& transView = chooseStringRef(sentence, m_problems.punctsMiss.check);
         for (const auto& punctToCheck : m_punctsToCheck) {
             bool orgHas = origText.find(punctToCheck) != std::string::npos;
             bool transHas = transView.find(punctToCheck) != std::string::npos;
@@ -130,10 +130,10 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
         if (!sentence->originalLinebreak.empty()) {
             const std::string& origText = chooseStringRef(sentence, m_problems.linebreakLost.base);
             const std::string& transView = chooseStringRef(sentence, m_problems.linebreakLost.check);
-            int orgLinebreaks = countSubstring(origText, sentence->originalLinebreak);
+            int origLinebreaks = countSubstring(origText, sentence->originalLinebreak);
             int transLinebreaks = countSubstring(transView, sentence->originalLinebreak);
-            if (orgLinebreaks > transLinebreaks) {
-                sentence->problems.push_back(std::format("丢失换行({}/{})", orgLinebreaks, transLinebreaks));
+            if (origLinebreaks > transLinebreaks) {
+                sentence->problems.push_back(std::format("丢失换行({}/{})", origLinebreaks, transLinebreaks));
             }
         }
     }
@@ -141,10 +141,10 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
         if (!sentence->originalLinebreak.empty()) {
             const std::string& origText = chooseStringRef(sentence, m_problems.linebreakAdded.base);
             const std::string& transView = chooseStringRef(sentence, m_problems.linebreakAdded.check);
-            int orgLinebreaks = countSubstring(origText, sentence->originalLinebreak);
+            int origLinebreaks = countSubstring(origText, sentence->originalLinebreak);
             int transLinebreaks = countSubstring(transView, sentence->originalLinebreak);
-            if (orgLinebreaks < transLinebreaks) {
-                sentence->problems.push_back(std::format("多加换行({}/{})", orgLinebreaks, transLinebreaks));
+            if (origLinebreaks < transLinebreaks) {
+                sentence->problems.push_back(std::format("多加换行({}/{})", origLinebreaks, transLinebreaks));
             }
         }
     }
@@ -248,7 +248,7 @@ void ProblemAnalyzer::loadProblems(const std::vector<std::string>& problemList, 
 			m_problems.highFrequency.use = true;
 		}
 		else if (problem == "标点错漏") {
-			m_problems.punctMiss.use = true;
+			m_problems.punctsMiss.use = true;
 		}
 		else if (problem == "残留日文") {
 			m_problems.remainJp.use = true;
@@ -304,7 +304,7 @@ void ProblemAnalyzer::overwriteCompareObj(const std::string& problemKey, const s
         saveCachePart(m_problems.highFrequency, base, check);
     }
     else if (problemKey == "标点错漏") {
-        saveCachePart(m_problems.punctMiss, base, check);
+        saveCachePart(m_problems.punctsMiss, base, check);
     }
     else if (problemKey == "残留日文") {
         saveCachePart(m_problems.remainJp, base, check);

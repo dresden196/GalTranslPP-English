@@ -337,7 +337,7 @@ std::string getNameString(const Sentence* se) {
     if (se->nameType == NameType::Single) {
         return se->name;
     }
-    else if (se->nameType == NameType::Multiple) {
+    if (se->nameType == NameType::Multiple) {
         return names2String(se->names);
     }
     return {};
@@ -347,7 +347,7 @@ std::string getNameString(const json& j) {
     if (j.contains("name")) {
         return j["name"].get<std::string>();
     }
-    else if (j.contains("names")) {
+    if (j.contains("names")) {
         return names2String(j["names"]);
     }
     return {};
@@ -361,7 +361,7 @@ void createParent(const fs::path& path) {
 
 std::wstring wstr2Lower(const std::wstring& wstr) {
     std::wstring result = wstr;
-    std::transform(result.begin(), result.end(), result.begin(), [](wchar_t wc) { return std::tolower(wc); });
+    std::ranges::transform(result, result.begin(), [](wchar_t wc) { return std::tolower(wc); });
     return result;
 }
 
@@ -809,13 +809,13 @@ void extractZip(const fs::path& zipPath, const fs::path& outputDir) {
     if (!za) {
         throw std::runtime_error(std::format("Failed to open zip archive: {}", wide2Ascii(zipPath)));
     }
-    zip_int64_t num_entries = zip_get_num_entries(za, 0);
-    for (zip_int64_t i = 0; i < num_entries; i++) {
+    zip_int64_t numEntries = zip_get_num_entries(za, 0);
+    for (zip_int64_t i = 0; i < numEntries; i++) {
         zip_stat_t zs;
         zip_stat_index(za, i, 0, &zs);
-        fs::path outpath = outputDir / ascii2Wide(zs.name);
+        fs::path path = outputDir / ascii2Wide(zs.name);
         if (zs.name[strlen(zs.name) - 1] == '/') {
-            fs::create_directories(outpath);
+            fs::create_directories(path);
         }
         else {
             zip_file* zf = zip_fopen_index(za, i, 0);
@@ -825,8 +825,8 @@ void extractZip(const fs::path& zipPath, const fs::path& outputDir) {
             std::vector<char> buffer(zs.size);
             zip_fread(zf, buffer.data(), zs.size);
             zip_fclose(zf);
-            fs::create_directories(outpath.parent_path());
-            std::ofstream ofs(outpath, std::ios::binary);
+            fs::create_directories(path.parent_path());
+            std::ofstream ofs(path, std::ios::binary);
             ofs.write(buffer.data(), buffer.size());
         }
     }

@@ -325,7 +325,7 @@ nvidia-smi
 - 4、 比如官网给我的命令是 `pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu129`，那我就可以在如上目录中打开 cmd (直接在路径栏输入 cmd 后回车)并运行 `python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu129`。
 注意: 如果你已经安装了CPU版本的torch，最好先卸载它：`python -m pip uninstall torch`
 - 5、 重装 Stanza，`python -m pip uninstall stanza`  `python -m pip install stanza`
-- 6、 尝试运行 `BaseConfig\pyScripts\check_stanza_gpu.py`，如果成功，则代表所有配置均已就绪。
+- 6、 尝试运行 `BaseConfig\pyScripts\check_stanza_gpu.py`，如果提示成功，则代表所有配置均已就绪。
 - 7、 此时打开 `BaseConfig\pyScripts\tokenizer_stanza.py` 文件，将 `self.nlp = stanza.Pipeline(lang=model_name, processors='tokenize,pos,ner', use_gpu=False, verbose=False)` 中的 `use_gpu` 参数改为 `True`，即可为 Stanza 启用 GPU加速。
 
 #### 为 `spaCy` 启用 GPU加速
@@ -333,7 +333,7 @@ nvidia-smi
 - 1、 同 Stanza 第一条。
 - 2、 在 **嵌入式 Python环境(详见 Stanza第三条)中** 重新安装 spacy。`python -m pip uninstall spacy`，并确保此环境中没有安装 `cupy`。
 - 3、 根据自己的 CUDA 版本(查看 Stanza 第二条以查看如何获取 CUDA 版本)，安装 `cupy` 的特定版本，如 `cupy-cuda13x`: `python -m pip install cupy-cuda13x`，然后再把 spacy 装回来 `python -m pip install spacy`。
-- 4、 尝试运行 `BaseConfig\pyScripts\check_spacy_gpu.py`，如果成功，则代表所有配置均已就绪。
+- 4、 尝试运行 `BaseConfig\pyScripts\check_spacy_gpu.py`，如果提示成功，则代表所有配置均已就绪。
 - 5、 此时打开 `BaseConfig\pyScripts\tokenizer_spacy.py` 文件，将 `#spacy.require_gpu()` 的#注释去掉，即可为 spaCy 启用 GPU加速。
 
 </details>
@@ -431,4 +431,6 @@ GalTransl++在文件支持和插件支持上仍处于起步阶段，也不排除
 
 另外由于我所使用的环境较新，也可能会有一些比较罕见的问题。
 
-目前已知项目依赖 `mecab:x64-windows` 在VS2026(工具集 v145)下不过编，但是VS2022(工具集 v143)能过，安装依赖可能需要切回VS2022  
+目前已知项目依赖 `mecab:x64-windows` 在VS2026(工具集 v145)下不过编，但是VS2022(工具集 v143)能过，安装依赖可能需要切回VS2022
+
+

@@ -94,7 +94,7 @@ export {
 
         NLPResult processText(const std::string& text, const std::string& moduleName, const std::string& modelName);
 
-        // 每个模块在使用 procecssText 之前，必须先调用该函数检查并加载模块及模型
+        // 每个模块在使用 processText 之前，必须先调用该函数检查并加载模块及模型
         bool checkModuleAndModel(const std::vector<std::string>& dependencies, const std::string& moduleName, const std::string& modelName, std::shared_ptr<spdlog::logger> logger);
 
     private:
