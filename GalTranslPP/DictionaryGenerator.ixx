@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #include <spdlog/spdlog.h>
 #include <boost/regex.hpp>
@@ -29,6 +29,7 @@ export {
         std::shared_ptr<spdlog::logger> m_logger;
         std::string m_apiStrategy;
         int m_maxRetries;
+        int m_totalSentences = 0;
         bool m_checkQuota;
         bool m_usePreDictInName;
         bool m_usePreDictInMsg;
@@ -87,6 +88,7 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
                 return data;
             }) | std::views::join)
     {
+        m_totalSentences++;
         if (item.contains("name")) {
             se.nameType = NameType::Single;
             se.name = item.value("name", "");
@@ -104,6 +106,9 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
                 }
             }
         }
+        else {
+            se.nameType = NameType::None;
+        }
         if (se.nameType == NameType::Single && !se.name.empty()) {
             m_nameSet.insert(se.name);
             m_wordCounter[se.name] += 2;
@@ -120,7 +125,12 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
             se.pre_processed_text = m_preDict.doReplace(&se, CachePart::OrigText);
         }
 
-        currentSegment += getNameString(&se) + se.pre_processed_text + "\n";
+        std::string currentText = getNameString(&se);
+        if (!currentText.empty()) {
+            currentText += ": ";
+        }
+        currentText += se.pre_processed_text + "\n";
+        currentSegment += currentText;
         if (currentSegment.length() > MAX_SEGMENT_LEN) {
             m_segments.push_back(currentSegment);
             currentSegment.clear();
@@ -131,25 +141,37 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
         m_segments.push_back(currentSegment);
     }
 
-    m_logger->info("共分割成 {} 个文本块，开始使用 MeCab 分词...", m_segments.size());
+    m_logger->info("共分割成 {} 个文本块，开始进行分词(使用依赖Python的分词器这步会非常慢)...", m_segments.size());
+    m_controller->makeBar((int)m_segments.size(), 1);
+    m_controller->addThreadNum();
     m_segmentWords.reserve(m_segments.size());
     for (const auto& segment : m_segments) {
+        m_controller->updateBar();
+        if (m_controller->shouldStop()) {
+            break;
+        }
         std::set<std::string> wordsInSegment;
         NLPResult result = m_tokenizeSourceLangFunc(segment);
-        const std::vector<std::vector<std::string>>& entityList = std::get<1>(result);
-        for (const auto& entity : entityList) {
+        const EntityVec& entityVec = std::get<1>(result);
+        for (const auto& entity : entityVec) {
             wordsInSegment.insert(entity.front());
             m_wordCounter[entity.front()]++;
+            m_logger->trace("分词结果：{} -> {}", entity.front(), entity.back());
         }
         m_segmentWords.push_back(wordsInSegment);
     }
+    m_controller->reduceThreadNum();
 }
 
 std::vector<int> DictionaryGenerator::solveSentenceSelection() {
-    m_logger->info("阶段二：搜索并选择信息量最大的文本块...");
+    if (m_controller->shouldStop()) {
+        return {};
+    }
+    m_logger->info("阶段二：搜索并选择信息量最大的文本块(单线程)...");
 
     // 剔除出现次数小于2的词语，人名除外
-    std::set<std::string> allWords;
+    std::unordered_set<std::string> allWords;
+    allWords.reserve(m_wordCounter.size()); // 预分配空间，减少哈希冲突
     for (const auto& [word, count] : m_wordCounter) {
         if (count >= 2 || m_nameSet.count(word)) {
             allWords.insert(word);
@@ -157,48 +179,61 @@ std::vector<int> DictionaryGenerator::solveSentenceSelection() {
     }
 
     // 过滤每个 segment 中的词，只保留在 allWords 中的
-    std::vector<std::set<std::string>> filteredSegmentWords;
+    std::vector<std::unordered_set<std::string>> filteredSegmentWords;
     for (const auto& segment : m_segmentWords) {
-        std::set<std::string> filteredSet;
-        std::set_intersection(segment.begin(), segment.end(),
-            allWords.begin(), allWords.end(),
-            std::inserter(filteredSet, filteredSet.begin()));
-        filteredSegmentWords.push_back(filteredSet);
-    }
-
-    std::set<std::string> coveredWords;
-    std::vector<int> selectedIndices;
-    std::vector<int> remainingIndices(filteredSegmentWords.size());
-    std::iota(remainingIndices.begin(), remainingIndices.end(), 0);
-
-    while (coveredWords.size() < allWords.size() && !remainingIndices.empty()) {
-        int bestIndex = -1;
-        size_t maxNewCoverage = 0;
-
-        for (int index : remainingIndices) {
-            std::set<std::string> tempSet;
-            std::set_difference(
-                filteredSegmentWords[index].begin(), filteredSegmentWords[index].end(),
-                coveredWords.begin(), coveredWords.end(),
-                std::inserter(tempSet, tempSet.begin())
-            );
-            size_t newCoverage = tempSet.size();
-
-            if (newCoverage > maxNewCoverage) {
-                maxNewCoverage = newCoverage;
-                bestIndex = index;
+        std::unordered_set<std::string> filteredSet;
+        for (const auto& word : segment) {
+            if (allWords.contains(word)) {
+                filteredSet.insert(word);
             }
         }
+        filteredSegmentWords.push_back(std::move(filteredSet));
+    }
 
+    std::unordered_set<std::string> coveredWords;
+    coveredWords.reserve(allWords.size());
+    std::vector<int> selectedIndices;
+    std::vector<bool> usedIndices(filteredSegmentWords.size(), false);
+
+    m_controller->makeBar((int)allWords.size(), 1);
+    m_controller->addThreadNum();
+
+    while (coveredWords.size() < allWords.size()) {
+        int bestIndex = -1;
+        size_t maxNewCoverage = 0;
+        // 手动计算每个未被选择的段落能覆盖的新词数量
+        for (size_t i = 0; i < filteredSegmentWords.size(); ++i) {
+            if (usedIndices[i]) {
+                continue;
+            }
+            size_t currentNewCoverage = 0;
+            // 遍历候选段落中的词
+            for (const auto& word : filteredSegmentWords[i]) {
+                if (coveredWords.find(word) == coveredWords.end()) {
+                    currentNewCoverage++;
+                }
+            }
+            if (currentNewCoverage > maxNewCoverage) {
+                maxNewCoverage = currentNewCoverage;
+                bestIndex = static_cast<int>(i);
+            }
+        }
         if (bestIndex != -1) {
-            coveredWords.insert(filteredSegmentWords[bestIndex].begin(), filteredSegmentWords[bestIndex].end());
+            // 将找到的最佳段落标记为已使用
+            usedIndices[bestIndex] = true;
             selectedIndices.push_back(bestIndex);
-            remainingIndices.erase(std::remove(remainingIndices.begin(), remainingIndices.end(), bestIndex), remainingIndices.end());
+            // 将新覆盖的词加入 coveredWords 集合
+            for (const auto& word : filteredSegmentWords[bestIndex]) {
+                coveredWords.insert(word);
+            }
+            m_controller->updateBar();
         }
         else {
+            // 如果没有段落能提供新词，则提前退出
             break;
         }
     }
+    m_controller->reduceThreadNum();
     return selectedIndices;
 }
 
@@ -231,6 +266,7 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
     int retryCount = 0;
     while (retryCount < m_maxRetries) {
         if (m_controller->shouldStop()) {
+            m_controller->reduceThreadNum();
             return;
         }
         auto optAPI = m_apiStrategy == "random" ? m_apiPool.getAPI() : m_apiPool.getFirstAPI();
@@ -279,8 +315,8 @@ void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const
 
     preprocessAndTokenize(jsonFiles);
     auto selectedIndices = solveSentenceSelection();
-    if (selectedIndices.size() > 128) {
-        selectedIndices.resize(128);
+    if (int maxSelectedIndicesCount = std::max(m_totalSentences / 250, 128); selectedIndices.size() > maxSelectedIndicesCount) {
+        selectedIndices.resize(maxSelectedIndicesCount);
     }
 
     int threadsNum = std::min(m_threadsNum, (int)selectedIndices.size());
@@ -298,6 +334,10 @@ void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const
         res.get();
     }
 
+    if (m_controller->shouldStop()) {
+        m_logger->info("任务终止，将不会生成字典文件。");
+        return;
+    }
     m_logger->info("阶段四：整理并保存结果...");
     std::vector<std::tuple<std::string, std::string, std::string>> finalList;
 

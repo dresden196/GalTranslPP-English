@@ -106,7 +106,7 @@ std::vector<std::string> TextLinebreakFix::splitIntoTokens(const std::string& te
 	NLPResult result = m_tokenizeTargetLangFunc(text);
 	const WordPosVec& wordPosList = std::get<0>(result);
 	for (const auto& wordPos : wordPosList) {
-		tokens.push_back(wordPos[0]);
+		tokens.push_back(wordPos.front());
 	}
 	return tokens;
 }
