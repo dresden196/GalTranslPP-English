@@ -157,6 +157,19 @@ void TextLinebreakFix::run(Sentence* se)
 		return;
 	}
 
+	auto removeRepeat = [](std::vector<size_t>& positions)
+		{
+			std::set<size_t> seen;
+			std::erase_if(positions, [&](size_t pos)
+				{
+					if (seen.contains(pos)) {
+						return true;
+					}
+					seen.insert(pos);
+					return false;
+				});
+		};
+
 	switch (m_mode) {
 	case LinebreakFixMode::Average:
 	{
@@ -207,6 +220,7 @@ void TextLinebreakFix::run(Sentence* se)
 			positionsToAddLinebreak.push_back(currentPos);
 		}
 
+		removeRepeat(positionsToAddLinebreak);
 		for (const auto& posToAddLinebreak : positionsToAddLinebreak | std::views::reverse) {
 			transViewToModify.insert(posToAddLinebreak, "<br>");
 		}
@@ -284,9 +298,17 @@ void TextLinebreakFix::run(Sentence* se)
 				});
 			for (const auto& [index, punctPos] : filteredPunctPositions | std::views::enumerate) {
 				if (double relLinebreakPos = relLinebreakPositions[index];  calculateAbs(punctPos.relPos, relLinebreakPos) > m_priorityThreshold) {
-					while (currentPos / (double)transViewToModify.length() < relLinebreakPositions[index]) {
+					while (currentTokenIndex < tokens.size()) {
+						double relCur = currentPos / (double)transViewToModify.length();
 						currentPos += tokens[currentTokenIndex].length();
 						currentTokenIndex++;
+						if (double newRelCur = currentPos / (double)transViewToModify.length(); newRelCur >= relLinebreakPos) {
+							if (newRelCur - relLinebreakPos > relLinebreakPos - relCur) {
+								currentTokenIndex--;
+								currentPos -= tokens[currentTokenIndex].length();
+							}
+							break;
+						}
 					}
 					positionsToAddLinebreak.push_back(currentPos);
 				}
@@ -312,9 +334,17 @@ void TextLinebreakFix::run(Sentence* se)
 			std::ranges::sort(filteredRelLinebreakPositions);
 			for (const auto& [index, relLinebreakPos] : filteredRelLinebreakPositions | std::views::enumerate) {
 				if (double punctPos = punctPositions[index].relPos;  calculateAbs(relLinebreakPos, punctPos) > m_priorityThreshold) {
-					while (currentPos / (double)transViewToModify.length() < relLinebreakPos) {
+					while (currentTokenIndex < tokens.size()) {
+						double relCur = currentPos / (double)transViewToModify.length();	
 						currentPos += tokens[currentTokenIndex].length();
 						currentTokenIndex++;
+						if (double newRelCur = currentPos / (double)transViewToModify.length(); newRelCur >= relLinebreakPos) {
+							if (newRelCur - relLinebreakPos > relLinebreakPos - relCur) {
+								currentTokenIndex--;
+								currentPos -= tokens[currentTokenIndex].length();
+							}
+							break;
+						}
 					}
 					positionsToAddLinebreak.push_back(currentPos);
 				}
@@ -325,14 +355,23 @@ void TextLinebreakFix::run(Sentence* se)
 			currentPos = 0;
 			currentTokenIndex = 0;
 			for (const auto& relLinebreakPos : relLinebreakPositions) {
-				while (currentPos / (double)transViewToModify.length() < relLinebreakPos) {
+				while (currentTokenIndex < tokens.size()) {
+					double relCur = currentPos / (double)transViewToModify.length();
 					currentPos += tokens[currentTokenIndex].length();
 					currentTokenIndex++;
+					if (double newRelCur = currentPos / (double)transViewToModify.length(); newRelCur >= relLinebreakPos) {
+						if (newRelCur - relLinebreakPos > relLinebreakPos - relCur) {
+							currentTokenIndex--;
+							currentPos -= tokens[currentTokenIndex].length();
+						}
+						break;
+					}
 				}
 				positionsToAddLinebreak.push_back(currentPos);
 			}
 		}
 
+		removeRepeat(positionsToAddLinebreak);
 		std::ranges::sort(positionsToAddLinebreak);
 
 		for (const auto& posToAddLinebreak : positionsToAddLinebreak | std::views::reverse) {
