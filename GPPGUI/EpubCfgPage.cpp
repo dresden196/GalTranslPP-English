@@ -1,4 +1,4 @@
-#include "EpubCfgPage.h"
+﻿#include "EpubCfgPage.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -44,6 +44,7 @@ EpubCfgPage::EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : 
 	ElaScrollPageArea* colorArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* colorLayout = new QHBoxLayout(colorArea);
 	ElaText* colorDialogText = new ElaText(tr("原文颜色"), colorArea);
+	colorDialogText->setWordWrap(false);
 	colorDialogText->setTextPixelSize(16);
 	colorLayout->addWidget(colorDialogText);
 	colorLayout->addStretch();

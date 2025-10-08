@@ -257,7 +257,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             m_logger->info("MeCab 环境检查完毕。");
         }
         else if (tokenizerBackend == "spaCy") {
-            const std::string& spaCyModelName = toml::find_or(configData, "common", "spaCyModelName", "ja_core_news_trf");
+            const std::string& spaCyModelName = toml::find_or(configData, "common", "spaCyModelName", "ja_core_news_sm");
             m_logger->info("正在检查 spaCy 环境...");
             m_tokenizeSourceLangFunc = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, needReboot, m_logger);
             m_logger->info("spaCy 环境检查完毕。");
@@ -281,6 +281,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             m_prePlugins = registerPlugins(*textPrePlugins, m_projectDir, m_logger, configData);
         }
 
+        // 不需要后处理
         if (m_transEngine != TransEngine::DumpName && m_transEngine != TransEngine::ShowNormal && m_transEngine != TransEngine::GenDict) {
             const auto& textPostPlugins = toml::find<
                 std::optional<std::vector<std::string>>

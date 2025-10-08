@@ -1,4 +1,4 @@
-#include "UpdateChecker.h"
+﻿#include "UpdateChecker.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -69,11 +69,11 @@ void UpdateChecker::check(bool forDownload)
 {
     // GitHub API for the latest release
     if (m_downloadReply) {
-        ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("别急别急"), tr("正在下载更新包..."), 5000);
+        ElaMessageBar::information(ElaMessageBarType::Top, tr("别急别急"), tr("正在下载更新包..."), 5000);
         return;
     }
     if (m_downloadSuccess) {
-        ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("下载已完成"), tr("点击卡片以关闭程序并安装更新"), 5000);
+        ElaMessageBar::information(ElaMessageBarType::Top, tr("下载已完成"), tr("点击卡片以关闭程序并安装更新"), 5000);
         m_trayIcon->show();
         m_trayIcon->showMessage(
             tr("下载已完成"),                  // 标题
@@ -114,7 +114,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
     m_checkReply = nullptr;
 
     if (reply->error() != QNetworkReply::NoError) {
-        ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("更新检测失败"), tr("网络连接失败，请检查网络设置。"), 5000);
+        ElaMessageBar::warning(ElaMessageBarType::Top, tr("更新检测失败"), tr("网络连接失败，请检查网络设置。"), 5000);
         reply->deleteLater();
         return;
     }
@@ -123,7 +123,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
     QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
 
     if (!jsonDoc.isObject()) {
-        ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("更新检测失败"), tr("获取更新信息失败。"), 5000);
+        ElaMessageBar::warning(ElaMessageBarType::Top, tr("更新检测失败"), tr("获取更新信息失败。"), 5000);
         reply->deleteLater();
         return;
     }
@@ -136,11 +136,11 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
 
     if (hasNewVersion) {
         if (!forDownload) {
-            ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("检测到新版本"), tr("最新版本: ") + QString::fromStdString(latestVersion), 5000);
+            ElaMessageBar::information(ElaMessageBarType::Top, tr("检测到新版本"), tr("最新版本: ") + QString::fromStdString(latestVersion), 5000);
         }
         if (canUpdate && !m_downloadReply) {
             if (!forDownload && !isCompatible) {
-                ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("不兼容更新"), tr("最新版含有不兼容当前版本的内容，请在确认 github 发布页更新日志后再酌情下载。"), 5000);
+                ElaMessageBar::warning(ElaMessageBarType::Top, tr("不兼容更新"), tr("最新版含有不兼容当前版本的内容，请在确认 github 发布页更新日志后再酌情下载。"), 5000);
             }
             else {
                 bool hasUpdateFile = false;
@@ -181,7 +181,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
                         if (assets[i].toObject()["name"] != "GUICORE.zip") {
                             continue;
                         }
-                        ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("下载更新"), tr("正在下载更新包..."), 5000);
+                        ElaMessageBar::information(ElaMessageBarType::Top, tr("下载更新"), tr("正在下载更新包..."), 5000);
                         m_statusText->setText(tr("下载更新..."));
                         downloadUpdate(assets[i].toObject()["browser_download_url"].toString());
                         break;
@@ -191,7 +191,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
         }
     }
     else {
-        ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("版本检测"), tr("当前已是最新的版本"), 5000);
+        ElaMessageBar::success(ElaMessageBarType::Top, tr("版本检测"), tr("当前已是最新的版本"), 5000);
     }
     reply->deleteLater();
     Q_EMIT checkCompleteSignal(hasNewVersion);
@@ -228,7 +228,7 @@ void UpdateChecker::onDownloadFinished(QNetworkReply* reply)
     m_downloadReply = nullptr;
 
     if (reply->error() != QNetworkReply::NoError) {
-        ElaMessageBar::warning(ElaMessageBarType::TopLeft, tr("更新下载失败"), tr("网络连接失败，请检查网络设置。"), 5000);
+        ElaMessageBar::warning(ElaMessageBarType::Top, tr("更新下载失败"), tr("网络连接失败，请检查网络设置。"), 5000);
         m_statusText->setText(tr("更新下载失败"));
         reply->deleteLater();
         return;
@@ -239,7 +239,7 @@ void UpdateChecker::onDownloadFinished(QNetworkReply* reply)
     ofs.write(responseData.data(), responseData.size());
     ofs.close();
 
-    ElaMessageBar::success(ElaMessageBarType::TopLeft, tr("更新下载成功"), tr("将在程序关闭后自动安装更新"), 5000);
+    ElaMessageBar::success(ElaMessageBarType::Top, tr("更新下载成功"), tr("将在程序关闭后自动安装更新"), 5000);
     m_statusText->setText(tr("更新下载成功"));
     m_downloadSuccess = true;
 

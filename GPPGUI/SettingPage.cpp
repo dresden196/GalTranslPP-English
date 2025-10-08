@@ -1,5 +1,6 @@
-#include "SettingPage.h"
+﻿#include "SettingPage.h"
 
+#include <ElaMessageBar.h>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QFileDialog>
@@ -17,6 +18,7 @@
 #include "ElaWindow.h"
 
 import Tool;
+namespace fs = std::filesystem;
 
 SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     : BasePage(parent), _globalConfig(globalConfig)
@@ -67,6 +69,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
         themeComboBox->blockSignals(false);
     });
 
+    // 窗口效果设置
     ElaRadioButton* normalButton = new ElaRadioButton("Normal", this);
     ElaRadioButton* elaMicaButton = new ElaRadioButton("ElaMica", this);
 
@@ -75,30 +78,30 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     ElaRadioButton* acrylicButton = new ElaRadioButton("Acrylic", this);
     ElaRadioButton* dwmBlurnormalButton = new ElaRadioButton("Dwm-Blur", this);
 
-    QButtonGroup* displayButtonGroup = new QButtonGroup(this);
-    displayButtonGroup->addButton(normalButton, 0);
-    displayButtonGroup->addButton(elaMicaButton, 1);
-    displayButtonGroup->addButton(micaButton, 2);
-    displayButtonGroup->addButton(micaAltButton, 3);
-    displayButtonGroup->addButton(acrylicButton, 4);
-    displayButtonGroup->addButton(dwmBlurnormalButton, 5);
+    QButtonGroup* windowModeButtonGroup = new QButtonGroup(this);
+    windowModeButtonGroup->addButton(normalButton, 0);
+    windowModeButtonGroup->addButton(elaMicaButton, 1);
+    windowModeButtonGroup->addButton(micaButton, 2);
+    windowModeButtonGroup->addButton(micaAltButton, 3);
+    windowModeButtonGroup->addButton(acrylicButton, 4);
+    windowModeButtonGroup->addButton(dwmBlurnormalButton, 5);
 
     int windowDisplayMode = toml::find_or(_globalConfig, "windowDisplayMode", 0); // 不知道为什么3及以上的值会失效
-    QAbstractButton* abstractButton = displayButtonGroup->button(windowDisplayMode);
+    QAbstractButton* abstractButton = windowModeButtonGroup->button(windowDisplayMode);
     if (abstractButton)
     {
         abstractButton->setChecked(true);
     }
     eApp->setWindowDisplayMode((ElaApplicationType::WindowDisplayMode)windowDisplayMode);
 
-    connect(displayButtonGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), this, [=](QAbstractButton* button, bool isToggled) {
+    connect(windowModeButtonGroup, QOverload<QAbstractButton*, bool>::of(&QButtonGroup::buttonToggled), this, [=](QAbstractButton* button, bool isToggled) {
         if (isToggled)
         {
-            eApp->setWindowDisplayMode((ElaApplicationType::WindowDisplayMode)displayButtonGroup->id(button));
+            eApp->setWindowDisplayMode((ElaApplicationType::WindowDisplayMode)windowModeButtonGroup->id(button));
         }
     });
     connect(eApp, &ElaApplication::pWindowDisplayModeChanged, this, [=]() {
-        auto button = displayButtonGroup->button(eApp->getWindowDisplayMode());
+        auto button = windowModeButtonGroup->button(eApp->getWindowDisplayMode());
         ElaRadioButton* elaRadioButton = qobject_cast<ElaRadioButton*>(button);
         if (elaRadioButton)
         {
@@ -106,36 +109,36 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
         }
     });
 
-    ElaScrollPageArea* micaSwitchArea = new ElaScrollPageArea(this);
-    QHBoxLayout* micaSwitchLayout = new QHBoxLayout(micaSwitchArea);
+    ElaScrollPageArea* windowModeSwitchArea = new ElaScrollPageArea(this);
+    QHBoxLayout* windowModeSwitchLayout = new QHBoxLayout(windowModeSwitchArea);
     ElaText* micaSwitchText = new ElaText(tr("窗口效果"), this);
     micaSwitchText->setWordWrap(false);
     micaSwitchText->setTextPixelSize(15);
-    micaSwitchLayout->addWidget(micaSwitchText);
-    micaSwitchLayout->addStretch();
-    micaSwitchLayout->addWidget(normalButton);
-    micaSwitchLayout->addWidget(elaMicaButton);
-    micaSwitchLayout->addWidget(micaButton);
-    micaSwitchLayout->addWidget(micaAltButton);
-    micaSwitchLayout->addWidget(acrylicButton);
-    micaSwitchLayout->addWidget(dwmBlurnormalButton);
+    windowModeSwitchLayout->addWidget(micaSwitchText);
+    windowModeSwitchLayout->addStretch();
+    windowModeSwitchLayout->addWidget(normalButton);
+    windowModeSwitchLayout->addWidget(elaMicaButton);
+    windowModeSwitchLayout->addWidget(micaButton);
+    windowModeSwitchLayout->addWidget(micaAltButton);
+    windowModeSwitchLayout->addWidget(acrylicButton);
+    windowModeSwitchLayout->addWidget(dwmBlurnormalButton);
 
-
+    // 导航栏模式设置
     ElaRadioButton* minimumButton = new ElaRadioButton("Minimum", this);
     ElaRadioButton* compactButton = new ElaRadioButton("Compact", this);
     ElaRadioButton* maximumButton = new ElaRadioButton("Maximum", this);
     ElaRadioButton* autoButton = new ElaRadioButton("Auto", this);
-    ElaScrollPageArea* displayModeArea = new ElaScrollPageArea(this);
-    QHBoxLayout* displayModeLayout = new QHBoxLayout(displayModeArea);
-    ElaText* displayModeText = new ElaText(tr("导航栏模式选择"), this);
-    displayModeText->setWordWrap(false);
-    displayModeText->setTextPixelSize(15);
-    displayModeLayout->addWidget(displayModeText);
-    displayModeLayout->addStretch();
-    displayModeLayout->addWidget(minimumButton);
-    displayModeLayout->addWidget(compactButton);
-    displayModeLayout->addWidget(maximumButton);
-    displayModeLayout->addWidget(autoButton);
+    ElaScrollPageArea* guideBarModeArea = new ElaScrollPageArea(this);
+    QHBoxLayout* guideBarModeLayout = new QHBoxLayout(guideBarModeArea);
+    ElaText* guideBarModeText = new ElaText(tr("导航栏模式选择"), this);
+    guideBarModeText->setWordWrap(false);
+    guideBarModeText->setTextPixelSize(15);
+    guideBarModeLayout->addWidget(guideBarModeText);
+    guideBarModeLayout->addStretch();
+    guideBarModeLayout->addWidget(minimumButton);
+    guideBarModeLayout->addWidget(compactButton);
+    guideBarModeLayout->addWidget(maximumButton);
+    guideBarModeLayout->addWidget(autoButton);
 
     QButtonGroup* navigationGroup = new QButtonGroup(this);
     navigationGroup->addButton(autoButton, 0);
@@ -155,6 +158,9 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
             window->setNavigationBarDisplayMode((ElaNavigationType::NavigationDisplayMode)navigationGroup->id(button));
         }
     });
+
+
+
 
     ElaText* helperText = new ElaText(tr("应用程序设置"), this);
     helperText->setWordWrap(false);
@@ -334,11 +340,10 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     pyEnvPathLayout->addWidget(pyEnvPathButton);
     connect(pyEnvPathButton, &ElaPushButton::clicked, this, [=]()
         {
-            QString path = QFileDialog::getExistingDirectory(this, tr("选择Python环境路径"), QString::fromStdString(toml::find_or(_globalConfig, "pyEnvPath", "BaseConfig/python-3.12.10-embed-amd64")));
-            if (!path.isEmpty())
+            QString pyExePath = QFileDialog::getOpenFileName(this, tr("选择Python.exe"), pyEnvPathLineEdit->text(), "Python.exe (python.exe)");
+            if (!pyExePath.isEmpty())
             {
-                pyEnvPathLineEdit->setText(path);
-                insertToml(_globalConfig, "pyEnvPath", path.toStdString());
+                pyEnvPathLineEdit->setText(QString(fs::path(pyExePath.toStdWString()).parent_path().wstring()));
             }
         });
     
@@ -352,7 +357,7 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
             insertToml(_globalConfig, "windowPosX", rect.x());
             insertToml(_globalConfig, "windowPosY", rect.y());
             insertToml(_globalConfig, "themeMode", (int)eTheme->getThemeMode());
-            insertToml(_globalConfig, "windowDisplayMode", displayButtonGroup->id(displayButtonGroup->checkedButton()));
+            insertToml(_globalConfig, "windowDisplayMode", windowModeButtonGroup->id(windowModeButtonGroup->checkedButton()));
             insertToml(_globalConfig, "navigationMode", navigationGroup->id(navigationGroup->checkedButton()));
             insertToml(_globalConfig, "autoRefreshAfterTranslate", autoRefreshSwitch->getIsToggled());
             insertToml(_globalConfig, "defaultNameTableOpenMode", nameTableOpenModeGroup->id(nameTableOpenModeGroup->checkedButton()));
@@ -372,8 +377,8 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     centerLayout->addWidget(themeText);
     centerLayout->addSpacing(10);
     centerLayout->addWidget(themeSwitchArea);
-    centerLayout->addWidget(micaSwitchArea);
-    centerLayout->addWidget(displayModeArea);
+    centerLayout->addWidget(windowModeSwitchArea);
+    centerLayout->addWidget(guideBarModeArea);
     centerLayout->addSpacing(15);
     centerLayout->addWidget(helperText);
     centerLayout->addSpacing(10);

@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 
 #include <QHBoxLayout>
 #include <QMouseEvent>
@@ -12,12 +12,9 @@
 #include "ElaDockWidget.h"
 #include "ElaMenu.h"
 #include "ElaMenuBar.h"
-#include "ElaProgressBar.h"
 #include "ElaStatusBar.h"
 #include "ElaText.h"
 #include "ElaTheme.h"
-#include "ElaToolBar.h"
-#include "ElaToolButton.h"
 #include "ElaMessageBar.h"
 #include "ElaApplication.h"
 #include "ElaInputDialog.h"
@@ -171,7 +168,7 @@ void MainWindow::initEdgeLayout()
     customLayout->addWidget(menuBar);
     customLayout->addStretch();
     this->setCustomWidget(ElaAppBarType::MiddleArea, customWidget);
-    this->setCustomWidgetMaximumWidth(700);
+    this->setCustomWidgetMaximumWidth(800);
 
     QAction* newProjectAction = menuBar->addElaIconAction(ElaIconType::AtomSimple, tr("新建项目"));
     QAction* openProjectAction = menuBar->addElaIconAction(ElaIconType::FolderOpen, tr("打开项目"));
@@ -272,15 +269,15 @@ void MainWindow::initContent()
     }
     expandNavigationNode(_projectExpanderKey);
 
-    addFooterNode("使用说明", nullptr, _transIllustrationKey, 0, ElaIconType::BookOpen);
-    addFooterNode("关于", nullptr, _aboutKey, 0, ElaIconType::User);
+    addFooterNode(tr("使用说明"), nullptr, _transIllustrationKey, 0, ElaIconType::BookOpen);
+    addFooterNode(tr("关于"), nullptr, _aboutKey, 0, ElaIconType::User);
     _aboutDialog = new AboutDialog();
     _aboutDialog->hide();
-    addFooterNode("设置", _settingPage, _settingKey, 0, ElaIconType::GearComplex);
+    addFooterNode(tr("设置"), _settingPage, _settingKey, 0, ElaIconType::GearComplex);
 
     connect(_aboutDialog, &AboutDialog::checkUpdateSignal, this, [=]()
         {
-            ElaMessageBar::information(ElaMessageBarType::TopLeft, "请稍候", "正在检查更新...", 3000);
+            ElaMessageBar::information(ElaMessageBarType::TopLeft, tr("请稍候"), tr("正在检查更新..."), 3000);
             _updateChecker->check();
         });
     connect(_aboutDialog, &AboutDialog::downloadUpdateSignal, this, [=]()

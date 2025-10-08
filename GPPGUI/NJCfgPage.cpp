@@ -1,4 +1,4 @@
-#include "NJCfgPage.h"
+﻿#include "NJCfgPage.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -23,6 +23,7 @@ NJCfgPage::NJCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Base
 	ElaScrollPageArea* outputArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* outputLayout = new QHBoxLayout(outputArea);
 	ElaText* outputText = new ElaText(tr("输出带原文"), outputArea);
+	outputText->setWordWrap(false);
 	outputText->setTextPixelSize(16);
 	outputLayout->addWidget(outputText);
 	outputLayout->addStretch();

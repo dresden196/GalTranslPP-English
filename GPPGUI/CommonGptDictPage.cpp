@@ -1,4 +1,4 @@
-#include "CommonGptDictPage.h"
+﻿#include "CommonGptDictPage.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>

@@ -1,4 +1,4 @@
-// APISettingsPage.cpp
+﻿// APISettingsPage.cpp
 
 #include "APISettingsPage.h"
 
@@ -171,7 +171,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     QHBoxLayout* apiKeyLayout = new QHBoxLayout(apiKeyContainer);
     ElaText* apiKeyLabel = new ElaText("API Key", apiKeyContainer);
     apiKeyLabel->setTextPixelSize(13);
-    apiKeyLabel->setFixedWidth(80);
+    apiKeyLabel->setFixedWidth(100);
     apiKeyLayout->addWidget(apiKeyLabel);
     ElaLineEdit* keyEdit = new ElaLineEdit(apiKeyContainer);
     if (!key.isEmpty()) {
@@ -187,7 +187,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     QHBoxLayout* apiSecretLayout = new QHBoxLayout(apiUrlContainer);
     ElaText* apiUrlLabel = new ElaText("API Url", apiUrlContainer);
     apiUrlLabel->setTextPixelSize(13);
-    apiUrlLabel->setFixedWidth(80);
+    apiUrlLabel->setFixedWidth(100);
     apiSecretLayout->addWidget(apiUrlLabel);
     ElaLineEdit* urlEdit = new ElaLineEdit(apiUrlContainer);
     if (!url.isEmpty()) {
@@ -204,7 +204,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     ElaText* modelLabel = new ElaText(tr("模型名称"), modelContainer);
     modelLabel->setWordWrap(false);
     modelLabel->setTextPixelSize(13);
-    modelLabel->setFixedWidth(80);
+    modelLabel->setFixedWidth(100);
     modelLayout->addWidget(modelLabel);
     ElaLineEdit* modelEdit = new ElaLineEdit(modelContainer);
     if (!model.isEmpty()) {

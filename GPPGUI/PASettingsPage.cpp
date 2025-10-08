@@ -1,4 +1,4 @@
-#include "PASettingsPage.h"
+﻿#include "PASettingsPage.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -9,12 +9,9 @@
 #include "ElaText.h"
 #include "ElaLineEdit.h"
 #include "ElaScrollPageArea.h"
-#include "ElaToggleSwitch.h"
 #include "ElaToolTip.h"
 #include "ElaMessageBar.h"
-#include "ElaSlider.h"
 #include "ElaPushButton.h"
-#include "ElaDoubleSpinBox.h"
 #include "ElaPlainTextEdit.h"
 #include "ElaToggleButton.h"
 #include "ValueSliderWidget.h"
@@ -64,7 +61,12 @@ void PASettingsPage::_setupUI()
 	QList<ElaToggleButton*> problemListButtons;
 	for (int i = 0; i < problemList.size(); i++) {
 		ElaToggleButton* button = new ElaToggleButton(problemListToShow[i], this);
-		button->setFixedWidth(120);
+		if (problemListToShow[0][0] != 'H') {
+			button->setFixedWidth(120);
+		}
+		else {
+			button->setFixedWidth(180);
+		}
 		if (problemListSet.contains(problemList[i].toStdString())) {
 			button->setIsToggled(true);
 		}
@@ -80,6 +82,7 @@ void PASettingsPage::_setupUI()
 	ElaScrollPageArea* punctuationListArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* punctuationListLayout = new QHBoxLayout(punctuationListArea);
 	ElaText* punctuationListTitle = new ElaText(tr("标点查错"), punctuationListArea);
+	punctuationListTitle->setWordWrap(false);
 	punctuationListTitle->setTextPixelSize(16);
 	ElaToolTip* punctuationListTip = new ElaToolTip(punctuationListTitle);
 	punctuationListTip->setToolTip(tr("规定标点错漏要查哪些标点"));
@@ -171,7 +174,7 @@ void PASettingsPage::_setupUI()
 	mainLayout->addSpacing(20);
 
 	// 正则表达式列表，如果一条 problem 能被以下正则 search 通过，则不加入 problems 列表
-	auto skipProblemsSaveFunc = createPAPlainTextEditAreaFunc("skipProblems", tr("跳过问题关键字设定"), 250);
+	auto skipProblemsSaveFunc = createPAPlainTextEditAreaFunc("skipProblems", tr("跳过问题关键字设定"), 310);
 	mainLayout->addSpacing(20);
 
 	// 问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)

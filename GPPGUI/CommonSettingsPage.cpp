@@ -1,6 +1,5 @@
-#include "CommonSettingsPage.h"
+﻿#include "CommonSettingsPage.h"
 
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QButtonGroup>
 #include <QDesktopServices>
@@ -211,6 +210,7 @@ void CommonSettingsPage::_setupUI()
 	ElaScrollPageArea* contextArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* contextLayout = new QHBoxLayout(contextArea);
 	ElaText* contextText = new ElaText(tr("携带上文数量"), contextArea);
+	contextText->setWordWrap(false);
 	contextText->setTextPixelSize(16);
 	contextLayout->addWidget(contextText);
 	contextLayout->addStretch();
@@ -341,7 +341,7 @@ void CommonSettingsPage::_setupUI()
 		});
 
 	// spaCyModelName  https://spacy.io/models
-	std::string spaCyModelName = toml::find_or(_projectConfig, "common", "spaCyModelName", "ja_core_news_trf");
+	std::string spaCyModelName = toml::find_or(_projectConfig, "common", "spaCyModelName", "ja_core_news_sm");
 	ElaScrollPageArea* spaCyModelNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* spaCyModelNameLayout = new QHBoxLayout(spaCyModelNameArea);
 	ElaText* spaCyModelNameText = new ElaText(tr("spaCy模型名称"), spaCyModelNameArea);

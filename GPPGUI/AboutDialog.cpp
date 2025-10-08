@@ -1,12 +1,13 @@
-#include "AboutDialog.h"
+﻿#include "AboutDialog.h"
 
-#include <QHBoxLayout>
+#include <ElaIconButton.h>
+#include <ElaToolButton.h>
+#include <ElaToolTip.h>
 #include <QIcon>
 #include <QDesktopServices>
 #include <QVBoxLayout>
 
 #include "ElaImageCard.h"
-#include "ElaMenuBar.h"
 #include "ElaText.h"
 
 import Tool;
@@ -43,38 +44,46 @@ AboutDialog::AboutDialog(QWidget* parent)
     copyrightText->setWordWrap(false);
     copyrightText->setTextPixelSize(14);
 
-    ElaMenuBar* menuBar = new ElaMenuBar(this);
-    ElaMenuBar* menuBar2 = new ElaMenuBar(this);
-    QAction* jumpToGithubAction = menuBar->addElaIconAction(ElaIconType::Warehouse, tr("查看发布页"));
-    QAction* checkUpdateAction = menuBar2->addElaIconAction(ElaIconType::CheckToSlot, tr("检查更新"));
-    _downloadUpdateAction = menuBar2->addElaIconAction(ElaIconType::Download, tr("下载更新"));
-    _downloadUpdateAction->setEnabled(false);
-    connect(jumpToGithubAction, &QAction::triggered, this, [=]()
+    ElaIconButton* jumpToGithubButton = new ElaIconButton(ElaIconType::Warehouse, this);
+    jumpToGithubButton->setFixedWidth(40);
+    connect(jumpToGithubButton, &ElaIconButton::clicked, this, [=]()
         {
             QDesktopServices::openUrl(QUrl("https://github.com/julixian/GalTranslPP/releases"));
         });
-    connect(checkUpdateAction, &QAction::triggered, this, [=]()
+    ElaToolTip* jumpToGithubToolTip = new ElaToolTip(jumpToGithubButton);
+    jumpToGithubToolTip->setToolTip(tr("跳转到 Github 发布页"));
+
+    ElaIconButton* checkUpdateButton = new ElaIconButton(ElaIconType::CheckToSlot, this);
+    checkUpdateButton->setFixedWidth(40);
+    connect(checkUpdateButton, &ElaIconButton::clicked, this, [=]()
         {
             Q_EMIT checkUpdateSignal();
         });
-    connect(_downloadUpdateAction, &QAction::triggered, this, [=]()
+    ElaToolTip* checkUpdateToolTip = new ElaToolTip(checkUpdateButton);
+    checkUpdateToolTip->setToolTip(tr("检查更新"));
+
+    _downloadButton = new ElaIconButton(ElaIconType::Download, this);
+    _downloadButton->setFixedWidth(40);
+    _downloadButton->setEnabled(false);
+    connect(_downloadButton, &ElaIconButton::clicked, this, [=]()
         {
             Q_EMIT downloadUpdateSignal();
         });
-    QHBoxLayout* checkUpdateLayout = new QHBoxLayout();
-    checkUpdateLayout->addStretch();
-    checkUpdateLayout->addWidget(menuBar);
-    QHBoxLayout* checkUpdateLayout2 = new QHBoxLayout();
-    checkUpdateLayout2->addStretch();
-    checkUpdateLayout2->addWidget(menuBar2);
+    ElaToolTip* downloadUpdateToolTip = new ElaToolTip(_downloadButton);
+    downloadUpdateToolTip->setToolTip(tr("下载更新"));
+
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    buttonLayout->addStretch();
+    buttonLayout->addWidget(jumpToGithubButton);
+    buttonLayout->addWidget(checkUpdateButton);
+    buttonLayout->addWidget(_downloadButton);
 
     QVBoxLayout* textLayout = new QVBoxLayout();
     textLayout->setSpacing(15);
     textLayout->addWidget(versionText);
     textLayout->addWidget(licenseText);
     textLayout->addWidget(copyrightText);
-    textLayout->addLayout(checkUpdateLayout2);
-    textLayout->addLayout(checkUpdateLayout);
+    textLayout->addLayout(buttonLayout);
     textLayout->addStretch();
 
     QHBoxLayout* contentLayout = new QHBoxLayout();
@@ -90,7 +99,7 @@ AboutDialog::AboutDialog(QWidget* parent)
 
 void AboutDialog::setDownloadButtonEnabled(bool enabled)
 {
-    _downloadUpdateAction->setEnabled(enabled);
+    _downloadButton->setEnabled(enabled);
 }
 
 AboutDialog::~AboutDialog()

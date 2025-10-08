@@ -1,4 +1,4 @@
-#include "PostFull2HalfCfgPage.h"
+﻿#include "PostFull2HalfCfgPage.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -25,6 +25,7 @@ PostFull2HalfCfgPage::PostFull2HalfCfgPage(toml::ordered_value& projectConfig, Q
     ElaScrollPageArea* punctuationArea = new ElaScrollPageArea(centerWidget);
     QHBoxLayout* punctuationLayout = new QHBoxLayout(punctuationArea);
     ElaText* punctuationText = new ElaText(tr("转换标点符号"), punctuationArea);
+    punctuationText->setWordWrap(false);
     punctuationText->setTextPixelSize(16);
     punctuationLayout->addWidget(punctuationText);
     punctuationLayout->addStretch();

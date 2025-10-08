@@ -307,23 +307,28 @@ callback = [ { group = 2, org = '<[^>]*>', rep = '' } ]
 
 但可能在下载之后需要**重启程序**以重新加载Python解释器。请留意日志输出窗口的提示，避免造成程序卡死或崩溃。
 
-然而在不启用 GPU加速 的情况下使用如 `spaCy` 或 `Stanza` 进行全文分词的速度是比较灾难性的，如果想启用 GPU 加速，请跟随以下教程。
+然而在不启用 GPU加速 的情况下使用如 `spaCy的trf模型` 或 `Stanza` 进行全文分词的速度是比较灾难性的，如果想启用 GPU 加速，请跟随以下教程。
 
-**请确保自己有一定的动手和思考能力！**
+**请确保自己有一定的动手和思考能力 && 一块还不错的显卡！**
 
-#### 为 `Staqnza` 启用 GPU加速
+#### 为 `Stanza` 启用 GPU加速
 
-- 1、 首先确保你安装了适配你显卡的 **最新的N卡驱动**，然后去[NVIDIA CUDA Toolkit官网](https://developer.nvidia.com/cuda-toolkit-archive) **Download Latest CUDA Toolkit**, 下载 CUDA Toolkit Installer 并安装。 **安装完毕后请重启电脑！**
-- 2、 访问[PyTorch官网](https://pytorch.org/get-started/locally/)，选择合适的 CUDA 版本获取安装命令。
-不知道选什么版本的可以在 cmd 里运行
+- 1、 首先确保你安装了适配你显卡的 **最新的N卡驱动**，然后去[NVIDIA CUDA Toolkit官网](https://developer.nvidia.com/cuda-toolkit-archive) **选择合适的 CUDA Toolkit 版本**, 下载 CUDA Toolkit Installer 并安装。
+不知道怎么选 CUDA 版本的可以在 cmd 里运行
 ```cmd
 nvidia-smi
 ```
-以获取 CUDA 版本，一般都向后兼容，选哪个问题都不大。
+以获取当前驱动最高支持的 CUDA 版本(之所以要先更新驱动是因为不同的驱动版本所能支持的 CUDA 版本可能也会有变化)。
+- 2、 访问[PyTorch官网](https://pytorch.org/get-started/locally/)，选择合适的 CUDA 版本获取安装命令。
+忘了自己电脑上装的 CUDA 是什么版本的可以运行
+```cmd
+nvcc --version
+```
+以获取当前系统的 CUDA 版本，一般都向后兼容，选哪个问题都不大。
 - 3、 为嵌入式环境安装 PyTorch，注意启动的必须是 **嵌入式环境中的 Python(之后的操作默认均在此环境中进行)**。
-默认目录在 `BaseConfig\python-3.12.10-embed-amd64`，请在此目录下打开 cmd 或在 cmd 每次执行命令时输入此环境的 python.exe 的**绝对路径**以避免与你可能安装过的 python 混淆。
+默认目录在 `BaseConfig\python-3.12.10-embed-amd64`，请在此目录下打开 cmd 或在 cmd 每次执行命令时输入此环境的 python.exe 的**绝对路径**以避免与你可能安装过的 python 混淆(pip同理，必须 env/python.exe -m pip...)。
 - 4、 比如官网给我的命令是 `pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu129`，那我就可以在如上目录中打开 cmd (直接在路径栏输入 cmd 后回车)并运行 `python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu129`。
-注意: 如果你已经安装了CPU版本的torch，最好先卸载它：`python -m pip uninstall torch`
+注意: 如果你已经安装了torch，最好先卸载它：`python -m pip uninstall torch`
 - 5、 重装 Stanza，`python -m pip uninstall stanza`  `python -m pip install stanza`
 - 6、 尝试运行 `BaseConfig\pyScripts\check_stanza_gpu.py`，如果提示成功，则代表所有配置均已就绪。
 - 7、 此时打开 `BaseConfig\pyScripts\tokenizer_stanza.py` 文件，将 `self.nlp = stanza.Pipeline(lang=model_name, processors='tokenize,pos,ner', use_gpu=False, verbose=False)` 中的 `use_gpu` 参数改为 `True`，即可为 Stanza 启用 GPU加速。
@@ -365,7 +370,7 @@ start /b 要运行文件的文件名
 ```
 然后启动这个中转脚本就可以了。
 
-**注意:** 不要在程序运行的时候修改globalConfig，会被刷掉，请关闭程序后再进行修改。
+**注意:** 不要在程序运行的时候修改 `globalConfig`，会被刷掉，请关闭程序后再进行修改。
 </details>
 
 <details>

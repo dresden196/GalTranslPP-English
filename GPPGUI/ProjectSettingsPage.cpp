@@ -1,4 +1,4 @@
-// ProjectSettingsPage.cpp
+﻿// ProjectSettingsPage.cpp
 
 #include "ProjectSettingsPage.h"
 
@@ -108,7 +108,7 @@ void ProjectSettingsPage::_setupUI()
     _settingsTitle = new ElaText(tr("API设置"), navigationWidget);
     _settingsTitle->setContentsMargins(0, 10, 0, 0);
     _settingsTitle->setTextPixelSize(18);
-    _settingsTitle->setFixedWidth(85);
+    _settingsTitle->setFixedWidth(110);
     navigationLayout->addSpacing(30);
     navigationLayout->addWidget(_settingsTitle);
     navigationLayout->addStretch();
@@ -189,6 +189,10 @@ void ProjectSettingsPage::_setupUI()
     connect(dictExSettingAction, &QAction::triggered, this, [=]()
         {
             _stackedWidget->setCurrentIndex(5);
+            QString dictSettingsStr	= tr("字典设置");
+            /*if (dictSettingsStr == "DictSettings") {
+	            dictSettingsStr
+            }*/
             _settingsTitle->setText(tr("字典设置"));
         });
     connect(promptSettingAction, &QAction::triggered, this, [=]()

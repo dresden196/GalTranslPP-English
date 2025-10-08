@@ -1,4 +1,4 @@
-#include "OtherSettingsPage.h"
+﻿#include "OtherSettingsPage.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -99,6 +99,7 @@ void OtherSettingsPage::_setupUI()
 	ElaScrollPageArea* renameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* renameLayout = new QHBoxLayout(renameArea);
 	ElaText* renameLabel = new ElaText(renameArea);
+	renameLabel->setWordWrap(false);
 	renameLabel->setText(tr("项目更名"));
 	renameLabel->setTextPixelSize(16);
 	renameLayout->addWidget(renameLabel);
@@ -153,6 +154,7 @@ void OtherSettingsPage::_setupUI()
 	ElaToolTip* saveTip = new ElaToolTip(saveLabel);
 	saveTip->setToolTip(tr("开始翻译或关闭程序时会自动保存所有项目的配置，一般无需手动保存。"));
 	saveLabel->setText(tr("保存项目配置"));
+	saveLabel->setWordWrap(false);
 	saveLabel->setTextPixelSize(16);
 	saveLayout->addWidget(saveLabel);
 	saveLayout->addStretch();
@@ -207,6 +209,7 @@ void OtherSettingsPage::_setupUI()
 	QHBoxLayout* cacheLayout = new QHBoxLayout(cacheArea);
 	ElaText* cacheLabel = new ElaText(cacheArea);
 	cacheLabel->setText(tr("删除翻译缓存"));
+	cacheLabel->setWordWrap(false);
 	cacheLabel->setTextPixelSize(16);
 	cacheLayout->addWidget(cacheLabel);
 	cacheLayout->addStretch();

@@ -1,4 +1,4 @@
-#include "pdfCfgPage.h"
+﻿#include "pdfCfgPage.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -27,6 +27,7 @@ PDFCfgPage::PDFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	ElaScrollPageArea* outputArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* outputLayout = new QHBoxLayout(outputArea);
 	ElaText* outputText = new ElaText(tr("输出双语翻译文件"), outputArea);
+	outputText->setWordWrap(false);
 	outputText->setTextPixelSize(16);
 	outputLayout->addWidget(outputText);
 	outputLayout->addStretch();

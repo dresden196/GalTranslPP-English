@@ -1,7 +1,9 @@
-#ifndef ABOUTDIALOG_H
+﻿#ifndef ABOUTDIALOG_H
 #define ABOUTDIALOG_H
 
 #include <ElaDialog.h>
+
+class ElaIconButton;
 
 class AboutDialog : public ElaDialog
 {
@@ -16,7 +18,7 @@ Q_SIGNALS:
     void downloadUpdateSignal();
 
 private:
-    QAction* _downloadUpdateAction;
+    ElaIconButton* _downloadButton;
 };
 
 #endif // ABOUTDIALOG_H
