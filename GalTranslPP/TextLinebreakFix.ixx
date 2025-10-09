@@ -99,7 +99,7 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, const toml::value
 			}
 			else if (tokenizerBackend == "pkuseg") {
 				m_logger->info("TextLinebreakFix 正在检查 pkuseg 环境...");
-				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "setuptools", "pkuseg" }, "tokenizer_pkuseg", "default", m_needReboot, m_logger);
+				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "setuptools", "nes-py", "cython", "pkuseg"}, "tokenizer_pkuseg", "default", m_needReboot, m_logger);
 				m_logger->info("TextLinebreakFix pkuseg 环境检查完毕。");
 			}
 			else {
@@ -275,10 +275,10 @@ void TextLinebreakFix::run(Sentence* se)
 			if (removePunctuation(graphemes[i]).empty()) {
 				punctPositions.push_back({ currentPos - graphemes[i].length(), currentPos, currentPos / (double)transViewToModify.length() });
 			}
-			// 如果当前字符的后一个字符是空白字符或如上左边界字符，则把当前字符作为标点对待
+			// 如果当前字符的后一个字符是全角空格或如上左边界字符，则把当前字符作为标点对待
 			else if (
 				i + 1 < graphemes.size() && 
-				(removeWhitespace(graphemes[i + 1]).empty() || excludePuncts.contains(graphemes[i + 1]))
+				(graphemes[i + 1] == "　" || excludePuncts.contains(graphemes[i + 1]))
 				) {
 				punctPositions.push_back({ currentPos - graphemes[i].length(), currentPos, currentPos / (double)transViewToModify.length() });
 			}

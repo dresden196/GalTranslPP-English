@@ -2853,8 +2853,9 @@
     </message>
     <message>
         <location filename="TLFCfgPage.cpp" line="125"/>
-        <source>可能可以获得更好的换行效果</source>
-        <translation>May get better performance</translation>
+        <source>可能可以获得更好的换行效果，其中 pkuseg 的安装需要电脑上有 MS C++ Build Tools</source>
+        <oldsource>可能可以获得更好的换行效果，其中 pkuseg 需要电脑上有 MS C++ Build Tools</oldsource>
+        <translation type="unfinished">May get better performance (installing pkuseg needs MS C++ Build Tools on your PC)</translation>
     </message>
     <message>
         <location filename="TLFCfgPage.cpp" line="196"/>

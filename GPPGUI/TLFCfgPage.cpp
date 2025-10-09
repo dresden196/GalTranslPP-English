@@ -122,7 +122,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	QHBoxLayout* useTokenizerLayout = new QHBoxLayout(useTokenizerArea);
 	ElaText* useTokenizerText = new ElaText(tr("使用分词器"), useTokenizerArea);
 	ElaToolTip* useTokenizerTip = new ElaToolTip(useTokenizerArea);
-	useTokenizerTip->setToolTip(tr("可能可以获得更好的换行效果"));
+	useTokenizerTip->setToolTip(tr("可能可以获得更好的换行效果，其中 pkuseg 的安装需要电脑上有 MS C++ Build Tools"));
 	useTokenizerText->setTextPixelSize(16);
 	useTokenizerLayout->addWidget(useTokenizerText);
 	useTokenizerLayout->addStretch();

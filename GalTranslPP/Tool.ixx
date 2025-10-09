@@ -201,16 +201,14 @@ export {
             pCurrentTable = &subTable.as_table();
         }
         auto& lastVal = (*pCurrentTable)[keys.back()];
+        const auto orgComments = lastVal.comments();
         if constexpr (std::is_same_v<toml::basic_value<TC>, toml::ordered_value>) {
-            const auto orgComments = lastVal.comments();
             lastVal = toml::ordered_value{ value };
-            lastVal.comments() = orgComments;
         }
         else {
-            const auto orgComments = lastVal.comments();
             lastVal = toml::value{ value };
-            lastVal.comments() = orgComments;
         }
+        lastVal.comments() = orgComments;
         return table;
     }
 
@@ -714,13 +712,13 @@ std::function<std::string(const std::string&)> getTraditionalChineseExtractor(st
         std::shared_ptr<opencc::SimpleConverter> converter = std::make_shared<opencc::SimpleConverter>("BaseConfig/opencc/t2s.json");
         result = [=](const std::string& sourceString)
             {
-                //static const std::set<std::string> excludeList =
-                //{
-                // 
-                //};
+                static const std::set<std::string> excludeList =
+                {
+                    "乾", "阪"
+                };
                 std::string resultStr;
                 std::vector<std::string> graphemes = splitIntoGraphemes(sourceString);
-                for (const auto& grapheme : graphemes /* | std::views::filter([&](const std::string& g) { return !excludeList.contains(g); })*/) {
+                for (const auto& grapheme : graphemes  | std::views::filter([&](const std::string& g) { return !excludeList.contains(g); })) {
                     std::string simplified = converter->Convert(grapheme);
                     if (simplified != grapheme) {
                         resultStr += grapheme;
