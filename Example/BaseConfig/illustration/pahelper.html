@@ -133,6 +133,7 @@ skipProblems = [
         <p>
             此配置项用于<b>覆盖</b>特定问题检查时的比较对象。默认情况下，很多检查是在预处理文本 (<code>preproc_text</code>) 和译文预览 (<code>trans_preview</code>) 之间进行的。通过此设置，可以为特定的问题检查 (<code>problemKey</code>) 指定不同的比较基准 (<code>base</code>) 和检查对象 (<code>check</code>)。
         </p>
+        <span class="comment"># (不写则默认为 orig_text 和 trans_preview )</span>
         <pre><code class="language-toml">overwriteCompareObj = [
     { check = 'trans_preview', problemKey = '残留日文' },
     { base = 'preproc_text', check = 'trans_preview', problemKey = '标点错漏' },

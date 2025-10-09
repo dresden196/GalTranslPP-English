@@ -2119,43 +2119,43 @@
         <translation>Probability in &quot;incorrect lang&quot;, higher means preciser, but may omit</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="122"/>
+        <location filename="PASettingsPage.cpp" line="123"/>
         <source>点击下方『语法示例』按钮以获取具体语法规则及作用</source>
         <oldsource>点击下方『语法示例』按钮以获取语法规则及作用</oldsource>
         <translation>Push the button below to get detailed explanation of grammars and effects</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="162"/>
+        <location filename="PASettingsPage.cpp" line="163"/>
         <source>不符合 toml 规范</source>
         <translation>is nonconforming</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="169"/>
+        <location filename="PASettingsPage.cpp" line="170"/>
         <source>重翻关键字设定</source>
         <translation>RetranslKeys setting</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="184"/>
+        <location filename="PASettingsPage.cpp" line="185"/>
         <source>查看 重翻关键字/跳过问题关键字/问题比较对象 设定的语法示例</source>
         <translation>Look up example grammars of retranslKeys/skipProblems/overwriteCompareObj</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="173"/>
+        <location filename="PASettingsPage.cpp" line="174"/>
         <source>跳过问题关键字设定</source>
         <translation>Skip problems keys setting</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="177"/>
+        <location filename="PASettingsPage.cpp" line="178"/>
         <source>问题比较对象设定</source>
         <translation>Overwrite compare objects setting</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="182"/>
+        <location filename="PASettingsPage.cpp" line="183"/>
         <source>语法示例</source>
         <translation>Grammars examples</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="162"/>
+        <location filename="PASettingsPage.cpp" line="163"/>
         <source>解析错误</source>
         <translation>Fail to analyze</translation>
     </message>

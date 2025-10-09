@@ -127,7 +127,7 @@ skipProblems = [
 punctSet = """（()）：:*[]{}<>『』「」“”;；'/\\"""
 langProbability = 0.94 # 语言不通检测的语言置信度，设置越高则检测越精准，但可能遗漏，反之亦然
 
-# 问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)
+# 问题的比较对象和被比较对象(不写则默认为 orig_text 和 trans_preview )
 # 如 { base = 'orig_text', check = 'trans_preview', problemKey = '比原文长严格' }
 # 意思是当 trans_preview 比 orig_text 严格长时，在 problem 中留下对应的问题。
 overwriteCompareObj = [

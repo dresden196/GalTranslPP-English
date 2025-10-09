@@ -117,6 +117,7 @@ void PASettingsPage::_setupUI()
 			if (!retranslKeysArr.is_array()) {
 				retranslKeysArr = toml::array{};
 			}
+			retranslKeysArr.comments().clear();
 			ElaText* retranslKeyHelperText = new ElaText(title, mainWidget);
 			ElaToolTip* retranslKeyHelperTip = new ElaToolTip(retranslKeyHelperText);
 			retranslKeyHelperTip->setToolTip(tr("点击下方『语法示例』按钮以获取具体语法规则及作用"));
