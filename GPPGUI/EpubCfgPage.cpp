@@ -92,10 +92,9 @@ EpubCfgPage::EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : 
 	mainLayout->addWidget(scaleArea);
 
 	// 预处理正则
-	toml::ordered_value preRegexArr = toml::array{};
-	auto& preRegex = _projectConfig["plugins"]["Epub"]["preprocRegex"];
-	if (preRegex.is_array()) {
-		preRegexArr = preRegex;
+	toml::ordered_value preRegexArr = toml::find_or_default<toml::ordered_value>(_projectConfig, "plugins", "Epub", "preprocRegex");
+	if (!preRegexArr.is_array()) {
+		preRegexArr = toml::array{};
 	}
 	ElaText* preRegexText = new ElaText(tr("预处理正则"), centerWidget);
 	preRegexText->setTextPixelSize(18);
@@ -107,10 +106,9 @@ EpubCfgPage::EpubCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : 
 	mainLayout->addWidget(preRegexEdit);
 
 	// 后处理正则
-	toml::ordered_value postRegexArr = toml::array{};
-	auto& postRegex = _projectConfig["plugins"]["Epub"]["postprocRegex"];
-	if (postRegex.is_array()) {
-		postRegexArr = postRegex;
+	toml::ordered_value postRegexArr = toml::find_or_default<toml::ordered_value>(_projectConfig, "plugins", "Epub", "postprocRegex");
+	if (!postRegexArr.is_array()) {
+		postRegexArr = toml::array{};
 	}
 	ElaText* postRegexText = new ElaText(tr("后处理正则"), centerWidget);
 	postRegexText->setTextPixelSize(18);

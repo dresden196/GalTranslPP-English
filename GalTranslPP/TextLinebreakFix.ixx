@@ -97,6 +97,11 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, const toml::value
 				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "stanza" }, "tokenizer_stanza", stanzaLang, m_needReboot, m_logger);
 				m_logger->info("TextLinebreakFix Stanza 环境检查完毕。");
 			}
+			else if (tokenizerBackend == "pkuseg") {
+				m_logger->info("TextLinebreakFix 正在检查 pkuseg 环境...");
+				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "setuptools", "pkuseg" }, "tokenizer_pkuseg", "default", m_needReboot, m_logger);
+				m_logger->info("TextLinebreakFix pkuseg 环境检查完毕。");
+			}
 			else {
 				throw std::invalid_argument("TextLinebreakFix 无效的 tokenizerBackend");
 			}

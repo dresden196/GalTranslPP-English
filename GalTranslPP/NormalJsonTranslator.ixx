@@ -697,7 +697,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         }
         messages.push_back({ {"role", "user"}, {"content", promptReq} });
 
-        auto optApi = m_apiStrategy == "random" ? m_apiPool.getAPI() : m_apiPool.getFirstAPI();
+        auto optApi = m_apiStrategy == "random" ? m_apiPool.getApi() : m_apiPool.getFirstApi();
         if (!optApi.has_value()) {
             throw std::runtime_error("没有可用的API Key了");
         }

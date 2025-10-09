@@ -62,22 +62,20 @@ void APISettingsPage::_setupUI()
     _mainLayout->setContentsMargins(5, 5, 5, 5);
     _mainLayout->setSpacing(15);
 
-    const auto& apis = _projectConfig["backendSpecific"]["OpenAI-Compatible"]["apis"];
-    if (apis.is_array()) {
-        for (const auto& api : apis.as_array()) {
-            if (!api.is_table()) {
-                continue;
-            }
-            const std::string& key = toml::find_or(api, "apikey", "");
-            const std::string& url = toml::find_or(api, "apiurl", "");
-            const std::string& model = toml::find_or(api, "modelName", "");
-            bool stream = toml::find_or(api, "stream", false);
-            ElaScrollPageArea* newRowWidget = _createApiInputRowWidget(QString::fromStdString(key), QString::fromStdString(url), QString::fromStdString(model), stream);
-            _mainLayout->addWidget(newRowWidget);
+    const auto& apis = toml::find_or_default<toml::array>(_projectConfig, "backendSpecific", "OpenAI-Compatible", "apis");
+    for (const auto& api : apis) {
+        if (!api.is_table()) {
+            continue;
         }
-        if (apis.size() == 0) {
-            _addApiInputRow();
-        }
+        const std::string& key = toml::find_or(api, "apikey", "");
+        const std::string& url = toml::find_or(api, "apiurl", "");
+        const std::string& model = toml::find_or(api, "modelName", "");
+        bool stream = toml::find_or(api, "stream", false);
+        ElaScrollPageArea* newRowWidget = _createApiInputRowWidget(QString::fromStdString(key), QString::fromStdString(url), QString::fromStdString(model), stream);
+        _mainLayout->addWidget(newRowWidget);
+    }
+    if (apis.size() == 0) {
+        _addApiInputRow();
     }
 
     // API 使用策略

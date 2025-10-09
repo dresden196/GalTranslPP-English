@@ -22,9 +22,9 @@ export {
 
         void loadAPIs(const std::vector<TranslationApi>& apis);
 
-        std::optional<TranslationApi> getAPI();
+        std::optional<TranslationApi> getApi();
 
-        std::optional<TranslationApi> getFirstAPI();
+        std::optional<TranslationApi> getFirstApi();
 
         void resortTokens();
 
@@ -49,7 +49,7 @@ void APIPool::loadAPIs(const std::vector<TranslationApi>& apis) {
     m_logger->info("令牌池新加载 {} 个 API Keys， 现共有 {} 个API Keys", apis.size(), m_apis.size());
 }
 
-std::optional<TranslationApi> APIPool::getAPI() {
+std::optional<TranslationApi> APIPool::getApi() {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     if (m_apis.empty()) {
@@ -63,7 +63,7 @@ std::optional<TranslationApi> APIPool::getAPI() {
     return m_apis[index];
 }
 
-std::optional<TranslationApi> APIPool::getFirstAPI() {
+std::optional<TranslationApi> APIPool::getFirstApi() {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     if (m_apis.empty()) {

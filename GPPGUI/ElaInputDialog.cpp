@@ -24,13 +24,17 @@ ElaInputDialog::ElaInputDialog(QWidget* parent, const QString& label, const QStr
 	// 创建一个中心部件和布局
 	QWidget* centerWidget = new QWidget(this);
 	QVBoxLayout* mainLayout = new QVBoxLayout(centerWidget);
+	mainLayout->setContentsMargins(15, 25, 15, 10);
 
 	ElaText* labelText = new ElaText(label, centerWidget);
-	labelText->setTextPixelSize(16);
+	labelText->setTextStyle(ElaTextType::Title);
+	labelText->setWordWrap(false);
 	mainLayout->addWidget(labelText);
+	mainLayout->addSpacing(2);
 
 	_lineEdit = new ElaLineEdit(centerWidget);
 	_lineEdit->setPlaceholderText(text);
+	mainLayout->addStretch();
 	mainLayout->addWidget(_lineEdit);
 
 	setCentralWidget(centerWidget);

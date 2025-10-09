@@ -46,13 +46,11 @@ void PASettingsPage::_setupUI()
 		tr("字典未使用"), tr("残留日文"), tr("引入拉丁字母"), tr("引入韩文"), tr("引入繁体字"), tr("语言不通"),};
 
 	std::set<std::string> problemListSet;
-	auto& problemListOrgArray = _projectConfig["problemAnalyze"]["problemList"];
-	if (problemListOrgArray.is_array()) {
-		for (const auto& problem : problemListOrgArray.as_array()) {
+	const auto& problemListOrgArray = toml::find_or_default<toml::array>(_projectConfig, "problemAnalyze", "problemList");
+	for (const auto& problem : problemListOrgArray) {
 			if (problem.is_string()) {
 				problemListSet.insert(problem.as_string());
 			}
-		}
 	}
 	ElaText* problemListTitle = new ElaText(tr("要发现的问题清单"), mainWidget);
 	problemListTitle->setTextPixelSize(18);
@@ -115,12 +113,10 @@ void PASettingsPage::_setupUI()
 		[=](const std::string& configKey, const QString& title, std::optional<int> minHeight = std::nullopt)
 		-> std::function<void()>
 		{
-			toml::ordered_value retranslKeysArr = toml::array{};
-			auto& retranslKeys = _projectConfig["problemAnalyze"][configKey];
-			if (retranslKeys.is_array()) {
-				retranslKeysArr = retranslKeys;
+			toml::ordered_value retranslKeysArr = toml::find_or_default<toml::ordered_value>(_projectConfig, "problemAnalyze", configKey);
+			if (!retranslKeysArr.is_array()) {
+				retranslKeysArr = toml::array{};
 			}
-			retranslKeysArr.comments().clear();
 			ElaText* retranslKeyHelperText = new ElaText(title, mainWidget);
 			ElaToolTip* retranslKeyHelperTip = new ElaToolTip(retranslKeyHelperText);
 			retranslKeyHelperTip->setToolTip(tr("点击下方『语法示例』按钮以获取具体语法规则及作用"));

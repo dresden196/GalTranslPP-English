@@ -83,14 +83,14 @@ void DefaultPromptPage::_setupUI()
 			plainTextFont.setPixelSize(15);
 			promptUserModeEdit->setFont(plainTextFont);
 			promptUserModeEdit->setPlainText(
-				QString::fromStdString(toml::get_or(_promptConfig[userPromptKey], std::string{}))
+				QString::fromStdString(toml::find_or(_promptConfig, userPromptKey, std::string{}))
 			);
 			promptStackedWidget->addWidget(promptUserModeEdit);
 			// 系统提示词
 			ElaPlainTextEdit* promptSystemModeEdit = new ElaPlainTextEdit(promptStackedWidget);
 			promptSystemModeEdit->setFont(plainTextFont);
 			promptSystemModeEdit->setPlainText(
-				QString::fromStdString(toml::get_or(_promptConfig[systemPromptKey], std::string{}))
+				QString::fromStdString(toml::find_or(_promptConfig, systemPromptKey, std::string{}))
 			);
 			promptStackedWidget->addWidget(promptSystemModeEdit);
 			promptStackedWidget->setCurrentIndex(0);

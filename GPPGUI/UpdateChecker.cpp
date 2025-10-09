@@ -130,7 +130,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
 
     QJsonObject jsonObj = jsonDoc.object();
     std::string latestVersion = jsonObj["tag_name"].toString().toStdString();
-    bool canUpdate = forDownload ? true : toml::get_or(m_globalConfig["autoDownloadUpdate"], true);
+    bool canUpdate = forDownload ? true : toml::find_or(m_globalConfig, "autoDownloadUpdate", true);
     bool isCompatible = true;
     bool hasNewVersion = cmpVer(latestVersion, GPPVERSION, isCompatible);
 

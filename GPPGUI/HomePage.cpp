@@ -104,7 +104,7 @@ HomePage::HomePage(toml::ordered_value& globalConfig, QWidget* parent)
     flowTextLayout->addWidget(flowText);
 
     // ElaFlowLayout
-    bool hasPopularCardsArr = _globalConfig["popularCards"].is_array();
+    bool hasPopularCardsArr = _globalConfig.contains("popularCards") && _globalConfig["popularCards"].is_array();
     auto getPopularCardInConfig = [&](size_t index) -> std::optional<toml::ordered_value>
         {
             if (!hasPopularCardsArr || index >= _globalConfig["popularCards"].size()) {

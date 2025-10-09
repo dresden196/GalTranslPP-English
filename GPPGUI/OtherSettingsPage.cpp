@@ -64,7 +64,7 @@ void OtherSettingsPage::_setupUI()
 	moveButton->setText(tr("移动项目"));
 	connect(moveButton, &ElaPushButton::clicked, this, [=]()
 		{
-			if (toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true)) {
+			if (toml::find_or(_projectConfig, "GUIConfig", "isRunning", true)) {
 				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("移动失败"), tr("项目仍在运行中，无法移动"), 3000);
 				return;
 			}
@@ -108,7 +108,7 @@ void OtherSettingsPage::_setupUI()
 	renameButton->setText(tr("更名"));
 	connect(renameButton, &ElaPushButton::clicked, this, [=]()
 		{
-			if (toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true)) {
+			if (toml::find_or(_projectConfig, "GUIConfig", "isRunning", true)) {
 				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("更名失败"), tr("项目仍在运行中，无法更名"), 3000);
 				return;
 			}
@@ -187,13 +187,21 @@ void OtherSettingsPage::_setupUI()
 			helpDialog.setLeftButtonText(tr("否"));
 			helpDialog.setMiddleButtonText(tr("思考人生"));
 			helpDialog.setRightButtonText(tr("是"));
+
 			QWidget* widget = new QWidget(&helpDialog);
 			QVBoxLayout* layout = new QVBoxLayout(widget);
-			ElaText* confirmText = new ElaText(tr("你确定要刷新项目配置吗？"), 18, widget);
+			layout->setContentsMargins(15, 25, 15, 10);
+			ElaText* confirmText = new ElaText(tr("你确定要刷新项目配置吗？"), widget);
+			confirmText->setTextStyle(ElaTextType::Title);
 			confirmText->setWordWrap(false);
 			layout->addWidget(confirmText);
-			layout->addWidget(new ElaText(tr("GUI中未保存的数据将会被覆盖！"), 16, widget));
+			layout->addSpacing(2);
+			ElaText* subTitle = new ElaText(tr("GUI中未保存的数据将会被覆盖！"), widget);
+			subTitle->setTextStyle(ElaTextType::Body);
+			layout->addWidget(subTitle);
+			layout->addStretch();
 			helpDialog.setCentralWidget(widget);
+
 			connect(&helpDialog, &ElaContentDialog::rightButtonClicked, this, [=]()
 				{
 					Q_EMIT refreshProjectConfigSignal();
@@ -217,22 +225,31 @@ void OtherSettingsPage::_setupUI()
 	cacheButton->setText(tr("删除"));
 	connect(cacheButton, &ElaPushButton::clicked, this, [=]()
 		{
-			if (toml::get_or(_projectConfig["GUIConfig"]["isRunning"], true)) {
+			if (toml::find_or(_projectConfig, "GUIConfig", "isRunning", true)) {
 				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("删除失败"), tr("项目仍在运行中，无法删除缓存"), 3000);
 				return;
 			}
 
 			ElaContentDialog helpDialog(_mainWindow);
+
 			helpDialog.setLeftButtonText(tr("否"));
 			helpDialog.setMiddleButtonText(tr("思考人生"));
 			helpDialog.setRightButtonText(tr("是"));
+
 			QWidget* widget = new QWidget(&helpDialog);
 			QVBoxLayout* layout = new QVBoxLayout(widget);
-			ElaText* confirmText = new ElaText(tr("你确定要删除项目翻译缓存吗？"), 18, widget);
+			layout->setContentsMargins(15, 25, 15, 10);
+			ElaText* confirmText = new ElaText(tr("你确定要删除项目翻译缓存吗？"), widget);
+			confirmText->setTextStyle(ElaTextType::Title);
 			confirmText->setWordWrap(false);
 			layout->addWidget(confirmText);
-			layout->addWidget(new ElaText(tr("再次翻译将会重新从头开始！"), 16, widget));
+			layout->addSpacing(2);
+			ElaText* subTitle = new ElaText(tr("再次翻译将会重新从头开始！"), widget);
+			subTitle->setTextStyle(ElaTextType::Body);
+			layout->addWidget(subTitle);
+			layout->addStretch();
 			helpDialog.setCentralWidget(widget);
+
 			connect(&helpDialog, &ElaContentDialog::rightButtonClicked, this, [=]()
 				{
 					try {

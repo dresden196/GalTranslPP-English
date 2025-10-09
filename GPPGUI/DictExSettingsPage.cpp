@@ -50,29 +50,25 @@ void DictExSettingsPage::_setupUI()
 			dictNamesLayout->addStretch();
 			ElaMultiSelectComboBox* dictNamesComboBox = new ElaMultiSelectComboBox(dictNamesArea);
 			dictNamesComboBox->setFixedWidth(500);
-			auto& globalConfigDictNames = _globalConfig[globalConfigKey]["dictNames"];
-			if (globalConfigDictNames.is_array()) {
-				for (const auto& dictName : globalConfigDictNames.as_array()) {
+			const auto& globalConfigDictNames = toml::find_or_default<toml::array>(_globalConfig, globalConfigKey, "dictNames");
+				for (const auto& dictName : globalConfigDictNames) {
 					if (dictName.is_string()) {
 						dictNamesComboBox->addItem(QString::fromStdString(dictName.as_string()));
 					}
 				}
-			}
 			dictNamesComboBox->addItem(defaultItem);
-			auto& projectConfigDictNames = _projectConfig["dictionary"][projectConfigKey];
-			if (projectConfigDictNames.is_array()) {
-				QList<int> indexesToSelect;
-				for (const auto& dictName : projectConfigDictNames.as_array()) {
-					if (dictName.is_string()) {
-						int index = dictNamesComboBox->findText(QString(fs::path(ascii2Wide(dictName.as_string())).stem().wstring()));
-						if (index < 0) {
-							continue;
-						}
-						indexesToSelect.append(index);
+			const auto& projectConfigDictNames = toml::find_or_default<toml::array>(_projectConfig, "dictionary", projectConfigKey);
+			QList<int> indexesToSelect;
+			for (const auto& dictName : projectConfigDictNames) {
+				if (dictName.is_string()) {
+					int index = dictNamesComboBox->findText(QString(fs::path(ascii2Wide(dictName.as_string())).stem().wstring()));
+					if (index < 0) {
+						continue;
 					}
+					indexesToSelect.append(index);
 				}
-				dictNamesComboBox->setCurrentSelection(indexesToSelect);
 			}
+			dictNamesComboBox->setCurrentSelection(indexesToSelect);
 
 			dictNamesLayout->addWidget(dictNamesComboBox);
 			mainLayout->addWidget(dictNamesArea);
@@ -160,8 +156,7 @@ void DictExSettingsPage::_setupUI()
 			auto refreshCommonDictsListFunc = 
 				[=](const QString& excludeName, const std::string& globalConfigKey, ElaMultiSelectComboBox* comboBox)
 				{
-					auto& commonDictsVal = _globalConfig[globalConfigKey]["dictNames"];
-					const toml::ordered_array& commonDictsArr = commonDictsVal.is_array() ? commonDictsVal.as_array() : toml::ordered_array{};
+					const auto& commonDictsArr = toml::find_or_default<toml::array>(_globalConfig, globalConfigKey, "dictNames");
 					QList<int> dictIndexesToRemove;
 					for (int i = 0; i < comboBox->count(); i++) {
 						if (
@@ -187,7 +182,7 @@ void DictExSettingsPage::_setupUI()
 								continue;
 							}
 							comboBox->insertItem(0, QString::fromStdString(dictName.as_string()));
-							if (toml::get_or(_globalConfig[globalConfigKey]["spec"][dictName.as_string()]["defaultOn"], true)) {
+							if (toml::find_or(_globalConfig, globalConfigKey, "spec", dictName.as_string(), "defaultOn", true)) {
 								commonDictsChosen.append(QString::fromStdString(dictName.as_string()));
 							}
 						}

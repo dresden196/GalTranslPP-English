@@ -263,7 +263,7 @@ void EpubTranslator::run()
                         matcher->appendReplacement(newContentUstr, patternUstr, status);
                     }
                     matcher->appendTail(newContentUstr);
-                    contentUStr = newContentUstr;
+                    contentUStr = std::move(newContentUstr);
                 }
                 else {
                     contentUStr = matcher->replaceAll(reg.rep, status);

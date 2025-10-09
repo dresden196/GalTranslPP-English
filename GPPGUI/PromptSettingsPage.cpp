@@ -90,14 +90,14 @@ void PromptSettingsPage::_setupUI()
 			plainTextFont.setPixelSize(15);
 			promptUserModeEdit->setFont(plainTextFont);
 			promptUserModeEdit->setPlainText(
-				QString::fromStdString(toml::get_or(_promptConfig[userPromptKey], ""))
+				QString::fromStdString(toml::find_or(_promptConfig, userPromptKey, ""))
 			);
 			promptStackedWidget->addWidget(promptUserModeEdit);
 			// 系统提示词
 			ElaPlainTextEdit* forgalJsonSystemModeEdit = new ElaPlainTextEdit(promptStackedWidget);
 			forgalJsonSystemModeEdit->setFont(plainTextFont);
 			forgalJsonSystemModeEdit->setPlainText(
-				QString::fromStdString(toml::get_or(_promptConfig[systemPromptKey], ""))
+				QString::fromStdString(toml::find_or(_promptConfig, systemPromptKey, ""))
 			);
 			promptStackedWidget->addWidget(forgalJsonSystemModeEdit);
 			promptStackedWidget->setCurrentIndex(0);

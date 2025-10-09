@@ -55,8 +55,8 @@ int main(int argc, char* argv[])
         QTranslator qtBaseTranslator; // 用于翻译 Qt 内置对话框，如 QMessageBox 的按钮
         try {
             toml::value globalConfig = toml::parse(fs::path(L"BaseConfig/globalConfig.toml"));
-            checkUpdate = toml::get_or(globalConfig["autoCheckUpdate"], true);
-            std::string language = toml::get_or(globalConfig["language"], "zh_CN");
+            checkUpdate = toml::find_or(globalConfig, "autoCheckUpdate", true);
+            std::string language = toml::find_or(globalConfig, "language", "zh_CN");
             if (language == "en") {
                 if (qtBaseTranslator.load("qt_en.qm", "translations")) {
                     a.installTranslator(&qtBaseTranslator);

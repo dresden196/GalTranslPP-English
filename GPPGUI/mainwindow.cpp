@@ -58,6 +58,24 @@ MainWindow::MainWindow(QWidget* parent)
 
     // 拦截默认关闭事件
     _closeDialog = new ElaContentDialog(this);
+
+    _closeDialog->setLeftButtonText(tr("取消"));
+    _closeDialog->setMiddleButtonText(tr("最小化"));
+    _closeDialog->setRightButtonText(tr("确认"));
+    QWidget* widget = new QWidget(_closeDialog);
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->setContentsMargins(15, 25, 15, 10);
+    ElaText* confirmText = new ElaText(tr("退出"), widget);
+    confirmText->setTextStyle(ElaTextType::Title);
+    confirmText->setWordWrap(false);
+    layout->addWidget(confirmText);
+    layout->addSpacing(2);
+    ElaText* subTitle = new ElaText(tr("确定要退出程序吗"), widget);
+    subTitle->setTextStyle(ElaTextType::Body);
+    layout->addWidget(subTitle);
+    layout->addStretch();
+    _closeDialog->setCentralWidget(widget);
+
     connect(_closeDialog, &ElaContentDialog::rightButtonClicked, this, [=]()
         {
             _onCloseWindowClicked(false);
@@ -72,7 +90,7 @@ MainWindow::MainWindow(QWidget* parent)
     auto closeCallback = [=](bool directlyClose)
         {
             if (
-                !(toml::get_or(_globalConfig["allowCloseWhenRunning"], false)) &&
+                !(toml::find_or(_globalConfig, "allowCloseWhenRunning", false)) &&
                 std::any_of(_projectPages.begin(), _projectPages.end(), [](const auto& page)
                     {
                         if (page->getIsRunning()) {
@@ -255,9 +273,8 @@ void MainWindow::initContent()
     connect(_commonPostDictPage, &CommonNormalDictPage::commonDictsChanged, this, refreshCommonDicts);
 
     addExpanderNode(tr("项目管理"), _projectExpanderKey, ElaIconType::BriefcaseBlank);
-    auto projects = _globalConfig["projects"];
-    if (projects.is_array()) {
-        for (const auto& project : projects.as_array()) {
+    const auto& projects = toml::find_or_default<toml::array>(_globalConfig, "projects");
+    for (const auto& project : projects) {
             if (project.is_string()) {
                 fs::path projectDir(ascii2Wide(project.as_string()));
                 if (!fs::exists(projectDir / L"config.toml")) {
@@ -265,7 +282,6 @@ void MainWindow::initContent()
                 }
                 _createProjectSettingsPage(projectDir);
             }
-        }
     }
     expandNavigationNode(_projectExpanderKey);
 
@@ -391,11 +407,15 @@ void MainWindow::_onNewProjectTriggered()
                         if (!dictName.is_string()) {
                             continue;
                         }
-                        if (!toml::get_or(_globalConfig[globalConfigKey]["spec"][dictName.as_string()]["defaultOn"], true)) {
+                        if (!toml::find_or(_globalConfig, globalConfigKey, "spec", dictName.as_string(), "defaultOn", true)) {
                             continue;
                         }
                         projectDictNames.push_back(dictName.as_string() + ".toml");
                     }
+                }
+                else {
+                    globalDictNames = toml::array{};
+                    projectDictNames = toml::array{};
                 }
             };
 
@@ -475,10 +495,16 @@ void MainWindow::_onRemoveProjectTriggered()
 
     QWidget* widget = new QWidget(&helpDialog);
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addWidget(new ElaText(tr("你确定要移除当前项目吗？"), widget));
-    ElaText* tip = new ElaText(tr("从项目管理中移除该项目，但不会删除其项目文件夹"), widget);
-    tip->setTextPixelSize(14);
-    layout->addWidget(tip);
+    layout->setContentsMargins(15, 25, 15, 10);
+    ElaText* confirmText = new ElaText(tr("你确定要移除当前项目吗？"), widget);
+    confirmText->setTextStyle(ElaTextType::Title);
+    confirmText->setWordWrap(false);
+    layout->addWidget(confirmText);
+    layout->addSpacing(2);
+    ElaText* subTitle = new ElaText(tr("从项目管理中移除该项目，但不会删除其项目文件夹"), widget);
+    subTitle->setTextStyle(ElaTextType::Body);
+    layout->addWidget(subTitle);
+    layout->addStretch();
     helpDialog.setCentralWidget(widget);
 
     connect(&helpDialog, &ElaContentDialog::rightButtonClicked, this, [=]()
@@ -522,12 +548,17 @@ void MainWindow::_onDeleteProjectTriggered()
     helpDialog.setLeftButtonText(tr("否"));
 
     QWidget* widget = new QWidget(&helpDialog);
-    widget->setFixedHeight(110);
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addWidget(new ElaText(tr("你确定要删除当前项目吗？"), widget));
-    ElaText* tip = new ElaText(tr("将删除该项目的项目文件夹，如果不备份，再次翻译将必须从头开始！"), widget);
-    tip->setTextPixelSize(14);
-    layout->addWidget(tip);
+    layout->setContentsMargins(15, 25, 15, 10);
+    ElaText* confirmText = new ElaText(tr("你确定要删除当前项目吗？"), widget);
+    confirmText->setTextStyle(ElaTextType::Title);
+    confirmText->setWordWrap(false);
+    layout->addWidget(confirmText);
+    layout->addSpacing(2);
+    ElaText* subTitle = new ElaText(tr("将删除该项目的项目文件夹，如果不备份，再次翻译将必须从头开始！"), widget);
+    subTitle->setTextStyle(ElaTextType::Body);
+    layout->addWidget(subTitle);
+    layout->addStretch();
     helpDialog.setCentralWidget(widget);
 
     connect(&helpDialog, &ElaContentDialog::rightButtonClicked, this, [=]()

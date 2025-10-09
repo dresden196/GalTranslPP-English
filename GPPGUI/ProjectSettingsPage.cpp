@@ -297,7 +297,7 @@ void ProjectSettingsPage::_onFinishTranslating(const QString& transEngine, int e
 {
     if (
         exitCode == 0 &&
-        toml::get_or(_globalConfig["autoRefreshAfterTranslate"], true)
+        toml::find_or(_globalConfig, "autoRefreshAfterTranslate", true)
         ) {
         if (transEngine == "DumpName") {
             _nameTableSettingsPage->refreshTable();

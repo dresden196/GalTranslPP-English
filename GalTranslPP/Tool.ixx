@@ -714,13 +714,13 @@ std::function<std::string(const std::string&)> getTraditionalChineseExtractor(st
         std::shared_ptr<opencc::SimpleConverter> converter = std::make_shared<opencc::SimpleConverter>("BaseConfig/opencc/t2s.json");
         result = [=](const std::string& sourceString)
             {
-                static const std::set<std::string> excludeList =
-                {
-                    //"乾", "阪",
-                };
+                //static const std::set<std::string> excludeList =
+                //{
+                // 
+                //};
                 std::string resultStr;
                 std::vector<std::string> graphemes = splitIntoGraphemes(sourceString);
-                for (const auto& grapheme : graphemes | std::views::filter([&](const std::string& g) { return !excludeList.contains(g); })) {
+                for (const auto& grapheme : graphemes /* | std::views::filter([&](const std::string& g) { return !excludeList.contains(g); })*/) {
                     std::string simplified = converter->Convert(grapheme);
                     if (simplified != grapheme) {
                         resultStr += grapheme;
@@ -748,7 +748,7 @@ std::function<std::string(const std::string&)> getTraditionalChineseExtractor(st
                 // 白名单/排除列表：用于解决简繁转换中的歧义问题。
                 // "著" (U+8457) 是一个典型例子，它在简体中文里也是合法字符，但T->S的转换规则可能导致误判。
                 static const std::set<UChar32> excludeList = {
-                    0x8457 // 著
+                    U'著', U'乾', U'阪',
                 };
 
                 icu::UnicodeString uSource = icu::UnicodeString::fromUTF8(sourceString);

@@ -132,7 +132,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mainLayout->addWidget(useTokenizerArea);
 
 	// tokenizerBackend
-	QStringList tokenizerBackends = { "MeCab", "spaCy", "Stanza" };
+	QStringList tokenizerBackends = { "MeCab", "spaCy", "Stanza", "pkuseg" };
 	QString tokenizerBackend = QString::fromStdString(toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "tokenizerBackend", "MeCab"));
 	ElaScrollPageArea* tokenizerBackendArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* tokenizerBackendLayout = new QHBoxLayout(tokenizerBackendArea);
