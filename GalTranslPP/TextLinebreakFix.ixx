@@ -129,11 +129,32 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, const toml::value
 std::vector<std::string> TextLinebreakFix::splitIntoTokens(const std::string& text)
 {
 	std::vector<std::string> tokens;
+
+	size_t searchPos = 0; // 在原始句子中搜索的起始位置
 	NLPResult result = m_tokenizeTargetLangFunc(text);
 	const WordPosVec& wordPosList = std::get<0>(result);
 	for (const auto& wordPos : wordPosList) {
-		tokens.push_back(wordPos.front());
+		const auto& token = wordPos.front();
+		// 从 searchPos 开始查找当前 token
+		size_t tokenPos = text.find(token, searchPos);
+		// 错误处理：如果在预期位置找不到 token，说明输入有问题
+		if (tokenPos == std::string::npos) {
+			throw std::runtime_error("Token '" + token + "' not found in the remainder of the original sentence.");
+		}
+		// 1. 提取并添加 token 前面的空白部分
+		if (tokenPos > searchPos) {
+			tokens.push_back(text.substr(searchPos, tokenPos - searchPos));
+		}
+		// 2. 更新下一次搜索的起始位置
+		searchPos = tokenPos + token.length();
+		// 3. 添加 token 本身
+		tokens.push_back(std::move(token));
 	}
+	// 4. 处理最后一个 token 后面的尾随空白
+	if (searchPos < text.length()) {
+		tokens.push_back(text.substr(searchPos));
+	}
+
 	return tokens;
 }
 
@@ -381,6 +402,14 @@ void TextLinebreakFix::run(Sentence* se)
 
 		for (const auto& posToAddLinebreak : positionsToAddLinebreak | std::views::reverse) {
 			transViewToModify.insert(posToAddLinebreak, "<br>");
+		}
+
+		if (m_logger->should_log(spdlog::level::debug)) {
+			std::string tokensStr;
+			for (const auto& token : tokens) {
+				tokensStr += "[" + token + "] ";
+			}
+			se->other_info["译文分词结果"] = tokensStr;
 		}
 	}
 	}

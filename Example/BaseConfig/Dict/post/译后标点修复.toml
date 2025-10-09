@@ -1,0 +1,8 @@
+[[normalDict]]
+org = '。」'
+rep = '」'
+conditionTarget = 'preproc_text'
+conditionReg = '.*(?<!。」)$'
+isReg = false
+priority = 0
+

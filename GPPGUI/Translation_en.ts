@@ -1002,6 +1002,7 @@
     </message>
     <message>
         <location filename="DictExSettingsPage.cpp" line="78"/>
+        <location filename="DictExSettingsPage.cpp" line="193"/>
         <source>项目译前字典</source>
         <translation>Project PreDict</translation>
     </message>
@@ -1012,6 +1013,7 @@
     </message>
     <message>
         <location filename="DictExSettingsPage.cpp" line="79"/>
+        <location filename="DictExSettingsPage.cpp" line="194"/>
         <source>项目GPT字典</source>
         <translation>Project GptDict</translation>
     </message>
@@ -1022,6 +1024,7 @@
     </message>
     <message>
         <location filename="DictExSettingsPage.cpp" line="80"/>
+        <location filename="DictExSettingsPage.cpp" line="195"/>
         <source>项目译后字典</source>
         <translation>Project PostDict</translation>
     </message>

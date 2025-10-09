@@ -111,7 +111,7 @@ void PluginSettingsPage::_setupUI()
     _pf2hCfgPage = new PostFull2HalfCfgPage(_projectConfig, this);
     addCentralWidget(_pf2hCfgPage);
     _tlfCfgPage = new TLFCfgPage(_projectConfig, this);
-    addCentralWidget(_tlfCfgPage);
+    addCentralWidget(_tlfCfgPage, true, true, 0);
     _codePageCheckerCfgPage = new CodePageCheckerCfgPage(_projectConfig, this);
     addCentralWidget(_codePageCheckerCfgPage);
 }

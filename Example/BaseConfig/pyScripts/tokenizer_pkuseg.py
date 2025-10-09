@@ -2,8 +2,6 @@ import sys
 import os
 import pkuseg
 
-# pkuseg 是一个基于CPU的库，没有GPU相关的设置。
-
 class NLPProcessor:
     """
     一个纯粹的NLP处理器，它假设模型已经存在。
@@ -14,22 +12,19 @@ class NLPProcessor:
         """
         构造函数，直接加载指定的pkuseg模型。
         """
-        self.seg = pkuseg.pkuseg(model_name="default", postag=False)
+        self.seg = pkuseg.pkuseg(model_name="default", postag=True)
 
     def process_text(self, text: str):
         """
         处理输入的文本块。
         使用pkuseg进行分词和词性标注。
-        注意：pkuseg不直接支持命名实体识别(NER)，因此实体列表将始终为空。
         """
         if not text:
             return [], []
         
-        words = self.seg.cut(text)
-        
-        # 使用列表推导式将结果转换为目标格式 [[word, ""], [word, ""], ...]
-        # 这确保了数据结构与spacy版本完全相同，即使我们没有词性信息。
-        word_pos_list = [[word, ""] for word in words]
+        # pkuseg.cut() 在 postag=True 时返回一个元组列表，例如 [('你好', 'v'), ('世界', 'n')]
+        # 我们将其转换为列表的列表以匹配原始API的输出格式
+        word_pos_list = self.seg.cut(text)
         
         # pkuseg 不提供命名实体识别功能，返回一个空列表以保持API一致性
         entity_list = []
