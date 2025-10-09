@@ -996,60 +996,60 @@
         <translation>Project dict settings</translation>
     </message>
     <message>
-        <location filename="DictExSettingsPage.cpp" line="78"/>
+        <location filename="DictExSettingsPage.cpp" line="83"/>
         <source>选择要启用的译前字典</source>
         <translation>PreDicts to enable</translation>
     </message>
     <message>
-        <location filename="DictExSettingsPage.cpp" line="78"/>
-        <location filename="DictExSettingsPage.cpp" line="193"/>
+        <location filename="DictExSettingsPage.cpp" line="83"/>
+        <location filename="DictExSettingsPage.cpp" line="198"/>
         <source>项目译前字典</source>
         <translation>Project PreDict</translation>
     </message>
     <message>
-        <location filename="DictExSettingsPage.cpp" line="79"/>
+        <location filename="DictExSettingsPage.cpp" line="84"/>
         <source>选择要启用的GPT字典</source>
         <translation>GptDicts to enable</translation>
     </message>
     <message>
-        <location filename="DictExSettingsPage.cpp" line="79"/>
-        <location filename="DictExSettingsPage.cpp" line="194"/>
+        <location filename="DictExSettingsPage.cpp" line="84"/>
+        <location filename="DictExSettingsPage.cpp" line="199"/>
         <source>项目GPT字典</source>
         <translation>Project GptDict</translation>
     </message>
     <message>
-        <location filename="DictExSettingsPage.cpp" line="80"/>
+        <location filename="DictExSettingsPage.cpp" line="85"/>
         <source>选择要启用的译后字典</source>
         <translation>PostDicts to enable</translation>
     </message>
     <message>
-        <location filename="DictExSettingsPage.cpp" line="80"/>
-        <location filename="DictExSettingsPage.cpp" line="195"/>
+        <location filename="DictExSettingsPage.cpp" line="85"/>
+        <location filename="DictExSettingsPage.cpp" line="200"/>
         <source>项目译后字典</source>
         <translation>Project PostDict</translation>
     </message>
     <message>
-        <location filename="DictExSettingsPage.cpp" line="87"/>
+        <location filename="DictExSettingsPage.cpp" line="92"/>
         <source>将译前字典用在name字段</source>
         <translation>Use predict in name section</translation>
     </message>
     <message>
-        <location filename="DictExSettingsPage.cpp" line="101"/>
+        <location filename="DictExSettingsPage.cpp" line="106"/>
         <source>将译后字典用在name字段</source>
         <translation>use postdict in name section</translation>
     </message>
     <message>
-        <location filename="DictExSettingsPage.cpp" line="115"/>
+        <location filename="DictExSettingsPage.cpp" line="120"/>
         <source>将译前字典用在msg字段</source>
         <translation>use predict in msg section</translation>
     </message>
     <message>
-        <location filename="DictExSettingsPage.cpp" line="129"/>
+        <location filename="DictExSettingsPage.cpp" line="134"/>
         <source>将译后字典用在msg字段</source>
         <translation>use postdict in msg section</translation>
     </message>
     <message>
-        <location filename="DictExSettingsPage.cpp" line="143"/>
+        <location filename="DictExSettingsPage.cpp" line="148"/>
         <source>启用GPT字典替换name字段</source>
         <translation>use gptdict to replace name section</translation>
     </message>
@@ -1194,6 +1194,24 @@
     <message>
         <source>描述</source>
         <translation type="vanished">note</translation>
+    </message>
+</context>
+<context>
+    <name>ElaInputDialog</name>
+    <message>
+        <location filename="ElaInputDialog.cpp" line="18"/>
+        <source>取消</source>
+        <translation type="unfinished">Cancel</translation>
+    </message>
+    <message>
+        <location filename="ElaInputDialog.cpp" line="19"/>
+        <source>重置</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="ElaInputDialog.cpp" line="20"/>
+        <source>确定</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1633,7 +1651,8 @@
     </message>
     <message>
         <location filename="mainwindow.cpp" line="553"/>
-        <source>你确定要删除当前项目吗？</source>
+        <source>你确定要删除当前项目吗？                </source>
+        <oldsource>你确定要删除当前项目吗？</oldsource>
         <translation>Are you sure to delete current project?</translation>
     </message>
     <message>
@@ -2546,12 +2565,12 @@
         <translation>Dangerous!</translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="269"/>
+        <location filename="SettingPage.cpp" line="282"/>
         <source>检测到更新后自动下载</source>
         <translation>Automatically download when update is checked</translation>
     </message>
     <message>
-        <location filename="SettingPage.cpp" line="286"/>
+        <location filename="SettingPage.cpp" line="270"/>
         <source>自动检查更新</source>
         <translation>Automatically check update</translation>
     </message>

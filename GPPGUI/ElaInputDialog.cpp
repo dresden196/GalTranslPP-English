@@ -15,9 +15,9 @@ ElaInputDialog::ElaInputDialog(QWidget* parent, const QString& label, const QStr
 {
 	setWindowTitle("InputDialog");
 
-	setLeftButtonText("Cancel");
-	setMiddleButtonText("Reset");
-	setRightButtonText("OK");
+	setLeftButtonText(tr("取消"));
+	setMiddleButtonText(tr("重置"));
+	setRightButtonText(tr("确定"));
 
 	*_ok = false;
 

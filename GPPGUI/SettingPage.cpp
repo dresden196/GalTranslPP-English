@@ -263,6 +263,19 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
             insertToml(_globalConfig, "allowCloseWhenRunning", isChecked);
         });
 
+
+    // 自动检查更新
+    ElaScrollPageArea* checkUpdateArea = new ElaScrollPageArea(this);
+    QHBoxLayout* checkUpdateLayout = new QHBoxLayout(checkUpdateArea);
+    ElaText* checkUpdateText = new ElaText(tr("自动检查更新"), checkUpdateArea);
+    checkUpdateText->setWordWrap(false);
+    checkUpdateText->setTextPixelSize(15);
+    ElaToggleSwitch* checkUpdateSwitch = new ElaToggleSwitch(checkUpdateArea);
+    checkUpdateSwitch->setIsToggled(toml::find_or(_globalConfig, "autoCheckUpdate", true));
+    checkUpdateLayout->addWidget(checkUpdateText);
+    checkUpdateLayout->addStretch();
+    checkUpdateLayout->addWidget(checkUpdateSwitch);
+
     // 检测到更新后自动下载
     ElaScrollPageArea* autoDownloadArea = new ElaScrollPageArea(this);
     QHBoxLayout* autoDownloadLayout = new QHBoxLayout(autoDownloadArea);
@@ -278,19 +291,6 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
         {
             insertToml(_globalConfig, "autoDownloadUpdate", isChecked);
         });
-
-
-    // 自动检查更新
-    ElaScrollPageArea* checkUpdateArea = new ElaScrollPageArea(this);
-    QHBoxLayout* checkUpdateLayout = new QHBoxLayout(checkUpdateArea);
-    ElaText* checkUpdateText = new ElaText(tr("自动检查更新"), checkUpdateArea);
-    checkUpdateText->setWordWrap(false);
-    checkUpdateText->setTextPixelSize(15);
-    ElaToggleSwitch* checkUpdateSwitch = new ElaToggleSwitch(checkUpdateArea);
-    checkUpdateSwitch->setIsToggled(toml::find_or(_globalConfig, "autoCheckUpdate", true));
-    checkUpdateLayout->addWidget(checkUpdateText);
-    checkUpdateLayout->addStretch();
-    checkUpdateLayout->addWidget(checkUpdateSwitch);
 
     
     // 语言设置
@@ -386,8 +386,8 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
     centerLayout->addWidget(nameTableOpenModeArea);
     centerLayout->addWidget(dictOpenModeArea);
     centerLayout->addWidget(allowCloseWhenRunningArea);
-    centerLayout->addWidget(autoDownloadArea);
     centerLayout->addWidget(checkUpdateArea);
+    centerLayout->addWidget(autoDownloadArea);
     centerLayout->addWidget(languageArea);
     centerLayout->addWidget(pyEnvPathArea);
     centerLayout->addStretch();

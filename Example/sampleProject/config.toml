@@ -22,11 +22,11 @@ filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, i18
 # PS: 如果项目文件夹下有 Prompt.toml，会优先使用项目文件夹下的提示词，否则再去 BaseConfig 下寻找
 transEngine = "ForGalJson"
 
+#"CodePageChecker"
 #"TextLinebreakFix"
 #"TextPostFull2Half"
 # 文本译后处理插件列表，可以设置多个，按顺序执行
 textPostPlugins = [
-  "CodePageChecker"
 ] 
 
 [plugins.NormalJson]
@@ -51,7 +51,7 @@ rep = '<ruby><rb>$2</rb><rt>$1</rt></ruby>'
 
 [plugins.TextLinebreakFix]
 "换行模式" = "优先标点" # 判断换行数目是否相同的基准是 preproc_text(中的<br>) 而不是 orig_text，请注意
-"仅在标点后添加" = true # 仅在优先标点模式有效
+"优先阈值" = 0.24
 
 [plugins.TextPostFull2Half]
 "是否反向替换" = false  # false=全角->半角，true=半角->全角
@@ -80,7 +80,7 @@ tokenizerBackend = "MeCab" # MeCab, spaCy, Stanza
 # MeCab 分词器所用的词典的路径
 mecabDictDir = "BaseConfig/mecabDict/mecab-ipadic-utf8" # 也可以用 mecab-ipadic-neologd 或 unidic(均需从网上下载字典)
 # spaCy(Python) 分词器所用的模型名，可从 https://spacy.io/models 查询，自动下载需重启程序
-spaCyModelName = "ja_core_news_trf"
+spaCyModelName = "ja_core_news_sm"
 # stanza 使用 LangID 来获取模型, 语言ID列表 https://stanfordnlp.github.io/stanza/ner_models.html
 stanzaLang = "zh"
 
@@ -88,7 +88,7 @@ stanzaLang = "zh"
 [problemAnalyze]
 # 要发现的问题清单
 problemList = [
-  "词频过高",
+  #"词频过高",
   "标点错漏",
 
   "丢失换行",
@@ -99,9 +99,9 @@ problemList = [
 
   "残留日文",
   #"引入拉丁字母",
-  #"引入韩文",
-  #"引入繁体字",
-  "语言不通",
+  "引入韩文",
+  "引入繁体字",
+  #"语言不通",
 ]
 
 # 正则表达式列表，如果句子缓存中的某条 problem 能被以下任一正则 search 通过，则进行重翻

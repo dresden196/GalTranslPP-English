@@ -550,7 +550,7 @@ void MainWindow::_onDeleteProjectTriggered()
     QWidget* widget = new QWidget(&helpDialog);
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->setContentsMargins(15, 25, 15, 10);
-    ElaText* confirmText = new ElaText(tr("你确定要删除当前项目吗？"), widget);
+    ElaText* confirmText = new ElaText(tr("你确定要删除当前项目吗？                "), widget);
     confirmText->setTextStyle(ElaTextType::Title);
     confirmText->setWordWrap(false);
     layout->addWidget(confirmText);

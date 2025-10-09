@@ -1,6 +1,7 @@
 # GalTransl++
 
 ![GalTransl++ GUI](img/GalTranslPP.png?raw=true)
+![GalTransl++ GUI En](img/GalTranslPP_en.png?raw=true)
 
 **GalTransl++** 是继承了 [GalTransl](https://github.com/GalTransl/GalTransl)  `以项目为本`的主要理念及架构，凝练其两年间积累的精华部分，同时吸收了大量Gal补丁作者经验而进行优化的，轻量透明的、拥有高度且方便的扩展能力的翻译核心。
 
@@ -307,7 +308,7 @@ callback = [ { group = 2, org = '<[^>]*>', rep = '' } ]
 
 但可能在下载之后需要**重启程序**以重新加载Python解释器。请留意日志输出窗口的提示，避免造成程序卡死或崩溃。
 
-然而在不启用 GPU加速 的情况下使用如 `spaCy的trf模型` 或 `Stanza` 进行全文分词的速度是比较灾难性的，如果想启用 GPU 加速，请跟随以下教程。
+然而在不启用 GPU加速 的情况下使用如 `spaCy最好的trf模型` 或 `Stanza` 进行全文分词的速度是比较灾难性的，如果想启用 GPU 加速，请跟随以下教程。
 
 **请确保自己有一定的动手和思考能力 && 一块还不错的显卡！**
 

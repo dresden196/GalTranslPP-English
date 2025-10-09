@@ -40,6 +40,7 @@ void DictExSettingsPage::_setupUI()
 	auto createDictSelectAreaFunc = 
 		[=](const QString& text, const QString& defaultItem, const std::string& globalConfigKey, const std::string& projectConfigKey) -> ElaMultiSelectComboBox*
 		{
+			const std::set<QString> projectFixedDictNames = { "项目译前字典", "项目GPT字典", "项目译后字典" };
 			ElaScrollPageArea* dictNamesArea = new ElaScrollPageArea(mainWidget);
 			QHBoxLayout* dictNamesLayout = new QHBoxLayout(dictNamesArea);
 			ElaText* dictNamesText = new ElaText(dictNamesArea);
@@ -61,7 +62,11 @@ void DictExSettingsPage::_setupUI()
 			QList<int> indexesToSelect;
 			for (const auto& dictName : projectConfigDictNames) {
 				if (dictName.is_string()) {
-					int index = dictNamesComboBox->findText(QString(fs::path(ascii2Wide(dictName.as_string())).stem().wstring()));
+					QString dictNameStr(fs::path(ascii2Wide(dictName.as_string())).stem().wstring());
+					if (projectFixedDictNames.contains(dictNameStr)) {
+						dictNameStr = defaultItem;
+					}
+					int index = dictNamesComboBox->findText(dictNameStr);
 					if (index < 0) {
 						continue;
 					}
