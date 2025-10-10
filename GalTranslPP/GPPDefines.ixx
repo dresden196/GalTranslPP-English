@@ -8,6 +8,8 @@ export {
 
     const std::string GPPVERSION = "2.0.0";
 
+    const std::string PYTHONVERSTION = "1.0.0";
+
     const fs::path pluginConfigsPath = L"BaseConfig/pluginConfigs";
 
     enum  class NameType

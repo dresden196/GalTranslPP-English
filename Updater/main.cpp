@@ -1,3 +1,4 @@
+#include <toml.hpp>
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QApplication>
@@ -14,6 +15,7 @@
 #endif
 
 import Tool;
+namespace fs = std::filesystem;
 
 template<typename FnCastTo>
 FnCastTo FnCast(uint64_t fnToCast, FnCastTo) {
@@ -80,7 +82,19 @@ int main(int argc, char* argv[]) {
 
     // 2. 解压并覆盖文件
     try {
-        extractZip(sourceZip.toStdWString(), targetDir.toStdWString());
+        extractFileFromZip(sourceZip.toStdWString(), targetDir.toStdWString(), "update.toml");
+        const auto updateConfig = toml::parse(fs::path(L"update.toml"));
+        fs::remove(L"update.toml");
+        std::set<std::string> excludePreFixes =
+        {
+            "BaseConfig/python-3.12.10-embed-amd64", "BaseConfig/pyScripts", "update.toml"
+        };
+        bool isCompatible = true;
+        if (cmpVer(toml::find<std::string>(updateConfig, "PYTHON", "version"), PYTHONVERSTION, isCompatible)) {
+            excludePreFixes.erase("BaseConfig/python-3.12.10-embed-amd64");
+            excludePreFixes.erase("BaseConfig/pyScripts");
+        }
+        extractZipExclude(sourceZip.toStdWString(), targetDir.toStdWString(), excludePreFixes);
     }
     catch (const std::exception& e) {
         qCritical() << "Failed to extract update package:" << e.what();

@@ -97,7 +97,10 @@ export {
     std::function<std::string(const std::string&)> getTraditionalChineseExtractor(std::shared_ptr<spdlog::logger> logger);
 
     void extractZip(const fs::path& zipPath, const fs::path& outputDir);
+    void extractFileFromZip(const fs::path& zipPath, const fs::path& outputDir, const std::string& fileName);
+    void extractZipExclude(const fs::path& zipPath, const fs::path& outputDir, const std::set<std::string>& excludePrefixes);
 
+    bool cmpVer(const std::string& latestVer, const std::string& currentVer, bool& isCompatible);
 
     struct ConditionPattern {
         CachePart conditionTarget;
@@ -800,6 +803,39 @@ std::function<std::string(const std::string&)> getTraditionalChineseExtractor(st
     return result;
 }
 
+void extractFileFromZip(const fs::path& zipPath, const fs::path& outputDir, const std::string& fileName) {
+    int error = 0;
+    zip* za = zip_open(wide2Ascii(zipPath).c_str(), 0, &error);
+    if (!za) {
+        throw std::runtime_error(std::format("Failed to open zip archive: {}", wide2Ascii(zipPath)));
+    }
+    zip_int64_t numEntries = zip_get_num_entries(za, 0);
+    for (zip_int64_t i = 0; i < numEntries; i++) {
+        zip_stat_t zs;
+        zip_stat_index(za, i, 0, &zs);
+        if (fileName != zs.name) {
+            continue;
+        }
+        fs::path path = outputDir / ascii2Wide(zs.name);
+        if (zs.name[strlen(zs.name) - 1] == '/') {
+            fs::create_directories(path);
+        }
+        else {
+            zip_file* zf = zip_fopen_index(za, i, 0);
+            if (!zf) {
+                throw std::runtime_error(std::format("Failed to open file in zip archive: {}, file: {}", wide2Ascii(zipPath), zs.name));
+            }
+            std::vector<char> buffer(zs.size);
+            zip_fread(zf, buffer.data(), zs.size);
+            zip_fclose(zf);
+            fs::create_directories(path.parent_path());
+            std::ofstream ofs(path, std::ios::binary);
+            ofs.write(buffer.data(), buffer.size());
+        }
+        break;
+    }
+    zip_close(za);
+}
 
 void extractZip(const fs::path& zipPath, const fs::path& outputDir) {
     int error = 0;
@@ -811,6 +847,44 @@ void extractZip(const fs::path& zipPath, const fs::path& outputDir) {
     for (zip_int64_t i = 0; i < numEntries; i++) {
         zip_stat_t zs;
         zip_stat_index(za, i, 0, &zs);
+        fs::path path = outputDir / ascii2Wide(zs.name);
+        if (zs.name[strlen(zs.name) - 1] == '/') {
+            fs::create_directories(path);
+        }
+        else {
+            zip_file* zf = zip_fopen_index(za, i, 0);
+            if (!zf) {
+                throw std::runtime_error(std::format("Failed to open file in zip archive: {}, file: {}", wide2Ascii(zipPath), zs.name));
+            }
+            std::vector<char> buffer(zs.size);
+            zip_fread(zf, buffer.data(), zs.size);
+            zip_fclose(zf);
+            fs::create_directories(path.parent_path());
+            std::ofstream ofs(path, std::ios::binary);
+            ofs.write(buffer.data(), buffer.size());
+        }
+    }
+    zip_close(za);
+}
+
+void extractZipExclude(const fs::path& zipPath, const fs::path& outputDir, const std::set<std::string>& excludePrefixes) {
+    int error = 0;
+    zip* za = zip_open(wide2Ascii(zipPath).c_str(), 0, &error);
+    if (!za) {
+        throw std::runtime_error(std::format("Failed to open zip archive: {}", wide2Ascii(zipPath)));
+    }
+    zip_int64_t numEntries = zip_get_num_entries(za, 0);
+    for (zip_int64_t i = 0; i < numEntries; i++) {
+        zip_stat_t zs;
+        zip_stat_index(za, i, 0, &zs);
+        std::string name = zs.name;
+        if (std::ranges::any_of(excludePrefixes, [&](const std::string& prefix)
+            {
+                return name.starts_with(prefix);
+            }))
+        {
+            continue;
+        }
         fs::path path = outputDir / ascii2Wide(zs.name);
         if (zs.name[strlen(zs.name) - 1] == '/') {
             fs::create_directories(path);
@@ -871,6 +945,57 @@ bool checkCondition(const GPPCondition& conditions, const Sentence* se) {
             }
             return false;
         });
+}
+
+bool cmpVer(const std::string& latestVer, const std::string& currentVer, bool& isCompatible)
+{
+    bool isCurrentVerPre = false;
+    auto removePostfix = [&](std::string v) -> std::string
+        {
+            while (true) {
+                if (
+                    !v.empty() &&
+                    (v.back() < '0' || v.back() > '9')
+                    ) {
+                    v.pop_back();
+                    isCurrentVerPre = true;
+                }
+                else {
+                    break;
+                }
+            }
+            return v;
+        };
+
+    std::string fixedCurrentVer = removePostfix(currentVer);
+    std::string v1s = latestVer.find_last_of("v") == std::string::npos ? latestVer : latestVer.substr(latestVer.find_last_of("v") + 1);
+    std::string v2s = fixedCurrentVer.find_last_of("v") == std::string::npos ? fixedCurrentVer : fixedCurrentVer.substr(fixedCurrentVer.find_last_of("v") + 1);
+
+    std::vector<std::string> lastVerParts = splitString(v1s, '.');
+    std::vector<std::string> currentVerParts = splitString(v2s, '.');
+
+    size_t len = std::max(lastVerParts.size(), currentVerParts.size());
+
+    for (size_t i = 0; i < len; i++) {
+        int lastVerPart = i < lastVerParts.size() ? std::stoi(lastVerParts[i]) : 0;
+        int currentVerPart = i < currentVerParts.size() ? std::stoi(currentVerParts[i]) : 0;
+        if (i == 0 && lastVerPart > currentVerPart) {
+            isCompatible = false;
+        }
+
+        if (lastVerPart > currentVerPart) {
+            return true;
+        }
+        else if (lastVerPart < currentVerPart) {
+            return false;
+        }
+    }
+
+    if (isCurrentVerPre) {
+        return true;
+    }
+
+    return false;
 }
 
 

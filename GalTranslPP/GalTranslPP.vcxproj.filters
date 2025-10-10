@@ -28,9 +28,6 @@
     <ClCompile Include="ProblemAnalyzer.ixx">
       <Filter>Tools</Filter>
     </ClCompile>
-    <ClCompile Include="Tool.ixx">
-      <Filter>Tools\Utils</Filter>
-    </ClCompile>
     <ClCompile Include="NJ_ImplTool.ixx">
       <Filter>Tools\Utils\specialized</Filter>
     </ClCompile>
@@ -56,6 +53,9 @@
       <Filter>Tools</Filter>
     </ClCompile>
     <ClCompile Include="CodePageChecker.ixx">
+      <Filter>Tools\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Tool.ixx">
       <Filter>Tools\Utils</Filter>
     </ClCompile>
   </ItemGroup>

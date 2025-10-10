@@ -36,8 +36,6 @@ private Q_SLOTS:
 
 private:
 
-    bool cmpVer(const std::string& latestVer, const std::string& currentVer, bool& isCompatible);
-
     bool m_downloadSuccess = false;
     ElaText* m_statusText = nullptr;
     QSystemTrayIcon* m_trayIcon = nullptr;
