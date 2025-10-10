@@ -866,22 +866,27 @@
         <translation>Choose MeCab dict dir</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="347"/>
+        <location filename="CommonSettingsPage.cpp" line="349"/>
         <source>spaCy模型名称</source>
         <translation>spaCy model name</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="349"/>
+        <location filename="CommonSettingsPage.cpp" line="351"/>
         <source>spaCy模型名称，新模型下载后需重启程序</source>
         <translation>spaCy model name, you need reboot app after downloading a new model</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="369"/>
+        <location filename="CommonSettingsPage.cpp" line="353"/>
+        <source>sm模型的效果有点一言难尽，有条件的建议上trf模型</source>
+        <translation>sm model is not so satisfying, use trf model if conditions allowing</translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="374"/>
         <source>Stanza语言ID</source>
         <translation>Stanza lang id</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="371"/>
+        <location filename="CommonSettingsPage.cpp" line="376"/>
         <source>Stanza语言ID，新模型下载后需重启程序</source>
         <translation>Stanza lang id, you need reboot app after downloading a new model</translation>
     </message>
@@ -895,8 +900,8 @@
     </message>
     <message>
         <location filename="CommonSettingsPage.cpp" line="333"/>
-        <location filename="CommonSettingsPage.cpp" line="358"/>
-        <location filename="CommonSettingsPage.cpp" line="380"/>
+        <location filename="CommonSettingsPage.cpp" line="363"/>
+        <location filename="CommonSettingsPage.cpp" line="385"/>
         <source>浏览</source>
         <translation>browse</translation>
     </message>
@@ -905,23 +910,23 @@
         <translation type="vanished">Choose dict dir</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="394"/>
+        <location filename="CommonSettingsPage.cpp" line="399"/>
         <source>本项目所使用的换行符</source>
         <translation>Linebreak symbol used in this project</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="397"/>
+        <location filename="CommonSettingsPage.cpp" line="402"/>
         <source>将换行符统一规范为 &amp;lt;br&amp;gt; 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行。&lt;br&gt;具体替换时机详见使用说明，auto为自动检测</source>
         <oldsource>将换行符统一规范为 &amp;lt;br&amp;gt; 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行，具体替换时机详见使用说明，auto为自动检测</oldsource>
         <translation>All linebreak symbols will be replaced to &amp;lt;br&amp;gt; for programming use</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="444"/>
+        <location filename="CommonSettingsPage.cpp" line="449"/>
         <source>解析失败</source>
         <translation>Fail to analyze</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="444"/>
+        <location filename="CommonSettingsPage.cpp" line="449"/>
         <source>linebreakSymbol不符合 toml 规范</source>
         <translation>linebreakSymbol is nonconforming</translation>
     </message>
