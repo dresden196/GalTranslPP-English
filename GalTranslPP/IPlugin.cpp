@@ -40,9 +40,6 @@ std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::str
 		else if (pluginName == "TextLinebreakFix") {
 			plugins.push_back(std::make_shared<TextLinebreakFix>(projectDir, projectConfig, logger));
 		}
-		else if (pluginName == "CodePageChecker") {
-			plugins.push_back(std::make_shared<CodePageChecker>(projectDir, projectConfig, logger));
-		}
 	}
 
 	return plugins;

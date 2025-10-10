@@ -9,8 +9,7 @@
 tokenizerBackend = "MeCab" # MeCab, spaCy, Stanza, pkuseg (除了MeCab，剩下的都依赖Python，自动安装需重启程序)
 # 填目标语言的模型/字典
 # mecab-chinese 下载地址:
-# https://github.com/panyang/MeCab-Chinese/tree/master/data/v0.3 或
-# https://github.com/ueda-keisuke/CC-CEDICT-MeCab
+# https://github.com/panyang/MeCab-Chinese/tree/master/data/v0.3
 mecabDictDir = "BaseConfig/mecabDict/mecab-chinese" 
 # https://spacy.io/models
 spaCyModelName = "zh_core_web_sm"

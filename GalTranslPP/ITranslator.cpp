@@ -50,7 +50,7 @@ protected:
     }
 
     void flush_() override {
-        // 也可以在IController里再写一个虚flush，不过感觉没什么必要了
+        m_controller->flush();
     }
 
 private:

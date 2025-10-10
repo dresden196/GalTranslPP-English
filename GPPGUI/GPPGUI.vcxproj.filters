@@ -151,9 +151,6 @@
     <ClCompile Include="ReadDicts.cpp">
       <Filter>Source Files\ToolWidgetsImpl</Filter>
     </ClCompile>
-    <ClCompile Include="CodePageCheckerCfgPage.cpp">
-      <Filter>Source Files\ToolWidgetsImpl</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mainwindow.h">
@@ -256,9 +253,6 @@
       <Filter>Header Files\ToolWidgetsH</Filter>
     </QtMoc>
     <QtMoc Include="ReadDicts.h">
-      <Filter>Header Files\ToolWidgetsH</Filter>
-    </QtMoc>
-    <QtMoc Include="CodePageCheckerCfgPage.h">
       <Filter>Header Files\ToolWidgetsH</Filter>
     </QtMoc>
   </ItemGroup>

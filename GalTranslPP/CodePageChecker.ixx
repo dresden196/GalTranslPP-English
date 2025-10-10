@@ -11,7 +11,6 @@
 export module CodePageChecker;
 
 import Tool;
-export import IPlugin;
 
 namespace fs = std::filesystem;
 
@@ -33,51 +32,40 @@ export {
     };
     using UConverterPtr = std::unique_ptr<UConverter, UConverterDeleter>;
 
-    class CodePageChecker : public IPlugin {
+    class CodePageChecker {
     private:
+        std::shared_ptr<spdlog::logger> m_logger;
         std::string m_codePage;
         std::string m_unmappableCharsResult;
         UConverterPtr m_u8Converter;
         UConverterPtr m_codePageConverter;
 
-        const std::string& findUnmappableChars(const std::string& transViewToCheck);
-
     public:
-        CodePageChecker(const fs::path& projectDir, const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger);
-        virtual void run(Sentence* se) override;
-        virtual ~CodePageChecker() override = default;
+        CodePageChecker(const std::string& codePage, std::shared_ptr<spdlog::logger> logger);
+
+        const std::string& getCodePage() { return m_codePage; }
+
+        const std::string& findUnmappableChars(const std::string& transViewToCheck);
     };
 }
 
 module :private;
 
-CodePageChecker::CodePageChecker(const fs::path& projectDir, const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger)
-    : IPlugin(projectDir, logger)
+CodePageChecker::CodePageChecker(const std::string& codePage, std::shared_ptr<spdlog::logger> logger)
+    : m_codePage(codePage), m_logger(logger)
 {
-    try {
-        const auto pluginConfig = toml::parse(pluginConfigsPath / L"textPostPlugins/CodePageChecker.toml");
-
-        m_codePage = parseToml<std::string>(projectConfig, pluginConfig, "plugins.CodePageChecker.codePage");
-
-        UErrorCode status = U_ZERO_ERROR;
-        m_u8Converter.reset(ucnv_open("utf-8", &status));
-        if (U_FAILURE(status)) {
-            throw std::runtime_error("Error: Could not create ICU u8 converters. " + std::string(u_errorName(status)));
-        }
-        m_codePageConverter.reset(ucnv_open(m_codePage.c_str(), &status));
-        if (U_FAILURE(status)) {
-            throw std::runtime_error("Error: Could not create ICU " + m_codePage + " converters. " + std::string(u_errorName(status)));
-        }
-        ucnv_setFromUCallBack(m_codePageConverter.get(), codePageFromUCallback, &m_unmappableCharsResult, nullptr, nullptr, &status);
-        if (U_FAILURE(status)) {
-            throw std::runtime_error("Error: Could not set ICU callback function. " + std::string(u_errorName(status)));
-        }
-
-        m_logger->info("已加载插件 CodePageChecker, 字符集: {}", m_codePage);
+    UErrorCode status = U_ZERO_ERROR;
+    m_u8Converter.reset(ucnv_open("utf-8", &status));
+    if (U_FAILURE(status)) {
+        throw std::runtime_error("Error: Could not create ICU u8 converters. " + std::string(u_errorName(status)));
     }
-    catch (const toml::exception& e) {
-        m_logger->critical("字符集检查器 配置文件解析错误");
-        throw std::runtime_error(e.what());
+    m_codePageConverter.reset(ucnv_open(m_codePage.c_str(), &status));
+    if (U_FAILURE(status)) {
+        throw std::runtime_error("Error: Could not create ICU " + m_codePage + " converters. " + std::string(u_errorName(status)));
+    }
+    ucnv_setFromUCallBack(m_codePageConverter.get(), codePageFromUCallback, &m_unmappableCharsResult, nullptr, nullptr, &status);
+    if (U_FAILURE(status)) {
+        throw std::runtime_error("Error: Could not set ICU callback function. " + std::string(u_errorName(status)));
     }
 }
 
@@ -149,14 +137,4 @@ const std::string& CodePageChecker::findUnmappableChars(const std::string& trans
         throw std::runtime_error(std::format("ICU conversion failed with unexpected error : {}", u_errorName(status)));
     }
     return m_unmappableCharsResult;
-}
-
-void CodePageChecker::run(Sentence* se)
-{
-    const std::string& transViewToCheck = se->translated_preview;
-    const std::string& unmappableChars = findUnmappableChars(transViewToCheck);
-    if (!unmappableChars.empty()) {
-        m_logger->error("字符集检查器 发现非 {} 字符: {}", m_codePage, unmappableChars);
-        se->problems.push_back(std::format("非 {} 字符: {}", m_codePage, unmappableChars));
-    }
 }

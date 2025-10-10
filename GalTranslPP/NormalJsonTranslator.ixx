@@ -302,9 +302,10 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             std::optional<std::vector<std::string>>
         >(configData, "problemAnalyze", "problemList");
         if (problemList) {
-            const std::string& punctSet = toml::find_or(configData, "problemAnalyze", "punctSet", "");
+            const std::string& punctSet = toml::find_or(configData, "problemAnalyze", "punctSet", "（()）：:*[]{}<>『』「」“”;；'/\\");
+            const std::string& codePage = toml::find_or(configData, "problemAnalyze", "codePage", "gbk");
             double langProbability = toml::find_or(configData, "problemAnalyze", "langProbability", 0.94);
-            m_problemAnalyzer.loadProblems(*problemList, punctSet, langProbability);
+            m_problemAnalyzer.loadProblems(*problemList, punctSet, codePage, langProbability);
         }
 
         const auto& retranslKeys = toml::find<std::optional<toml::array>>(configData, "problemAnalyze", "retranslKeys");
@@ -1163,21 +1164,21 @@ void NormalJsonTranslator::run() {
             m_logger->error("解析原人名表失败");
         }
 
-        std::vector<std::string> nameTableKeys;
-        for (const auto& name : nameTableMap | std::views::keys) {
-            nameTableKeys.push_back(name);
+        std::vector<std::pair<std::string, int>> nameTableKeys;
+        for (const auto& nameCountPair : nameTableMap) {
+            nameTableKeys.push_back(nameCountPair);
         }
-        std::ranges::sort(nameTableKeys, [&](const std::string& a, const std::string& b)
+        std::ranges::sort(nameTableKeys, [&](const auto& a, const auto& b)
             {
-                if (nameTableMap[a] == nameTableMap[b]) {
-                    return a.length() > b.length();
+                if (a.second == b.second) {
+                    return a.first.length() > b.first.length();
                 }
-                return nameTableMap[a] > nameTableMap[b];
+                return a.second > b.second;
             });
 
         toml::ordered_value newNameTable = toml::ordered_table{};
         newNameTable.comments().push_back("'原名' = [ '译名', 出现次数 ]");
-        for (const auto& key : nameTableKeys) {
+        for (const auto& key : nameTableKeys | std::views::keys) {
             try {
                 newNameTable[key] = toml::array{ toml::find_or(orgNameTable, key, 0, ""), nameTableMap[key] };
             }

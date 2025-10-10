@@ -11,6 +11,7 @@ class GUIController : public IController
 public:
     virtual void makeBar(int totalSentences, int totalThreads) override
     {
+        this->flush();
         std::lock_guard<std::mutex> lock(_mutex);
         _makeBarCallback(totalSentences, totalThreads);
     }
@@ -44,7 +45,7 @@ public:
         return _shouldStopCallback();
     }
 
-    void flush()
+    virtual void flush() override
     {
         std::lock_guard<std::mutex> lock(_mutex);
         if (!_log.empty()) {

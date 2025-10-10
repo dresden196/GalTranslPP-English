@@ -343,7 +343,12 @@ SettingPage::SettingPage(toml::ordered_value& globalConfig, QWidget* parent)
             QString pyExePath = QFileDialog::getOpenFileName(this, tr("选择Python.exe"), pyEnvPathLineEdit->text(), "Python.exe (python.exe)");
             if (!pyExePath.isEmpty())
             {
-                pyEnvPathLineEdit->setText(QString(fs::path(pyExePath.toStdWString()).parent_path().wstring()));
+                fs::path newPyEnvPath = fs::path(pyExePath.toStdWString()).parent_path();
+                if (!fs::exists(newPyEnvPath / L"python312.zip")) {
+                    ElaMessageBar::error(ElaMessageBarType::TopRight, tr("错误"), tr("目录下没有 python{ver}.zip 文件"), 3000);
+                    return;
+                }
+                pyEnvPathLineEdit->setText(QString(newPyEnvPath.wstring()));
             }
         });
     

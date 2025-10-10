@@ -10,7 +10,6 @@
 
 #include "TLFCfgPage.h"
 #include "PostFull2HalfCfgPage.h"
-#include "CodePageCheckerCfgPage.h"
 
 import Tool;
 
@@ -31,7 +30,6 @@ void PluginSettingsPage::apply2Config()
 {
     _tlfCfgPage->apply2Config();
     _pf2hCfgPage->apply2Config();
-    _codePageCheckerCfgPage->apply2Config();
 
     toml::array plugins;
     for (PluginItemWidget* item : _postPluginItems) {
@@ -60,7 +58,7 @@ void PluginSettingsPage::_setupUI()
     _postPluginListLayout = new QVBoxLayout(postListContainer);
 
     // 插件名称列表
-    QStringList postPluginNames = { "TextPostFull2Half", "TextLinebreakFix", "CodePageChecker" };
+    QStringList postPluginNames = { "TextPostFull2Half", "TextLinebreakFix" };
     // 先处理项目已经启用的插件
     auto& postPluginsArr = _projectConfig["plugins"]["textPostPlugins"];
     if (postPluginsArr.is_array()) {
@@ -112,8 +110,6 @@ void PluginSettingsPage::_setupUI()
     addCentralWidget(_pf2hCfgPage);
     _tlfCfgPage = new TLFCfgPage(_projectConfig, this);
     addCentralWidget(_tlfCfgPage, true, true, 0);
-    _codePageCheckerCfgPage = new CodePageCheckerCfgPage(_projectConfig, this);
-    addCentralWidget(_codePageCheckerCfgPage);
 }
 
 void PluginSettingsPage::_onPostSettings(PluginItemWidget* item)
@@ -128,9 +124,6 @@ void PluginSettingsPage::_onPostSettings(PluginItemWidget* item)
     }
     else if (pluginName == "TextLinebreakFix") {
         this->navigation(2);
-    }
-    else if (pluginName == "CodePageChecker") {
-        this->navigation(3);
     }
 }
 

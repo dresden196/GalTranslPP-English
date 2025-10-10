@@ -214,7 +214,7 @@ void MainWindow::initEdgeLayout()
     ElaDockWidget* updateDockWidget = new ElaDockWidget(tr("更新内容"), this);
     updateDockWidget->setWidget(new UpdateWidget(this));
     this->addDockWidget(Qt::RightDockWidgetArea, updateDockWidget);
-    resizeDocks({ updateDockWidget }, { 200 }, Qt::Horizontal);
+    resizeDocks({ updateDockWidget }, { 225 }, Qt::Horizontal);
     std::string gppversion = GPPVERSION;
     std::erase_if(gppversion, [](char ch) { return ch == '.'; });
     updateDockWidget->setVisible(toml::find_or(_globalConfig, "showDockWidget", gppversion, true));
@@ -431,6 +431,22 @@ void MainWindow::_onNewProjectTriggered()
         ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("创建失败"), tr("无法写入配置文件！"), 3000);
         return;
     }
+
+    auto renameDictFileFunc = [&](const QString& orgName, const QString& newName)
+        {
+            if (orgName == newName) {
+                return;
+            }
+            try {
+                fs::rename(newProjectDir / (orgName.toStdWString() + L".toml"), newProjectDir / (newName.toStdWString() + L".toml"));
+            }
+            catch (...) {
+
+            }
+        };
+    renameDictFileFunc("项目GPT字典", tr("项目GPT字典"));
+    renameDictFileFunc("项目译前字典", tr("项目译前字典"));
+    renameDictFileFunc("项目译后字典", tr("项目译后字典"));
 
     ProjectSettingsPage* newPage = _createProjectSettingsPage(newProjectDir);
     this->navigation(newPage->property("ElaPageKey").toString());

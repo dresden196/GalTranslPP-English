@@ -143,7 +143,18 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
         }
         std::set<std::string> wordsInSegment;
         NLPResult result = m_tokenizeSourceLangFunc(segment);
-        const EntityVec& entityVec = std::get<1>(result);
+        EntityVec& entityVec = std::get<1>(result);
+        std::erase_if(entityVec, [](const std::vector<std::string>& entity)
+            {
+                static const std::set<std::string> excludeEntities =
+                {
+                    "TITLE_AFFIX", "QUANTITY", "ORDINAL", "DATE", "MONEY"
+                };
+                if (excludeEntities.contains(entity[1])) {
+                    return true;
+                }
+                return removePunctuation(entity.front()).empty();
+            });
         for (const auto& entity : entityVec) {
             wordsInSegment.insert(entity.front());
             m_wordCounter[entity.front()]++;
@@ -151,9 +162,9 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
         if (m_logger->should_log(spdlog::level::debug)) {
             std::string entityStr;
             for (const auto& entity : entityVec) {
-                entityStr += "[" + entity.front() + "] ";
+                entityStr += "[" + entity.front() + ", " + entity[1] + "] ";
             }
-            m_logger->debug("原文: {}\n分词结果: {}", segment, entityStr);
+            m_logger->debug("原文: {}\n分词实体结果: {}", segment, entityStr);
         }
         m_segmentWords.push_back(wordsInSegment);
     }

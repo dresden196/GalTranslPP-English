@@ -21,6 +21,8 @@ export {
 
 		virtual bool shouldStop() = 0;
 
+		virtual void flush() = 0;
+
 		IController();
 
 		virtual ~IController();

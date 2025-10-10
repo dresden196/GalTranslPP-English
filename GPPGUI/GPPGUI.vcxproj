@@ -129,7 +129,6 @@ copy "$(TargetDir)translations\Translation_*.*" "$(TargetDir)..\GUICORE\translat
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="APISettingsPage.cpp" />
     <ClCompile Include="BasePage.cpp" />
-    <ClCompile Include="CodePageCheckerCfgPage.cpp" />
     <ClCompile Include="CommonGptDictPage.cpp" />
     <ClCompile Include="CommonNormalDictPage.cpp" />
     <ClCompile Include="CommonSettingsPage.cpp" />
@@ -262,7 +261,6 @@ copy "$(TargetDir)translations\Translation_*.*" "$(TargetDir)..\GUICORE\translat
     <QtMoc Include="CommonNormalDictPage.h" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="CodePageCheckerCfgPage.h" />
     <ClInclude Include="ExponentialMovingAverageEstimator.hpp" />
     <ClInclude Include="NoWheelComboBox.h" />
     <QtMoc Include="ReadDicts.h" />

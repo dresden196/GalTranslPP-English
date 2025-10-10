@@ -49,14 +49,14 @@
     <ClCompile Include="PDFTranslator.ixx">
       <Filter>filePlugins</Filter>
     </ClCompile>
-    <ClCompile Include="CodePageChecker.ixx">
-      <Filter>textPlugins</Filter>
-    </ClCompile>
     <ClCompile Include="IPlugin.cpp">
       <Filter>textPlugins</Filter>
     </ClCompile>
     <ClCompile Include="PythonManager.ixx">
       <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="CodePageChecker.ixx">
+      <Filter>Tools\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

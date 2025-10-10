@@ -22,7 +22,6 @@ filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, i18
 # PS: 如果项目文件夹下有 Prompt.toml，会优先使用项目文件夹下的提示词，否则再去 BaseConfig 下寻找
 transEngine = "ForGalJson"
 
-#"CodePageChecker"
 #"TextLinebreakFix"
 #"TextPostFull2Half"
 # 文本译后处理插件列表，可以设置多个，按顺序执行
@@ -76,13 +75,14 @@ logLevel = "info"
 saveLog = true
 
 # 用于生成字典和查错的分词器后端及其设置 (除了MeCab，剩下的都依赖Python，所以速度变慢或内存占用变大是正常的)
+# 但 MeCab 只使用于日文分词，如果想分词其它语言需要使用别的分词器并指定对应语言的模型
 tokenizerBackend = "MeCab" # MeCab, spaCy, Stanza
 # MeCab 分词器所用的词典的路径
 mecabDictDir = "BaseConfig/mecabDict/mecab-ipadic-utf8" # 也可以用 mecab-ipadic-neologd 或 unidic(均需从网上下载字典)
 # spaCy(Python) 分词器所用的模型名，可从 https://spacy.io/models 查询，自动下载需重启程序
 spaCyModelName = "ja_core_news_sm"
 # stanza 使用 LangID 来获取模型, 语言ID列表 https://stanfordnlp.github.io/stanza/ner_models.html
-stanzaLang = "zh"
+stanzaLang = "ja"
 
 
 [problemAnalyze]
@@ -101,6 +101,7 @@ problemList = [
   #"引入拉丁字母",
   "引入韩文",
   "引入繁体字",
+  #"非法字符",
   #"语言不通",
 ]
 
@@ -125,6 +126,7 @@ skipProblems = [
 
 #规定标点错漏要查哪些标点
 punctSet = """（()）：:*[]{}<>『』「」“”;；'/\\"""
+codePage = "gbk"   # 非法字符要检查的字符集
 langProbability = 0.94 # 语言不通检测的语言置信度，设置越高则检测越精准，但可能遗漏，反之亦然
 
 # 问题的比较对象和被比较对象(不写则默认为 orig_text 和 trans_preview )

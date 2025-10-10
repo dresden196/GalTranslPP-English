@@ -15,6 +15,7 @@ export {
     public:
         
         virtual void makeBar(int totalSentences, int totalThreads) override {
+            this->flush();
             std::lock_guard<std::mutex> lock(m_mutex);
             m_bar = std::make_unique<ProgressBar>(totalSentences, totalThreads);
             m_bar->update(0, false);
@@ -54,7 +55,7 @@ export {
             return false;
         }
 
-        void flush()
+        virtual void flush() override
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             if (!m_log.empty()) {

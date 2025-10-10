@@ -7,6 +7,7 @@
 export module ProblemAnalyzer;
 
 import Tool;
+import CodePageChecker;
 import Dictionary;
 
 export {
@@ -30,6 +31,7 @@ export {
         ProblemCompareObj strictlyLonger;
         ProblemCompareObj dictUnused;
         ProblemCompareObj notTargetLang;
+        ProblemCompareObj invalidChar;
 	};
 
 	class ProblemAnalyzer {
@@ -38,8 +40,9 @@ export {
 
         std::vector<std::string> m_punctsToCheck;
         std::function<std::string(const std::string&)> m_traditionalChineseExtractor;
+        std::shared_ptr<CodePageChecker>  m_codePageChecker;
         std::shared_ptr<spdlog::logger> m_logger;
-        double m_probabilityThreshold = 0.85;
+        double m_probabilityThreshold;
 
 		Problems m_problems;
 
@@ -47,7 +50,7 @@ export {
 
         ProblemAnalyzer(std::shared_ptr<spdlog::logger> logger) : m_logger(logger), m_traditionalChineseExtractor(getTraditionalChineseExtractor(logger)) {}
 
-		void loadProblems(const std::vector<std::string>& problemList, const std::string& punctSet, double langProbability);
+		void loadProblems(const std::vector<std::string>& problemList, const std::string& punctSet, const std::string& codePage, double langProbability);
 
         void overwriteCompareObj(const std::string& problemKey, const std::string& base, const std::string& check);
 
@@ -173,7 +176,6 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
         }
     }
 
-
     // 6. 字典未使用
     if (m_problems.dictUnused.use) {
         gptDict.checkDicUse(sentence, m_problems.dictUnused.base, m_problems.dictUnused.check);
@@ -231,14 +233,19 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
         
     }
 
+    // 8. 非法字符
+    if (m_problems.invalidChar.use) {
+        const std::string& transView = chooseStringRef(sentence, m_problems.invalidChar.check);
+        const std::string& unmappedChars = m_codePageChecker->findUnmappableChars(transView);
+        if (!unmappedChars.empty()) {
+            sentence->problems.push_back("非 " + m_codePageChecker->getCodePage() + " 字符: " + unmappedChars);
+        }
+    }
+
 }
 
-void ProblemAnalyzer::loadProblems(const std::vector<std::string>& problemList, const std::string& punctSet, double langProbability)
+void ProblemAnalyzer::loadProblems(const std::vector<std::string>& problemList, const std::string& punctSet, const std::string& codePage, double langProbability)
 {
-    m_probabilityThreshold = langProbability;
-    if (!punctSet.empty()) {
-        m_punctsToCheck = splitIntoGraphemes(punctSet);
-    }
 	for (const auto& problem : problemList)
 	{
         if (problem.empty()) {
@@ -249,6 +256,7 @@ void ProblemAnalyzer::loadProblems(const std::vector<std::string>& problemList, 
 		}
 		else if (problem == "标点错漏") {
 			m_problems.punctsMiss.use = true;
+            m_punctsToCheck = splitIntoGraphemes(punctSet);
 		}
 		else if (problem == "残留日文") {
 			m_problems.remainJp.use = true;
@@ -279,7 +287,12 @@ void ProblemAnalyzer::loadProblems(const std::vector<std::string>& problemList, 
 		}
 		else if (problem == "语言不通") {
 			m_problems.notTargetLang.use = true;
+            m_probabilityThreshold = langProbability;
 		}
+        else if (problem == "非法字符") {
+            m_problems.invalidChar.use = true;
+            m_codePageChecker = std::make_shared<CodePageChecker>(codePage, m_logger);
+        }
 		else {
 			throw std::invalid_argument("未知问题: " + problem);
 		}
@@ -335,6 +348,9 @@ void ProblemAnalyzer::overwriteCompareObj(const std::string& problemKey, const s
     }
     else if (problemKey == "语言不通") {
         saveCachePart(m_problems.notTargetLang, base, check);
+    }
+    else if (problemKey == "非法字符") {
+        saveCachePart(m_problems.invalidChar, base, check);
     }
     else {
         throw std::invalid_argument("不支持的问题比较对象覆写: " + problemKey);

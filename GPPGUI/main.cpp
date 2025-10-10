@@ -69,14 +69,23 @@ int main(int argc, char* argv[])
             const std::string& pyEnvPathStr = toml::find_or(globalConfig, "pyEnvPath", "BaseConfig/python-3.12.10-embed-amd64");
             const fs::path pyEnvPath = ascii2Wide(pyEnvPathStr);
             if (fs::exists(pyEnvPath) && fs::exists(pyEnvPath / L"python.exe")) {
-                PyConfig config;
-                PyConfig_InitPythonConfig(&config);
-                PyConfig_SetString(&config, &config.home, pyEnvPath.c_str());
-                PyConfig_SetString(&config, &config.pythonpath_env, (pyEnvPath / L"python312.zip").c_str());
-                py::initialize_interpreter(&config);
-                py::module_::import("sys").attr("path").attr("append")("BaseConfig/pyScripts");
-                // GIL 锁归 PythonManager 管理
-                release.reset(new py::gil_scoped_release);
+                fs::path envZipPath;
+                for (const auto& entry : fs::directory_iterator(pyEnvPath)) {
+                    if (isSameExtension(entry.path(), L".zip") && entry.path().filename().wstring().starts_with(L"python")) {
+                        envZipPath = entry.path();
+                        break;
+                    }
+                }
+                if (!envZipPath.empty()) {
+                    PyConfig config;
+                    PyConfig_InitPythonConfig(&config);
+                    PyConfig_SetString(&config, &config.home, pyEnvPath.c_str());
+                    PyConfig_SetString(&config, &config.pythonpath_env, envZipPath.c_str());
+                    py::initialize_interpreter(&config);
+                    py::module_::import("sys").attr("path").attr("append")("BaseConfig/pyScripts");
+                    // GIL 锁归 PythonManager 管理
+                    release.reset(new py::gil_scoped_release);
+                }
             }
         }
         catch (...) {

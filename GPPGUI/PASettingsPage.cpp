@@ -41,9 +41,9 @@ void PASettingsPage::_setupUI()
 
 	// 要发现的问题清单
 	QStringList problemList = { "词频过高","标点错漏","丢失换行","多加换行","比原文长","比原文长严格","字典未使用",
-		"残留日文","引入拉丁字母","引入韩文", "引入繁体字","语言不通", };
+		"残留日文","引入拉丁字母","引入韩文", "引入繁体字","语言不通", "非法字符",};
 	QStringList problemListToShow = { tr("词频过高"), tr("标点错漏"), tr("丢失换行"), tr("多加换行"), tr("比原文长"), tr("比原文长严格"),
-		tr("字典未使用"), tr("残留日文"), tr("引入拉丁字母"), tr("引入韩文"), tr("引入繁体字"), tr("语言不通"),};
+		tr("字典未使用"), tr("残留日文"), tr("引入拉丁字母"), tr("引入韩文"), tr("引入繁体字"), tr("语言不通"), tr("非法字符"),};
 
 	std::set<std::string> problemListSet;
 	const auto& problemListOrgArray = toml::find_or_default<toml::array>(_projectConfig, "problemAnalyze", "problemList");
@@ -107,53 +107,70 @@ void PASettingsPage::_setupUI()
 	languageProbabilityLayout->addWidget(languageProbabilitySlider);
 	mainLayout->addWidget(languageProbabilityArea);
 
+	// 非法字符要检查的字符集
+	std::string codePage = toml::find_or(_projectConfig, "problemAnalyze", "codePage", "gbk");
+	ElaScrollPageArea* codePageArea = new ElaScrollPageArea(mainWidget);
+	QHBoxLayout* codePageLayout = new QHBoxLayout(codePageArea);
+	ElaText* codePageTitle = new ElaText(tr("字符集"), codePageArea);
+	codePageTitle->setTextPixelSize(16);
+	codePageTitle->setWordWrap(false);
+	ElaToolTip* codePageTip = new ElaToolTip(codePageTitle);
+	codePageTip->setToolTip(tr("非法字符要检查的字符集"));
+	codePageLayout->addWidget(codePageTitle);
+	codePageLayout->addStretch();
+	ElaLineEdit* codePageEdit = new ElaLineEdit(codePageArea);
+	codePageEdit->setFixedWidth(150);
+	codePageEdit->setText(QString::fromStdString(codePage));
+	codePageLayout->addWidget(codePageEdit);
+	mainLayout->addWidget(codePageArea);
+
 	mainLayout->addSpacing(20);
 
 	auto createPAPlainTextEditAreaFunc = 
 		[=](const std::string& configKey, const QString& title, std::optional<int> minHeight = std::nullopt)
 		-> std::function<void()>
 		{
-			toml::ordered_value retranslKeysArr = toml::find_or_default<toml::ordered_value>(_projectConfig, "problemAnalyze", configKey);
-			if (!retranslKeysArr.is_array()) {
-				retranslKeysArr = toml::array{};
+			toml::ordered_value PASettingsArr = toml::find_or_default<toml::ordered_value>(_projectConfig, "problemAnalyze", configKey);
+			if (!PASettingsArr.is_array()) {
+				PASettingsArr = toml::array{};
 			}
-			retranslKeysArr.comments().clear();
-			ElaText* retranslKeyHelperText = new ElaText(title, mainWidget);
-			ElaToolTip* retranslKeyHelperTip = new ElaToolTip(retranslKeyHelperText);
-			retranslKeyHelperTip->setToolTip(tr("点击下方『语法示例』按钮以获取具体语法规则及作用"));
-			retranslKeyHelperText->setTextPixelSize(18);
-			retranslKeyHelperText->setWordWrap(false);
-			mainLayout->addWidget(retranslKeyHelperText);
-			ElaPlainTextEdit* retranslKeyEdit = new ElaPlainTextEdit(mainWidget);
+			PASettingsArr.comments().clear();
+			ElaText* PASettingsHelperText = new ElaText(title, mainWidget);
+			ElaToolTip* PASettingsHelperTip = new ElaToolTip(PASettingsHelperText);
+			PASettingsHelperTip->setToolTip(tr("点击下方『语法示例』按钮以获取具体语法规则及作用"));
+			PASettingsHelperText->setTextPixelSize(18);
+			PASettingsHelperText->setWordWrap(false);
+			mainLayout->addWidget(PASettingsHelperText);
+			ElaPlainTextEdit* PASettingsEdit = new ElaPlainTextEdit(mainWidget);
 			if (minHeight) {
-				retranslKeyEdit->setMinimumHeight(*minHeight);
+				PASettingsEdit->setMinimumHeight(*minHeight);
 			}
-			QFont font = retranslKeyEdit->font();
+			QFont font = PASettingsEdit->font();
 			font.setPixelSize(14);
-			retranslKeyEdit->setFont(font);
-			retranslKeyEdit->setPlainText(QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ configKey, retranslKeysArr }} })));
-			retranslKeyEdit->moveCursor(QTextCursor::Start);
-			mainLayout->addWidget(retranslKeyEdit);
+			PASettingsEdit->setFont(font);
+			PASettingsEdit->setPlainText(QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ configKey, PASettingsArr }} })));
+			PASettingsEdit->moveCursor(QTextCursor::Start);
+			mainLayout->addWidget(PASettingsEdit);
 
 			std::function<void()> saveFunc = [=]()
 				{
 					try {
-						toml::ordered_value newRetranslKeysTbl = toml::parse_str<toml::ordered_type_config>(retranslKeyEdit->toPlainText().toStdString());
-						auto& newRetranslKeysArr = newRetranslKeysTbl[configKey];
-						if (newRetranslKeysArr.is_array()) {
+						toml::ordered_value newPASettingsTbl = toml::parse_str<toml::ordered_type_config>(PASettingsEdit->toPlainText().toStdString());
+						auto& newPASettingsArr = newPASettingsTbl[configKey];
+						if (newPASettingsArr.is_array()) {
 							if (configKey == "retranslKeys") {
-								for (auto& rkey : newRetranslKeysArr.as_array()) {
-									if (!rkey.is_string()) {
+								for (auto& retranslKey : newPASettingsArr.as_array()) {
+									if (!retranslKey.is_string()) {
 										continue;
 									}
-									int index = problemListToShow.indexOf(rkey.as_string());
+									int index = problemListToShow.indexOf(retranslKey.as_string());
 									if (index < 0) {
 										continue;
 									}
-									rkey = problemList[index].toStdString();
+									retranslKey = problemList[index].toStdString();
 								}
 							}
-							insertToml(_projectConfig, "problemAnalyze." + configKey, newRetranslKeysArr);
+							insertToml(_projectConfig, "problemAnalyze." + configKey, newPASettingsArr);
 						}
 						else {
 							insertToml(_projectConfig, "problemAnalyze." + configKey, toml::array{});
@@ -171,11 +188,11 @@ void PASettingsPage::_setupUI()
 	mainLayout->addSpacing(20);
 
 	// 正则表达式列表，如果一条 problem 能被以下正则 search 通过，则不加入 problems 列表
-	auto skipProblemsSaveFunc = createPAPlainTextEditAreaFunc("skipProblems", tr("跳过问题关键字设定"), 310);
+	auto skipProblemsSaveFunc = createPAPlainTextEditAreaFunc("skipProblems", tr("跳过问题关键字设定"), 330);
 	mainLayout->addSpacing(20);
 
 	// 问题的比较对象和被比较对象(不写则默认为orig_text和transPreview)
-	auto overwriteCompareObjSaveFunc = createPAPlainTextEditAreaFunc("overwriteCompareObj", tr("问题比较对象设定"), 280);
+	auto overwriteCompareObjSaveFunc = createPAPlainTextEditAreaFunc("overwriteCompareObj", tr("问题比较对象设定"), 250);
 
 	QWidget* illusButtonWidget = new QWidget(mainWidget);
 	QHBoxLayout* illusButtonLayout = new QHBoxLayout(illusButtonWidget);
@@ -203,6 +220,7 @@ void PASettingsPage::_setupUI()
 			}
 			insertToml(_projectConfig, "problemAnalyze.problemList", problemListArray);
 			insertToml(_projectConfig, "problemAnalyze.punctSet", punctuationList->text().toStdString());
+			insertToml(_projectConfig, "problemAnalyze.codePage", codePageEdit->text().toStdString());
 			insertToml(_projectConfig, "problemAnalyze.langProbability", languageProbabilitySlider->value());
 
 			retranslKeysSaveFunc();
