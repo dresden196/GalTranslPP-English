@@ -31,6 +31,7 @@ export {
 		double m_priorityThreshold = 0.2;
 
 		std::function<NLPResult(const std::string&)> m_tokenizeTargetLangFunc;
+		std::function<void()> m_releaseModuleFunc;
 		std::vector<std::string> splitIntoTokens(const std::string& text);
 
 	public:
@@ -41,7 +42,12 @@ export {
 
 		virtual void run(Sentence* se) override;
 
-		virtual ~TextLinebreakFix() override = default;
+		virtual ~TextLinebreakFix() override
+		{
+			if (m_releaseModuleFunc) {
+				m_releaseModuleFunc();
+			}
+		}
 	};
 }
 
@@ -90,17 +96,29 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, const toml::value
 				m_logger->info("TextLinebreakFix 正在检查 spaCy 环境...");
 				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, m_needReboot, m_logger);
 				m_logger->info("TextLinebreakFix spaCy 环境检查完毕。");
+				m_releaseModuleFunc = []()
+					{
+						NLPManager::getInstance().releaseModule("tokenizer_spacy");
+					};
 			}
 			else if (tokenizerBackend == "Stanza") {
 				const std::string& stanzaLang = parseToml<std::string>(projectConfig, pluginConfig, "plugins.TextLinebreakFix.stanzaLang");
 				m_logger->info("TextLinebreakFix 正在检查 Stanza 环境...");
 				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "stanza" }, "tokenizer_stanza", stanzaLang, m_needReboot, m_logger);
 				m_logger->info("TextLinebreakFix Stanza 环境检查完毕。");
+				m_releaseModuleFunc = []()
+					{
+						NLPManager::getInstance().releaseModule("tokenizer_stanza");
+					};
 			}
 			else if (tokenizerBackend == "pkuseg") {
 				m_logger->info("TextLinebreakFix 正在检查 pkuseg 环境...");
 				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "setuptools", "nes-py", "cython", "pkuseg"}, "tokenizer_pkuseg", "default", m_needReboot, m_logger);
 				m_logger->info("TextLinebreakFix pkuseg 环境检查完毕。");
+				m_releaseModuleFunc = []()
+					{
+						NLPManager::getInstance().releaseModule("tokenizer_pkuseg");
+					};
 			}
 			else {
 				throw std::invalid_argument("TextLinebreakFix 无效的 tokenizerBackend");

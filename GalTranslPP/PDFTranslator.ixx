@@ -2,10 +2,10 @@
 
 #include <spdlog/spdlog.h>
 #include <toml.hpp>
+#include <nlohmann/json.hpp>
 
 export module PDFTranslator;
 
-import <nlohmann/json.hpp>;
 import Tool;
 import PythonManager;
 import NormalJsonTranslator;

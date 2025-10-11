@@ -81,6 +81,7 @@ export {
     struct NLPModule {
         py::module_ module_;
         std::map<std::string, py::object> processors_;
+        int referCount = 0;
     };
 
     class NLPManager {
@@ -96,6 +97,7 @@ export {
 
         // 每个模块在使用 processText 之前，必须先调用该函数检查并加载模块及模型
         bool checkModuleAndModel(const std::vector<std::string>& dependencies, const std::string& moduleName, const std::string& modelName, std::shared_ptr<spdlog::logger> logger);
+        void releaseModule(const std::string& moduleName);
 
     private:
         // e.g. { "tokenize_spacy", <pybind11::module, { {"ja_core_news_trf", <pybind11::object>}, {"en_core_web_trf", <pybind11::object> } }> }
@@ -251,16 +253,19 @@ bool NLPManager::checkModuleAndModel(const std::vector<std::string>& dependencie
     bool needReboot = false;
     PythonManager::getInstance().checkDependency(dependencies, logger);
 
-    if (!m_nlpModules.contains(moduleName)) {
+    if (auto it = m_nlpModules.find(moduleName); it == m_nlpModules.end()) {
         // 模块不存在，尝试加载
         logger->info("正在加载模块 {}", moduleName);
         auto importTaskFunc = [&]()
             {
                 py::module_ nlpModule = py::module_::import(moduleName.c_str());
-                m_nlpModules.insert(std::make_pair(moduleName, NLPModule{ nlpModule, {} }));
+                m_nlpModules.insert(std::make_pair(moduleName, NLPModule{ nlpModule, {}, 1 }));
             };
         PythonManager::getInstance().submitTask(std::move(importTaskFunc)).get();
         logger->info("模块 {} 已加载", moduleName);
+    }
+    else {
+        it->second.referCount++;
     }
 
     NLPModule& nlpModuleProcessors = m_nlpModules[moduleName];
@@ -317,6 +322,23 @@ bool NLPManager::checkModuleAndModel(const std::vector<std::string>& dependencie
 
     logger->info("模块 {} 模型 {} 已加载", moduleName, modelName);
     return needReboot;
+}
+
+void NLPManager::releaseModule(const std::string& moduleName) {
+    if (auto it = m_nlpModules.find(moduleName); it == m_nlpModules.end()) {
+        return;
+    }
+    else {
+        it->second.referCount--;
+        if (it->second.referCount > 0) {
+            return;
+        }
+        auto unloadModuleTaskFunc = [&]()
+            {
+                m_nlpModules.erase(it);
+            };
+        PythonManager::getInstance().submitTask(std::move(unloadModuleTaskFunc)).get();
+    }
 }
 
 

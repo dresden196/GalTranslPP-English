@@ -3,7 +3,6 @@
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
-#include <ranges>
 #include <toml.hpp>
 
 export module Dictionary;

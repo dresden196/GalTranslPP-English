@@ -3,13 +3,12 @@
 #include <spdlog/spdlog.h>
 #include <boost/regex.hpp>
 #include <cpr/cpr.h>
-#include <ranges>
 #include <toml.hpp>
+#include <nlohmann/json.hpp>
+#include <ctpl_stl.h>
 
 export module DictionaryGenerator;
 
-import <nlohmann/json.hpp>;
-import <ctpl_stl.h>;
 import APIPool;
 import Dictionary;
 
@@ -201,7 +200,7 @@ std::vector<int> DictionaryGenerator::solveSentenceSelection() {
     std::unordered_set<std::string> coveredWords;
     coveredWords.reserve(allWords.size());
     std::vector<int> selectedIndices;
-    std::vector<bool> usedIndices(filteredSegmentWords.size(), false);
+    std::vector<uint8_t> usedIndices(filteredSegmentWords.size(), 0);
 
     m_controller->makeBar((int)allWords.size(), 1);
     m_controller->addThreadNum();
@@ -228,7 +227,7 @@ std::vector<int> DictionaryGenerator::solveSentenceSelection() {
         }
         if (bestIndex != -1) {
             // 将找到的最佳段落标记为已使用
-            usedIndices[bestIndex] = true;
+            usedIndices[bestIndex] = 1;
             selectedIndices.push_back(bestIndex);
             // 将新覆盖的词加入 coveredWords 集合
             for (const auto& word : filteredSegmentWords[bestIndex]) {

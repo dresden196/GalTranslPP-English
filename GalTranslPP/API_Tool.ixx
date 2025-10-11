@@ -3,10 +3,10 @@
 #include <spdlog/spdlog.h>
 #include <boost/regex.hpp>
 #include <cpr/cpr.h>
+#include <nlohmann/json.hpp>
 
 export module API_Tool;
 
-import <nlohmann/json.hpp>;
 export import Tool;
 export import ITranslator;
 

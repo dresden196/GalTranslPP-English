@@ -6,10 +6,10 @@
 #include <zip.h>
 #include <gumbo.h>
 #include <toml.hpp>
+#include <nlohmann/json.hpp>
 
 export module EpubTranslator;
 
-import <nlohmann/json.hpp>;
 import Tool;
 import NormalJsonTranslator;
 

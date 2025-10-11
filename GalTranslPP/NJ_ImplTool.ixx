@@ -1,13 +1,12 @@
 module;
 
-#include <ranges>
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
+#include <nlohmann/json.hpp>
 
 export module NJ_ImplTool;
 
-import <nlohmann/json.hpp>;
 export import Tool;
 
 using json = nlohmann::json;

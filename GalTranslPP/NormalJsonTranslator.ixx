@@ -6,17 +6,16 @@
 #pragma comment(lib, "Shlwapi.lib")
 #endif
 
-#include <ranges>
 #include <boost/regex.hpp>
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
 #include <toml.hpp>
+#include <ctpl_stl.h>
 
 export module NormalJsonTranslator;
 
 import <nlohmann/json.hpp>;
-import <ctpl_stl.h>;
 import APIPool;
 import Dictionary;
 import DictionaryGenerator;
@@ -88,6 +87,7 @@ export {
         toml::ordered_value m_problemOverview = toml::array{};
         ordered_json m_problemOverviewJson = ordered_json::array();
         std::function<void(fs::path)> m_onFileProcessed;
+        std::function<void()> m_releaseModuleFunc;
         std::shared_mutex m_cacheMutex;
         std::mutex m_outputMutex;
         std::mutex m_tokenizeFuncMutex;
@@ -118,6 +118,9 @@ export {
 
         virtual ~NormalJsonTranslator() override
         {
+            if (m_releaseModuleFunc) {
+                m_releaseModuleFunc();
+            }
             m_logger->info("所有任务已完成！NormalJsonTranslator结束。");
         }
 
@@ -261,12 +264,20 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             m_logger->info("正在检查 spaCy 环境...");
             m_tokenizeSourceLangFunc = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, needReboot, m_logger);
             m_logger->info("spaCy 环境检查完毕。");
+            m_releaseModuleFunc = []()
+                {
+                    NLPManager::getInstance().releaseModule("tokenizer_spacy");
+                };
         }
         else if (tokenizerBackend == "Stanza") {
             const std::string& stanzaLang = toml::find_or(configData, "common", "stanzaLang", "zh");
             m_logger->info("正在检查 Stanza 环境...");
             m_tokenizeSourceLangFunc = getNLPTokenizeFunc({ "stanza" }, "tokenizer_stanza", stanzaLang, needReboot, m_logger);
             m_logger->info("Stanza 环境检查完毕。");
+            m_releaseModuleFunc = []()
+                {
+                    NLPManager::getInstance().releaseModule("tokenizer_stanza");
+                };
         }
         else {
             throw std::invalid_argument("无效的 tokenizerBackend");
@@ -499,7 +510,7 @@ void NormalJsonTranslator::preProcess(Sentence* se) {
         }
         else {
             for (auto& name : se->names) {
-                se->name = name;
+                se->name = std::move(name);
                 name = m_preDictionary.doReplace(se, CachePart::Name);
             }
         }
@@ -599,7 +610,7 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
         }
         else {
             for (auto& name_preivew : se->names_preview) {
-                se->name_preview = name_preivew;
+                se->name_preview = std::move(name_preivew);
                 name_preivew = replaceName();
             }
         }
@@ -1394,7 +1405,7 @@ void NormalJsonTranslator::run() {
         fs::remove_all(m_inputCacheDir);
         fs::remove_all(m_outputCacheDir);
     }
-    if (m_transEngine == TransEngine::Rebuild && m_completedSentences != m_totalSentences) {
+    if (!m_controller->shouldStop() && m_transEngine == TransEngine::Rebuild && m_completedSentences != m_totalSentences) {
         m_logger->critical("重建过程中有句子未命中缓存 ({}/{} lines)，请检查日志以定位问题。", m_completedSentences.load(), m_totalSentences);
     }
 }

@@ -5,7 +5,6 @@
 #endif
 
 
-#include <ranges>
 #include <spdlog/spdlog.h>
 #include <zip.h>
 #include <unicode/unistr.h>
@@ -16,6 +15,7 @@
 #include <unicode/uscript.h>
 #include <unicode/translit.h>
 #include <toml.hpp>
+#include <nlohmann/json.hpp>
 
 #include <opencc/opencc.h>
 #pragma comment(lib, "../lib/marisa.lib")
@@ -23,7 +23,6 @@
 
 export module Tool;
 
-import <nlohmann/json.hpp>;
 export import std;
 export import GPPDefines;
 export import ITranslator;

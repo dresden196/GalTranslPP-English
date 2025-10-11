@@ -1,6 +1,5 @@
 #include "CommonNormalDictPage.h"
 
-#include <ranges>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QMessageBox>
