@@ -234,11 +234,13 @@ void MainWindow::initEdgeLayout()
         {
             updateDockWidget->show();
         });
-    connect(appBarMenu->addElaIconAction(ElaIconType::GearComplex, tr("设置")), &QAction::triggered, this, [=]() {
-        navigation(_settingKey);
+    connect(appBarMenu->addElaIconAction(ElaIconType::GearComplex, tr("设置")), &QAction::triggered, this, [=]() 
+        {
+            navigation(_settingKey);
         });
-    connect(appBarMenu->addElaIconAction(ElaIconType::MoonStars, tr("更改程序主题")), &QAction::triggered, this, [=]() {
-        eTheme->setThemeMode(eTheme->getThemeMode() == ElaThemeType::Light ? ElaThemeType::Dark : ElaThemeType::Light);
+    connect(appBarMenu->addElaIconAction(ElaIconType::MoonStars, tr("更改程序主题")), &QAction::triggered, this, [=]() 
+        {
+            eTheme->setThemeMode(eTheme->getThemeMode() == ElaThemeType::Light ? ElaThemeType::Dark : ElaThemeType::Light);
         });
     setCustomMenu(appBarMenu);
 }

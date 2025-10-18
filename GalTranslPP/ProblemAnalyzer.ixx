@@ -48,7 +48,7 @@ export {
 
 	public:
 
-        ProblemAnalyzer(std::shared_ptr<spdlog::logger> logger) : m_logger(logger), m_traditionalChineseExtractor(getTraditionalChineseExtractor(logger)) {}
+        ProblemAnalyzer(std::shared_ptr<spdlog::logger> logger) : m_logger(logger) {}
 
 		void loadProblems(const std::vector<std::string>& problemList, const std::string& punctSet, const std::string& codePage, double langProbability);
 
@@ -269,6 +269,7 @@ void ProblemAnalyzer::loadProblems(const std::vector<std::string>& problemList, 
 		}
         else if (problem == "引入繁体字") {
             m_problems.introTraditionalChinese.use = true;
+            m_traditionalChineseExtractor = getTraditionalChineseExtractor(m_logger);
         }
 		else if (problem == "丢失换行") {
 			m_problems.linebreakLost.use = true;

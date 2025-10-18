@@ -108,7 +108,7 @@
     <message>
         <location filename="CommonGptDictPage.cpp" line="29"/>
         <source>默认GPT字典设置</source>
-        <translation>Default GPT dict settings</translation>
+        <translation>Default gptDict settings</translation>
     </message>
     <message>
         <source>解析失败</source>
@@ -117,7 +117,7 @@
     <message>
         <location filename="CommonGptDictPage.cpp" line="48"/>
         <source>通用GPT字典</source>
-        <translation>Common GPT dict</translation>
+        <translation>Common gptDict</translation>
     </message>
     <message>
         <location filename="CommonGptDictPage.cpp" line="51"/>
@@ -400,7 +400,7 @@
     <message>
         <location filename="CommonNormalDictPage.cpp" line="27"/>
         <source>默认译前字典设置</source>
-        <translation>Common predict settings</translation>
+        <translation>Common preDict settings</translation>
     </message>
     <message>
         <location filename="CommonNormalDictPage.cpp" line="40"/>
@@ -1366,9 +1366,9 @@
     </message>
     <message>
         <location filename="mainwindow.cpp" line="98"/>
-        <location filename="mainwindow.cpp" line="540"/>
-        <location filename="mainwindow.cpp" line="601"/>
-        <location filename="mainwindow.cpp" line="619"/>
+        <location filename="mainwindow.cpp" line="542"/>
+        <location filename="mainwindow.cpp" line="603"/>
+        <location filename="mainwindow.cpp" line="621"/>
         <source>项目 </source>
         <translation>Project </translation>
     </message>
@@ -1389,7 +1389,7 @@
     </message>
     <message>
         <location filename="mainwindow.cpp" line="191"/>
-        <location filename="mainwindow.cpp" line="344"/>
+        <location filename="mainwindow.cpp" line="346"/>
         <source>新建项目</source>
         <translation>New project</translation>
     </message>
@@ -1430,275 +1430,275 @@
     </message>
     <message>
         <location filename="mainwindow.cpp" line="237"/>
-        <location filename="mainwindow.cpp" line="292"/>
+        <location filename="mainwindow.cpp" line="294"/>
         <source>设置</source>
         <translation>Setting</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="240"/>
+        <location filename="mainwindow.cpp" line="241"/>
         <source>更改程序主题</source>
         <translation>Change theme</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="257"/>
+        <location filename="mainwindow.cpp" line="259"/>
         <source>主页</source>
         <translation>Home page</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="259"/>
+        <location filename="mainwindow.cpp" line="261"/>
         <source>默认提示词管理</source>
         <translation>Default prompt management</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="261"/>
+        <location filename="mainwindow.cpp" line="263"/>
         <source>通用字典管理</source>
-        <translation>Common dicts management</translation>
-    </message>
-    <message>
-        <location filename="mainwindow.cpp" line="268"/>
-        <source>通用译前字典</source>
-        <translation>Common preDicts</translation>
+        <translation>Common dict management</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="270"/>
-        <source>通用GPT字典</source>
-        <translation>Common GptDicts</translation>
+        <source>通用译前字典</source>
+        <translation>Common preDict</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="272"/>
-        <source>通用译后字典</source>
-        <translation>Common postDicts</translation>
+        <source>通用GPT字典</source>
+        <translation>Common gptDict</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="275"/>
+        <location filename="mainwindow.cpp" line="274"/>
+        <source>通用译后字典</source>
+        <translation>Common postDict</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="277"/>
         <source>项目管理</source>
         <translation>Project management</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="288"/>
+        <location filename="mainwindow.cpp" line="290"/>
         <source>使用说明</source>
         <translation>Instructions</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="289"/>
+        <location filename="mainwindow.cpp" line="291"/>
         <source>关于</source>
         <translation>About</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="296"/>
-        <location filename="mainwindow.cpp" line="302"/>
+        <location filename="mainwindow.cpp" line="298"/>
+        <location filename="mainwindow.cpp" line="304"/>
         <source>请稍候</source>
         <translation>Wait a minute</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="296"/>
+        <location filename="mainwindow.cpp" line="298"/>
         <source>正在检查更新...</source>
         <translation>Checking upate...</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="302"/>
+        <location filename="mainwindow.cpp" line="304"/>
         <source>正在下载更新...</source>
         <translation>Downloading update...</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="336"/>
+        <location filename="mainwindow.cpp" line="338"/>
         <source>选择新项目的存放位置</source>
         <translation>Choose new dir to store project</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="344"/>
+        <location filename="mainwindow.cpp" line="346"/>
         <source>请输入项目名称</source>
         <translation>Please type in project name</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="356"/>
-        <location filename="mainwindow.cpp" line="362"/>
-        <location filename="mainwindow.cpp" line="368"/>
-        <location filename="mainwindow.cpp" line="382"/>
-        <location filename="mainwindow.cpp" line="387"/>
-        <location filename="mainwindow.cpp" line="431"/>
+        <location filename="mainwindow.cpp" line="358"/>
+        <location filename="mainwindow.cpp" line="364"/>
+        <location filename="mainwindow.cpp" line="370"/>
+        <location filename="mainwindow.cpp" line="384"/>
+        <location filename="mainwindow.cpp" line="389"/>
+        <location filename="mainwindow.cpp" line="433"/>
         <source>创建失败</source>
         <translation>Fail to create</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="356"/>
-        <location filename="mainwindow.cpp" line="479"/>
+        <location filename="mainwindow.cpp" line="358"/>
+        <location filename="mainwindow.cpp" line="481"/>
         <source>已存在同名项目！</source>
         <translation>Project with the same name has already existed!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="362"/>
+        <location filename="mainwindow.cpp" line="364"/>
         <source>项目名称不能为空，且不能包含斜杠或反斜杠！</source>
         <translation>Project name can not be empty or contain slash/backslash!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="368"/>
+        <location filename="mainwindow.cpp" line="370"/>
         <source>目录下存在同名文件或文件夹！</source>
         <translation>File/dir with the same name has already existed!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="382"/>
+        <location filename="mainwindow.cpp" line="384"/>
         <source>无法创建新文件！</source>
         <translation>Can not create new file!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="387"/>
+        <location filename="mainwindow.cpp" line="389"/>
         <source>无法读取模板文件！</source>
         <translation>Can not read template file!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="431"/>
+        <location filename="mainwindow.cpp" line="433"/>
         <source>无法写入配置文件！</source>
         <translation>Can not write into config file!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="447"/>
+        <location filename="mainwindow.cpp" line="449"/>
         <source>项目GPT字典</source>
         <translation>Project GptDict</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="448"/>
+        <location filename="mainwindow.cpp" line="450"/>
         <source>项目译前字典</source>
         <translation>Project PreDict</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="449"/>
+        <location filename="mainwindow.cpp" line="451"/>
         <source>项目译后字典</source>
         <translation>Project PostDict</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="456"/>
+        <location filename="mainwindow.cpp" line="458"/>
         <source>创建成功</source>
         <translation>Created successfully</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="456"/>
+        <location filename="mainwindow.cpp" line="458"/>
         <source>请将待翻译的文件放入 gt_input 中！</source>
         <translation>Please put files you want to translate into gt_input dir!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="461"/>
+        <location filename="mainwindow.cpp" line="463"/>
         <source>选择已有项目的文件夹路径</source>
         <translation>Choose a dir of an existed project</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="468"/>
-        <location filename="mainwindow.cpp" line="479"/>
+        <location filename="mainwindow.cpp" line="470"/>
+        <location filename="mainwindow.cpp" line="481"/>
         <source>打开失败</source>
         <translation>Fail to open</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="468"/>
+        <location filename="mainwindow.cpp" line="470"/>
         <source>目录下不存在 config.toml 文件！</source>
         <translation>There is no config.toml in the dir!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="488"/>
+        <location filename="mainwindow.cpp" line="490"/>
         <source>打开成功</source>
         <translation>Opened successfully</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="488"/>
+        <location filename="mainwindow.cpp" line="490"/>
         <source> 已纳入项目管理！</source>
         <translation> has added into project management!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="499"/>
-        <location filename="mainwindow.cpp" line="503"/>
+        <location filename="mainwindow.cpp" line="501"/>
+        <location filename="mainwindow.cpp" line="505"/>
         <source>移除失败</source>
         <translation>Fail to remove</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="499"/>
-        <location filename="mainwindow.cpp" line="553"/>
-        <location filename="mainwindow.cpp" line="614"/>
+        <location filename="mainwindow.cpp" line="501"/>
+        <location filename="mainwindow.cpp" line="555"/>
+        <location filename="mainwindow.cpp" line="616"/>
         <source>当前页面不是项目页面！</source>
         <translation>Current page is not a project page!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="503"/>
-        <location filename="mainwindow.cpp" line="557"/>
+        <location filename="mainwindow.cpp" line="505"/>
+        <location filename="mainwindow.cpp" line="559"/>
         <source>当前项目正在运行，请先停止运行！</source>
         <translation>Current project is still running, please stop it first!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="508"/>
-        <location filename="mainwindow.cpp" line="562"/>
+        <location filename="mainwindow.cpp" line="510"/>
+        <location filename="mainwindow.cpp" line="564"/>
         <source>是</source>
         <translation>Yes</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="509"/>
-        <location filename="mainwindow.cpp" line="563"/>
+        <location filename="mainwindow.cpp" line="511"/>
+        <location filename="mainwindow.cpp" line="565"/>
         <source>思考人生</source>
         <translation>Thinking of life</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="510"/>
-        <location filename="mainwindow.cpp" line="564"/>
+        <location filename="mainwindow.cpp" line="512"/>
+        <location filename="mainwindow.cpp" line="566"/>
         <source>否</source>
         <translation>No</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="515"/>
+        <location filename="mainwindow.cpp" line="517"/>
         <source>你确定要移除当前项目吗？</source>
         <translation>Are you sure to remove current project?</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="520"/>
+        <location filename="mainwindow.cpp" line="522"/>
         <source>从项目管理中移除该项目，但不会删除其项目文件夹</source>
         <translation>Remove from project management, but won&apos;t delete its project dir</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="540"/>
+        <location filename="mainwindow.cpp" line="542"/>
         <source>移除成功</source>
         <translation>Removed successfully</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="540"/>
+        <location filename="mainwindow.cpp" line="542"/>
         <source> 已从项目管理中移除！</source>
         <translation> has been removed from project management!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="553"/>
-        <location filename="mainwindow.cpp" line="557"/>
-        <location filename="mainwindow.cpp" line="588"/>
+        <location filename="mainwindow.cpp" line="555"/>
+        <location filename="mainwindow.cpp" line="559"/>
+        <location filename="mainwindow.cpp" line="590"/>
         <source>删除失败</source>
         <translation>Fail to delete</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="569"/>
+        <location filename="mainwindow.cpp" line="571"/>
         <source>你确定要删除当前项目吗？                </source>
         <oldsource>你确定要删除当前项目吗？</oldsource>
         <translation>Are you sure to delete current project?</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="574"/>
+        <location filename="mainwindow.cpp" line="576"/>
         <source>将删除该项目的项目文件夹，如果不备份，再次翻译将必须从头开始！</source>
         <translation>Delete project dir of this project, you will lost all translation cache!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="601"/>
+        <location filename="mainwindow.cpp" line="603"/>
         <source>删除成功</source>
         <translation>Deleted successfully</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="601"/>
+        <location filename="mainwindow.cpp" line="603"/>
         <source> 已从项目管理和磁盘中移除！</source>
         <translation> has been removed from project management and disk!</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="614"/>
+        <location filename="mainwindow.cpp" line="616"/>
         <source>保存失败</source>
         <translation>Fail to save</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="619"/>
+        <location filename="mainwindow.cpp" line="621"/>
         <source>保存成功</source>
         <translation>Saved successfully</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="619"/>
+        <location filename="mainwindow.cpp" line="621"/>
         <source> 配置信息已保存！</source>
         <translation> &apos;s config info has saved!</translation>
     </message>

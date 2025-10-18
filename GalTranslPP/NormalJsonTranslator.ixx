@@ -193,7 +193,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         // 需要API
         if (m_transEngine != TransEngine::DumpName && m_transEngine != TransEngine::Rebuild && m_transEngine != TransEngine::ShowNormal) {
             const auto& apisArr = toml::find<
-                std::vector<toml::ordered_table>
+                std::vector<toml::table>
             >(configData, "backendSpecific", "OpenAI-Compatible", "apis");
 
             std::vector<TranslationApi> apis;
@@ -292,7 +292,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             m_prePlugins = registerPlugins(*textPrePlugins, m_projectDir, m_logger, configData);
         }
 
-        // 不需要后处理
+        // 需要后处理
         if (m_transEngine != TransEngine::DumpName && m_transEngine != TransEngine::ShowNormal && m_transEngine != TransEngine::GenDict) {
             const auto& textPostPlugins = toml::find<
                 std::optional<std::vector<std::string>>
@@ -429,65 +429,62 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         loadDictsFunc("pre", m_preDictionary);
         loadDictsFunc("post", m_postDictionary);
 
-        if (m_transEngine == TransEngine::DumpName || m_transEngine == TransEngine::Rebuild || m_transEngine == TransEngine::ShowNormal) {
-            // 这几个不需要加载提示词
-            return;
-        }
-
-        // 加载提示词
-        fs::path promptPath = m_projectDir / L"Prompt.toml";
-        if (!fs::exists(promptPath)) {
-            promptPath = L"BaseConfig/Prompt.toml";
+        // 需要加载提示词
+        if (m_transEngine != TransEngine::DumpName && m_transEngine != TransEngine::Rebuild && m_transEngine != TransEngine::ShowNormal) {
+            fs::path promptPath = m_projectDir / L"Prompt.toml";
             if (!fs::exists(promptPath)) {
-                throw std::runtime_error("找不到 Prompt.toml 文件");
+                promptPath = L"BaseConfig/Prompt.toml";
+                if (!fs::exists(promptPath)) {
+                    throw std::runtime_error("找不到 Prompt.toml 文件");
+                }
             }
-        }
 
-        const auto promptData = toml::parse(promptPath);
+            const auto promptData = toml::parse(promptPath);
 
-        std::string systemKey;
-        std::string userKey;
+            std::string systemKey;
+            std::string userKey;
 
-        switch (m_transEngine) {
-        case TransEngine::ForGalJson:
-            systemKey = "FORGALJSON_SYSTEM";
-            userKey = "FORGALJSON_TRANS_PROMPT_EN";
-            break;
-        case TransEngine::ForGalTsv:
-            systemKey = "FORGALTSV_SYSTEM";
-            userKey = "FORGALTSV_TRANS_PROMPT_EN";
-            break;
-        case TransEngine::ForNovelTsv:
-            systemKey = "FORNOVELTSV_SYSTEM";
-            userKey = "FORNOVELTSV_TRANS_PROMPT_EN";
-            break;
-        case TransEngine::DeepseekJson:
-            systemKey = "DEEPSEEKJSON_SYSTEM_PROMPT";
-            userKey = "DEEPSEEKJSON_TRANS_PROMPT";
-            break;
-        case TransEngine::Sakura:
-            systemKey = "SAKURA_SYSTEM_PROMPT";
-            userKey = "SAKURA_TRANS_PROMPT";
-            break;
-        case TransEngine::GenDict:
-            systemKey = "GENDIC_SYSTEM";
-            userKey = "GENDIC_PROMPT";
-            break;
-        default:
-            throw std::invalid_argument("未知的 TransEngine");
-        }
+            switch (m_transEngine) {
+            case TransEngine::ForGalJson:
+                systemKey = "FORGALJSON_SYSTEM";
+                userKey = "FORGALJSON_TRANS_PROMPT_EN";
+                break;
+            case TransEngine::ForGalTsv:
+                systemKey = "FORGALTSV_SYSTEM";
+                userKey = "FORGALTSV_TRANS_PROMPT_EN";
+                break;
+            case TransEngine::ForNovelTsv:
+                systemKey = "FORNOVELTSV_SYSTEM";
+                userKey = "FORNOVELTSV_TRANS_PROMPT_EN";
+                break;
+            case TransEngine::DeepseekJson:
+                systemKey = "DEEPSEEKJSON_SYSTEM_PROMPT";
+                userKey = "DEEPSEEKJSON_TRANS_PROMPT";
+                break;
+            case TransEngine::Sakura:
+                systemKey = "SAKURA_SYSTEM_PROMPT";
+                userKey = "SAKURA_TRANS_PROMPT";
+                break;
+            case TransEngine::GenDict:
+                systemKey = "GENDIC_SYSTEM";
+                userKey = "GENDIC_PROMPT";
+                break;
+            default:
+                throw std::invalid_argument("未知的 TransEngine");
+            }
 
-        if (promptData.contains(systemKey) && promptData.at(systemKey).is_string()) {
-            m_systemPrompt = promptData.at(systemKey).as_string();
-        }
-        else {
-            throw std::invalid_argument(std::format("Prompt.toml 中缺少 {} 键", systemKey));
-        }
-        if (promptData.contains(userKey) && promptData.at(userKey).is_string()) {
-            m_userPrompt = promptData.at(userKey).as_string();
-        }
-        else {
-            throw std::invalid_argument(std::format("Prompt.toml 中缺少 {} 键", userKey));
+            if (promptData.contains(systemKey) && promptData.at(systemKey).is_string()) {
+                m_systemPrompt = promptData.at(systemKey).as_string();
+            }
+            else {
+                throw std::invalid_argument(std::format("Prompt.toml 中缺少 {} 键", systemKey));
+            }
+            if (promptData.contains(userKey) && promptData.at(userKey).is_string()) {
+                m_userPrompt = promptData.at(userKey).as_string();
+            }
+            else {
+                throw std::invalid_argument(std::format("Prompt.toml 中缺少 {} 键", userKey));
+            }
         }
     }
     catch (const toml::exception& e) {
@@ -789,7 +786,7 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
                 se.names = item["names"].get<std::vector<std::string>>();
             }
             se.original_text = item.value("message", "");
-            sentences.push_back(se);
+            sentences.push_back(std::move(se));
         }
         for (size_t i = 0; i < sentences.size(); ++i) {
             if (i > 0) sentences[i].prev = &sentences[i - 1];
