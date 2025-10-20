@@ -53,9 +53,9 @@ export {
 
     std::wstring wstr2Lower(const std::wstring& wstr);
 
-    std::vector<std::string> splitString(const std::string& s, char delimiter);
+    std::vector<std::string> splitString(const std::string& str, char delimiter);
 
-    std::vector<std::string> splitString(const std::string& s, const std::string& delimiter);
+    std::vector<std::string> splitString(const std::string& str, const std::string& delimiter);
 
     std::vector<std::string> splitTsvLine(const std::string& line, const std::vector<std::string>& delimiters);
 
@@ -367,19 +367,18 @@ std::wstring wstr2Lower(const std::wstring& wstr) {
 
 std::vector<std::string> splitString(const std::string& str, const std::string& delimiter) {
     std::vector<std::string> tokens;
-    size_t start = 0;
-    size_t end = str.find(delimiter);
-    while (end != std::string::npos) {
-        tokens.push_back(str.substr(start, end - start));
-        start = end + delimiter.length();
-        end = str.find(delimiter, start);
+    for (const auto& subStrView : str | std::views::split(delimiter)) {
+        tokens.emplace_back(subStrView.begin(), subStrView.end());
     }
-    tokens.push_back(str.substr(start));
     return tokens;
 }
 
-std::vector<std::string> splitString(const std::string& s, char delimiter) {
-    return splitString(s, std::string(1, delimiter));
+std::vector<std::string> splitString(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    for (const auto& subStrView : str | std::views::split(delimiter)) {
+        tokens.emplace_back(subStrView.begin(), subStrView.end());
+    }
+    return tokens;
 }
 
 std::vector<std::string> splitTsvLine(const std::string& line, const std::vector<std::string>& delimiters) {

@@ -187,7 +187,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         if (m_apiStrategy != "random" && m_apiStrategy != "fallback") {
             throw std::invalid_argument("apiStrategy must be random or fallback in config.toml");
         }
-        int apiTimeOutSecond = toml::find_or(configData, "backendSpecific", "OpenAI-Compatible", "apiTimeout", 60);
+        int apiTimeOutSecond = toml::find_or(configData, "backendSpecific", "OpenAI-Compatible", "apiTimeout", 120);
         m_apiTimeOutMs = apiTimeOutSecond * 1000;
 
         // 需要API
