@@ -7,7 +7,7 @@ module IPlugin;
 
 import TextPostFull2Half;
 import TextLinebreakFix;
-import CodePageChecker;
+import SkipTrans;
 
 namespace fs = std::filesystem;
 
@@ -39,6 +39,9 @@ std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::str
 		}
 		else if (pluginName == "TextLinebreakFix") {
 			plugins.push_back(std::make_shared<TextLinebreakFix>(projectDir, projectConfig, logger));
+		}
+		else if (pluginName == "SkipTrans") {
+			plugins.push_back(std::make_shared<SkipTrans>(projectDir, projectConfig, logger));
 		}
 	}
 

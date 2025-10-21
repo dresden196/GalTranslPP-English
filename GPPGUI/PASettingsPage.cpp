@@ -177,7 +177,7 @@ void PASettingsPage::_setupUI()
 						}
 					}
 					catch (...) {
-						ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析错误"), QString::fromStdString(configKey) + tr("不符合 toml 规范"), 3000);
+						ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析错误"), QString::fromStdString(configKey) + tr(" 不符合 toml 规范"), 3000);
 					}
 				};
 			return saveFunc;

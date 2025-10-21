@@ -16,8 +16,8 @@ UpdateWidget::UpdateWidget(QWidget* parent)
 
     ElaText* updateTitle = new ElaText("v" + QString::fromStdString(GPPVERSION) + " 更新", 15, this);
     QStringList updateList = {
-        "1. 修复 Epub 无法重建的恶性 bug。"
-
+        "1. 修复 Epub 无法重建的恶性 bug。",
+        "2. 增加译前插件 SkipTrans 。",
     };
 
     mainLayout->addWidget(updateTitle);

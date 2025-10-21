@@ -10,6 +10,7 @@
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
+#include <unicode/regex.h>
 #include <toml.hpp>
 #include <ctpl_stl.h>
 

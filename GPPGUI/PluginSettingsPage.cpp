@@ -10,6 +10,7 @@
 
 #include "TLFCfgPage.h"
 #include "PostFull2HalfCfgPage.h"
+#include "SkipTransCfgPage.h"
 
 import Tool;
 
@@ -28,17 +29,27 @@ PluginSettingsPage::~PluginSettingsPage()
 
 void PluginSettingsPage::apply2Config()
 {
+    _skipTransCfgPage->apply2Config();
     _tlfCfgPage->apply2Config();
     _pf2hCfgPage->apply2Config();
 
-    toml::array plugins;
+    toml::array prePlugins;
+    for (PluginItemWidget* item : _prePluginItems) {
+        if (!item->isToggled()) {
+            continue;
+        }
+        prePlugins.push_back(item->getPluginName().toStdString());
+    }
+    insertToml(_projectConfig, "plugins.textPrePlugins", prePlugins);
+
+    toml::array postPlugins;
     for (PluginItemWidget* item : _postPluginItems) {
         if (!item->isToggled()) {
             continue;
         }
-        plugins.push_back(item->getPluginName().toStdString());
+        postPlugins.push_back(item->getPluginName().toStdString());
     }
-    insertToml(_projectConfig, "plugins.textPostPlugins", plugins);
+    insertToml(_projectConfig, "plugins.textPostPlugins", postPlugins);
 }
 
 void PluginSettingsPage::_setupUI()
@@ -47,6 +58,47 @@ void PluginSettingsPage::_setupUI()
     QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
 
     // 前处理插件列表
+    ElaText* preTitle = new ElaText(mainWidget);
+    preTitle->setText(tr("前处理插件设置(由上至下执行)"));
+    preTitle->setTextPixelSize(18);
+
+    QWidget* preListContainer = new QWidget(mainWidget);
+    _prePluginListLayout = new QVBoxLayout(preListContainer);
+
+    // 插件名称列表
+    QStringList prePluginNames = { "SkipTrans" };
+    const auto& prePluginsArr = toml::find_or_default<toml::array>(_projectConfig, "plugins", "textPrePlugins");
+    for (const auto& pluginNameStr : prePluginsArr) {
+        if (!pluginNameStr.is_string()) {
+            continue;
+        }
+        QString pluginName = QString::fromStdString(pluginNameStr.as_string());
+        if (!prePluginNames.contains(pluginName)) {
+            continue;
+        }
+        PluginItemWidget* item = new PluginItemWidget(pluginName, this);
+        item->setIsToggled(true);
+        _prePluginItems.append(item);
+        _prePluginListLayout->addWidget(item);
+        connect(item, &PluginItemWidget::moveUpRequested, this, &PluginSettingsPage::_onPreMoveUp);
+        connect(item, &PluginItemWidget::moveDownRequested, this, &PluginSettingsPage::_onPreMoveDown);
+        connect(item, &PluginItemWidget::settingsRequested, this, &PluginSettingsPage::_onPreSettings);
+        // 防止重复添加
+        prePluginNames.removeOne(pluginName);
+    }
+
+    // 遍历剩下的名称列表，创建并添加 PluginItemWidget
+    for (const QString& name : prePluginNames)
+    {
+        PluginItemWidget* item = new PluginItemWidget(name, this);
+        _prePluginItems.append(item); // 添加到列表中
+        _prePluginListLayout->addWidget(item); // 添加到布局中
+
+        // 连接信号
+        connect(item, &PluginItemWidget::moveUpRequested, this, &PluginSettingsPage::_onPreMoveUp);
+        connect(item, &PluginItemWidget::moveDownRequested, this, &PluginSettingsPage::_onPreMoveDown);
+        connect(item, &PluginItemWidget::settingsRequested, this, &PluginSettingsPage::_onPreSettings);
+    }
 
     // 后处理插件列表
     ElaText* postTitle = new ElaText(mainWidget);
@@ -60,26 +112,24 @@ void PluginSettingsPage::_setupUI()
     // 插件名称列表
     QStringList postPluginNames = { "TextPostFull2Half", "TextLinebreakFix" };
     // 先处理项目已经启用的插件
-    auto& postPluginsArr = _projectConfig["plugins"]["textPostPlugins"];
-    if (postPluginsArr.is_array()) {
-        for (const auto& pluginNameStr : postPluginsArr.as_array()) {
-            if (!pluginNameStr.is_string()) {
-                continue;
-            }
-            QString pluginName = QString::fromStdString(pluginNameStr.as_string());
-            if (!postPluginNames.contains(pluginName)) {
-                continue;
-            }
-            PluginItemWidget* item = new PluginItemWidget(pluginName, this);
-            item->setIsToggled(true);
-            _postPluginItems.append(item);
-            _postPluginListLayout->addWidget(item);
-            connect(item, &PluginItemWidget::moveUpRequested, this, &PluginSettingsPage::_onPostMoveUp);
-            connect(item, &PluginItemWidget::moveDownRequested, this, &PluginSettingsPage::_onPostMoveDown);
-            connect(item, &PluginItemWidget::settingsRequested, this, &PluginSettingsPage::_onPostSettings);
-            // 防止重复添加
-            postPluginNames.removeOne(pluginName);
+    const auto& postPluginsArr = toml::find_or_default<toml::array>(_projectConfig, "plugins", "textPostPlugins");
+    for (const auto& pluginNameStr : postPluginsArr) {
+        if (!pluginNameStr.is_string()) {
+            continue;
         }
+        QString pluginName = QString::fromStdString(pluginNameStr.as_string());
+        if (!postPluginNames.contains(pluginName)) {
+            continue;
+        }
+        PluginItemWidget* item = new PluginItemWidget(pluginName, this);
+        item->setIsToggled(true);
+        _postPluginItems.append(item);
+        _postPluginListLayout->addWidget(item);
+        connect(item, &PluginItemWidget::moveUpRequested, this, &PluginSettingsPage::_onPostMoveUp);
+        connect(item, &PluginItemWidget::moveDownRequested, this, &PluginSettingsPage::_onPostMoveDown);
+        connect(item, &PluginItemWidget::settingsRequested, this, &PluginSettingsPage::_onPostSettings);
+        // 防止重复添加
+        postPluginNames.removeOne(pluginName);
     }
 
     // 遍历剩下的名称列表，创建并添加 PluginItemWidget
@@ -99,6 +149,9 @@ void PluginSettingsPage::_setupUI()
     _updatePreMoveButtonStates();
     _updatePostMoveButtonStates();
 
+    mainLayout->addWidget(preTitle);
+    mainLayout->addWidget(preListContainer);
+    mainLayout->addSpacing(10);
     mainLayout->addWidget(postTitle);
     mainLayout->addWidget(postListContainer);
     mainLayout->addStretch();
@@ -110,6 +163,8 @@ void PluginSettingsPage::_setupUI()
     addCentralWidget(_pf2hCfgPage);
     _tlfCfgPage = new TLFCfgPage(_projectConfig, this);
     addCentralWidget(_tlfCfgPage, true, true, 0);
+    _skipTransCfgPage = new SkipTransCfgPage(_projectConfig, this);
+    addCentralWidget(_skipTransCfgPage, true, true, 0);
 }
 
 void PluginSettingsPage::_onPostSettings(PluginItemWidget* item)
@@ -134,7 +189,9 @@ void PluginSettingsPage::_onPreSettings(PluginItemWidget* item)
     }
     QString pluginName = item->getPluginName();
 
-
+    if (pluginName == "SkipTrans") {
+        this->navigation(3);
+    }
 }
 
 // 下面不用看，没什么用

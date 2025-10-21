@@ -2179,9 +2179,8 @@
         <translation>Push the button below to get detailed explanation of grammars and effects</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="180"/>
         <source>不符合 toml 规范</source>
-        <translation>is nonconforming</translation>
+        <translation type="vanished">is nonconforming</translation>
     </message>
     <message>
         <location filename="PASettingsPage.cpp" line="187"/>
@@ -2197,6 +2196,11 @@
         <location filename="PASettingsPage.cpp" line="191"/>
         <source>跳过问题关键字设定</source>
         <translation>Skip problems keys setting</translation>
+    </message>
+    <message>
+        <location filename="PASettingsPage.cpp" line="180"/>
+        <source> 不符合 toml 规范</source>
+        <translation> is nonconforming</translation>
     </message>
     <message>
         <location filename="PASettingsPage.cpp" line="195"/>
@@ -2256,14 +2260,19 @@
 <context>
     <name>PluginSettingsPage</name>
     <message>
-        <location filename="PluginSettingsPage.cpp" line="19"/>
+        <location filename="PluginSettingsPage.cpp" line="20"/>
         <source>插件设置</source>
         <translation>Plugin settings</translation>
     </message>
     <message>
-        <location filename="PluginSettingsPage.cpp" line="53"/>
+        <location filename="PluginSettingsPage.cpp" line="62"/>
+        <source>前处理插件设置(由上至下执行)</source>
+        <translation>Text preproc plugins(run from above)</translation>
+    </message>
+    <message>
+        <location filename="PluginSettingsPage.cpp" line="105"/>
         <source>后处理插件设置(由上至下执行)</source>
-        <translation>Text post plugins(run from above)</translation>
+        <translation>Text postproc plugins(run from above)</translation>
     </message>
 </context>
 <context>
@@ -2648,6 +2657,35 @@
     <message>
         <source>选择Python环境路径</source>
         <translation type="vanished">Choose virtual python environment path</translation>
+    </message>
+</context>
+<context>
+    <name>SkipTransCfgPage</name>
+    <message>
+        <location filename="SkipTransCfgPage.cpp" line="18"/>
+        <location filename="SkipTransCfgPage.cpp" line="83"/>
+        <source>跳过翻译设置</source>
+        <translation>SkipTrans settings</translation>
+    </message>
+    <message>
+        <location filename="SkipTransCfgPage.cpp" line="29"/>
+        <source>跳过 H 关键字</source>
+        <translation>Skip H keys</translation>
+    </message>
+    <message>
+        <location filename="SkipTransCfgPage.cpp" line="49"/>
+        <source>语法与 retranslKeys 完全相同</source>
+        <translation>The grammars is completely same as retranslKeys&apos;</translation>
+    </message>
+    <message>
+        <location filename="SkipTransCfgPage.cpp" line="77"/>
+        <source>解析错误</source>
+        <translation>Fail to analyze</translation>
+    </message>
+    <message>
+        <location filename="SkipTransCfgPage.cpp" line="77"/>
+        <source>skipKeys 不符合 toml 规范</source>
+        <translation>skipKeys is nonconforming</translation>
     </message>
 </context>
 <context>

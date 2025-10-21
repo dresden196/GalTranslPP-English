@@ -22,6 +22,10 @@ filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, i18
 # PS: 如果项目文件夹下有 Prompt.toml，会优先使用项目文件夹下的提示词，否则再去 BaseConfig 下寻找
 transEngine = "ForGalJson"
 
+#"SkipTrans"
+textPrePlugins = [
+]
+
 #"TextLinebreakFix"
 #"TextPostFull2Half"
 # 文本译后处理插件列表，可以设置多个，按顺序执行
@@ -47,6 +51,14 @@ callback = [
 [[plugins.Epub.postprocRegex]]
 org = '\[([^/\[\]]+?)/([^/\[\]]+?)\]'
 rep = '<ruby><rb>$2</rb><rt>$1</rt></ruby>'
+
+[plugins.SkipTrans]
+skipH = false
+# 实际上只是将原文复制给译文并标记为已翻译，所以依旧影响上下文的缓存命中
+# 语法与 retranslKeys 完全相同
+skipKeys = [
+  '^[a-zA-Z\d_]+$', # 等效于 [{ conditionTarget = 'preproc_text', conditionReg = '^[a-zA-Z\d_]+$' }]
+]
 
 [plugins.TextLinebreakFix]
 "换行模式" = "优先标点" # 判断换行数目是否相同的基准是 preproc_text(中的<br>) 而不是 orig_text，请注意

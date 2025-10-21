@@ -62,6 +62,9 @@ export {
 module :private;
 
 void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const std::string& targetLang) {
+    if (sentence->other_info.contains("SkipTrans")) {
+        return;
+    }
     if (sentence->translated_preview.empty()) {
         if (!sentence->pre_processed_text.empty() && !sentence->pre_translated_text.empty()) {
             sentence->problems.push_back("翻译为空");

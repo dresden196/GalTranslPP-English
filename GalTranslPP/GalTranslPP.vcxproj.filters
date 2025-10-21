@@ -58,6 +58,12 @@
     <ClCompile Include="Tool.ixx">
       <Filter>Tools\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="SkipTrans.ixx">
+      <Filter>textPlugins</Filter>
+    </ClCompile>
+    <ClCompile Include="base64.cpp">
+      <Filter>Tools\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="filePlugins">

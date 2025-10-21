@@ -11,6 +11,7 @@ class QVBoxLayout;
 class PluginItemWidget;
 class TLFCfgPage;
 class PostFull2HalfCfgPage;
+class SkipTransCfgPage;
 
 class PluginSettingsPage : public BasePage
 {
@@ -47,6 +48,7 @@ private:
     // 以下为各个插件的设置页面
     TLFCfgPage* _tlfCfgPage;
     PostFull2HalfCfgPage* _pf2hCfgPage;
+    SkipTransCfgPage* _skipTransCfgPage;
 };
 
 #endif // PLUGINSETTINGSPAGE_H

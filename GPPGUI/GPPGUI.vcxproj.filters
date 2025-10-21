@@ -151,6 +151,9 @@
     <ClCompile Include="ReadDicts.cpp">
       <Filter>Source Files\ToolWidgetsImpl</Filter>
     </ClCompile>
+    <ClCompile Include="SkipTransCfgPage.cpp">
+      <Filter>Source Files\ToolWidgetsImpl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mainwindow.h">
@@ -253,6 +256,9 @@
       <Filter>Header Files\ToolWidgetsH</Filter>
     </QtMoc>
     <QtMoc Include="ReadDicts.h">
+      <Filter>Header Files\ToolWidgetsH</Filter>
+    </QtMoc>
+    <QtMoc Include="SkipTransCfgPage.h">
       <Filter>Header Files\ToolWidgetsH</Filter>
     </QtMoc>
   </ItemGroup>
