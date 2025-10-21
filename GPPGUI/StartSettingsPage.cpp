@@ -456,7 +456,7 @@ void StartSettingsPage::_workFinished(int exitCode)
 		_trayIcon->showMessage(
 			tr("翻译停止"),                  // 标题
 			tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的翻译任务停止成功。"),      // 内容
-			QSystemTrayIcon::Critical, // 图标类型 (Information, Warning, Critical)
+			QSystemTrayIcon::Information, // 图标类型 (Information, Warning, Critical)
 			5000                          // 显示时长 (毫秒)
 		);
 		ElaMessageBar::information(ElaMessageBarType::BottomRight, tr("停止成功"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的翻译任务已终止"), 3000);
