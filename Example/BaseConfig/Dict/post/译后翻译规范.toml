@@ -1,31 +1,32 @@
 [[normalDict]]
-conditionReg = ''
+org = 'somehow'
+rep = '不知怎的'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '不知怎的'
-searchStr = 'somehow'
 
 [[normalDict]]
+org = '娘家'
+rep = '本家'
+conditionTarget = 'orig_text'
 conditionReg = '実家'
-conditionTarget = 'orig_text'
 isReg = false
 priority = 0
-replaceStr = '本家'
-searchStr = '娘家'
 
 [[normalDict]]
+org = '有夫之妇'
+rep = '人妻'
+conditionTarget = 'orig_text'
 conditionReg = '人妻|ひとづま'
-conditionTarget = 'orig_text'
 isReg = false
 priority = 0
-replaceStr = '人妻'
-searchStr = '有夫之妇'
 
 [[normalDict]]
-conditionReg = '^(?!.*サタン).*$'
+org = '撒旦'
+rep = '魔王'
 conditionTarget = 'orig_text'
+conditionReg = '^(?!.*サタン).*$'
 isReg = false
 priority = 0
-replaceStr = '魔王'
-searchStr = '撒旦'
+

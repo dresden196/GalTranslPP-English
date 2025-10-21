@@ -214,7 +214,7 @@ void MainWindow::initEdgeLayout()
     ElaDockWidget* updateDockWidget = new ElaDockWidget(tr("更新内容"), this);
     updateDockWidget->setWidget(new UpdateWidget(this));
     this->addDockWidget(Qt::RightDockWidgetArea, updateDockWidget);
-    resizeDocks({ updateDockWidget }, { 225 }, Qt::Horizontal);
+    resizeDocks({ updateDockWidget }, { 200 }, Qt::Horizontal);
     std::string gppversion = GPPVERSION;
     std::erase_if(gppversion, [](char ch) { return ch == '.'; });
     updateDockWidget->setVisible(toml::find_or(_globalConfig, "showDockWidget", gppversion, true));

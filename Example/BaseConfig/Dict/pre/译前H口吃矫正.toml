@@ -1,1103 +1,1104 @@
 [[normalDict]]
-conditionReg = ''
+org = 'あなひゃ'
+rep = 'あなた'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'あなた'
-searchStr = 'あなひゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'わたひ'
+rep = '私'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '私'
-searchStr = 'わたひ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'わらひ'
+rep = '私'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '私'
-searchStr = 'わらひ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'わらし'
+rep = '私'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '私'
-searchStr = 'わらし'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ひょ'
+rep = 'と'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'と'
-searchStr = 'ひょ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'りゅ'
+rep = 'る'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'る'
-searchStr = 'りゅ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しへぇ'
+rep = 'して'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'して'
-searchStr = 'しへぇ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しへっ'
+rep = 'して'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'して'
-searchStr = 'しへっ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しひな'
+rep = 'しいな'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'しいな'
-searchStr = 'しひな'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しひゃ'
+rep = 'しちゃ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'しちゃ'
-searchStr = 'しひゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゃま'
+rep = '様'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '様'
-searchStr = 'しゃま'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゃみゃ'
+rep = '様'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '様'
-searchStr = 'しゃみゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゃん'
+rep = 'さん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'さん'
-searchStr = 'しゃん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゅぎ'
+rep = 'すぎ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'すぎ'
-searchStr = 'しゅぎ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゅごひ	すごい'
+rep = ''
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = ''
-searchStr = 'しゅごひ	すごい'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゅごイ'
+rep = 'すごい'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'すごい'
-searchStr = 'しゅごイ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゅゴい'
+rep = 'すごい'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'すごい'
-searchStr = 'しゅゴい'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゅご'
+rep = 'すご'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'すご'
-searchStr = 'しゅご'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゅきぃ	しゅき'
+rep = ''
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = ''
-searchStr = 'しゅきぃ	しゅき'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゅき'
+rep = '好き'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '好き'
-searchStr = 'しゅき'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しなひ'
+rep = 'しない'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'しない'
-searchStr = 'しなひ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しぇいえき'
+rep = '精液'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '精液'
-searchStr = 'しぇいえき'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゅけべ'
+rep = 'スケベ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'スケベ'
-searchStr = 'しゅけべ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しきゅ'
+rep = '子宮'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '子宮'
-searchStr = 'しきゅ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゃれれ'
+rep = 'されて'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'されて'
-searchStr = 'しゃれれ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しゃれて'
+rep = 'されて'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'されて'
-searchStr = 'しゃれて'
 
 [[normalDict]]
-conditionReg = ''
+org = 'しょこ'
+rep = 'そこ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'そこ'
-searchStr = 'しょこ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らい好き'
+rep = '大好き'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '大好き'
-searchStr = 'らい好き'
 
 [[normalDict]]
-conditionReg = ''
+org = 'かみ様'
+rep = '神様'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '神様'
-searchStr = 'かみ様'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ひんぽ'
+rep = 'ちんぽ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ちんぽ'
-searchStr = 'ひんぽ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ひんこ'
+rep = 'ちんぽ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ちんぽ'
-searchStr = 'ひんこ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ひんひん'
+rep = 'ちんぽ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ちんぽ'
-searchStr = 'ひんひん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ヒンポ'
+rep = 'ちんぽ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ちんぽ'
-searchStr = 'ヒンポ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'きもち'
+rep = '気持ち'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '気持ち'
-searchStr = 'きもち'
 
 [[normalDict]]
-conditionReg = ''
+org = 'きもひ'
+rep = '気持ち'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '気持ち'
-searchStr = 'きもひ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ぎもひ'
+rep = '気持ち'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '気持ち'
-searchStr = 'ぎもひ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ぎもぢい'
+rep = '気持ち'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '気持ち'
-searchStr = 'ぎもぢい'
 
 [[normalDict]]
-conditionReg = ''
+org = 'きひゃ'
+rep = 'きた'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'きた'
-searchStr = 'きひゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'うれひい'
+rep = '嬉しい'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '嬉しい'
-searchStr = 'うれひい'
 
 [[normalDict]]
-conditionReg = ''
+org = 'せーえき'
+rep = '精液'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '精液'
-searchStr = 'せーえき'
 
 [[normalDict]]
-conditionReg = ''
+org = 'せ～えき'
+rep = '精液'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '精液'
-searchStr = 'せ～えき'
 
 [[normalDict]]
-conditionReg = ''
+org = 'じゃーめん'
+rep = '精液'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '精液'
-searchStr = 'じゃーめん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'せーし'
+rep = '精子'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '精子'
-searchStr = 'せーし'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らかりゃ'
+rep = 'だがら'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'だがら'
-searchStr = 'らかりゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らけれ'
+rep = 'だけで'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'だけで'
-searchStr = 'らけれ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'れふかりゃ'
+rep = 'ですから'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ですから'
-searchStr = 'れふかりゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'かりゃ'
+rep = 'から'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'から'
-searchStr = 'かりゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らめだがら'
+rep = 'ダメだがら'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ダメだがら'
-searchStr = 'らめだがら'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らしへっ'
+rep = '出して'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '出して'
-searchStr = 'らしへっ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らひへ'
+rep = '出して'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '出して'
-searchStr = 'らひへ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らひて'
+rep = '出して'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '出して'
-searchStr = 'らひて'
 
 [[normalDict]]
-conditionReg = ''
+org = '、らして'
+rep = '、出して'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '、出して'
-searchStr = '、らして'
 
 [[normalDict]]
-conditionReg = ''
+org = 'にらして'
+rep = 'に出して'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'に出して'
-searchStr = 'にらして'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らしゃれ'
+rep = '出され'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '出され'
-searchStr = 'らしゃれ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らめらめ'
+rep = 'ダメダメ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ダメダメ'
-searchStr = 'らめらめ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らめっ'
+rep = 'ダメ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ダメ'
-searchStr = 'らめっ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らめ、'
+rep = 'ダメ、'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ダメ、'
-searchStr = 'らめ、'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らめ…'
+rep = 'ダメ…'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ダメ…'
-searchStr = 'らめ…'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らめぇ'
+rep = 'ダメ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ダメ'
-searchStr = 'らめぇ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らめ！'
+rep = 'ダメ！'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ダメ！'
-searchStr = 'らめ！'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らめです'
+rep = 'ダメです'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ダメです'
-searchStr = 'らめです'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らめなの'
+rep = 'ダメなの'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ダメなの'
-searchStr = 'らめなの'
 
 [[normalDict]]
-conditionReg = ''
+org = 'らめらの'
+rep = 'ダメなの'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ダメなの'
-searchStr = 'らめらの'
 
 [[normalDict]]
-conditionReg = ''
+org = 'なからし'
+rep = '中出し'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '中出し'
-searchStr = 'なからし'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ながりゃ'
+rep = 'ながら'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ながら'
-searchStr = 'ながりゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'なきゃに'
+rep = '中に'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '中に'
-searchStr = 'なきゃに'
 
 [[normalDict]]
-conditionReg = ''
+org = 'あちゅい'
+rep = '暑い'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '暑い'
-searchStr = 'あちゅい'
 
 [[normalDict]]
-conditionReg = ''
+org = 'あちゅイ'
+rep = '暑い'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '暑い'
-searchStr = 'あちゅイ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'あちゅく'
+rep = '暑く'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '暑く'
-searchStr = 'あちゅく'
 
 [[normalDict]]
-conditionReg = ''
+org = 'あちゅあちゅ'
+rep = 'あつあつ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'あつあつ'
-searchStr = 'あちゅあちゅ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'あちゅし'
+rep = '暑し'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '暑し'
-searchStr = 'あちゅし'
 
 [[normalDict]]
-conditionReg = ''
+org = 'おぐに'
+rep = '奥に'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '奥に'
-searchStr = 'おぐに'
 
 [[normalDict]]
-conditionReg = ''
+org = 'おいひい'
+rep = '美味しい'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '美味しい'
-searchStr = 'おいひい'
 
 [[normalDict]]
-conditionReg = ''
+org = 'おかひ'
+rep = 'おかし'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'おかし'
-searchStr = 'おかひ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'おしおき'
+rep = 'お仕置き'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'お仕置き'
-searchStr = 'おしおき'
 
 [[normalDict]]
-conditionReg = ''
+org = 'もっろ'
+rep = 'もっと'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'もっと'
-searchStr = 'もっろ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'れひゅ'
+rep = 'です'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'です'
-searchStr = 'れひゅ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'れしゅ'
+rep = 'です'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'です'
-searchStr = 'れしゅ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'まひゅ'
+rep = 'ます'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ます'
-searchStr = 'まひゅ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'えっひな'
+rep = 'エッチな'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'エッチな'
-searchStr = 'えっひな'
 
 [[normalDict]]
-conditionReg = ''
+org = '可愛がっれ'
+rep = '可愛がって'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '可愛がって'
-searchStr = '可愛がっれ'
 
 [[normalDict]]
-conditionReg = ''
+org = '赤ひゃん'
+rep = '赤ちゃん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '赤ちゃん'
-searchStr = '赤ひゃん'
 
 [[normalDict]]
-conditionReg = ''
+org = '主ひゃん'
+rep = '主ちゃん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '主ちゃん'
-searchStr = '主ひゃん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'でちゅ'
+rep = 'です'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'です'
-searchStr = 'でちゅ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'けろ'
+rep = 'けど'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'けど'
-searchStr = 'けろ'
 
 [[normalDict]]
-conditionReg = ''
+org = '恥じゅ'
+rep = '恥ず'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '恥ず'
-searchStr = '恥じゅ'
 
 [[normalDict]]
-conditionReg = ''
+org = '恥ずかひ'
+rep = '恥ずかし'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '恥ずかし'
-searchStr = '恥ずかひ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'かひい'
+rep = 'かしい'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'かしい'
-searchStr = 'かひい'
 
 [[normalDict]]
-conditionReg = ''
+org = '止まらなひ'
+rep = '止まらない'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '止まらない'
-searchStr = '止まらなひ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'トロけひゃ'
+rep = '蕩けちゃ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '蕩けちゃ'
-searchStr = 'トロけひゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'トロけ'
+rep = '蕩け'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '蕩け'
-searchStr = 'トロけ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'みるく'
+rep = 'ミルク'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ミルク'
-searchStr = 'みるく'
 
 [[normalDict]]
-conditionReg = ''
+org = 'まひゃ'
+rep = 'また'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'また'
-searchStr = 'まひゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'イきゅ'
+rep = 'イく'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'イく'
-searchStr = 'イきゅ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'イっく'
+rep = 'イく'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'イく'
-searchStr = 'イっく'
 
 [[normalDict]]
-conditionReg = ''
+org = 'イクぅ'
+rep = 'イクぅ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'イクぅ'
-searchStr = 'イクぅ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'イぐ'
+rep = 'イく'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'イく'
-searchStr = 'イぐ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'れふっ'
+rep = 'です'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'です'
-searchStr = 'れふっ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'はげひ'
+rep = '激しい'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '激しい'
-searchStr = 'はげひ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'されへ'
+rep = 'されて'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'されて'
-searchStr = 'されへ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'イカしぇ'
+rep = 'イカせ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'イカせ'
-searchStr = 'イカしぇ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'イカしゃ'
+rep = 'イカせ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'イカせ'
-searchStr = 'イカしゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'たくひゃん'
+rep = 'たくさん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'たくさん'
-searchStr = 'たくひゃん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'いひょに'
+rep = '一緒に'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '一緒に'
-searchStr = 'いひょに'
 
 [[normalDict]]
-conditionReg = ''
+org = 'いっふぁい'
+rep = 'いっぱい'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'いっぱい'
-searchStr = 'いっふぁい'
 
 [[normalDict]]
-conditionReg = ''
+org = 'みたひに'
+rep = 'みたいに'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'みたいに'
-searchStr = 'みたひに'
 
 [[normalDict]]
-conditionReg = ''
+org = 'かっひゃ'
+rep = 'かった'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'かった'
-searchStr = 'かっひゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ちょうらい'
+rep = 'ちょうだい'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ちょうだい'
-searchStr = 'ちょうらい'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごしゅじんひゃま'
+rep = 'ご主人様'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人様'
-searchStr = 'ごしゅじんひゃま'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごしゅじん'
+rep = 'ご主人'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人'
-searchStr = 'ごしゅじん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごひゅいんふん'
+rep = 'ご主人くん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人くん'
-searchStr = 'ごひゅいんふん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごしゅいん'
+rep = 'ご主人'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人'
-searchStr = 'ごしゅいん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごしゅりん'
+rep = 'ご主人'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人'
-searchStr = 'ごしゅりん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごしゅりんきゅん'
+rep = 'ご主人くん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人くん'
-searchStr = 'ごしゅりんきゅん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごひゅりんはま'
+rep = 'ご主人様'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人様'
-searchStr = 'ごひゅりんはま'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごひゅりんひゃは'
+rep = 'ご主人様'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人様'
-searchStr = 'ごひゅりんひゃは'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごひゅりんひゃま'
+rep = 'ご主人様'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人様'
-searchStr = 'ごひゅりんひゃま'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごひゅりん'
+rep = 'ご主人'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人'
-searchStr = 'ごひゅりん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごひゅじんひゃみゃ'
+rep = 'ご主人様'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人様'
-searchStr = 'ごひゅじんひゃみゃ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごひゅじんきゅん'
+rep = 'ご主人くん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人くん'
-searchStr = 'ごひゅじんきゅん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ごひゅじん'
+rep = 'ご主人'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人'
-searchStr = 'ごひゅじん'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ご主人きゅん'
+rep = 'ご主人くん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人くん'
-searchStr = 'ご主人きゅん'
 
 [[normalDict]]
-conditionReg = ''
+org = '主きゅん'
+rep = '主くん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '主くん'
-searchStr = '主きゅん'
 
 [[normalDict]]
-conditionReg = ''
+org = '主クン'
+rep = '主くん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '主くん'
-searchStr = '主クン'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ご主人ひゃま'
+rep = 'ご主人様'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ご主人様'
-searchStr = 'ご主人ひゃま'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ありゅじ'
+rep = '主'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '主'
-searchStr = 'ありゅじ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'こにょまま'
+rep = 'このまま'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'このまま'
-searchStr = 'こにょまま'
 
 [[normalDict]]
-conditionReg = ''
+org = 'くれへっ'
+rep = 'くれてっ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'くれてっ'
-searchStr = 'くれへっ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'くらひゃイ'
+rep = 'ください'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ください'
-searchStr = 'くらひゃイ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'くらさイ'
+rep = 'ください'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ください'
-searchStr = 'くらさイ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'くらさい'
+rep = 'ください'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ください'
-searchStr = 'くらさい'
 
 [[normalDict]]
-conditionReg = ''
+org = 'くらさぁい'
+rep = 'ください'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ください'
-searchStr = 'くらさぁい'
 
 [[normalDict]]
-conditionReg = ''
+org = 'まらまら'
+rep = 'またまた'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'またまた'
-searchStr = 'まらまら'
 
 [[normalDict]]
-conditionReg = ''
+org = '、まら'
+rep = '、また'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '、また'
-searchStr = '、まら'
 
 [[normalDict]]
-conditionReg = ''
+org = '…まら'
+rep = '…また'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '…また'
-searchStr = '…まら'
 
 [[normalDict]]
-conditionReg = ''
+org = 'にまら'
+rep = 'にまた'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'にまた'
-searchStr = 'にまら'
 
 [[normalDict]]
-conditionReg = ''
+org = 'もまら'
+rep = 'もまた'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'もまた'
-searchStr = 'もまら'
 
 [[normalDict]]
-conditionReg = ''
+org = 'れふ'
+rep = 'です'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'です'
-searchStr = 'れふ'
+

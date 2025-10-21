@@ -371,9 +371,10 @@ void EpubTranslator::run()
             // 这本epub的所有文件都翻译完毕，可以开始重组
             for (const auto& relJsonPath : jsonsMap | std::views::keys) {
 
-                const fs::path& originalHtmlPath = info.htmlPath;
+                const JsonInfo& jsonInfo = m_jsonToInfoMap[relJsonPath];
+                const fs::path& originalHtmlPath = jsonInfo.htmlPath;
                 const fs::path rebuiltHtmlPath = m_tempRebuildDir / fs::relative(originalHtmlPath, m_tempUnpackDir);
-                const auto& metadata = info.metadata;
+                const auto& metadata = jsonInfo.metadata;
 
                 // 替换 HTML 内容的逻辑
                 std::ifstream ifs(rebuiltHtmlPath, std::ios::binary);
@@ -388,7 +389,7 @@ void EpubTranslator::run()
                 ifs.close();
 
                 if (metadata.size() != translatedData.size()) {
-                    throw std::runtime_error(std::format("元数据和翻译数据数量不匹配，无法重组: {}", wide2Ascii(rebuiltHtmlPath)));
+                    throw std::runtime_error(std::format("元数据和翻译数据数量不匹配，无法重组: {}meta / {}trans,文件: [{}]", metadata.size(), translatedData.size(), wide2Ascii(rebuiltHtmlPath)));
                 }
 
                 std::string newContent;
@@ -417,7 +418,7 @@ void EpubTranslator::run()
                 ofs << newContent;
                 ofs.close();
 
-                const fs::path& showNormalPostHtmlPath = info.normalPostPath;
+                const fs::path& showNormalPostHtmlPath = jsonInfo.normalPostPath;
                 createParent(showNormalPostHtmlPath);
                 ofs.open(showNormalPostHtmlPath, std::ios::binary);
                 ofs << newContent;

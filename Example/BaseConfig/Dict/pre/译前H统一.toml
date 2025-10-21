@@ -1,127 +1,128 @@
 [[normalDict]]
-conditionReg = ''
+org = 'オチンチン'
+rep = 'おちんちん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'おちんちん'
-searchStr = 'オチンチン'
 
 [[normalDict]]
-conditionReg = ''
+org = 'チンチン'
+rep = 'ちんちん'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ちんちん'
-searchStr = 'チンチン'
 
 [[normalDict]]
-conditionReg = ''
+org = 'おちんこ'
+rep = 'おちんぽ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'おちんぽ'
-searchStr = 'おちんこ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'おチンポ'
+rep = 'おちんぽ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'おちんぽ'
-searchStr = 'おチンポ'
 
 [[normalDict]]
-conditionReg = ''
+org = '雄チンポ'
+rep = 'おちんぽ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'おちんぽ'
-searchStr = '雄チンポ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'チンコ'
+rep = 'ちんぽ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ちんぽ'
-searchStr = 'チンコ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ちんこ'
+rep = 'ちんぽ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'ちんぽ'
-searchStr = 'ちんこ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'オマンコ'
+rep = 'おまんこ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'おまんこ'
-searchStr = 'オマンコ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'マンコ'
+rep = 'まんこ'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = 'まんこ'
-searchStr = 'マンコ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'アヌス'
+rep = '肛門'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '肛門'
-searchStr = 'アヌス'
 
 [[normalDict]]
-conditionReg = ''
+org = 'アナル'
+rep = '肛門'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '肛門'
-searchStr = 'アナル'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ザーメン'
+rep = '精液'
 conditionTarget = ''
+conditionReg = ''
 isReg = false
 priority = 0
-replaceStr = '精液'
-searchStr = 'ザーメン'
 
 [[normalDict]]
-conditionReg = ''
+org = 'チ[○●〇]([コチポ])'
+rep = 'チン$1'
 conditionTarget = ''
+conditionReg = ''
 isReg = true
 priority = 0
-replaceStr = 'チン$1'
-searchStr = 'チ[○●〇]([コチポ])'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ち[○●〇]([こちぽ])'
+rep = 'ちん$1'
 conditionTarget = ''
+conditionReg = ''
 isReg = true
 priority = 0
-replaceStr = 'ちん$1'
-searchStr = 'ち[○●〇]([こちぽ])'
 
 [[normalDict]]
-conditionReg = ''
+org = 'マ[○●〇]コ'
+rep = 'マンコ'
 conditionTarget = ''
+conditionReg = ''
 isReg = true
 priority = 0
-replaceStr = 'マンコ'
-searchStr = 'マ[○●〇]コ'
 
 [[normalDict]]
-conditionReg = ''
+org = 'ま[○●〇]こ'
+rep = 'まんこ'
 conditionTarget = ''
+conditionReg = ''
 isReg = true
 priority = 0
-replaceStr = 'まんこ'
-searchStr = 'ま[○●〇]こ'
+

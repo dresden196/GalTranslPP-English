@@ -16,7 +16,7 @@ UpdateWidget::UpdateWidget(QWidget* parent)
 
     ElaText* updateTitle = new ElaText("v" + QString::fromStdString(GPPVERSION) + " 更新", 15, this);
     QStringList updateList = {
-        "1. 减少Python模块加载后不会主动卸载可能导致的长时间高内存占用。"
+        "1. 修复 Epub 无法重建的恶性 bug。"
 
     };
 

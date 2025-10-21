@@ -1,49 +1,14 @@
-[[gptDict]]
-note = ''
-replaceStr = '责难'
-searchStr = '責め'
+gptDict = [
+    {org = "責め", rep = "责难", note = ""},
+    {org = "キンタマ", rep = "蛋蛋", note = ""},
+    {org = "口まんこ", rep = "嘴穴", note = ""},
+    {org = "おめこ", rep = "小穴", note = ""},
+    {org = "おまんこ", rep = "小穴", note = ""},
+    {org = "まんこ", rep = "小穴", note = ""},
+    {org = "おちんちん", rep = "肉棒", note = ""},
+    {org = "ちんちん", rep = "肉棒", note = ""},
+    {org = "おちんぽ", rep = "肉棒", note = ""},
+    {org = "ちんぽ", rep = "肉棒", note = ""},
+    {org = "チンポ", rep = "肉棒", note = ""},
+]
 
-[[gptDict]]
-note = ''
-replaceStr = '蛋蛋'
-searchStr = 'キンタマ'
-
-[[gptDict]]
-note = ''
-replaceStr = '嘴穴'
-searchStr = '口まんこ'
-
-[[gptDict]]
-note = ''
-replaceStr = '小穴'
-searchStr = 'おめこ'
-
-[[gptDict]]
-note = ''
-replaceStr = '小穴'
-searchStr = 'おまんこ'
-
-[[gptDict]]
-note = ''
-replaceStr = '小穴'
-searchStr = 'まんこ'
-
-[[gptDict]]
-note = ''
-replaceStr = '肉棒'
-searchStr = 'おちんちん'
-
-[[gptDict]]
-note = ''
-replaceStr = '肉棒'
-searchStr = 'ちんちん'
-
-[[gptDict]]
-note = ''
-replaceStr = '肉棒'
-searchStr = 'おちんぽ'
-
-[[gptDict]]
-note = ''
-replaceStr = '肉棒'
-searchStr = 'ちんぽ'
