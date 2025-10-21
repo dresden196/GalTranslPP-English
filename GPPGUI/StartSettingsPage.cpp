@@ -410,12 +410,12 @@ void StartSettingsPage::_workFinished(int exitCode)
 	switch (exitCode)
 	{
 	case -2:
-		ElaMessageBar::error(ElaMessageBarType::BottomRight, tr("翻译失败"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 翻译任务失败，请检查日志输出。"), 3000);
+		ElaMessageBar::error(ElaMessageBarType::BottomRight, tr("翻译失败"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的翻译任务失败，请检查日志输出。"), 3000);
 
 		// 显示通知消息
 		_trayIcon->showMessage(
 			tr("翻译失败"),                  // 标题
-				tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 翻译任务失败，请检查日志输出。"),      // 内容
+				tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的翻译任务失败，请检查日志输出。"),      // 内容
 			QSystemTrayIcon::Critical, // 图标类型 (Information, Warning, Critical)
 			5000                          // 显示时长 (毫秒)
 		);
@@ -453,6 +453,12 @@ void StartSettingsPage::_workFinished(int exitCode)
 		}
 		break;
 	case 1:
+		_trayIcon->showMessage(
+			tr("翻译停止"),                  // 标题
+			tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的翻译任务停止成功。"),      // 内容
+			QSystemTrayIcon::Critical, // 图标类型 (Information, Warning, Critical)
+			5000                          // 显示时长 (毫秒)
+		);
 		ElaMessageBar::information(ElaMessageBarType::BottomRight, tr("停止成功"), tr("项目 ") + QString(_projectDir.filename().wstring()) + tr(" 的翻译任务已终止"), 3000);
 		break;
 	default:

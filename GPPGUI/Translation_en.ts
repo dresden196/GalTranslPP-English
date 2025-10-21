@@ -2763,14 +2763,15 @@
         <location filename="StartSettingsPage.cpp" line="424"/>
         <location filename="StartSettingsPage.cpp" line="428"/>
         <location filename="StartSettingsPage.cpp" line="431"/>
-        <location filename="StartSettingsPage.cpp" line="456"/>
+        <location filename="StartSettingsPage.cpp" line="458"/>
+        <location filename="StartSettingsPage.cpp" line="462"/>
         <source>项目 </source>
         <translation>Project </translation>
     </message>
     <message>
         <location filename="StartSettingsPage.cpp" line="413"/>
         <location filename="StartSettingsPage.cpp" line="418"/>
-        <source> 翻译任务失败，请检查日志输出。</source>
+        <source> 的翻译任务失败，请检查日志输出。</source>
         <translation> &apos;s task failed, please check logs.</translation>
     </message>
     <message>
@@ -2822,12 +2823,22 @@
         <translation> &apos;s translation result.</translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="456"/>
+        <location filename="StartSettingsPage.cpp" line="457"/>
+        <source>翻译停止</source>
+        <translation>Translation stopped</translation>
+    </message>
+    <message>
+        <location filename="StartSettingsPage.cpp" line="458"/>
+        <source> 的翻译任务停止成功。</source>
+        <translation> &apos;s task stopped successfully.</translation>
+    </message>
+    <message>
+        <location filename="StartSettingsPage.cpp" line="462"/>
         <source>停止成功</source>
         <translation>Stopped succeesfully</translation>
     </message>
     <message>
-        <location filename="StartSettingsPage.cpp" line="456"/>
+        <location filename="StartSettingsPage.cpp" line="462"/>
         <source> 的翻译任务已终止</source>
         <translation> &apos;s task has been stoped</translation>
     </message>
