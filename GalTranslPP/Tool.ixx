@@ -49,7 +49,7 @@ export {
 
     std::string getNameString(const json& j);
 
-    void createParent(const fs::path& path);
+    bool createParent(const fs::path& path);
 
     std::wstring wstr2Lower(const std::wstring& wstr);
 
@@ -102,23 +102,36 @@ export {
     bool cmpVer(const std::string& latestVer, const std::string& currentVer, bool& isCompatible);
 
     struct ConditionPattern {
-        CachePart conditionTarget;
+        CachePart conditionTarget = CachePart::None;
+        int sentenceOffset = 0;
         std::shared_ptr<icu::RegexPattern> conditionReg;
     };
     using GPPCondition = std::vector<ConditionPattern>;
 
     bool checkString(std::shared_ptr<icu::RegexPattern> conditionReg, const std::string& str);
-    bool checkCondition(const GPPCondition& conditions, const Sentence* se);
+    bool checkCondition(const GPPCondition& gppCondition, const Sentence* se);
 
     template<typename TC>
-    GPPCondition createGppCondition(const toml::basic_value<TC>& conditions) {
+    GPPCondition createGppCondition(const toml::basic_value<TC>& conditionPatterns) {
         GPPCondition patterns;
 
         auto appendPatternFunc = [&](const auto& conditionTbl)
             {
                 ConditionPattern pattern;
-                pattern.conditionTarget = chooseCachePart(conditionTbl.at("conditionTarget").as_string());
+                std::string conditionTargetStr = conditionTbl.at("conditionTarget").as_string();
+                while (conditionTargetStr.starts_with("prev_")) {
+                    pattern.sentenceOffset--;
+                    conditionTargetStr = conditionTargetStr.substr(5);
+                }
+                while (conditionTargetStr.starts_with("next_")) {
+                    pattern.sentenceOffset++;
+                    conditionTargetStr = conditionTargetStr.substr(5);
+                }
+                pattern.conditionTarget = chooseCachePart(conditionTargetStr);
                 const std::string& conditionRegStr = conditionTbl.at("conditionReg").as_string();
+                if (conditionRegStr.empty()) {
+                    return;
+                }
                 icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(conditionRegStr));
                 UErrorCode status = U_ZERO_ERROR;
                 pattern.conditionReg = std::shared_ptr<icu::RegexPattern>(icu::RegexPattern::compile(ustr, 0, status));
@@ -127,17 +140,17 @@ export {
                 }
                 patterns.push_back(pattern);
             };
-        if (conditions.is_array()) {
-            for (const auto& condition : conditions.as_array() 
+        if (conditionPatterns.is_array()) {
+            for (const auto& condition : conditionPatterns.as_array() 
                 | std::views::filter([](const auto& condition) { return condition.is_table(); }))
             {
                 appendPatternFunc(condition.as_table());
             }
         }
-        else if (conditions.is_table()) {
-            appendPatternFunc(conditions.as_table());
-            if (conditions.contains("additionalPatterns") && conditions.at("additionalPatterns").is_array()) {
-                for (const auto& condition : conditions.at("additionalPatterns").as_array() 
+        else if (conditionPatterns.is_table()) {
+            appendPatternFunc(conditionPatterns.as_table());
+            if (conditionPatterns.contains("additionalPatterns") && conditionPatterns.at("additionalPatterns").is_array()) {
+                for (const auto& condition : conditionPatterns.at("additionalPatterns").as_array() 
                     | std::views::filter([](const auto& condition) { return condition.is_table(); }))
                 {
                     appendPatternFunc(condition.as_table());
@@ -353,10 +366,11 @@ std::string getNameString(const json& j) {
     return {};
 }
 
-void createParent(const fs::path& path) {
+bool createParent(const fs::path& path) {
     if (path.has_parent_path()) {
-        fs::create_directories(path.parent_path());
+        return fs::create_directories(path.parent_path());
     }
+    return false;
 }
 
 std::wstring wstr2Lower(const std::wstring& wstr) {
@@ -406,7 +420,7 @@ std::vector<std::string> splitTsvLine(const std::string& line, const std::vector
             }
         }
         std::string part = line.substr(currentPos, splitPos - currentPos);
-        parts.push_back(part);
+        parts.push_back(std::move(part));
 
         if (splitPos == std::string::npos) {
             break;
@@ -454,7 +468,7 @@ std::string chooseString(const Sentence* sentence, CachePart tar) {
 }
 
 CachePart chooseCachePart(const std::string& partName) {
-    CachePart part = CachePart::None;
+    CachePart part;
     if (partName == "name") {
         part = CachePart::Name;
     }
@@ -914,14 +928,37 @@ bool checkString(std::shared_ptr<icu::RegexPattern> conditionReg, const std::str
     return (bool)matcher->find();
 }
 
-bool checkCondition(const GPPCondition& conditions, const Sentence* se) {
-    return std::ranges::all_of(conditions, [&](const ConditionPattern& pattern)
+template<typename T>
+concept IsMapLike = requires {
+    typename T::key_type;
+    typename T::mapped_type;
+};
+
+bool checkCondition(const GPPCondition& gppCondition, const Sentence* se) {
+    return std::ranges::all_of(gppCondition, [&](const ConditionPattern& pattern)
         {
+            const Sentence* sentenceToCheck = se;
+            if (pattern.sentenceOffset > 0) {
+                for (int i = 0; i < pattern.sentenceOffset; i++) {
+                    sentenceToCheck = sentenceToCheck->next;
+                    if (sentenceToCheck == nullptr) {
+                        return false;
+                    }
+                }
+            }
+            else if (pattern.sentenceOffset < 0) {
+                for (int i = 0; i > pattern.sentenceOffset; i--) {
+                    sentenceToCheck = sentenceToCheck->prev;
+                    if (sentenceToCheck == nullptr) {
+                        return false;
+                    }
+                }
+            }
             auto checkAnyOf = [&]<typename ContainerType>(const ContainerType & container) -> bool
             {
                 return std::ranges::any_of(container, [&](const auto& item)
                     {
-                        if constexpr (std::is_same_v<ContainerType, std::map<std::string, std::string>>) {
+                        if constexpr (IsMapLike<ContainerType>) {
                             return checkString(pattern.conditionReg, item.second);
                         }
                         else {
@@ -931,15 +968,15 @@ bool checkCondition(const GPPCondition& conditions, const Sentence* se) {
             };
             switch (pattern.conditionTarget) {
             case CachePart::Names:
-                return checkAnyOf(se->names);
+                return checkAnyOf(sentenceToCheck->names);
             case CachePart::NamesPreview:
-                return checkAnyOf(se->names_preview);
+                return checkAnyOf(sentenceToCheck->names_preview);
             case CachePart::Problems:
-                return checkAnyOf(se->problems);
+                return checkAnyOf(sentenceToCheck->problems);
             case CachePart::OtherInfo:
-                return checkAnyOf(se->other_info);
+                return checkAnyOf(sentenceToCheck->other_info);
             default:
-                return checkString(pattern.conditionReg, chooseStringRef(se, pattern.conditionTarget));
+                return checkString(pattern.conditionReg, chooseStringRef(sentenceToCheck, pattern.conditionTarget));
             }
             return false;
         });
