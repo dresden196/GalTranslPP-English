@@ -5,7 +5,8 @@
 在开始编译之前，请确保你的开发环境满足以下要求：
 
 - **操作系统**: Windows 10 或 Windows 11
-- **IDE**: [Visual Studio 2026](https://visualstudio.microsoft.com/insiders/?rwnlp=zh-hans)
+- **IDE**: [Visual Studio 2026](https://visualstudio.microsoft.com/insiders/?rwnlp=zh-hans) 和 
+    VS2022(会用到 2022 的 ToolChain，如果你懂的话可以只下 VS2022 的 BuildTools 而不下其 IDE)
   - **必需工作负载**: `使用 C++ 的桌面开发`
   - **必需工具集**: `MSVC v143` (VS 2022) 和 `MSVC v145`
 - **Python 3.12.10**: 不一定非得安装，但需要其中的 lib 和 dll

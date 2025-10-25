@@ -14,7 +14,6 @@ import PythonManager;
 import LuaManager;
 
 namespace fs = std::filesystem;
-namespace py = pybind11;
 
 export {
 
@@ -167,7 +166,7 @@ export {
                 break;
 
                 default:
-                    return;
+                    throw std::runtime_error("未知的条件类型");
                 }
             };
 
