@@ -23,6 +23,11 @@ filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, i18
 transEngine = "ForGalJson"
 
 #"SkipTrans"
+# 文本译前处理插件列表，可以设置多个，按顺序执行
+# 译前/译后 Plugins 均可使用 lua/py 脚本作为自定义扩展插件
+# 插件加载格式为 "Lua:path/to/script.lua" / "Python:path/to/script.py"
+# 如"Lua:Lua/MySampleTextPlugin.lua"
+# 插件中必须定义 init 和 run 函数，具体示例详见 README
 textPrePlugins = [
 ]
 
@@ -84,7 +89,7 @@ logLevel = "info"
 saveLog = true
 
 # 用于生成字典和查错的分词器后端及其设置 (除了MeCab，剩下的都依赖Python，所以速度变慢或内存占用变大是正常的)
-# 但 MeCab 只使用于日文分词，如果想分词其它语言需要使用别的分词器并指定对应语言的模型
+# 但 MeCab 只限于日文分词，如果想分词其它语言需要使用别的分词器并指定对应语言的模型
 tokenizerBackend = "MeCab" # MeCab, spaCy, Stanza
 # MeCab 分词器所用的词典的路径
 mecabDictDir = "BaseConfig/mecabDict/mecab-ipadic-utf8" # 也可以用 mecab-ipadic-neologd 或 unidic(均需从网上下载字典)
@@ -108,29 +113,32 @@ problemList = [
 
   "残留日文",
   #"引入拉丁字母",
-  "引入韩文",
-  "引入繁体字",
   #"非法字符",
   #"语言不通",
+  "引入韩文",
+  "引入繁体字",
 ]
 
 # 正则表达式列表，如果句子缓存中的某条 problem 能被以下任一正则 search 通过，则进行重翻
-# 如果想对指定原文/译文进行重翻，请通过内联表数组指定 conditionTarget 和 conditionReg
+# 如果想对指定原文/译文进行重翻，请通过内联表(数组)指定 conditionTarget 和 conditionReg
+# 也可以指定 conditionScript 和 conditionFunc 来外接 lua/py 脚本(conditionFunc 接收 Sentence，返回bool)
+# <PROJECT_DIR>为代表当前路径字符串的宏
+# conditionTarget 加前缀 prev_ 或 next_ 可表示 前/后 句，如 prev_prev_orig_text 表示上上句原文，如果没有则条件失败
 retranslKeys = [
   #"残留日文",
-  [{ conditionTarget = 'orig_text', conditionReg = '^(?!.*隠さん).*$'},
-   { conditionTarget = 'trans_preview', conditionReg = '隐同学' }], # 重翻所有 原文中不含'隠さん'且译文中含'隐同学' 的句子
+  #[{ conditionScript = 'Lua:<PROJECT_DIR>/Lua/MySampleTextPlugin.lua', conditionFunc = 'checkConditionForRetranslKeysFunc' },
+    #{ conditionScript = 'Python:<PROJECT_DIR>/Python/MySampleTextPlugin.py', conditionFunc = 'checkConditionForRetranslKeysFunc' }],
   "翻译失败", # 等效于 [{ conditionTarget = 'problems', conditionReg = '翻译失败' }]
 ]
 
 # 正则表达式列表，如果一条 problem 能被以下任一正则 search 通过，则不加入 problems 列表
-# 如果想忽略指定原文/译文的指定问题，请通过内联表数组指定 conditionTarget 和 conditionReg
-# 并在表数组第一项填入要忽略的 problem(同样也是正则表达式)
+# 如果想忽略指定原文/译文的指定问题，请通过内联表(数组)指定 conditionTarget 和 conditionReg
+# 并在表数组第一项填入要忽略的 problem (同样也是正则表达式)
 skipProblems = [
   # "^引入拉丁字母: Live$"  # 不加任何条件
   # 如果 原文中包含'モチモチ'且译文中包含'Q弹'，则忽略此句子中所有能被 '引入拉丁字母' search 通过的 problem
   [ '引入拉丁字母', { conditionTarget = 'preproc_text', conditionReg = 'モチモチ'},
-    { conditionTarget = 'trans_preview', conditionReg = 'Q弹'}], 
+    { conditionTarget = 'trans_preview', conditionReg = 'Q弹'}],
 ]
 
 #规定标点错漏要查哪些标点

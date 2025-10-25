@@ -111,6 +111,9 @@ std::unique_ptr<ITranslator> createTranslator(const fs::path& projectDir, std::s
     std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>(wide2Ascii(projectDir) + "-" + transEngine + "-Logger", sinks.begin(), sinks.end());
     //spdlog::register_logger(logger);
     logger->set_level(logLevel);
+    if (logLevel == spdlog::level::trace) {
+        logger->flush_on(spdlog::level::trace);
+    }
     logger->set_pattern("[%H:%M:%S.%e %^%l%$] %v");
     logger->info("Logger initialized.");
     // 日志配置结束

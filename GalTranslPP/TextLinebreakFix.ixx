@@ -15,7 +15,7 @@ export {
 
 	enum class LinebreakFixMode
 	{
-		None, Average, FixCharCount, KeepPositions, PreferPunctations
+		None, Average, FixCharCount, KeepPositions, PreferPunctuations
 	};
 
 	class TextLinebreakFix : public IPlugin {
@@ -30,8 +30,8 @@ export {
 		bool m_needReboot = false;
 		double m_priorityThreshold = 0.2;
 
+
 		std::function<NLPResult(const std::string&)> m_tokenizeTargetLangFunc;
-		std::function<void()> m_releaseModuleFunc;
 		std::vector<std::string> splitIntoTokens(const std::string& text);
 
 	public:
@@ -42,12 +42,7 @@ export {
 
 		virtual void run(Sentence* se) override;
 
-		virtual ~TextLinebreakFix() override
-		{
-			if (m_releaseModuleFunc) {
-				m_releaseModuleFunc();
-			}
-		}
+		virtual ~TextLinebreakFix() = default;
 	};
 }
 
@@ -71,7 +66,7 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, const toml::value
 			m_mode = LinebreakFixMode::KeepPositions;
 		}
 		else if (linebreakMode == "优先标点") {
-			m_mode = LinebreakFixMode::PreferPunctations;
+			m_mode = LinebreakFixMode::PreferPunctuations;
 		}
 		else {
 			throw std::invalid_argument("TextLinebreakFix 无效的换行模式: " + linebreakMode);
@@ -94,34 +89,22 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, const toml::value
 			else if (tokenizerBackend == "spaCy") {
 				const std::string& spaCyModelName = parseToml<std::string>(projectConfig, pluginConfig, "plugins.TextLinebreakFix.spaCyModelName");
 				m_logger->info("TextLinebreakFix 正在检查 spaCy 环境...");
-				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, m_needReboot, m_logger);
+				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, m_logger, m_needReboot);
 				m_logger->info("TextLinebreakFix spaCy 环境检查完毕。");
-				m_releaseModuleFunc = []()
-					{
-						NLPManager::getInstance().releaseModule("tokenizer_spacy");
-					};
 			}
 			else if (tokenizerBackend == "Stanza") {
 				const std::string& stanzaLang = parseToml<std::string>(projectConfig, pluginConfig, "plugins.TextLinebreakFix.stanzaLang");
 				m_logger->info("TextLinebreakFix 正在检查 Stanza 环境...");
-				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "stanza" }, "tokenizer_stanza", stanzaLang, m_needReboot, m_logger);
+				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "stanza" }, "tokenizer_stanza", stanzaLang, m_logger, m_needReboot);
 				m_logger->info("TextLinebreakFix Stanza 环境检查完毕。");
-				m_releaseModuleFunc = []()
-					{
-						NLPManager::getInstance().releaseModule("tokenizer_stanza");
-					};
 			}
 			else if (tokenizerBackend == "pkuseg") {
 				m_logger->info("TextLinebreakFix 正在检查 pkuseg 环境...");
-				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "setuptools", "nes-py", "cython", "pkuseg"}, "tokenizer_pkuseg", "default", m_needReboot, m_logger);
+				m_tokenizeTargetLangFunc = getNLPTokenizeFunc({ "setuptools", "nes-py", "cython", "pkuseg"}, "tokenizer_pkuseg", "default", m_logger, m_needReboot);
 				m_logger->info("TextLinebreakFix pkuseg 环境检查完毕。");
-				m_releaseModuleFunc = []()
-					{
-						NLPManager::getInstance().releaseModule("tokenizer_pkuseg");
-					};
 			}
 			else {
-				throw std::invalid_argument("TextLinebreakFix 无效的 tokenizerBackend");
+				throw std::invalid_argument("TextLinebreakFix 无效的 tokenizerBackend: " + tokenizerBackend);
 			}
 		}
 
@@ -146,34 +129,9 @@ TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, const toml::value
 
 std::vector<std::string> TextLinebreakFix::splitIntoTokens(const std::string& text)
 {
-	std::vector<std::string> tokens;
-
-	size_t searchPos = 0; // 在原始句子中搜索的起始位置
-	NLPResult result = m_tokenizeTargetLangFunc(text);
-	const WordPosVec& wordPosList = std::get<0>(result);
-	for (const auto& wordPos : wordPosList) {
-		const auto& token = wordPos.front();
-		// 从 searchPos 开始查找当前 token
-		size_t tokenPos = text.find(token, searchPos);
-		// 错误处理：如果在预期位置找不到 token，说明输入有问题
-		if (tokenPos == std::string::npos) {
-			throw std::runtime_error("Token '" + token + "' not found in the remainder of the original sentence.");
-		}
-		// 1. 提取并添加 token 前面的空白部分
-		if (tokenPos > searchPos) {
-			tokens.push_back(text.substr(searchPos, tokenPos - searchPos));
-		}
-		// 2. 更新下一次搜索的起始位置
-		searchPos = tokenPos + token.length();
-		// 3. 添加 token 本身
-		tokens.push_back(std::move(token));
-	}
-	// 4. 处理最后一个 token 后面的尾随空白
-	if (searchPos < text.length()) {
-		tokens.push_back(text.substr(searchPos));
-	}
-
-	return tokens;
+	const NLPResult result = m_tokenizeTargetLangFunc(text);
+	const WordPosVec& wordPosVec = std::get<0>(result);
+	return ::splitIntoTokens(wordPosVec, text);
 }
 
 void TextLinebreakFix::run(Sentence* se)
@@ -214,7 +172,8 @@ void TextLinebreakFix::run(Sentence* se)
 				});
 		};
 
-	switch (m_mode) {
+	switch (m_mode) 
+	{
 	case LinebreakFixMode::Average:
 	{
 		std::vector<std::string> tokens = m_useTokenizer ? splitIntoTokens(transViewToModify) : splitIntoGraphemes(transViewToModify);
@@ -270,7 +229,7 @@ void TextLinebreakFix::run(Sentence* se)
 		}
 	}
 	break;
-	case LinebreakFixMode::PreferPunctations:
+	case LinebreakFixMode::PreferPunctuations:
 	{
 		std::vector<std::string> graphemes = splitIntoGraphemes(transViewToModify);
 		std::vector<std::string> tokens = m_useTokenizer ? splitIntoTokens(transViewToModify) : graphemes;

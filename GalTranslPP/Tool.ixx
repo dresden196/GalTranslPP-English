@@ -21,6 +21,11 @@
 #pragma comment(lib, "../lib/marisa.lib")
 #pragma comment(lib, "../lib/opencc.lib")
 
+#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "crypt32.lib")
+#pragma comment(lib, "Iphlpapi.lib")
+#pragma comment(lib, "Secur32.lib")
+
 export module Tool;
 
 export import std;
@@ -51,11 +56,31 @@ export {
 
     bool createParent(const fs::path& path);
 
-    std::wstring wstr2Lower(const std::wstring& wstr);
+    template <typename CharT, typename Traits, typename Alloc>
+    auto str2Lower(const std::basic_string<CharT, Traits, Alloc>& str) {
+        auto result = str;
+        std::transform(str.begin(), str.end(), result.begin(), [](const auto& c) { return std::tolower(c); });
+        return result;
+    }
+    std::wstring str2Lower(const fs::path& path) {
+        return str2Lower(path.wstring());
+    }
+    template <typename CharT, typename Traits, typename Alloc>
+    auto& str2LowerInplace(std::basic_string<CharT, Traits, Alloc>& str) {
+        std::transform(str.begin(), str.end(), str.begin(), [](const auto& c) { return std::tolower(c); });
+        return str;
+    }
 
-    std::vector<std::string> splitString(const std::string& str, char delimiter);
-
-    std::vector<std::string> splitString(const std::string& str, const std::string& delimiter);
+    auto splitStringFunc = [](auto&& str, auto&& delimiter) -> decltype(auto)
+        {
+            std::vector<std::remove_cvref_t<decltype(str)>> result;
+            for (auto&& subStrView : str | std::views::split(delimiter)) {
+                result.emplace_back(subStrView.begin(), subStrView.end());
+            }
+            return result;
+        };
+    decltype(auto) splitString(const std::string& str, char delimiter) { return splitStringFunc(str, delimiter); }
+    decltype(auto) splitString(const std::string& str, const std::string& delimiter) { return splitStringFunc(str, delimiter); }
 
     std::vector<std::string> splitTsvLine(const std::string& line, const std::vector<std::string>& delimiters);
 
@@ -72,6 +97,8 @@ export {
     std::string removeWhitespace(const std::string& text);
 
     std::pair<std::string, int> getMostCommonChar(const std::string& s);
+
+    std::vector<std::string> splitIntoTokens(const WordPosVec& wordPosVec, const std::string& text);
 
     std::vector<std::string> splitIntoGraphemes(const std::string& sourceString);
 
@@ -101,65 +128,7 @@ export {
 
     bool cmpVer(const std::string& latestVer, const std::string& currentVer, bool& isCompatible);
 
-    struct ConditionPattern {
-        CachePart conditionTarget = CachePart::None;
-        int sentenceOffset = 0;
-        std::shared_ptr<icu::RegexPattern> conditionReg;
-    };
-    using GPPCondition = std::vector<ConditionPattern>;
 
-    bool checkString(std::shared_ptr<icu::RegexPattern> conditionReg, const std::string& str);
-    bool checkCondition(const GPPCondition& gppCondition, const Sentence* se);
-
-    template<typename TC>
-    GPPCondition createGppCondition(const toml::basic_value<TC>& conditionPatterns) {
-        GPPCondition patterns;
-
-        auto appendPatternFunc = [&](const auto& conditionTbl)
-            {
-                ConditionPattern pattern;
-                std::string conditionTargetStr = conditionTbl.at("conditionTarget").as_string();
-                while (conditionTargetStr.starts_with("prev_")) {
-                    pattern.sentenceOffset--;
-                    conditionTargetStr = conditionTargetStr.substr(5);
-                }
-                while (conditionTargetStr.starts_with("next_")) {
-                    pattern.sentenceOffset++;
-                    conditionTargetStr = conditionTargetStr.substr(5);
-                }
-                pattern.conditionTarget = chooseCachePart(conditionTargetStr);
-                const std::string& conditionRegStr = conditionTbl.at("conditionReg").as_string();
-                if (conditionRegStr.empty()) {
-                    return;
-                }
-                icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(conditionRegStr));
-                UErrorCode status = U_ZERO_ERROR;
-                pattern.conditionReg = std::shared_ptr<icu::RegexPattern>(icu::RegexPattern::compile(ustr, 0, status));
-                if (U_FAILURE(status)) {
-                    throw std::runtime_error(std::format("Failed to compile regex pattern: {}", conditionRegStr));
-                }
-                patterns.push_back(pattern);
-            };
-        if (conditionPatterns.is_array()) {
-            for (const auto& condition : conditionPatterns.as_array() 
-                | std::views::filter([](const auto& condition) { return condition.is_table(); }))
-            {
-                appendPatternFunc(condition.as_table());
-            }
-        }
-        else if (conditionPatterns.is_table()) {
-            appendPatternFunc(conditionPatterns.as_table());
-            if (conditionPatterns.contains("additionalPatterns") && conditionPatterns.at("additionalPatterns").is_array()) {
-                for (const auto& condition : conditionPatterns.at("additionalPatterns").as_array() 
-                    | std::views::filter([](const auto& condition) { return condition.is_table(); }))
-                {
-                    appendPatternFunc(condition.as_table());
-                }
-            }
-        }
-        
-        return patterns;
-    }
 
     template<typename T>
     T calculateAbs(T a, T b) {
@@ -373,28 +342,6 @@ bool createParent(const fs::path& path) {
     return false;
 }
 
-std::wstring wstr2Lower(const std::wstring& wstr) {
-    std::wstring result = wstr;
-    std::ranges::transform(result, result.begin(), [](wchar_t wc) { return std::tolower(wc); });
-    return result;
-}
-
-std::vector<std::string> splitString(const std::string& str, const std::string& delimiter) {
-    std::vector<std::string> tokens;
-    for (const auto& subStrView : str | std::views::split(delimiter)) {
-        tokens.emplace_back(subStrView.begin(), subStrView.end());
-    }
-    return tokens;
-}
-
-std::vector<std::string> splitString(const std::string& str, char delimiter) {
-    std::vector<std::string> tokens;
-    for (const auto& subStrView : str | std::views::split(delimiter)) {
-        tokens.emplace_back(subStrView.begin(), subStrView.end());
-    }
-    return tokens;
-}
-
 std::vector<std::string> splitTsvLine(const std::string& line, const std::vector<std::string>& delimiters) {
     std::vector<std::string> parts;
     size_t currentPos = 0;
@@ -584,6 +531,36 @@ std::pair<std::string, int> getMostCommonChar(const std::string& s) {
     return { mostCommonGrapheme.toUTF8String(resultStr), maxCount };
 }
 
+std::vector<std::string> splitIntoTokens(const WordPosVec& wordPosVec, const std::string& text)
+{
+    std::vector<std::string> tokens;
+
+    size_t searchPos = 0; // 在原始句子中搜索的起始位置
+    for (const auto& wordPos : wordPosVec) {
+        const auto& token = wordPos.front();
+        // 从 searchPos 开始查找当前 token
+        size_t tokenPos = text.find(token, searchPos);
+        // 错误处理：如果在预期位置找不到 token，说明输入有问题
+        if (tokenPos == std::string::npos) {
+            throw std::runtime_error("Token '" + token + "' not found in the remainder of the original sentence.");
+        }
+        // 1. 提取并添加 token 前面的空白部分
+        if (tokenPos > searchPos) {
+            tokens.push_back(text.substr(searchPos, tokenPos - searchPos));
+        }
+        // 2. 更新下一次搜索的起始位置
+        searchPos = tokenPos + token.length();
+        // 3. 添加 token 本身
+        tokens.push_back(std::move(token));
+    }
+    // 4. 处理最后一个 token 后面的尾随空白
+    if (searchPos < text.length()) {
+        tokens.push_back(text.substr(searchPos));
+    }
+
+    return tokens;
+}
+
 std::vector<std::string> splitIntoGraphemes(const std::string& sourceString) {
     std::vector<std::string> resultVector;
 
@@ -639,12 +616,7 @@ size_t countGraphemes(const std::string& sourceString) {
 
 // 计算子串出现次数
 int countSubstring(const std::string& text, const std::string& sub) {
-    if (sub.empty()) return 0;
-    int count = 0;
-    for (size_t offset = text.find(sub); offset != std::string::npos; offset = text.find(sub, offset + sub.length())) {
-        ++count;
-    }
-    return count;
+    return (int)std::ranges::distance(text | std::views::split(sub)) - 1;
 }
 
 // 计算的是子串在删去子串后的主串中出现的位置
@@ -668,11 +640,7 @@ std::vector<double> getSubstringPositions(const std::string& text, const std::st
 }
 
 std::string& replaceStrInplace(std::string& str, const std::string& org, const std::string& rep) {
-    size_t pos = 0;
-    while ((pos = str.find(org, pos)) != std::string::npos) {
-        str = str.replace(pos, org.length(), rep);
-        pos += rep.length();
-    }
+    str = str | std::views::split(org) | std::views::join_with(rep) | std::ranges::to<std::string>();
     return str;
 }
 
@@ -722,7 +690,10 @@ std::string extractHangul(const std::string& sourceString) {
 std::function<std::string(const std::string&)> getTraditionalChineseExtractor(std::shared_ptr<spdlog::logger> logger)
 {
     // 是否需要线程安全？(似乎是不需要)
-    std::function<std::string(const std::string&)> result;
+    static std::function<std::string(const std::string&)> result;
+    if (result) {
+        return result;
+    }
     try {
         std::shared_ptr<opencc::SimpleConverter> converter = std::make_shared<opencc::SimpleConverter>("BaseConfig/opencc/t2s.json");
         result = [=](const std::string& sourceString)
@@ -915,71 +886,6 @@ void extractZipExclude(const fs::path& zipPath, const fs::path& outputDir, const
         }
     }
     zip_close(za);
-}
-
-bool checkString(std::shared_ptr<icu::RegexPattern> conditionReg, const std::string& str) {
-    icu::UnicodeString textToInspect = icu::UnicodeString::fromUTF8(str);
-    UErrorCode status = U_ZERO_ERROR;
-    std::unique_ptr<icu::RegexMatcher> matcher(conditionReg->matcher(textToInspect, status));
-    if (U_FAILURE(status)) {
-        std::string textToInspectU8;
-        throw std::runtime_error(std::format("正则表达式创建matcher失败: {}, 句子: [{}]", u_errorName(status), textToInspect.toUTF8String(textToInspectU8)));
-    }
-    return (bool)matcher->find();
-}
-
-template<typename T>
-concept IsMapLike = requires {
-    typename T::key_type;
-    typename T::mapped_type;
-};
-
-bool checkCondition(const GPPCondition& gppCondition, const Sentence* se) {
-    return std::ranges::all_of(gppCondition, [&](const ConditionPattern& pattern)
-        {
-            const Sentence* sentenceToCheck = se;
-            if (pattern.sentenceOffset > 0) {
-                for (int i = 0; i < pattern.sentenceOffset; i++) {
-                    sentenceToCheck = sentenceToCheck->next;
-                    if (sentenceToCheck == nullptr) {
-                        return false;
-                    }
-                }
-            }
-            else if (pattern.sentenceOffset < 0) {
-                for (int i = 0; i > pattern.sentenceOffset; i--) {
-                    sentenceToCheck = sentenceToCheck->prev;
-                    if (sentenceToCheck == nullptr) {
-                        return false;
-                    }
-                }
-            }
-            auto checkAnyOf = [&]<typename ContainerType>(const ContainerType & container) -> bool
-            {
-                return std::ranges::any_of(container, [&](const auto& item)
-                    {
-                        if constexpr (IsMapLike<ContainerType>) {
-                            return checkString(pattern.conditionReg, item.second);
-                        }
-                        else {
-                            return checkString(pattern.conditionReg, item);
-                        }
-                    });
-            };
-            switch (pattern.conditionTarget) {
-            case CachePart::Names:
-                return checkAnyOf(sentenceToCheck->names);
-            case CachePart::NamesPreview:
-                return checkAnyOf(sentenceToCheck->names_preview);
-            case CachePart::Problems:
-                return checkAnyOf(sentenceToCheck->problems);
-            case CachePart::OtherInfo:
-                return checkAnyOf(sentenceToCheck->other_info);
-            default:
-                return checkString(pattern.conditionReg, chooseStringRef(sentenceToCheck, pattern.conditionTarget));
-            }
-            return false;
-        });
 }
 
 bool cmpVer(const std::string& latestVer, const std::string& currentVer, bool& isCompatible)

@@ -174,7 +174,7 @@ retranslKeys 语法示例
 # 如果想对指定原文/译文进行重翻，请通过内联表数组指定 conditionTarget 和 conditionReg
 retranslKeys = [
   #"残留日文",
-  [{ conditionTarget = 'orig_text', conditionReg = '^(?!.*隠さん).*$'},
+  [{ conditionTarget = 'orig_text', conditionReg = '^(?![\S\s]*隠さん)[\S\s]*$'},
    { conditionTarget = 'trans_preview', conditionReg = '隐同学' }], # 重翻所有 原文中不含'隠さん'且译文中含'隐同学' 的句子
   "翻译失败", # 等效于 [{ conditionTarget = 'problems', conditionReg = '翻译失败' }]
 ]
@@ -398,7 +398,7 @@ GalTransl++在文件支持和插件支持上仍处于起步阶段，也不排除
 
 ### 添加文件处理器 (Translator)
 
-如你所见，GalTransl++的核心代码文件数量不超过二十个，接口也十分简单。
+如你所见，GalTransl++的核心代码文件数量~~不超过二十个~~(现在大抵是超了)，接口也十分简单。
 
 由于所有的文件处理器需直接/间接继承自 `ITranslator`，如无特殊情况，一般直接继承 `NormalJsonTranslator` 即可。
 

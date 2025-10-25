@@ -4,10 +4,14 @@
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
 #include <toml.hpp>
+#include <sol/sol.hpp>
 
 export module Dictionary;
 
 import Tool;
+import Condition_Tool;
+import LuaManager;
+import PythonManager;
 
 namespace fs = std::filesystem;
 
@@ -33,9 +37,11 @@ export {
 
         void sort();
 
-        void setTokenizeFunc(std::function<NLPResult(const std::string&)> tokenizeFunc);
+        void setTokenizeSourceLangFunc(std::function<NLPResult(const std::string&)> tokenizeFunc) {
+            m_tokenizeSourceLangFunc = tokenizeFunc;
+        }
 
-        void loadFromFile(const fs::path& filePath);
+        void loadFromFile(const fs::path& filePath, const fs::path& projectDir, LuaManager& luaManager, bool& needReboot);
 
         std::string generatePrompt(const std::vector<Sentence*>& batch, TransEngine transEngine);
 
@@ -54,8 +60,7 @@ export {
         std::shared_ptr<icu::RegexPattern> searchReg;
 
         // 条件字典相关
-        bool isConditional;
-        GPPCondition dictCondition;
+        CheckSeCondFunc dictCondition;
     };
 
     class NormalDictionary {
@@ -67,7 +72,7 @@ export {
 
         NormalDictionary(std::shared_ptr<spdlog::logger> logger) : m_logger(logger) {}
 
-        void loadFromFile(const fs::path& filePath);
+        void loadFromFile(const fs::path& filePath, const fs::path& projectDir, LuaManager& luaManager, bool& needReboot);
 
         void sort();
 
@@ -86,10 +91,6 @@ void GptDictionary::sort() {
             }
             return a.searchStr.length() > b.searchStr.length();
         });
-}
-
-void GptDictionary::setTokenizeFunc(std::function<NLPResult(const std::string&)> tokenizeFunc) {
-    m_tokenizeSourceLangFunc = tokenizeFunc;
 }
 
 std::string GptDictionary::generatePrompt(const std::vector<Sentence*>& batch, TransEngine transEngine) {
@@ -159,7 +160,7 @@ std::string GptDictionary::generatePrompt(const std::vector<Sentence*>& batch, T
     return {};
 }
 
-void GptDictionary::loadFromFile(const fs::path& filePath) {
+void GptDictionary::loadFromFile(const fs::path& filePath, const fs::path& projectDir, LuaManager& luaManager, bool& needReboot) {
     if (!fs::exists(filePath)) {
         m_logger->error("GPT 字典文件不存在: {}", wide2Ascii(filePath));
         return;
@@ -211,9 +212,6 @@ std::string GptDictionary::doReplace(const Sentence* se, CachePart targetToModif
 }
 
 void GptDictionary::checkDicUse(Sentence* sentence, CachePart base, CachePart check) {
-    if (!m_tokenizeSourceLangFunc) {
-        throw std::runtime_error("分词器 未初始化，无法进行 GPT 字典检查");
-    }
     const std::string& origText = chooseStringRef(sentence, base);
     const std::string& transView = chooseStringRef(sentence, check);
     for (const auto& entry : m_entries) {
@@ -260,7 +258,7 @@ void GptDictionary::checkDicUse(Sentence* sentence, CachePart base, CachePart ch
 
 
 
-void NormalDictionary::loadFromFile(const fs::path& filePath) {
+void NormalDictionary::loadFromFile(const fs::path& filePath, const fs::path& projectDir, LuaManager& luaManager, bool& needReboot) {
     if (!fs::exists(filePath)) {
         m_logger->warn("字典文件不存在: {}", wide2Ascii(filePath));
         return;
@@ -288,10 +286,10 @@ void NormalDictionary::loadFromFile(const fs::path& filePath) {
                 continue;
             }
 
-            UErrorCode status = U_ZERO_ERROR;
             if (entry.isReg) {
+                UErrorCode status = U_ZERO_ERROR;
                 icu::UnicodeString ustr(icu::UnicodeString::fromUTF8(str));
-                entry.searchReg.reset(icu::RegexPattern::compile(ustr, 0, status));
+                entry.searchReg = std::shared_ptr<icu::RegexPattern>(icu::RegexPattern::compile(ustr, 0, status));
                 if (U_FAILURE(status)) {
                     throw std::runtime_error(std::format("Normal 字典文件格式错误(正则表达式错误): {}  ——  {}", wide2Ascii(filePath), str));
                 }
@@ -302,19 +300,12 @@ void NormalDictionary::loadFromFile(const fs::path& filePath) {
             
             entry.replaceStr = el.contains("rep") ? el.at("rep").as_string() : el.at("replaceStr").as_string();
             entry.priority = toml::find_or(el, "priority", 0);
-            entry.isConditional = el.contains("conditionTarget") && !(el.at("conditionTarget").as_string().empty())
-                && el.contains("conditionReg") && !(el.at("conditionReg").as_string().empty());
 
-            if (!entry.isConditional) {
-                m_entries.push_back(entry);
-                count++;
-                continue;
+            if (getConditionType(el) != ConditionType::None) {
+                entry.dictCondition = getCheckCondFunc(el, projectDir, luaManager, m_logger, needReboot);
             }
-            else {
-                entry.dictCondition = createGppCondition(el);
-                m_entries.push_back(entry);
-                count++;
-            }
+            m_entries.push_back(entry);
+            count++;
             
         }
     }
@@ -352,7 +343,7 @@ std::string NormalDictionary::doReplace(const Sentence* sentence, CachePart targ
     for (const auto& entry : m_entries
         | std::views::filter([&](const auto& entry)
             {
-                return !entry.isConditional || checkCondition(entry.dictCondition, sentence);
+                return !entry.dictCondition.operator bool() || entry.dictCondition(sentence);
             })) 
     {
         if (entry.isReg) {

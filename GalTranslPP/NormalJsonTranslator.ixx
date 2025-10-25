@@ -10,19 +10,20 @@
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
-#include <unicode/regex.h>
 #include <toml.hpp>
 #include <ctpl_stl.h>
+#include <sol/sol.hpp>
 
 export module NormalJsonTranslator;
 
 import <nlohmann/json.hpp>;
 import APIPool;
+import Condition_Tool;
 import Dictionary;
 import DictionaryGenerator;
 import ProblemAnalyzer;
-import IPlugin;
 import NJ_ImplTool;
+import LuaManager;
 import PythonManager;
 export import ITranslator;
 
@@ -73,10 +74,11 @@ export {
         std::string m_splitFile;
         int m_splitFileNum;
         std::string m_linebreakSymbol;
-        std::vector<GPPCondition> m_retranslKeys;
+        std::vector<CheckSeCondFunc> m_retranslKeys;
         // first: 要忽略的 problem 正则表达式 pattern，second: 忽略条件
-        using SkipProblemCondition = std::pair<std::shared_ptr<icu::RegexPattern>, std::optional<GPPCondition>>;
+        using SkipProblemCondition = std::pair<std::shared_ptr<icu::RegexPattern>, std::optional<CheckSeCondFunc>>;
         std::vector<SkipProblemCondition> m_skipProblems;
+        LuaManager m_luaManager;
 
         bool m_needsCombining = false;
         // 输入分割文件相对路径到原始json相对路径的映射
@@ -88,10 +90,8 @@ export {
         toml::ordered_value m_problemOverview = toml::array{};
         ordered_json m_problemOverviewJson = ordered_json::array();
         std::function<void(fs::path)> m_onFileProcessed;
-        std::function<void()> m_releaseModuleFunc;
         std::shared_mutex m_cacheMutex;
         std::mutex m_outputMutex;
-        std::mutex m_tokenizeFuncMutex;
 
         APIPool m_apiPool;
         GptDictionary m_gptDictionary;
@@ -119,9 +119,6 @@ export {
 
         virtual ~NormalJsonTranslator() override
         {
-            if (m_releaseModuleFunc) {
-                m_releaseModuleFunc();
-            }
             m_logger->info("所有任务已完成！NormalJsonTranslator结束。");
         }
 
@@ -134,7 +131,7 @@ module :private;
 NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger,
     std::optional<fs::path> inputDir, std::optional<fs::path> inputCacheDir,
     std::optional<fs::path> outputDir, std::optional<fs::path> outputCacheDir) :
-    m_projectDir(projectDir), m_controller(controller), m_logger(logger),
+    m_projectDir(projectDir), m_controller(controller), m_logger(logger), m_luaManager(logger),
     m_apiPool(logger), m_gptDictionary(logger), m_preDictionary(logger), m_postDictionary(logger), m_problemAnalyzer(logger)
 {
     m_inputDir = inputDir.value_or(m_projectDir / L"gt_input");
@@ -252,45 +249,42 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         m_smartRetry = toml::find_or(configData, "common", "smartRetry", true);
         m_checkQuota = toml::find_or(configData, "common", "checkQuota", true);
 
-        const std::string& tokenizerBackend = toml::find_or(configData, "common", "tokenizerBackend", "MeCab");
+        // 需要 tokenizeSourceLangFunc
+        if (m_transEngine != TransEngine::DumpName) {
+            const std::string& tokenizerBackend = toml::find_or(configData, "common", "tokenizerBackend", "MeCab");
 
-        if (tokenizerBackend == "MeCab") {
-            const std::string& mecabDictDir = toml::find_or(configData, "common", "mecabDictDir", "BaseConfig/mecabDict/mecab-ipadic-utf8");
-            m_logger->info("正在检查 MeCab 环境...");
-            m_tokenizeSourceLangFunc = getMeCabTokenizeFunc(mecabDictDir, m_logger);
-            m_logger->info("MeCab 环境检查完毕。");
-        }
-        else if (tokenizerBackend == "spaCy") {
-            const std::string& spaCyModelName = toml::find_or(configData, "common", "spaCyModelName", "ja_core_news_sm");
-            m_logger->info("正在检查 spaCy 环境...");
-            m_tokenizeSourceLangFunc = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, needReboot, m_logger);
-            m_logger->info("spaCy 环境检查完毕。");
-            m_releaseModuleFunc = []()
-                {
-                    NLPManager::getInstance().releaseModule("tokenizer_spacy");
-                };
-        }
-        else if (tokenizerBackend == "Stanza") {
-            const std::string& stanzaLang = toml::find_or(configData, "common", "stanzaLang", "zh");
-            m_logger->info("正在检查 Stanza 环境...");
-            m_tokenizeSourceLangFunc = getNLPTokenizeFunc({ "stanza" }, "tokenizer_stanza", stanzaLang, needReboot, m_logger);
-            m_logger->info("Stanza 环境检查完毕。");
-            m_releaseModuleFunc = []()
-                {
-                    NLPManager::getInstance().releaseModule("tokenizer_stanza");
-                };
-        }
-        else {
-            throw std::invalid_argument("无效的 tokenizerBackend");
+            if (tokenizerBackend == "MeCab") {
+                const std::string& mecabDictDir = toml::find_or(configData, "common", "mecabDictDir", "BaseConfig/mecabDict/mecab-ipadic-utf8");
+                m_logger->info("正在检查 MeCab 环境...");
+                m_tokenizeSourceLangFunc = getMeCabTokenizeFunc(mecabDictDir, m_logger);
+                m_logger->info("MeCab 环境检查完毕。");
+            }
+            else if (tokenizerBackend == "spaCy") {
+                const std::string& spaCyModelName = toml::find_or(configData, "common", "spaCyModelName", "ja_core_news_sm");
+                m_logger->info("正在检查 spaCy 环境...");
+                m_tokenizeSourceLangFunc = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, m_logger, needReboot);
+                m_logger->info("spaCy 环境检查完毕。");
+            }
+            else if (tokenizerBackend == "Stanza") {
+                const std::string& stanzaLang = toml::find_or(configData, "common", "stanzaLang", "zh");
+                m_logger->info("正在检查 Stanza 环境...");
+                m_tokenizeSourceLangFunc = getNLPTokenizeFunc({ "stanza" }, "tokenizer_stanza", stanzaLang, m_logger, needReboot);
+                m_logger->info("Stanza 环境检查完毕。");
+            }
+            else {
+                throw std::invalid_argument("无效的 tokenizerBackend: " + tokenizerBackend);
+            }
+            m_gptDictionary.setTokenizeSourceLangFunc(m_tokenizeSourceLangFunc);
         }
 
-        m_gptDictionary.setTokenizeFunc(m_tokenizeSourceLangFunc);
-
-        const auto& textPrePlugins = toml::find<
-            std::optional<std::vector<std::string>>
-        >(configData, "plugins", "textPrePlugins");
-        if (textPrePlugins) {
-            m_prePlugins = registerPlugins(*textPrePlugins, m_projectDir, m_logger, configData);
+        // 需要预处理
+        if (m_transEngine != TransEngine::DumpName) {
+            const auto& textPrePlugins = toml::find<
+                std::optional<std::vector<std::string>>
+            >(configData, "plugins", "textPrePlugins");
+            if (textPrePlugins) {
+                m_prePlugins = registerPlugins(*textPrePlugins, m_projectDir, m_luaManager, m_logger, configData);
+            }
         }
 
         // 需要后处理
@@ -299,15 +293,8 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                 std::optional<std::vector<std::string>>
             >(configData, "plugins", "textPostPlugins");
             if (textPostPlugins) {
-                m_postPlugins = registerPlugins(*textPostPlugins, m_projectDir, m_logger, configData);
+                m_postPlugins = registerPlugins(*textPostPlugins, m_projectDir, m_luaManager, m_logger, configData);
             }
-        }
-
-        needReboot = needReboot 
-            || std::ranges::any_of(m_prePlugins, [](const auto& plugin) { return plugin->needReboot(); }) 
-            || std::ranges::any_of(m_postPlugins, [](const auto& plugin) { return plugin->needReboot(); });
-        if (needReboot) {
-            throw std::runtime_error("需要重启程序以应用新安装的 Python 模块");
         }
 
         const auto& problemList = toml::find<
@@ -324,7 +311,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
         if (retranslKeys) {
             for (const auto& elem : *retranslKeys) {
                 if (elem.is_string()) {
-                    ConditionPattern pattern;
+                    GppConditionPattern pattern;
                     pattern.conditionTarget = CachePart::Problems;
                     icu::UnicodeString ustr = icu::UnicodeString::fromUTF8(elem.as_string());
                     UErrorCode status = U_ZERO_ERROR;
@@ -332,13 +319,19 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                     if (U_FAILURE(status)) {
                         throw std::runtime_error(std::format("retranslKeys 正则表达式 [{}] 编译失败", elem.as_string()));
                     }
-                    m_retranslKeys.push_back(GPPCondition{ pattern });
+                    GPPCondition cond{ pattern };
+                    CheckSeCondFunc checkFunc = [=](const Sentence* se) -> bool
+                        {
+                            return checkGppCondition(cond, se);
+                        };
+                    m_retranslKeys.push_back(std::move(checkFunc));
                 }
-                else if (elem.is_array()) {
-                    m_retranslKeys.push_back(createGppCondition(elem));
+                else if (elem.is_array() || elem.is_table()) {
+                    CheckSeCondFunc checkFunc = getCheckCondFunc(elem, m_projectDir, m_luaManager, m_logger, needReboot);
+                    m_retranslKeys.push_back(std::move(checkFunc));
                 }
                 else {
-                    throw std::invalid_argument("retranslKeys 元素必须是字符串或数组");
+                    throw std::invalid_argument("retranslKeys 的元素必须是字符串、表或表数组");
                 }
             }
         }
@@ -357,7 +350,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                 };
             for (const auto& elem : *skipProblems) {
                 if (elem.is_string()) {
-                    m_skipProblems.push_back(std::make_pair(compileProblemRegexFunc(elem.as_string()), std::nullopt));
+                    m_skipProblems.push_back({ compileProblemRegexFunc(elem.as_string()), std::nullopt });
                 }
                 else if (elem.is_array() && elem.size() > 0) {
                     if (!elem[0].is_string()) {
@@ -365,11 +358,15 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                     }
                     std::shared_ptr<icu::RegexPattern> pattern = compileProblemRegexFunc(elem[0].as_string());
                     if (elem.size() == 1) {
-                        m_skipProblems.push_back(std::make_pair(pattern, std::nullopt));
+                        m_skipProblems.push_back({ pattern, std::nullopt });
                     }
                     else {
-                        m_skipProblems.push_back(std::make_pair(pattern, createGppCondition(elem)));
+                        CheckSeCondFunc checkFunc = getCheckCondFunc(elem, m_projectDir, m_luaManager, m_logger, needReboot);
+                        m_skipProblems.push_back({ pattern, std::move(checkFunc) });
                     }
+                }
+                else {
+                    throw std::invalid_argument("skipProblems 的元素必须是字符串或表数组");
                 }
             }
         }
@@ -413,13 +410,13 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                 for (const auto& dictFileName : *dictFileNames) {
                     fs::path dictPath = m_projectDir / ascii2Wide(dictFileName);
                     if (fs::exists(dictPath)) {
-                        dict.loadFromFile(dictPath);
+                        dict.loadFromFile(dictPath, m_projectDir, m_luaManager, needReboot);
                         continue;
                     }
                     else {
                         dictPath = defaultDictFolderPath / ascii2Wide(dictType) / ascii2Wide(dictFileName);
                         if (fs::exists(dictPath)) {
-                            dict.loadFromFile(dictPath);
+                            dict.loadFromFile(dictPath, m_projectDir, m_luaManager, needReboot);
                         }
                     }
                 }
@@ -486,6 +483,13 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
             else {
                 throw std::invalid_argument(std::format("Prompt.toml 中缺少 {} 键", userKey));
             }
+        }
+
+        needReboot = needReboot
+            || std::ranges::any_of(m_prePlugins, [](const auto& plugin) { return plugin->needReboot(); })
+            || std::ranges::any_of(m_postPlugins, [](const auto& plugin) { return plugin->needReboot(); });
+        if (needReboot) {
+            throw std::runtime_error("需要重启程序以应用新安装的 Python 模块");
         }
     }
     catch (const toml::exception& e) {
@@ -614,8 +618,12 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
         }
     }
 
-    m_problemAnalyzer.analyze(se, m_gptDictionary, m_targetLang);
-    std::erase_if(se->problems, [&](const auto& problem)
+    if (!se->notAnalyzeProblem) {
+        m_problemAnalyzer.analyze(se, m_gptDictionary, m_targetLang);
+    }
+
+    
+    std::erase_if(se->problems, [&](auto& problem)
         {
             return std::ranges::any_of(m_skipProblems, [&](const SkipProblemCondition& skipProblemCondition)
                 {
@@ -624,7 +632,14 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
                         return problemMatch;
                     }
                     else {
-                        return problemMatch && checkCondition(skipProblemCondition.second.value(), se);
+                        auto checkFunc = [&]() -> bool
+                            {
+                                problem = "Current problem:" + problem;
+                                bool result = skipProblemCondition.second.value()(se);
+                                problem = problem.substr(16);
+                                return result;
+                            };
+                        return problemMatch && checkFunc();
                     }
                 });
         });
@@ -946,7 +961,7 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
             if (item.contains("problems")) {
                 se.problems = item["problems"].get<std::vector<std::string>>();
             }
-            if (m_transEngine != TransEngine::Rebuild && hasRetranslKey(m_retranslKeys, item)) {
+            if (m_transEngine != TransEngine::Rebuild && hasRetranslKey(m_retranslKeys, item, &se)) {
                 toTranslate.push_back(&se);
                 continue;
             }
@@ -1375,17 +1390,16 @@ void NormalJsonTranslator::run() {
         std::string problemOverviewStr = "\n\n```\n问题概览:\n";
         size_t problemCount = 0;
         for (const auto& [problem, files] : problemMap) {
-            problemCount++;
             std::string fileStr = "(";
-            size_t count = 0;
+            size_t fileCount = 0;
             for (const auto& file : files) {
-                if (count == 3) {
+                if (fileCount == 3) {
                     break;
                 }
                 fileStr += file + ", ";
-                count++;
+                fileCount++;
             }
-            if (count == files.size()) {
+            if (fileCount == files.size()) {
                 fileStr.pop_back();
                 fileStr.pop_back();
                 fileStr += ")";
@@ -1393,7 +1407,7 @@ void NormalJsonTranslator::run() {
             else {
                 fileStr += "...)";
             }
-            problemOverviewStr += std::format("{}. {}  |  {}\n", problemCount++, problem, fileStr);
+            problemOverviewStr += std::format("{}. {}  |  {}\n", ++problemCount, problem, fileStr);
         }
         m_logger->error("{}问题概览结束\n```\n", problemOverviewStr);
     }

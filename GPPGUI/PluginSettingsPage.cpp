@@ -7,6 +7,9 @@
 #include "ElaText.h"
 #include "ElaPushButton.h"
 #include "ElaScrollPageArea.h"
+#include "ElaPlainTextEdit.h"
+#include "ElaMessageBar.h"
+#include "ElaToolTip.h"
 
 #include "TLFCfgPage.h"
 #include "PostFull2HalfCfgPage.h"
@@ -29,27 +32,9 @@ PluginSettingsPage::~PluginSettingsPage()
 
 void PluginSettingsPage::apply2Config()
 {
-    _skipTransCfgPage->apply2Config();
-    _tlfCfgPage->apply2Config();
-    _pf2hCfgPage->apply2Config();
-
-    toml::array prePlugins;
-    for (PluginItemWidget* item : _prePluginItems) {
-        if (!item->isToggled()) {
-            continue;
-        }
-        prePlugins.push_back(item->getPluginName().toStdString());
+    if (_applyFunc) {
+        _applyFunc();
     }
-    insertToml(_projectConfig, "plugins.textPrePlugins", prePlugins);
-
-    toml::array postPlugins;
-    for (PluginItemWidget* item : _postPluginItems) {
-        if (!item->isToggled()) {
-            continue;
-        }
-        postPlugins.push_back(item->getPluginName().toStdString());
-    }
-    insertToml(_projectConfig, "plugins.textPostPlugins", postPlugins);
 }
 
 void PluginSettingsPage::_setupUI()
@@ -59,14 +44,16 @@ void PluginSettingsPage::_setupUI()
 
     // 前处理插件列表
     ElaText* preTitle = new ElaText(mainWidget);
-    preTitle->setText(tr("前处理插件设置(由上至下执行)"));
+    preTitle->setText(tr("预处理插件设置(由上至下执行)"));
     preTitle->setTextPixelSize(18);
+    mainLayout->addWidget(preTitle);
 
     QWidget* preListContainer = new QWidget(mainWidget);
     _prePluginListLayout = new QVBoxLayout(preListContainer);
 
     // 插件名称列表
     QStringList prePluginNames = { "SkipTrans" };
+    toml::array customPrePlugins;
     const auto& prePluginsArr = toml::find_or_default<toml::array>(_projectConfig, "plugins", "textPrePlugins");
     for (const auto& pluginNameStr : prePluginsArr) {
         if (!pluginNameStr.is_string()) {
@@ -74,6 +61,7 @@ void PluginSettingsPage::_setupUI()
         }
         QString pluginName = QString::fromStdString(pluginNameStr.as_string());
         if (!prePluginNames.contains(pluginName)) {
+            customPrePlugins.push_back(pluginNameStr);
             continue;
         }
         PluginItemWidget* item = new PluginItemWidget(pluginName, this);
@@ -86,6 +74,9 @@ void PluginSettingsPage::_setupUI()
         // 防止重复添加
         prePluginNames.removeOne(pluginName);
     }
+
+    mainLayout->addWidget(preListContainer);
+    mainLayout->addSpacing(10);
 
     // 遍历剩下的名称列表，创建并添加 PluginItemWidget
     for (const QString& name : prePluginNames)
@@ -104,6 +95,7 @@ void PluginSettingsPage::_setupUI()
     ElaText* postTitle = new ElaText(mainWidget);
     postTitle->setText(tr("后处理插件设置(由上至下执行)"));
     postTitle->setTextPixelSize(18);
+    mainLayout->addWidget(postTitle);
 
     // 创建一个容器用于放置列表
     QWidget* postListContainer = new QWidget(mainWidget);
@@ -111,6 +103,7 @@ void PluginSettingsPage::_setupUI()
 
     // 插件名称列表
     QStringList postPluginNames = { "TextPostFull2Half", "TextLinebreakFix" };
+    toml::array customPostPlugins;
     // 先处理项目已经启用的插件
     const auto& postPluginsArr = toml::find_or_default<toml::array>(_projectConfig, "plugins", "textPostPlugins");
     for (const auto& pluginNameStr : postPluginsArr) {
@@ -119,6 +112,7 @@ void PluginSettingsPage::_setupUI()
         }
         QString pluginName = QString::fromStdString(pluginNameStr.as_string());
         if (!postPluginNames.contains(pluginName)) {
+            customPostPlugins.push_back(pluginNameStr);
             continue;
         }
         PluginItemWidget* item = new PluginItemWidget(pluginName, this);
@@ -144,19 +138,59 @@ void PluginSettingsPage::_setupUI()
         connect(item, &PluginItemWidget::moveDownRequested, this, &PluginSettingsPage::_onPostMoveDown);
         connect(item, &PluginItemWidget::settingsRequested, this, &PluginSettingsPage::_onPostSettings);
     }
+    mainLayout->addWidget(postListContainer);
 
     // 初始化按钮状态
     _updatePreMoveButtonStates();
     _updatePostMoveButtonStates();
 
-    mainLayout->addWidget(preTitle);
-    mainLayout->addWidget(preListContainer);
+    auto createCustomPluginsPlainTextEditFunc = 
+        [=](const QString& title, const std::string& configKey, const toml::array& customPlugins) -> std::function<void(toml::array&)>
+        {
+            ElaText* customPrePluginsTitle = new ElaText(title, 18, mainWidget);
+            customPrePluginsTitle->setWordWrap(false);
+            mainLayout->addWidget(customPrePluginsTitle);
+            ElaPlainTextEdit* customPrePluginsEdit = new ElaPlainTextEdit(mainWidget);
+            customPrePluginsEdit->setMinimumHeight(150);
+            QFont font = customPrePluginsEdit->font();
+            font.setPixelSize(14);
+            customPrePluginsEdit->setFont(font);
+            customPrePluginsEdit->setPlainText(QString::fromStdString(toml::format(toml::ordered_value{ toml::ordered_table{{ configKey, customPlugins }} })));
+            customPrePluginsEdit->moveCursor(QTextCursor::Start);
+            mainLayout->addWidget(customPrePluginsEdit);
+
+            std::function<void(toml::array&)> saveFunc = [=](toml::array& arr)
+                {
+                    try {
+                        toml::ordered_value newCustomPluginsTbl = toml::parse_str<toml::ordered_type_config>(customPrePluginsEdit->toPlainText().toStdString());
+                        auto& newCustomPluginsArr = newCustomPluginsTbl[configKey];
+                        if (newCustomPluginsArr.is_array()) {
+                            for (const auto& newCusPlugin : newCustomPluginsArr.as_array() 
+                                | std::views::filter([](const auto& plugin) { return plugin.is_string(); })) {
+                                for (auto it = arr.begin(); it != arr.end(); ++it) {
+                                    if (it->as_string() == newCusPlugin.as_string()) {
+                                        arr.erase(it);
+                                        break;
+                                    }
+                                }
+                                arr.push_back(newCusPlugin);
+                            }
+                        }
+                    }
+                    catch (...) {
+                        ElaMessageBar::error(ElaMessageBarType::TopLeft, tr("解析错误"), QString::fromStdString(configKey) + tr(" 不符合 toml 规范"), 3000);
+                    }
+                };
+            return saveFunc;
+        };
+
     mainLayout->addSpacing(10);
-    mainLayout->addWidget(postTitle);
-    mainLayout->addWidget(postListContainer);
+    auto saveCustomPrePluginsFunc = createCustomPluginsPlainTextEditFunc(tr("自定义预处理插件"), "customTextPrePlugins", customPrePlugins);
+    auto saveCustomPostPluginsFunc = createCustomPluginsPlainTextEditFunc(tr("自定义后处理插件"), "customTextPostPlugins", customPostPlugins);
+    
     mainLayout->addStretch();
 
-    addCentralWidget(mainWidget);
+    addCentralWidget(mainWidget, true, true, 0);
 
     // 这里的顺序和_onPre/PostSettings 中的navigation索引对应
     _pf2hCfgPage = new PostFull2HalfCfgPage(_projectConfig, this);
@@ -165,6 +199,34 @@ void PluginSettingsPage::_setupUI()
     addCentralWidget(_tlfCfgPage, true, true, 0);
     _skipTransCfgPage = new SkipTransCfgPage(_projectConfig, this);
     addCentralWidget(_skipTransCfgPage, true, true, 0);
+
+
+
+    _applyFunc = [=]()
+        {
+            _skipTransCfgPage->apply2Config();
+            _tlfCfgPage->apply2Config();
+            _pf2hCfgPage->apply2Config();
+
+            toml::array prePlugins;
+            for (PluginItemWidget* item : _prePluginItems) {
+                if (!item->isToggled()) {
+                    continue;
+                }
+                prePlugins.push_back(item->getPluginName().toStdString());
+            }
+            toml::array postPlugins;
+            for (PluginItemWidget* item : _postPluginItems) {
+                if (!item->isToggled()) {
+                    continue;
+                }
+                postPlugins.push_back(item->getPluginName().toStdString());
+            }
+            saveCustomPrePluginsFunc(prePlugins);
+            saveCustomPostPluginsFunc(postPlugins);
+            insertToml(_projectConfig, "plugins.textPrePlugins", prePlugins);
+            insertToml(_projectConfig, "plugins.textPostPlugins", postPlugins);
+        };
 }
 
 void PluginSettingsPage::_onPostSettings(PluginItemWidget* item)

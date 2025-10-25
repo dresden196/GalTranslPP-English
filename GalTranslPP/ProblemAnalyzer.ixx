@@ -40,9 +40,9 @@ export {
 
         std::vector<std::string> m_punctsToCheck;
         std::function<std::string(const std::string&)> m_traditionalChineseExtractor;
-        std::shared_ptr<CodePageChecker>  m_codePageChecker;
         std::shared_ptr<spdlog::logger> m_logger;
         double m_probabilityThreshold;
+        std::string m_codePage;
 
 		Problems m_problems;
 
@@ -62,9 +62,6 @@ export {
 module :private;
 
 void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const std::string& targetLang) {
-    if (sentence->other_info.contains("SkipTrans")) {
-        return;
-    }
     if (sentence->translated_preview.empty()) {
         if (!sentence->pre_processed_text.empty() && !sentence->pre_translated_text.empty()) {
             sentence->problems.push_back("翻译为空");
@@ -238,10 +235,11 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
 
     // 8. 非法字符
     if (m_problems.invalidChar.use) {
+        static thread_local std::unique_ptr<CodePageChecker> codePageChecker = std::make_unique<CodePageChecker>(m_codePage, m_logger);
         const std::string& transView = chooseStringRef(sentence, m_problems.invalidChar.check);
-        const std::string& unmappedChars = m_codePageChecker->findUnmappableChars(transView);
+        const std::string& unmappedChars = codePageChecker->findUnmappableChars(transView);
         if (!unmappedChars.empty()) {
-            sentence->problems.push_back("非 " + m_codePageChecker->getCodePage() + " 字符: " + unmappedChars);
+            sentence->problems.push_back("非 " + m_codePage + " 字符: " + unmappedChars);
         }
     }
 
@@ -295,7 +293,7 @@ void ProblemAnalyzer::loadProblems(const std::vector<std::string>& problemList, 
 		}
         else if (problem == "非法字符") {
             m_problems.invalidChar.use = true;
-            m_codePageChecker = std::make_shared<CodePageChecker>(codePage, m_logger);
+            m_codePage = codePage;
         }
 		else {
 			throw std::invalid_argument("未知问题: " + problem);

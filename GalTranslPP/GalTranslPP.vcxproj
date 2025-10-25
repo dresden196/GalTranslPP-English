@@ -76,6 +76,12 @@
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <VcpkgUseStatic>false</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>false</VcpkgUseStatic>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -148,15 +154,19 @@
     <ClCompile Include="API_Tool.ixx" />
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="CodePageChecker.ixx" />
+    <ClCompile Include="Condition_Tool.ixx" />
     <ClCompile Include="Dictionary.ixx" />
     <ClCompile Include="DictionaryGenerator.ixx" />
     <ClCompile Include="EpubTranslator.ixx" />
     <ClCompile Include="GPPDefines.ixx" />
-    <ClCompile Include="IPlugin.cpp" />
     <ClCompile Include="IPlugin.ixx" />
     <ClCompile Include="ITranslator.cpp" />
     <ClCompile Include="ITranslator.ixx" />
+    <ClCompile Include="LuaManager.cpp" />
+    <ClCompile Include="LuaManager.ixx" />
     <ClCompile Include="NJ_ImplTool.ixx" />
+    <ClCompile Include="NJ_ImplTool.cpp" />
+    <ClCompile Include="PythonManager.cpp" />
     <ClCompile Include="PythonManager.ixx" />
     <ClCompile Include="NormalJsonTranslator.ixx" />
     <ClCompile Include="PDFTranslator.ixx" />

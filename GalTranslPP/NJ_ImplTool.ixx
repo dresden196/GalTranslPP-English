@@ -1,19 +1,27 @@
 module;
 
 #include <spdlog/spdlog.h>
+#include <toml.hpp>
+#include <sol/sol.hpp>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
 #include <nlohmann/json.hpp>
 
 export module NJ_ImplTool;
 
+export import IPlugin;
 export import Tool;
+export import LuaManager;
 
 using json = nlohmann::json;
 using ordered_json = nlohmann::ordered_json;
 namespace fs = std::filesystem;
 
 export {
+
+    std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::string>& pluginNames, const fs::path& projectDir,
+        LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger,
+        const toml::value& projectConfig);
 
     std::string generateCacheKey(const Sentence* s);
 
@@ -27,7 +35,7 @@ export {
     void combineOutputFiles(const fs::path& originalRelFilePath, const std::map<fs::path, bool>& splitFileParts,
         std::shared_ptr<spdlog::logger> logger, const fs::path& outputCacheDir, const fs::path& outputDir);
 
-    bool hasRetranslKey(const std::vector<GPPCondition>& retranslKeys, const json& item);
+    bool hasRetranslKey(const std::vector<CheckSeCondFunc>& retranslKeys, const json& item, const Sentence* currentSe);
 
     void saveCache(const std::vector<Sentence>& allSentences, const fs::path& cachePath);
 
@@ -432,7 +440,7 @@ void combineOutputFiles(const fs::path& originalRelFilePath, const std::map<fs::
 }
 
 
-bool hasRetranslKey(const std::vector<GPPCondition>& retranslKeys, const json& item) {
+bool hasRetranslKey(const std::vector<CheckSeCondFunc>& retranslKeys, const json& item, const Sentence* currentSe) {
     if (retranslKeys.empty()) {
         return false;
     }
@@ -459,10 +467,12 @@ bool hasRetranslKey(const std::vector<GPPCondition>& retranslKeys, const json& i
     }
     se.translated_by = item.value("translated_by", "");
     se.translated_preview = item.value("translated_preview", "");
+    se.prev = currentSe->prev;
+    se.next = currentSe->next;
 
-    return std::ranges::any_of(retranslKeys, [&](const GPPCondition& key)
+    return std::ranges::any_of(retranslKeys, [&](const CheckSeCondFunc& key)
         {
-            return checkCondition(key, &se);
+            return key(&se);
         });
 }
 

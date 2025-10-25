@@ -8,6 +8,7 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 
+
 #include "ElaContentDialog.h"
 #include "ElaDockWidget.h"
 #include "ElaMenu.h"

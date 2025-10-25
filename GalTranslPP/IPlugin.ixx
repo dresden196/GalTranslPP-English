@@ -1,7 +1,6 @@
 module;
 
 #include <spdlog/spdlog.h>
-#include <toml.hpp>
 
 export module IPlugin;
 
@@ -28,7 +27,24 @@ export {
 
 		virtual ~IPlugin();
 	};
+}
 
-	std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::string>& pluginNames, const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger,
-		const toml::value& projectConfig);
+
+module :private;
+
+IPlugin::IPlugin(const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger) :
+	m_projectDir(projectDir),
+	m_logger(logger)
+{
+
+}
+
+IPlugin::~IPlugin()
+{
+
+}
+
+bool IPlugin::needReboot()
+{
+	return false;
 }

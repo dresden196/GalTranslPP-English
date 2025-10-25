@@ -127,9 +127,24 @@ bool NormalDictModel::setData(const QModelIndex& index, const QVariant& value, i
         case Column::ConditionTar:
         {
             QString str = value.toString();
-            if (entry.conditionTar == str) return false;
-            if (str != "name" && str != "orig_text" && str != "preproc_text" &&
-                str != "pretrans_text") return false;
+            if (entry.conditionTar == str) {
+                return false;
+            }
+            while (str.startsWith("prev_")) {
+                str = str.mid(5);
+            }
+            while (str.endsWith("next_")) {
+                str = str.mid(5);
+            }
+            //Name, NamePreview, Names, NamesPreview, OrigText, PreprocText, PretransText, Problems, OtherInfo, TranslatedBy, TransPreview 
+            static const QSet<QString> validNames = 
+            {
+                "name", "name_preview", "names", "names_preview", "orig_text", "preproc_text",
+                "pretrans_text", "problems", "other_info", "translated_by", "trans_preview"
+            };
+            if (!validNames.contains(str)) {
+                return false;
+            }
             entry.conditionTar = value.toString();
         }
         break;

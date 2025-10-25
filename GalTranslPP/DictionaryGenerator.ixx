@@ -11,6 +11,7 @@ export module DictionaryGenerator;
 
 import APIPool;
 import Dictionary;
+import PythonManager;
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;

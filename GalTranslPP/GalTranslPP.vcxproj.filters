@@ -46,9 +46,6 @@
     <ClCompile Include="PDFTranslator.ixx">
       <Filter>filePlugins</Filter>
     </ClCompile>
-    <ClCompile Include="IPlugin.cpp">
-      <Filter>textPlugins</Filter>
-    </ClCompile>
     <ClCompile Include="PythonManager.ixx">
       <Filter>Tools</Filter>
     </ClCompile>
@@ -64,6 +61,21 @@
     <ClCompile Include="base64.cpp">
       <Filter>Tools\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="LuaManager.ixx">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="Condition_Tool.ixx">
+      <Filter>Tools\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="NJ_ImplTool.cpp">
+      <Filter>Tools\Utils\specialized</Filter>
+    </ClCompile>
+    <ClCompile Include="PythonManager.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="LuaManager.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="filePlugins">
@@ -78,11 +90,11 @@
     <Filter Include="Tools\Utils">
       <UniqueIdentifier>{a59529ed-a8a2-4ef2-810b-aeeefe790343}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Tools\Base">
-      <UniqueIdentifier>{94d1fba6-4217-4307-b40b-b02cfaf8d984}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Tools\Utils\specialized">
       <UniqueIdentifier>{cb1a4c6b-be5d-4d19-bbc5-3de2ec63f522}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tools\Base">
+      <UniqueIdentifier>{94d1fba6-4217-4307-b40b-b02cfaf8d984}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

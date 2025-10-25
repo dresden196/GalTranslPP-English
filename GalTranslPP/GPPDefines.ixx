@@ -6,13 +6,13 @@ namespace fs = std::filesystem;
 
 export {
 
-    const std::string GPPVERSION = "2.0.2";
+    const std::string GPPVERSION = "2.0.3";
 
     const std::string PYTHONVERSTION = "1.0.0";
 
     const fs::path pluginConfigsPath = L"BaseConfig/pluginConfigs";
 
-    enum  class NameType
+    enum class NameType
     {
         None, Single, Multiple
     };
@@ -29,25 +29,92 @@ export {
         std::vector<std::string> problems;
         std::string translated_by;
         std::string translated_preview;
+        std::string originalLinebreak;
         std::map<std::string, std::string> other_info;
 
-        bool complete = false;
         NameType nameType = NameType::None;
         Sentence* prev = nullptr;
         Sentence* next = nullptr;
-        std::string originalLinebreak;
+        std::optional<bool> usePreDictInName = std::nullopt;
+        std::optional<bool> usePostDictInName = std::nullopt;
+        std::optional<bool> usePreDictInMsg = std::nullopt;
+        std::optional<bool> usePostDictInMsg = std::nullopt;
+        bool complete = false;
+        bool notAnalyzeProblem = false;
+
+        bool other_info_contains(const std::string& key) {
+            return other_info.contains(key);
+        }
+
+        std::string other_info_get(const std::string& key) {
+            return other_info[key];
+        }
+
+        void other_info_set(const std::string& key, const std::string& value) {
+            other_info[key] = value;
+        }
+
+        std::tuple<std::vector<std::string>, std::vector<std::string>> other_info_get_all() {
+            std::vector<std::string> keys;
+            std::vector<std::string> values;
+            for (const auto& [key, value] : other_info) {
+                keys.push_back(key);
+                values.push_back(value);
+            }
+            return std::make_tuple(keys, values);
+        }
+
+        void other_info_set_all(std::vector<std::string> keys, std::vector<std::string> values) {
+            other_info.clear();
+            for (auto [key, value] : std::views::zip(keys, values)) {
+                other_info[key] = value;
+            }
+        }
+
+        void other_info_erase(const std::string& key) {
+            other_info.erase(key);
+        }
+
+        void other_info_clear() {
+            other_info.clear();
+        }
+
+        std::optional<std::string> problems_get_by_index(int index) {
+            if (index < 0 || index >= problems.size()) {
+                return std::nullopt;
+            }
+            return problems[index];
+        }
+
+        bool problems_set_by_index(int index, const std::string& problem) {
+            if (index < 0 || index >= problems.size()) {
+                return false;
+            }
+            problems[index] = problem;
+            return true;
+        }
     };
 
-    enum  class TransEngine
+    enum class TransEngine
     {
         None, ForGalJson, ForGalTsv, ForNovelTsv, DeepseekJson, Sakura, DumpName, GenDict, Rebuild, ShowNormal
     };
 
-    enum class CachePart { None, Name, NamePreview, Names, NamesPreview, OrigText, PreprocText, PretransText, Problems, OtherInfo, TranslatedBy, TransPreview };
+    enum class CachePart 
+    { 
+        None, Name, NamePreview, Names, NamesPreview, OrigText, PreprocText, PretransText, Problems, OtherInfo, TranslatedBy, TransPreview 
+    };
+
+    enum class ConditionType
+    {
+        None, Gpp, Lua, Python
+    };
 
 
     using WordPosVec = std::vector<std::vector<std::string>>;
     using EntityVec = std::vector<std::vector<std::string>>;
     using NLPResult = std::tuple<WordPosVec, EntityVec>;
+
+    using CheckSeCondFunc = std::function<bool(const Sentence*)>;
 
 }
