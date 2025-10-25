@@ -76,6 +76,9 @@
     <ClCompile Include="LuaManager.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
+    <ClCompile Include="LuaTranslator.ixx">
+      <Filter>filePlugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="filePlugins">

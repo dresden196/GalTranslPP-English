@@ -35,10 +35,6 @@ export {
         NameType nameType = NameType::None;
         Sentence* prev = nullptr;
         Sentence* next = nullptr;
-        std::optional<bool> usePreDictInName = std::nullopt;
-        std::optional<bool> usePostDictInName = std::nullopt;
-        std::optional<bool> usePreDictInMsg = std::nullopt;
-        std::optional<bool> usePostDictInMsg = std::nullopt;
         bool complete = false;
         bool notAnalyzeProblem = false;
 

@@ -9,7 +9,7 @@ apiTimeout = 120 # 请求超时时间，单位秒
   stream = false
 
 [plugins]
-filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, i18n(尚未实现)...
+filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, MtoolJson(尚未实现)...
 
 # ForGalJson: 向AI输入json格式的对话并要求AI以json格式回复，使用 FORGALJSON_SYSTEM 和 FORGALJSON_TRANS_PROMPT_EN 作为提示词
 # ForGalTsv: 向AI输入TSV格式的对话并要求AI以TSV格式回复，使用 FORGALTSV_SYSTEM 和 FORGALTSV_TRANS_PROMPT_EN 作为提示词

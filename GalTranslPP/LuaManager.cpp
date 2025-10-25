@@ -9,6 +9,8 @@ module;
 
 module LuaManager;
 
+import PythonManager;
+
 namespace fs = std::filesystem;
 
 std::optional<std::shared_ptr<LuaStateInstance>> LuaManager::registerFunction(const std::string& scriptPath, const std::string& functionName, bool& needReboot) {
@@ -33,6 +35,10 @@ std::optional<std::shared_ptr<LuaStateInstance>> LuaManager::registerFunction(co
 			m_logger->error("Failed to load script {}: {}", scriptPath, e.what());
 			return std::nullopt;
 		}
+	}
+
+	if (functionName.empty()) {
+		return it->second;
 	}
 
 	if (!it->second->functions.contains(functionName)) {

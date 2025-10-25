@@ -7,7 +7,6 @@ module;
 export module LuaManager;
 
 import Tool;
-import PythonManager;
 export import IPlugin;
 
 namespace fs = std::filesystem;

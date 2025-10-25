@@ -38,6 +38,9 @@ int main(int argc, char* argv[])
                 }
             }
             if (!envZipPath.empty()) {
+                std::streambuf* cinbuf = std::cin.rdbuf();
+                std::streambuf* coutbuf = std::cout.rdbuf();
+                std::streambuf* cerrbuf = std::cerr.rdbuf();
                 PyConfig config;
                 PyConfig_InitPythonConfig(&config);
                 PyConfig_SetString(&config, &config.home, pyEnvPath.c_str());
@@ -70,7 +73,17 @@ int main(int argc, char* argv[])
         std::cout << "\n> ";
 
         std::string inputPathStr;
-        std::getline(std::cin, inputPathStr);
+        if (release) {
+            auto inputTaskFunc = [&]()
+                {
+                    auto builtins = py::module_::import("builtins");
+                    inputPathStr = builtins.attr("input")("").cast<std::string>();
+                };
+            PythonManager::getInstance().submitTask(std::move(inputTaskFunc)).get();
+        }
+        else {
+            std::getline(std::cin, inputPathStr);
+        }
 
         // --- 处理用户输入 ---
         if (inputPathStr.empty()) {

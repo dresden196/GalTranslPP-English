@@ -10,6 +10,7 @@ import Tool;
 import NormalJsonTranslator;
 import EpubTranslator;
 import PDFTranslator;
+import LuaTranslator;
 
 namespace fs = std::filesystem;
 
@@ -118,7 +119,16 @@ std::unique_ptr<ITranslator> createTranslator(const fs::path& projectDir, std::s
     logger->info("Logger initialized.");
     // 日志配置结束
 
-    if (filePlugin == "NormalJson") {
+    std::string filePluginLower = str2Lower(filePlugin);
+    if (filePluginLower.starts_with("lua:")) {
+        std::unique_ptr<ITranslator> translator = std::make_unique<LuaTranslator>(projectDir, filePlugin.substr(4), controller, logger);
+        return translator;
+    }
+    else if (filePluginLower.starts_with("python:")) {
+        //std::unique_ptr<ITranslator> translator = std::make_unique<PythonTranslator>(projectDir, filePlugin.substr(7), controller, logger);
+        //return translator;
+    }
+    else if (filePlugin == "NormalJson") {
         std::unique_ptr<ITranslator> translator = std::make_unique<NormalJsonTranslator>(projectDir, controller, logger);
         return translator;
     }

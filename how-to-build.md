@@ -6,10 +6,12 @@
 
 - **操作系统**: Windows 10 或 Windows 11
 - **IDE**: [Visual Studio 2026](https://visualstudio.microsoft.com/insiders/?rwnlp=zh-hans) 和 
-    VS2022(会用到 2022 的 ToolChain，如果你懂的话可以只下 VS2022 的 BuildTools 而不下其 IDE)
+
+    VS2022(会用到 2022 的 ToolChain，如果你懂的话可以只下 VS2022 的 BuildTools 而不下其 IDE，不过依然需要勾选**使用C++的桌面开发**选项)
+    ![BuildTools](img/BuildTools.png?raw=true)
   - **必需工作负载**: `使用 C++ 的桌面开发`
   - **必需工具集**: `MSVC v143` (VS 2022) 和 `MSVC v145`
-- **Python 3.12.10**: 不一定非得安装，但需要其中的 lib 和 dll
+- **Python 3.12.10**: 不一定非得安装，但需要其中的 lib 和 dll，可以只下载本仓库中的 `python-3.12.10-embed-amd64.zip`
 - **版本控制工具**: [git](https://git-scm.com/)
 
 ## 2. 安装核心依赖
@@ -49,7 +51,7 @@ cd GalTranslPP
 ### 4.1 配置 Python 库
 
 - 1、 在 `GalTranslPP` 根目录下手动创建一个名为 `lib` 的新文件夹。
-- 2、 将 Python 3.12.10 附带的 `python312.lib` 复制到刚刚创建的 `lib` 文件夹中。
+- 2、 将 Python 3.12.10 附带的 `python3.lib` 和 `python312.lib` 复制到刚刚创建的 `lib` 文件夹中。
 - 3、 将 `GalTranslPP` 文件夹中的 `Python.zip` 解压到当前文件夹，程序会用到里面的头文件。
 
 ### 4.2 配置 Visual Studio 与 Qt
@@ -105,7 +107,7 @@ cd GalTranslPP
 
 还需将一些文件复制到文件夹内程序才可正常运行。  
 
-- 0、  先将项目根目录的`Example\BaseConfig`文件夹内的`python-3.12.10-embed-amd64.zip`文件解压到当前文件夹
+- 0、 先将项目根目录的`Example\BaseConfig`文件夹内的`python-3.12.10-embed-amd64.zip`文件解压到当前文件夹
 
 ### 6.1 GPPCLI
 

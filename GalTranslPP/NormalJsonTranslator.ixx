@@ -103,7 +103,6 @@ export {
         std::vector<std::shared_ptr<IPlugin>> m_postPlugins;
 
 
-    private:
         void preProcess(Sentence* se);
 
         void postProcess(Sentence* se);
