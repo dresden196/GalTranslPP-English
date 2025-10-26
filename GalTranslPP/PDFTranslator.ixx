@@ -17,7 +17,7 @@ export {
 
     class PDFTranslator : public NormalJsonTranslator {
 
-    private:
+    protected:
 
         fs::path m_pdfInputDir;
         fs::path m_pdfOutputDir;

@@ -79,6 +79,9 @@
     <ClCompile Include="LuaTranslator.ixx">
       <Filter>filePlugins</Filter>
     </ClCompile>
+    <ClCompile Include="PythonTranslator.ixx">
+      <Filter>filePlugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="filePlugins">

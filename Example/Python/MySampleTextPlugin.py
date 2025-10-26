@@ -55,10 +55,7 @@ def init(project_dir: str):
     """
     插件初始化函数，由 C++ 调用一次。
     """
-    global logger
-    # logger 对象现在可用了
-    logger.info(f"Python plugin initialized for project: {project_dir}")
-    logger.info("This is a message from Python!")
+    logger.info(f"Python plugin initialized for project: {project_dir}")】
 
 
 def run(se: gpp_plugin_api.Sentence):

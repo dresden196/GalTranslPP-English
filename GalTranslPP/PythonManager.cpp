@@ -1,6 +1,9 @@
 module;
 
+#define _RANGES_
 #include <pybind11/stl.h>
+#include <pybind11/complex.h>
+#include <pybind11/functional.h>
 #include <pybind11/stl_bind.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/embed.h>
@@ -23,6 +26,20 @@ PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m) {
         .value("Single", NameType::Single)
         .value("Multiple", NameType::Multiple)
         .export_values(); // 允许在 Python 中直接使用 plugin_api.Single 这样的形式
+
+    // None, ForGalJson, ForGalTsv, ForNovelTsv, DeepseekJson, Sakura, DumpName, GenDict, Rebuild, ShowNormal
+    py::enum_<TransEngine>(m, "TransEngine")
+        .value("None", TransEngine::None)
+        .value("ForGalJson", TransEngine::ForGalJson)
+        .value("ForGalTsv", TransEngine::ForGalTsv)
+        .value("ForNovelTsv", TransEngine::ForNovelTsv)
+        .value("DeepseekJson", TransEngine::DeepseekJson)
+        .value("Sakura", TransEngine::Sakura)
+        .value("DumpName", TransEngine::DumpName)
+        .value("GenDict", TransEngine::GenDict)
+        .value("Rebuild", TransEngine::Rebuild)
+        .value("ShowNormal", TransEngine::ShowNormal)
+        .export_values(); // 允许在 Python 中直接使用 plugin_api.ForGalJson 这样的形式
 
     // 绑定 Sentence 结构体
     // 注意：对于指针成员 prev 和 next，pybind11 会自动处理。
@@ -66,6 +83,15 @@ PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m) {
         .def("warn", [](spdlog::logger& logger, const std::string& msg) { logger.warn(msg); })
         .def("error", [](spdlog::logger& logger, const std::string& msg) { logger.error(msg); })
         .def("critical", [](spdlog::logger& logger, const std::string& msg) { logger.critical(msg); });
+
+    py::class_<IController, std::shared_ptr<IController>>(m, "IController")
+        .def("make_bar", &IController::makeBar)
+        .def("write_log", &IController::writeLog)
+        .def("add_thread_num", &IController::addThreadNum)
+        .def("reduce_thread_num", &IController::reduceThreadNum)
+        .def("update_bar", &IController::updateBar)
+        .def("should_stop", &IController::shouldStop)
+        .def("flush", &IController::flush);
 }
 
 PythonTextPlugin::PythonTextPlugin(const fs::path& projectDir, const std::string& modulePath, std::shared_ptr<spdlog::logger> logger)
@@ -166,8 +192,8 @@ void PythonManager::checkDependency(const std::vector<std::string>& dependencies
 }
 
 std::shared_ptr<PythonModule> PythonManager::registerNLPFunction(const std::string& moduleName, const std::string& modelName, std::shared_ptr<spdlog::logger> logger, bool& needReboot) {
-
-    std::lock_guard<std::mutex> lock(m_mutex);
+    
+    std::unique_lock<std::mutex> lock(m_mutex);
     std::shared_ptr<PythonModule> pythonModule;
     auto it = m_pyModules.find(moduleName);
     if (it != m_pyModules.end() && !it->second.expired()) {
@@ -236,7 +262,6 @@ std::shared_ptr<PythonModule> PythonManager::registerNLPFunction(const std::stri
                 }
             };
         PythonManager::getInstance().submitTask(std::move(loadModelClassTaskFunc)).get();
-        logger->info("模块 {} 的模型 {} 已加载", moduleName, modelName);
     }
     // 验证一下是不是 空 ptr，比如另一个 Translator 安过但还没重启
     else {
@@ -246,12 +271,13 @@ std::shared_ptr<PythonModule> PythonManager::registerNLPFunction(const std::stri
         }
         logger->info("模块 {} 的模型 {} 已验证", moduleName, modelName);
     }
-    logger->info("模块 {} 模型 {} 已加载", moduleName, modelName);
+    logger->info("模块 {} 的模型 {} 已加载", moduleName, modelName);
     return pythonModule;
 }
 
 std::optional<std::shared_ptr<PythonModule>> PythonManager::registerFunction(const std::string& modulePath, const std::string& functionName, std::shared_ptr<spdlog::logger> logger, bool& needReboot) {
-    std::lock_guard<std::mutex> lock(m_mutex);
+
+    std::unique_lock<std::mutex> lock(m_mutex);
     fs::path stdScriptPath = fs::weakly_canonical(ascii2Wide(modulePath));
     if (!fs::exists(stdScriptPath)) {
         logger->error("Script is not found: {}", modulePath);
@@ -276,7 +302,10 @@ std::optional<std::shared_ptr<PythonModule>> PythonManager::registerFunction(con
                     importlib.attr("reload")(*pyModule);
                     pythonModule = std::shared_ptr<PythonModule>(new PythonModule{ pyModule, {} });
                     m_pyModules.insert_or_assign(moduleName, pythonModule);
+                    // 这里在注册的时候可能会获取 NLP 函数导致进入 registerNLPFunction 形成死锁，所以先释放锁
+                    lock.unlock();
                     registerCustomTypes(pythonModule, modulePath, logger, needReboot);
+                    lock.lock();
                 }
                 catch (const py::error_already_set& e) {
                     throw std::runtime_error("加载模块 " + moduleName + " 时出现异常: " + e.what());
@@ -386,6 +415,7 @@ void PythonManager::stop() {
 void PythonManager::run() {
     py::gil_scoped_acquire acquire;
     try {
+        m_threadId = std::this_thread::get_id();
         py::module_::import("gpp_plugin_api");
     }
     catch (const py::error_already_set& e) {
@@ -412,6 +442,10 @@ void PythonManager::run() {
 }
 
 std::future<void> PythonManager::submitTask(std::function<void()> taskFunc) {
+    if (m_threadId == std::this_thread::get_id()) {
+        taskFunc();
+        return std::async(std::launch::deferred, []() {});
+    }
     std::unique_ptr<PythonTask> task = std::make_unique<PythonTask>();
     task->taskFunc = std::move(taskFunc);
     auto future = task->promise.get_future();

@@ -1,5 +1,6 @@
 ﻿module;
 
+#define _RANGES_
 #include <spdlog/spdlog.h>
 #include <boost/regex.hpp>
 #include <cpr/cpr.h>

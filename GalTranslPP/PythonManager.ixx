@@ -1,6 +1,8 @@
 ﻿module;
 
 #include <pybind11/stl.h>
+#include <pybind11/complex.h>
+#include <pybind11/functional.h>
 #include <pybind11/stl_bind.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/embed.h>
@@ -81,6 +83,7 @@ export {
         std::optional<std::shared_ptr<PythonModule>> registerFunction(const std::string& modulePath, const std::string& functionName, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
 
     private:
+        std::thread::id m_threadId;
         PythonManager();
         void run(); // 守护线程的执行函数
         void registerCustomTypes(std::shared_ptr<PythonModule> pythonModule, const std::string& modulePath, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
@@ -125,4 +128,5 @@ export {
         virtual void run(Sentence* se) override;
         virtual ~PythonTextPlugin() override;
     };
+
 }

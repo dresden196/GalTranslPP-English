@@ -1,9 +1,9 @@
 ﻿module;
 
+#define _RANGES_
 #ifdef _WIN32
 #include <Windows.h>
 #endif
-
 
 #include <spdlog/spdlog.h>
 #include <zip.h>

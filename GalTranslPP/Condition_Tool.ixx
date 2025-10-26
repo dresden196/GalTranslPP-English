@@ -1,5 +1,6 @@
 module;
 
+#define _RANGES_
 #include <toml.hpp>
 #include <spdlog/spdlog.h>
 #include <unicode/unistr.h>
