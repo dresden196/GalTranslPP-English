@@ -34,7 +34,7 @@ namespace fs = std::filesystem;
 export {
 
     class NormalJsonTranslator : public ITranslator {
-    protected:
+    public:
 
         TransEngine m_transEngine;
         std::shared_ptr<IController> m_controller;

@@ -1,8 +1,9 @@
 module;
 
-#define _RANGES_
 #include <spdlog/spdlog.h>
 #include <sol/sol.hpp>
+#define PATH_CVT(className, memberName) sol::property([](className& self) { return wide2Ascii(self.memberName); }, \
+[](className& self, const std::string& pathStr) { self.memberName = ascii2Wide(pathStr); })
 
 export module LuaTranslator;
 
@@ -16,6 +17,16 @@ namespace fs = std::filesystem;
 
 export {
 
+	struct JsonStrInfo {
+		std::vector<EpubTextNodeInfo> metadata;
+		// 存储json文件相对路径到原始 HTML 完整路径的映射
+		std::string htmlPath;
+		// 存储json文件相对路径到其所属 epub 完整路径的映射
+		std::string epubPath;
+		// 存储json文件相对路径到 normal_post 完整路径的映射
+		std::string normalPostPath;
+	};
+
 	template<typename Base>
 	class LuaTranslator : public Base {
 	private:
@@ -28,6 +39,7 @@ export {
 	public:
 		virtual void run() override
 		{
+			this->m_logger->info("开始运行 LuaTranslator。");
 			try {
 				m_luaRunFunc();
 			}
@@ -56,541 +68,250 @@ export {
 			this->m_luaManager.registerFunction(scriptPath, "unload", m_needReboot);
 
 			sol::state& luaState = *(m_luaState->lua);
-			luaState.new_enum("TransEngine",
-				"None", TransEngine::None,
-				"ForGalJson", TransEngine::ForGalJson,
-				"ForGalTsv", TransEngine::ForGalTsv,
-				"ForNovelTsv", TransEngine::ForNovelTsv,
-				"DeepseekJson", TransEngine::DeepseekJson,
-				"Sakura", TransEngine::Sakura,
-				"DumpName", TransEngine::DumpName,
-				"GenDict", TransEngine::GenDict,
-				"Rebuild", TransEngine::Rebuild,
-				"ShowNormal", TransEngine::ShowNormal
-			);
-			luaState.new_usertype<IController>("IController",
-				"make_bar", &IController::makeBar,
-				"write_log", &IController::writeLog,
-				"add_thread_num", &IController::addThreadNum,
-				"reduce_thread_num", &IController::reduceThreadNum,
-				"update_bar", &IController::updateBar,
-				"should_stop", &IController::shouldStop,
-				"flush", &IController::flush
-			);
-			luaState["controller"] = this->m_controller;
-
-			if constexpr (std::is_base_of_v<NormalJsonTranslator, Base>) {
-				luaState["get_trans_engine"] = [this]()
-					{
-						return this->m_transEngine;
-					};
-				luaState["set_trans_engine"] = [this](TransEngine transEngine)
-					{
-						this->m_transEngine = transEngine;
-					};
-				luaState["get_project_dir"] = [this]()
-					{
-						return wide2Ascii(this->m_projectDir);
-					};
-				luaState["set_project_dir"] = [this](const std::string& projectDir)
-					{
-						this->m_projectDir = ascii2Wide(projectDir);
-					};
-				luaState["get_input_dir"] = [this]()
-					{
-						return wide2Ascii(this->m_inputDir);
-					};
-				luaState["set_input_dir"] = [this](const std::string& inputDir)
-					{
-						this->m_inputDir = ascii2Wide(inputDir);
-					};
-				luaState["get_input_cache_dir"] = [this]()
-					{
-						return wide2Ascii(this->m_inputCacheDir);
-					};
-				luaState["set_input_cache_dir"] = [this](const std::string& inputCacheDir)
-					{
-						this->m_inputCacheDir = ascii2Wide(inputCacheDir);
-					};
-				luaState["get_output_dir"] = [this]()
-					{
-						return wide2Ascii(this->m_outputDir);
-					};
-				luaState["set_output_dir"] = [this](const std::string& outputDir)
-					{
-						this->m_outputDir = ascii2Wide(outputDir);
-					};
-				luaState["get_output_cache_dir"] = [this]()
-					{
-						return wide2Ascii(this->m_outputCacheDir);
-					};
-				luaState["set_output_cache_dir"] = [this](const std::string& outputCacheDir)
-					{
-						this->m_outputCacheDir = ascii2Wide(outputCacheDir);
-					};
-				luaState["get_cache_dir"] = [this]()
-					{
-						return wide2Ascii(this->m_cacheDir);
-					};
-				luaState["set_cache_dir"] = [this](const std::string& cacheDir)
-					{
-						this->m_cacheDir = ascii2Wide(cacheDir);
-					};
-				luaState["get_systethis->m_prompt"] = [this]()
-					{
-						return this->m_systemPrompt;
-					};
-				luaState["set_systethis->m_prompt"] = [this](const std::string& systemPrompt)
-					{
-						this->m_systemPrompt = systemPrompt;
-					};
-				luaState["get_user_prompt"] = [this]()
-					{
-						return this->m_userPrompt;
-					};
-				luaState["set_user_prompt"] = [this](const std::string& userPrompt)
-					{
-						this->m_userPrompt = userPrompt;
-					};
-				luaState["get_target_lang"] = [this]()
-					{
-						return this->m_targetLang;
-					};
-				luaState["set_target_lang"] = [this](const std::string& targetLang)
-					{
-						this->m_targetLang = targetLang;
-					};
-				luaState["get_total_sentences"] = [this]()
-					{
-						return this->m_totalSentences;
-					};
-				luaState["set_total_sentences"] = [this](int totalSentences)
-					{
-						this->m_totalSentences = totalSentences;
-					};
-				luaState["get_completed_sentences"] = [this]()
-					{
-						return this->m_completedSentences.load();
-					};
-				luaState["set_completed_sentences"] = [this](int completedSentences)
-					{
-						this->m_completedSentences = completedSentences;
-					};
-				luaState["get_threads_num"] = [this]()
-					{
-						return this->m_threadsNum;
-					};
-				luaState["set_threads_num"] = [this](int threadsNum)
-					{
-						this->m_threadsNum = threadsNum;
-					};
-				luaState["get_batch_size"] = [this]()
-					{
-						return this->m_batchSize;
-					};
-				luaState["set_batch_size"] = [this](int batchSize)
-					{
-						this->m_batchSize = batchSize;
-					};
-				luaState["get_context_history_size"] = [this]()
-					{
-						return this->m_contextHistorySize;
-					};
-				luaState["set_context_history_size"] = [this](int contextHistorySize)
-					{
-						this->m_contextHistorySize = contextHistorySize;
-					};
-				luaState["get_max_retries"] = [this]()
-					{
-						return this->m_maxRetries;
-					};
-				luaState["set_max_retries"] = [this](int maxRetries)
-					{
-						this->m_maxRetries = maxRetries;
-					};
-				luaState["get_save_cache_interval"] = [this]()
-					{
-						return this->m_saveCacheInterval;
-					};
-				luaState["set_save_cache_interval"] = [this](int saveCacheInterval)
-					{
-						this->m_saveCacheInterval = saveCacheInterval;
-					};
-				luaState["get_api_time_out_ms"] = [this]()
-					{
-						return this->m_apiTimeOutMs;
-					};
-				luaState["set_api_time_out_ms"] = [this](int apiTimeOutMs)
-					{
-						this->m_apiTimeOutMs = apiTimeOutMs;
-					};
-				luaState["get_check_quota"] = [this]()
-					{
-						return this->m_checkQuota;
-					};
-				luaState["set_check_quota"] = [this](bool checkQuota)
-					{
-						this->m_checkQuota = checkQuota;
-					};
-				luaState["get_smart_retry"] = [this]()
-					{
-						return this->m_smartRetry;
-					};
-				luaState["set_smart_retry"] = [this](bool smartRetry)
-					{
-						this->m_smartRetry = smartRetry;
-					};
-				luaState["get_use_pre_dict_in_name"] = [this]()
-					{
-						return this->m_usePreDictInName;
-					};
-				luaState["set_use_pre_dict_in_name"] = [this](bool usePreDictInName)
-					{
-						this->m_usePreDictInName = usePreDictInName;
-					};
-				luaState["get_use_post_dict_in_name"] = [this]()
-					{
-						return this->m_usePostDictInName;
-					};
-				luaState["set_use_post_dict_in_name"] = [this](bool usePostDictInName)
-					{
-						this->m_usePostDictInName = usePostDictInName;
-					};
-				luaState["get_use_pre_dict_in_msg"] = [this]()
-					{
-						return this->m_usePreDictInMsg;
-					};
-				luaState["set_use_pre_dict_in_msg"] = [this](bool usePreDictInMsg)
-					{
-						this->m_usePreDictInMsg = usePreDictInMsg;
-					};
-				luaState["get_use_post_dict_in_msg"] = [this]()
-					{
-						return this->m_usePostDictInMsg;
-					};
-				luaState["set_use_post_dict_in_msg"] = [this](bool usePostDictInMsg)
-					{
-						this->m_usePostDictInMsg = usePostDictInMsg;
-					};
-				luaState["get_use_gpt_dict_to_replace_name"] = [this]()
-					{
-						return this->m_useGptDictToReplaceName;
-					};
-				luaState["set_use_gpt_dict_to_replace_name"] = [this](bool useGptDictToReplaceName)
-					{
-						this->m_useGptDictToReplaceName = useGptDictToReplaceName;
-					};
-				luaState["get_output_with_src"] = [this]()
-					{
-						return this->m_outputWithSrc;
-					};
-				luaState["set_output_with_src"] = [this](bool outputWithSrc)
-					{
-						this->m_outputWithSrc = outputWithSrc;
-					};
-				luaState["get_api_strategy"] = [this]()
-					{
-						return this->m_apiStrategy;
-					};
-				luaState["set_api_strategy"] = [this](const std::string& apiStrategy)
-					{
-						this->m_apiStrategy = apiStrategy;
-					};
-				luaState["get_sort_method"] = [this]()
-					{
-						return this->m_sortMethod;
-					};
-				luaState["set_sort_method"] = [this](const std::string& sortMethod)
-					{
-						this->m_sortMethod = sortMethod;
-					};
-				luaState["get_split_file"] = [this]()
-					{
-						return this->m_splitFile;
-					};
-				luaState["set_split_file"] = [this](const std::string& splitFile)
-					{
-						this->m_splitFile = splitFile;
-					};
-				luaState["get_split_file_num"] = [this]()
-					{
-						return this->m_splitFileNum;
-					};
-				luaState["set_split_file_num"] = [this](int splitFileNum)
-					{
-						this->m_splitFileNum = splitFileNum;
-					};
-				luaState["get_linebreak_symbol"] = [this]()
-					{
-						return this->m_linebreakSymbol;
-					};
-				luaState["set_linebreak_symbol"] = [this](const std::string& linebreakSymbol)
-					{
-						this->m_linebreakSymbol = linebreakSymbol;
-					};
-				luaState["get_need_combining"] = [this]()
-					{
-						return this->m_needsCombining;
-					};
-				luaState["set_need_combining"] = [this](bool needCombining)
-					{
-						this->m_needsCombining = needCombining;
-					};
-				luaState["get_split_file_parts_to_json"] = [this]()
-					{
-						std::vector<std::string> keys;
-						std::vector<std::string> values;
-						for (const auto& [key, value] : this->m_splitFilePartsToJson) {
-							keys.push_back(wide2Ascii(key));
-							values.push_back(wide2Ascii(value));
-						}
-						return std::make_tuple(keys, values);
-					};
-				luaState["set_split_file_parts_to_json"] = [this](std::vector<std::string> keys, std::vector<std::string> values)
-					{
-						this->m_splitFilePartsToJson.clear();
-						for (const auto& [key, value] : std::views::zip(keys, values)) {
-							this->m_splitFilePartsToJson[ascii2Wide(key)] = ascii2Wide(value);
-						}
-					};
-				luaState["get_json_to_split_file_parts"] = [this]()
-					{
-						std::vector<std::string> keys;
-						std::vector<std::vector<std::tuple<std::string, bool>>> values;
-						for (const auto& [key, value] : this->m_jsonToSplitFileParts) {
-							keys.push_back(wide2Ascii(key));
-							std::vector<std::tuple<std::string, bool>> partValues;
-							for (const auto& [part, isComplete] : value) {
-								partValues.push_back(std::make_tuple(wide2Ascii(part), isComplete));
-							}
-							values.push_back(partValues);
-						}
-						return std::make_tuple(keys, values);
-					};
-				luaState["set_json_to_split_file_parts"] = [this](std::vector<std::string> keys, std::vector<std::vector<std::tuple<std::string, bool>>> values)
-					{
-						this->m_jsonToSplitFileParts.clear();
-						for (const auto& [key, value] : std::views::zip(keys, values)) {
-							std::map<fs::path, bool> partMap;
-							for (const auto& [part, isComplete] : value) {
-								partMap[ascii2Wide(part)] = isComplete;
-							}
-							this->m_jsonToSplitFileParts[ascii2Wide(key)] = partMap;
-						}
-					};
-				luaState["get_need_reboot"] = [this]()
-					{
-						return this->m_needReboot;
-					};
-				luaState["set_need_reboot"] = [this](bool needReboot)
-					{
-						this->m_needReboot = needReboot;
-					};
-				luaState["get_on_file_processed"] = [this]()
-					{
-						std::function<void(std::string)> onFileProcessed = [this](std::string relFilePath)
-							{
-								this->m_onFileProcessed(ascii2Wide(relFilePath));
-							};
-						return onFileProcessed;
-					};
-				luaState["set_on_file_processed"] = [this](std::function<void(std::string)> onFileProcessed)
-					{
-						// 这里的相对路径是相对 gt_input 来说的
-						this->m_onFileProcessed = [onFileProcessed](fs::path relFilePath)
-							{
-								onFileProcessed(wide2Ascii(relFilePath));
-							};
-					};
-				luaState["pre_process"] = [this](Sentence* se)
-					{
-						this->preProcess(se);
-					};
-				luaState["post_process"] = [this](Sentence* se)
-					{
-						this->postProcess(se);
-					};
-				luaState["process_file"] = [this](const std::string& file, int threadId)
-					{
-						this->processFile(ascii2Wide(file), threadId);
-					};
-				luaState["normaljson_translator_run"] = [this]()
-					{
-						NormalJsonTranslator::run();
-					};
+			if constexpr (std::is_base_of_v<ITranslator, Base>) {
+				luaState.new_usertype<ITranslator>("ITranslator",
+					sol::no_constructor,
+					"run", &ITranslator::run
+				);
 			}
-
+			if constexpr (std::is_base_of_v<NormalJsonTranslator, Base>) {
+				luaState.new_usertype<IController>("IController",
+					"make_bar", &IController::makeBar,
+					"write_log", &IController::writeLog,
+					"add_thread_num", &IController::addThreadNum,
+					"reduce_thread_num", &IController::reduceThreadNum,
+					"update_bar", &IController::updateBar,
+					"should_stop", &IController::shouldStop,
+					"flush", &IController::flush
+				);
+				luaState.new_usertype<NormalJsonTranslator>("NormalJsonTranslator",
+					sol::base_classes, sol::bases<ITranslator>(),
+					"m_transEngine", &NormalJsonTranslator::m_transEngine,
+					"m_controller", &NormalJsonTranslator::m_controller,
+					"m_projectDir", PATH_CVT(NormalJsonTranslator, m_projectDir),
+					"m_inputDir", PATH_CVT(NormalJsonTranslator, m_inputDir),
+					"m_inputCacheDir", PATH_CVT(NormalJsonTranslator, m_inputCacheDir),
+					"m_outputDir", PATH_CVT(NormalJsonTranslator, m_outputDir),
+					"m_outputCacheDir", PATH_CVT(NormalJsonTranslator, m_outputCacheDir),
+					"m_cacheDir", PATH_CVT(NormalJsonTranslator, m_cacheDir),
+					"m_systemPrompt", &NormalJsonTranslator::m_systemPrompt,
+					"m_userPrompt", &NormalJsonTranslator::m_userPrompt,
+					"m_targetLang", &NormalJsonTranslator::m_targetLang,
+					"m_totalSentences", &NormalJsonTranslator::m_totalSentences,
+					"m_completedSentences", &NormalJsonTranslator::m_completedSentences,
+					"m_threadsNum", &NormalJsonTranslator::m_threadsNum,
+					"m_batchSize", &NormalJsonTranslator::m_batchSize,
+					"m_contextHistorySize", &NormalJsonTranslator::m_contextHistorySize,
+					"m_maxRetries", &NormalJsonTranslator::m_maxRetries,
+					"m_saveCacheInterval", &NormalJsonTranslator::m_saveCacheInterval,
+					"m_apiTimeOutMs", &NormalJsonTranslator::m_apiTimeOutMs,
+					"m_checkQuota", &NormalJsonTranslator::m_checkQuota,
+					"m_smartRetry", &NormalJsonTranslator::m_smartRetry,
+					"m_usePreDictInName", &NormalJsonTranslator::m_usePreDictInName,
+					"m_usePostDictInName", &NormalJsonTranslator::m_usePostDictInName,
+					"m_usePreDictInMsg", &NormalJsonTranslator::m_usePreDictInMsg,
+					"m_usePostDictInMsg", &NormalJsonTranslator::m_usePostDictInMsg,
+					"m_useGptDictToReplaceName", &NormalJsonTranslator::m_useGptDictToReplaceName,
+					"m_outputWithSrc", &NormalJsonTranslator::m_outputWithSrc,
+					"m_apiStrategy", &NormalJsonTranslator::m_apiStrategy,
+					"m_sortMethod", &NormalJsonTranslator::m_sortMethod,
+					"m_splitFile", &NormalJsonTranslator::m_splitFile,
+					"m_splitFileNum", &NormalJsonTranslator::m_splitFileNum,
+					"m_linebreakSymbol", &NormalJsonTranslator::m_linebreakSymbol,
+					"m_needsCombining", &NormalJsonTranslator::m_needsCombining,
+					"m_splitFilePartsToJson", sol::property([](NormalJsonTranslator& self, sol::this_state s)
+						{
+							sol::state_view lua(s);
+							sol::table partsTable = lua.create_table();
+							for (const auto& [key, value] : self.m_splitFilePartsToJson) {
+								partsTable[wide2Ascii(key)] = wide2Ascii(value);
+							}
+							return partsTable;
+						},
+						[](NormalJsonTranslator& self, sol::table partsTable)
+						{
+							self.m_splitFilePartsToJson.clear();
+							for (const auto& [key, value] : partsTable) {
+								if (key.is<std::string>() && value.is<std::string>()) {
+									self.m_splitFilePartsToJson.insert({ ascii2Wide(key.as<std::string>()), ascii2Wide(value.as<std::string>()) });
+								}
+							}
+						}),
+					"m_jsonToSplitFileParts", sol::property([](NormalJsonTranslator& self, sol::this_state s)
+						{
+							sol::state_view lua(s);
+							sol::table partsTable = lua.create_table();
+							for (const auto& [key, value] : self.m_jsonToSplitFileParts) {
+								sol::table partTable = lua.create_table();
+								for (const auto& [part, isComplete] : value) {
+									partTable[wide2Ascii(part)] = isComplete;
+								}
+								partsTable[wide2Ascii(key)] = partTable;
+							}
+							return partsTable;
+						},
+						[](NormalJsonTranslator& self, sol::table partsTable)
+						{
+							self.m_jsonToSplitFileParts.clear();
+							for (const auto& [key, value] : partsTable) {
+								if (key.is<std::string>() && value.is<sol::table>()) {
+									std::map<fs::path, bool> partMap;
+									for (const auto& [part, isComplete] : value.as<sol::table>()) {
+										if (part.is<std::string>() && isComplete.is<bool>()) {
+											partMap[ascii2Wide(part.as<std::string>())] = isComplete.as<bool>();
+										}
+									}
+									self.m_jsonToSplitFileParts.insert({ ascii2Wide(key.as<std::string>()), partMap });
+								}
+							}
+						}),
+					"m_onFileProcessed", sol::property([](NormalJsonTranslator& self, sol::this_state s)
+						{
+							sol::state_view lua(s);
+							NormalJsonTranslator* classPtr = &self;
+							std::function<void(std::string)> onFileProcessed = [classPtr](std::string relFilePath)
+								{
+									classPtr->m_onFileProcessed(ascii2Wide(relFilePath));
+								};
+							return onFileProcessed;
+						},
+						[](NormalJsonTranslator& self, std::function<void(std::string)> onFileProcessed)
+						{
+							// 这里的相对路径是相对 gt_input 来说的
+							self.m_onFileProcessed = [onFileProcessed](fs::path relFilePath)
+								{
+									onFileProcessed(wide2Ascii(relFilePath));
+								};
+						}),
+					"preProcess", &NormalJsonTranslator::preProcess,
+					"postProcess", &NormalJsonTranslator::postProcess,
+					"processFile", &NormalJsonTranslator::processFile,
+					"normalJsonTranslator_run", [](NormalJsonTranslator& self){ self.NormalJsonTranslator::run(); }
+				);
+			}
 
 			if constexpr (std::is_base_of_v<EpubTranslator, Base>) {
-				luaState["get_epub_input_dir"] = [this]()
-					{
-						return wide2Ascii(this->m_epubInputDir);
-					};
-				luaState["set_epub_input_dir"] = [this](const std::string& epubInputDir)
-					{
-						this->m_epubInputDir = ascii2Wide(epubInputDir);
-					};
-				luaState["get_epub_output_dir"] = [this]()
-					{
-						return wide2Ascii(this->m_epubOutputDir);
-					};
-				luaState["set_epub_output_dir"] = [this](const std::string& epubOutputDir)
-					{
-						this->m_epubOutputDir = ascii2Wide(epubOutputDir);
-					};
-				luaState["get_temp_unpack_dir"] = [this]()
-					{
-						return wide2Ascii(this->m_tempUnpackDir);
-					};
-				luaState["set_temp_unpack_dir"] = [this](const std::string& tempUnpackDir)
-					{
-						this->m_tempUnpackDir = ascii2Wide(tempUnpackDir);
-					};
-				luaState["get_temp_rebuild_dir"] = [this]()
-					{
-						return wide2Ascii(this->m_tempRebuildDir);
-					};
-				luaState["set_temp_rebuild_dir"] = [this](const std::string& tempRebuildDir)
-					{
-						this->m_tempRebuildDir = ascii2Wide(tempRebuildDir);
-					};
-				luaState["get_bilingual_output"] = [this]()
-					{
-						return this->m_bilingualOutput;
-					};
-				luaState["set_bilingual_output"] = [this](bool bilingualOutput)
-					{
-						this->m_bilingualOutput = bilingualOutput;
-					};
-				luaState["get_original_text_color"] = [this]()
-					{
-						return this->m_originalTextColor;
-					};
-				luaState["set_original_text_color"] = [this](const std::string& originalTextColor)
-					{
-						this->m_originalTextColor = originalTextColor;
-					};
-				luaState["get_original_text_scale"] = [this]()
-					{
-						return this->m_originalTextScale;
-					};
-				luaState["set_original_text_scale"] = [this](const std::string& originalTextScale)
-					{
-						this->m_originalTextScale = originalTextScale;
-					};
-				luaState["get_json_to_info_map"] = [this]()
-					{
-						std::vector<std::string> keys;
-						std::vector<std::string> htmlPaths;
-						std::vector<std::string> epubPaths;
-						std::vector<std::string> normalPostPaths;
-						std::vector<std::vector<std::tuple<size_t, size_t>>> metadata;
-						for (const auto& [key, value] : this->m_jsonToInfoMap) {
-							keys.push_back(wide2Ascii(key));
-							htmlPaths.push_back(wide2Ascii(value.htmlPath));
-							epubPaths.push_back(wide2Ascii(value.epubPath));
-							normalPostPaths.push_back(wide2Ascii(value.normalPostPath));
-							std::vector<std::tuple<size_t, size_t>> metaVec;
-							for (const auto& nodeInfo : value.metadata) {
-								metaVec.push_back(std::make_tuple(nodeInfo.offset, nodeInfo.length));
+				luaState.new_usertype<EpubTextNodeInfo>("EpubTextNodeInfo",
+					sol::constructors<EpubTextNodeInfo()>(),
+					"offset", &EpubTextNodeInfo::offset,
+					"length", &EpubTextNodeInfo::length
+				);
+				luaState.new_usertype<JsonStrInfo>("JsonStrInfo",
+					sol::constructors<JsonStrInfo()>(),
+					"metadata", &JsonStrInfo::metadata,
+					"htmlPath", &JsonStrInfo::htmlPath,
+					"epubPath", &JsonStrInfo::epubPath,
+					"normalPostPath", &JsonStrInfo::normalPostPath
+				);
+				luaState.new_usertype<EpubTranslator>("EpubTranslator",
+					sol::base_classes, sol::bases<NormalJsonTranslator>(),
+					"m_epubInputDir", PATH_CVT(EpubTranslator, m_epubInputDir),
+					"m_epubOutputDir", PATH_CVT(EpubTranslator, m_epubOutputDir),
+					"m_tempUnpackDir", PATH_CVT(EpubTranslator, m_tempUnpackDir),
+					"m_tempRebuildDir", PATH_CVT(EpubTranslator, m_tempRebuildDir),
+					"m_bilingualOutput", &EpubTranslator::m_bilingualOutput,
+					"m_originalTextColor", &EpubTranslator::m_originalTextColor,
+					"m_originalTextScale", &EpubTranslator::m_originalTextScale,
+					"m_jsonToInfoMap", sol::property([](EpubTranslator& self, sol::this_state s)
+						{
+							sol::state_view lua(s);
+							sol::table infoTable = lua.create_table();
+							for (const auto& [key, value] : self.m_jsonToInfoMap) {
+								JsonStrInfo info;
+								info.metadata = value.metadata;
+								info.htmlPath = wide2Ascii(value.htmlPath);
+								info.epubPath = wide2Ascii(value.epubPath);
+								info.normalPostPath = wide2Ascii(value.normalPostPath);
+								infoTable[wide2Ascii(key)] = info;
 							}
-							metadata.push_back(metaVec);
-						}
-						return std::make_tuple(keys, htmlPaths, epubPaths, normalPostPaths, metadata);
-					};
-				luaState["set_json_to_info_map"] = [this](std::vector<std::string> keys, std::vector<std::string> htmlPaths, std::vector<std::string> epubPaths, std::vector<std::string> normalPostPaths, std::vector<std::vector<std::tuple<size_t, size_t>>> metadata)
-					{
-						this->m_jsonToInfoMap.clear();
-						for (const auto& [key, htmlPath, epubPath, normalPostPath, metaVec] : std::views::zip(keys, htmlPaths, epubPaths, normalPostPaths, metadata)) {
-							JsonInfo info;
-							info.htmlPath = ascii2Wide(htmlPath);
-							info.epubPath = ascii2Wide(epubPath);
-							info.normalPostPath = ascii2Wide(normalPostPath);
-							for (const auto& [offset, length] : metaVec) {
-								info.metadata.emplace_back(EpubTextNodeInfo{ offset, length });
+							return infoTable;
+						},
+						[](EpubTranslator& self, sol::table infoTable)
+						{
+							self.m_jsonToInfoMap.clear();
+							for (const auto& kv : infoTable) {
+								if (kv.first.is<std::string>()) {
+									JsonInfo info;
+									JsonStrInfo strInfo = kv.second.as<JsonStrInfo>();
+									info.metadata = strInfo.metadata;
+									info.htmlPath = ascii2Wide(strInfo.htmlPath);
+									info.epubPath = ascii2Wide(strInfo.epubPath);
+									info.normalPostPath = ascii2Wide(strInfo.normalPostPath);
+									self.m_jsonToInfoMap[ascii2Wide(kv.first.as<std::string>())] = info;
+								}
 							}
-							this->m_jsonToInfoMap[ascii2Wide(key)] = info;
-						}
-					};
-				luaState["get_epub_to_jsons_map"] = [this]()
-					{
-						std::vector<std::string> keys;
-						std::vector<std::vector<std::tuple<std::string, bool>>> values;
-						for (const auto& [key, value] : this->m_epubToJsonsMap) {
-							keys.push_back(wide2Ascii(key));
-							std::vector<std::tuple<std::string, bool>> jsonVec;
-							for (const auto& [json, isComplete] : value) {
-								jsonVec.push_back(std::make_tuple(wide2Ascii(json), isComplete));
+						}),
+					"m_epubToJsonsMap", sol::property([](EpubTranslator& self, sol::this_state s)
+						{
+							sol::state_view lua(s);
+							sol::table infoTable = lua.create_table();
+							for (const auto& [key, value] : self.m_epubToJsonsMap) {
+								sol::table jsonTable = lua.create_table();
+								for (const auto& [json, isComplete] : value) {
+									jsonTable[wide2Ascii(json)] = isComplete;
+								}
+								infoTable[wide2Ascii(key)] = jsonTable;
 							}
-							values.push_back(jsonVec);
-						}
-						return std::make_tuple(keys, values);
-					};
-				luaState["set_epub_to_jsons_map"] = [this](std::vector<std::string> keys, std::vector<std::vector<std::tuple<std::string, bool>>> values)
-					{
-						this->m_epubToJsonsMap.clear();
-						for (const auto& [key, value] : std::views::zip(keys, values)) {
-							std::map<fs::path, bool> jsonMap;
-							for (const auto& [json, isComplete] : value) {
-								jsonMap[ascii2Wide(json)] = isComplete;
+							return infoTable;
+						},
+						[](EpubTranslator& self, sol::table infoTable)
+						{
+							self.m_epubToJsonsMap.clear();
+							for (const auto& kv : infoTable) {
+								if (kv.first.is<std::string>()) {
+									std::map<fs::path, bool> jsonMap;
+									sol::table jsonTable = kv.second.as<sol::table>();
+									for (const auto& [json, isComplete] : jsonTable) {
+										if (json.is<std::string>() && isComplete.is<bool>()) {
+											jsonMap[ascii2Wide(json.as<std::string>())] = isComplete.as<bool>();
+										}
+									}
+									self.m_epubToJsonsMap[ascii2Wide(kv.first.as<std::string>())] = jsonMap;
+								}
 							}
-							this->m_epubToJsonsMap[ascii2Wide(key)] = jsonMap;
-						}
-					};
-				luaState["epub_translator_run"] = [this]()
+						}),
+					"epubTranslator_run", [](EpubTranslator& self)
 					{
-						EpubTranslator::run();
-					};
+						self.EpubTranslator::run();
+					}
+				);
 			}
-
 
 			if constexpr (std::is_base_of_v<PDFTranslator, Base>) {
-				luaState["get_pdf_input_dir"] = [this]()
+				luaState.new_usertype<PDFTranslator>("PDFTranslator",
+					sol::base_classes, sol::bases<NormalJsonTranslator>(),
+					"m_pdfInputDir", PATH_CVT(PDFTranslator, m_pdfInputDir),
+					"m_pdfOutputDir", PATH_CVT(PDFTranslator, m_pdfOutputDir),
+					"m_bilingualOutput", &PDFTranslator::m_bilingualOutput,
+					"m_jsonToPDFPathMap", sol::property([](PDFTranslator& self, sol::this_state s)
+						{
+							sol::state_view lua(s);
+							sol::table infoTable = lua.create_table();
+							for (const auto& [key, value] : self.m_jsonToPDFPathMap) {
+								infoTable[wide2Ascii(key)] = wide2Ascii(value);
+							}
+							return infoTable;
+						},
+						[](PDFTranslator& self, sol::table infoTable)
+						{
+							self.m_jsonToPDFPathMap.clear();
+							for (const auto& kv : infoTable) {
+								if (kv.first.is<std::string>() && kv.second.is<std::string>()) {
+									self.m_jsonToPDFPathMap.insert({ ascii2Wide(kv.first.as<std::string>()), ascii2Wide(kv.second.as<std::string>()) });
+								}
+							}
+						}),
+					"pdfTranslator_run", [](PDFTranslator& self)
 					{
-						return wide2Ascii(this->m_pdfInputDir);
-					};
-				luaState["set_pdf_input_dir"] = [this](const std::string& pdfInputDir)
-					{
-						this->m_pdfInputDir = ascii2Wide(pdfInputDir);
-					};
-				luaState["get_pdf_output_dir"] = [this]()
-					{
-						return wide2Ascii(this->m_pdfOutputDir);
-					};
-				luaState["set_pdf_output_dir"] = [this](const std::string& pdfOutputDir)
-					{
-						this->m_pdfOutputDir = ascii2Wide(pdfOutputDir);
-					};
-				luaState["get_bilingual_output"] = [this]()
-					{
-						return this->m_bilingualOutput;
-					};
-				luaState["set_bilingual_output"] = [this](bool bilingualOutput)
-					{
-						this->m_bilingualOutput = bilingualOutput;
-					};
-				luaState["get_json_to_pdf_path_map"] = [this]()
-					{
-						std::vector<std::string> keys;
-						std::vector<std::string> values;
-						for (const auto& [key, value] : this->m_jsonToPDFPathMap) {
-							keys.push_back(wide2Ascii(key));
-							values.push_back(wide2Ascii(value));
-						}
-						return std::make_tuple(keys, values);
-					};
-				luaState["set_json_to_pdf_path_map"] = [this](std::vector<std::string> keys, std::vector<std::string> values)
-					{
-						this->m_jsonToPDFPathMap.clear();
-						for (const auto& [key, value] : std::views::zip(keys, values)) {
-							this->m_jsonToPDFPathMap[ascii2Wide(key)] = ascii2Wide(value);
-						}
-					};
-				luaState["pdf_translator_run"] = [this]()
-					{
-						PDFTranslator::run();
-					};
+						self.PDFTranslator::run();
+					}
+				);
 			}
+
+			luaState.new_usertype<LuaTranslator<Base>>("LuaTranslator",
+				sol::base_classes, sol::bases<Base>()
+			);
+			luaState["luaTranslator"] = this;
 
 			sol::function initFunc = m_luaState->functions["init"];
 			try {

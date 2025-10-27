@@ -21,13 +21,14 @@ class ElaLCDNumber;
 class NJCfgPage;
 class EpubCfgPage;
 class PDFCfgPage;
+class CustomFilePluginCfgPage;
 
 class StartSettingsPage : public BasePage
 {
     Q_OBJECT
 
 public:
-    explicit StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::ordered_value& projectConfig, QWidget* parent = nullptr);
+    explicit StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::ordered_value& globalConfig, toml::ordered_value& projectConfig, QWidget* parent = nullptr);
     ~StartSettingsPage() override;
     virtual void apply2Config() override;
 
@@ -45,6 +46,7 @@ private:
 
     void _setupUI();
     toml::ordered_value& _projectConfig;
+    toml::ordered_value& _globalConfig;
     QWidget* _mainWindow;
 
     ElaPushButton* _startTranslateButton;
@@ -73,6 +75,7 @@ private:
     NJCfgPage* _njCfgPage;
     EpubCfgPage* _epubCfgPage;
     PDFCfgPage* _pdfCfgPage;
+    CustomFilePluginCfgPage* _customFilePluginCfgPage;
 };
 
 #endif // STARTSETTINGSPAGE_H

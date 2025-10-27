@@ -149,9 +149,11 @@ void PluginSettingsPage::_setupUI()
         {
             ElaText* customPrePluginsTitle = new ElaText(title, 18, mainWidget);
             customPrePluginsTitle->setWordWrap(false);
+            ElaToolTip* customPrePluginsTip = new ElaToolTip(mainWidget);
+            customPrePluginsTip->setToolTip("用来加载自定义的 Lua/Python 插件");
             mainLayout->addWidget(customPrePluginsTitle);
             ElaPlainTextEdit* customPrePluginsEdit = new ElaPlainTextEdit(mainWidget);
-            customPrePluginsEdit->setMinimumHeight(150);
+            customPrePluginsEdit->setMaximumHeight(100);
             QFont font = customPrePluginsEdit->font();
             font.setPixelSize(14);
             customPrePluginsEdit->setFont(font);

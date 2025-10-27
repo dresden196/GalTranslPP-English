@@ -26,6 +26,7 @@
 * 更清晰的字典使用设定
 * 重翻时附带已知问题
 * 可自定义的问题比较对象
+* 对 条件判断/文本处理/文件格式处理 的自定义 Lua/python 语言支持
 
 ![notification](img/notification.png?raw=true)
 
@@ -52,7 +53,7 @@ GalTransl++无论处理哪种文件格式，最后都是统一化为json来读�
 * **`# Sakura`**: 实际翻译模式，向AI输入自然语言形式的句子(包含`name`和`message`)，由于Sakura是翻译特化模型，不必要求即会返回同样形式的的句子，程序解析返回的自然语言。
 * **`# DumpName`**: 提取所有的 `name` 键，在项目文件夹下生成 `人名替换表.toml` 以供统一替换人名(已有则仅更新)。
 * **`# GenDict`**: 借助AI自动生成术语表，保存在项目文件夹下的 `项目GPT字典-生成.toml` 中。
-* **`# Rebuild`**: 即使 `problem` 或 `orig_text` 中包含 `retranslKey` 也不会重翻，只根据缓存重建结果。
+* **`# Rebuild`**: 即使 `retranslKey` 命中也不会重翻，只根据缓存重建结果。
 * **`# ShowNormal`**: 保存预处理后的内容及句子到项目文件夹下带 `show_normal` 字段的文件夹中，如Epub格式下可生成预处理后的html/xhtml文件以及生成的json，可用于检查和排错。
 
 ### 缓存机制
@@ -61,11 +62,11 @@ GalTransl++无论处理哪种文件格式，最后都是统一化为json来读�
 
 > **⚠️ 特别注意**：在使用单文件分割功能的情况下，由于缓存命中结合了上下文，所以当你改变文件本身，或者分割数/分割方式时，会有一部分无关的句子不能命中缓存。理论上文件切的越碎，最终分割出的文件份数比最大线程数超过的更多，则不能命中缓存的句子越多。GalTransl++会尽可能在这种情况下保证原有缓存的命中，不过如果希望达到更好的缓存命中，最好还是不改变分割方式和分割数。为此也可以使用 `ShowNormal` 模式观察切割后的文件。
 
-`retranslKey`指的是重翻关键字，`problem`指的是缓存中的问题。
+`retranslKey`指的是重翻关键字。
 
 GalTransl++会在翻译时自动分析翻译时常见问题，并将问题输出到缓存中。
 
-一般情况下，如果 `problem` 或 `orig_text`(一个缓存键，存储的是原始message) 中包含设定的`retranslKey`，则即使在实际翻译模式下命中缓存，这个句子依然会被重翻。所以如果只想重建缓存，要么得删除所有`retranslKey`，要么使用 `Rebuild` 模式忽略翻译。
+一般情况下，如果 `problems` 中包含设定的`retranslKey`(当然也可以是别的什么条件)，则即使在实际翻译模式下命中缓存，这个句子依然会被重翻。所以如果只想重建缓存，要么得删除所有`retranslKey`，要么使用 `Rebuild` 模式忽略翻译。
 
 ### 字典系统
 
@@ -106,9 +107,8 @@ GalTransl++的字典分为 **译前字典**，**GPT字典**，**译后字典** �
 6、  如果文件支持提取name，则可 `DumpName` 并编辑人名表。  
 7、  选用合适的实际翻译模式进行翻译。  
 8、  查看问题。  
-9、  根据问题选择编辑`retranslKey`并重翻 / 直接修改缓存。  
-10、 重翻 / 重建。  
-11、 在`gt_output`中查收结果。  
+9、  根据问题选择编辑`retranslKey`/`skipProblems`重建/重翻/修改缓存/...。  
+10、 在`gt_output`中查收结果。  
 
 ### 缓存文件结构
 
@@ -116,14 +116,16 @@ GalTransl++的缓存中可能包含如下键:
 
 * `index`: 索引顺序，一般不重要。
 * `name`: 人名，展示的是预处理后的人名(相当于pre_processed_name)，如果没有则为空。
+* `names`: 复数人名，仅见于部分 VNT 提出的文本中。
 * `name_preview`: 将输出的译后人名。
+* `names_preview`: 同上
 * `original_text`: 原文对照，与原文没有任何区别。
 * `pre_processed_text`: 经过一系列预处理后，即将执行AI翻译前时句子的样子。
 * `pre_translated_text`: AI返回的，未经过任何后处理的句子的样子。
-* `problem`: 在自动化找错中找出的问题。
+* `other_info`: 其它附加信息。
+* `problems`: 在自动化找错中找出的问题。
 * `translated_by`: 翻译此句子所用的 apikey 的设定模型。
 * `translated_preview`: 经过所有后处理之后，将输出的 message。
-* `other_info`: 其它附加信息。
 
 ### 替换型字典语法
 
@@ -171,11 +173,14 @@ retranslKeys 语法示例
 
 ```
 # 正则表达式列表，如果句子缓存中的某条 problem 能被以下任一正则 search 通过，则进行重翻
-# 如果想对指定原文/译文进行重翻，请通过内联表数组指定 conditionTarget 和 conditionReg
+# 如果想对指定原文/译文进行重翻，请通过内联表(数组)指定 conditionTarget 和 conditionReg
+# 也可以指定 conditionScript 和 conditionFunc 来外接 lua/py 脚本(conditionFunc 接收 Sentence，返回bool)
+# <PROJECT_DIR>为代表当前路径字符串的宏
+# conditionTarget 加前缀 prev_ 或 next_ 可表示 前/后 句，如 prev_prev_orig_text 表示上上句原文，如果没有则条件失败
 retranslKeys = [
+  #[{ conditionScript='Lua:<PROJECT_DIR>/Lua/MySampleTextPlugin.lua',conditionFunc='funcName'},
+  #{ conditionScript='Python:<PROJECT_DIR>/Python/MySampleTextPlugin.py',conditionFunc='funcName'}],
   #"残留日文",
-  [{ conditionTarget = 'orig_text', conditionReg = '^(?![\S\s]*隠さん)[\S\s]*$'},
-   { conditionTarget = 'trans_preview', conditionReg = '隐同学' }], # 重翻所有 原文中不含'隠さん'且译文中含'隐同学' 的句子
   "翻译失败", # 等效于 [{ conditionTarget = 'problems', conditionReg = '翻译失败' }]
 ]
 ```
@@ -184,13 +189,13 @@ skipProblems 语法示例
 
 ```
 # 正则表达式列表，如果一条 problem 能被以下任一正则 search 通过，则不加入 problems 列表
-# 如果想忽略指定原文/译文的指定问题，请通过内联表数组指定 conditionTarget 和 conditionReg
-# 并在表数组第一项填入要忽略的 problem(同样也是正则表达式)
+# 如果想忽略指定原文/译文的指定问题，请通过内联表(数组)指定 conditionTarget 和 conditionReg
+# 并在表数组第一项填入要忽略的 problem (同样也是正则表达式)
 skipProblems = [
   # "^引入拉丁字母: Live$"  # 不加任何条件
   # 如果 原文中包含'モチモチ'且译文中包含'Q弹'，则忽略此句子中所有能被 '引入拉丁字母' search 通过的 problem
   [ '引入拉丁字母', { conditionTarget = 'preproc_text', conditionReg = 'モチモチ'},
-    { conditionTarget = 'trans_preview', conditionReg = 'Q弹'}], 
+    { conditionTarget = 'trans_preview', conditionReg = 'Q弹'}],
 ]
 ```
 
@@ -208,7 +213,7 @@ overwriteCompareObj = [
     { base = 'preproc_text', check = 'trans_preview', problemKey = '语言不通' }
 ]
 ```
-如 `{ base = 'orig_text', check = 'trans_preview', problemKey = '比原文长严格' }`， 
+如 `{ problemKey = '比原文长严格', base = 'orig_text', check = 'trans_preview' }`， 
 
 意思是当 trans\_preview 比 orig\_text 严格长时，在 problem 中留下对应的问题。
 </details>
@@ -341,6 +346,19 @@ nvcc --version
 - 3、 根据自己的 CUDA 版本(查看 Stanza 第二条以查看如何获取 CUDA 版本)，安装 `cupy` 的特定版本，如 `cupy-cuda13x`: `python -m pip install cupy-cuda13x`，然后再把 spacy 装回来 `python -m pip install spacy`。
 - 4、 尝试运行 `BaseConfig\pyScripts\check_spacy_gpu.py`，如果提示成功，则代表所有配置均已就绪。
 - 5、 此时打开 `BaseConfig\pyScripts\tokenizer_spacy.py` 文件，将 `#spacy.require_gpu()` 的#注释去掉，即可为 spaCy 启用 GPU加速。
+
+</details>
+
+<details>
+
+<summary>
+
+### Lua/Python 内嵌
+
+</summary>
+这两种语言在程序内均为热更新(只要没有被其它任务占用)，更改后重新运行即可看到新的结果。
+
+具体的代码示例详见 `Example/Lua` 及 `Example/Python`，工具函数/类函数的签名需要你自行翻阅一下源代码。
 
 </details>
 

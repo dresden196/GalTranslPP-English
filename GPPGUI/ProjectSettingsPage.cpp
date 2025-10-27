@@ -189,10 +189,6 @@ void ProjectSettingsPage::_setupUI()
     connect(dictExSettingAction, &QAction::triggered, this, [=]()
         {
             _stackedWidget->setCurrentIndex(5);
-            QString dictSettingsStr	= tr("字典设置");
-            /*if (dictSettingsStr == "DictSettings") {
-	            dictSettingsStr
-            }*/
             _settingsTitle->setText(tr("字典设置"));
         });
     connect(promptSettingAction, &QAction::triggered, this, [=]()
@@ -238,7 +234,7 @@ void ProjectSettingsPage::_createPages()
     _dictExSettingsPage = new DictExSettingsPage(_globalConfig, _projectConfig, this);
     _promptSettingsPage = new PromptSettingsPage(_projectDir, _projectConfig, this);
     _pluginSettingsPage = new PluginSettingsPage(_mainWindow, _projectConfig, this);
-    _startSettingsPage = new StartSettingsPage(_mainWindow, _projectDir, _projectConfig, this);
+    _startSettingsPage = new StartSettingsPage(_mainWindow, _projectDir, _globalConfig, _projectConfig, this);
     _otherSettingsPage = new OtherSettingsPage(_mainWindow, _projectDir, _globalConfig, _projectConfig, this);
 
     _stackedWidget->addWidget(_apiSettingsPage);

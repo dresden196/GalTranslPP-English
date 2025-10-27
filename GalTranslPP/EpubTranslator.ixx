@@ -48,7 +48,7 @@ export {
 
     class EpubTranslator : public NormalJsonTranslator {
 
-    protected:
+    public:
 
         fs::path m_epubInputDir;
         fs::path m_epubOutputDir;

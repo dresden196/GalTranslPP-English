@@ -38,43 +38,6 @@ export {
         bool complete = false;
         bool notAnalyzeProblem = false;
 
-        bool other_info_contains(const std::string& key) {
-            return other_info.contains(key);
-        }
-
-        std::string other_info_get(const std::string& key) {
-            return other_info[key];
-        }
-
-        void other_info_set(const std::string& key, const std::string& value) {
-            other_info[key] = value;
-        }
-
-        std::tuple<std::vector<std::string>, std::vector<std::string>> other_info_get_all() {
-            std::vector<std::string> keys;
-            std::vector<std::string> values;
-            for (const auto& [key, value] : other_info) {
-                keys.push_back(key);
-                values.push_back(value);
-            }
-            return std::make_tuple(keys, values);
-        }
-
-        void other_info_set_all(std::vector<std::string> keys, std::vector<std::string> values) {
-            other_info.clear();
-            for (auto [key, value] : std::views::zip(keys, values)) {
-                other_info[key] = value;
-            }
-        }
-
-        void other_info_erase(const std::string& key) {
-            other_info.erase(key);
-        }
-
-        void other_info_clear() {
-            other_info.clear();
-        }
-
         std::optional<std::string> problems_get_by_index(int index) {
             if (index < 0 || index >= problems.size()) {
                 return std::nullopt;

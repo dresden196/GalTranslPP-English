@@ -179,7 +179,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	mainLayout->addWidget(mecabDictDirArea);
 
 	// spaCyModelName https://spacy.io/models
-	QString spaCyModelName = QString::fromStdString(toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "spaCyModelName", "zh_core_web_trf"));
+	QString spaCyModelName = QString::fromStdString(toml::find_or(_projectConfig, "plugins", "TextLinebreakFix", "spaCyModelName", "zh_core_web_lg"));
 	ElaScrollPageArea* spaCyModelNameArea = new ElaScrollPageArea(centerWidget);
 	QHBoxLayout* spaCyModelNameLayout = new QHBoxLayout(spaCyModelNameArea);
 	ElaText* spaCyModelNameText = new ElaText(tr("spaCy模型名称"), spaCyModelNameArea);

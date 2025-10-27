@@ -172,6 +172,41 @@ export {
         throw std::runtime_error("Failed to find value in TOML: " + path);
     }
 
+    template<typename T, typename TC>
+    auto parseToml(const toml::basic_value<TC>& config, const std::string& path) -> std::optional<T> {
+        const std::vector<std::string> keys = splitString(path, '.');
+        if (
+            keys.empty() ||
+            std::ranges::any_of(keys, [](const std::string& key) { return key.empty(); })
+            ) {
+            return std::nullopt;
+        }
+        if (auto pValue = findValueByPath(config, keys)) {
+            return toml::get<T>(*pValue);
+        }
+        return std::nullopt;
+    }
+
+    template<typename TC>
+    size_t eraseToml(toml::basic_value<TC>& table, const std::string& path) {
+        const std::vector<std::string> keys = splitString(path, '.');
+        if (
+            keys.empty() ||
+            std::ranges::any_of(keys, [](const std::string& key) { return key.empty(); })
+            ) {
+            return 0;
+        }
+        auto* pCurrentTable = &table.as_table();
+        for (size_t i = 0; i < keys.size() - 1; i++) {
+            auto& subTable = (*pCurrentTable)[keys[i]];
+            if (!subTable.is_table()) {
+                return 0;
+            }
+            pCurrentTable = &subTable.as_table();
+        }
+        return (*pCurrentTable).erase(keys.back());
+    }
+
     template<typename TC,typename T>
     toml::basic_value<TC>& insertToml(toml::basic_value<TC>& table, const std::string& path, const T& value)
     {

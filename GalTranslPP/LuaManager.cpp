@@ -14,6 +14,164 @@ import PythonManager;
 
 namespace fs = std::filesystem;
 
+class LuaToml {
+public:
+
+	std::string getLastError() const {
+		return lastError;
+	}
+
+	bool open(const std::string& path) {
+		lastError.clear();
+		try {
+			config = toml::parse(fs::path(ascii2Wide(path)));
+			return true;
+		}
+		catch (const toml::exception& e) {
+			lastError = e.what();
+			return false;
+		}
+	}
+
+	size_t erase(const std::string& key) {
+		return eraseToml(config, key);
+	}
+
+	void set(const std::string& key, sol::object value) {
+		insertToml(config, key, solObj2TomlValue(value));
+	}
+
+	sol::object get(sol::this_state s, const std::string& key) {
+		sol::state_view lua(s);
+		if (auto tomlValueOpt = parseToml<toml::value>(config, key)) {
+			// 将找到的 toml 节点转换为 sol::object
+			return tomlValue2SolObject(*tomlValueOpt, lua);
+		}
+		// 如果找不到键，返回 nil
+		return sol::make_object(lua, sol::nil);
+	}
+
+	bool save(const std::string& path) {
+		std::ofstream ofs(ascii2Wide(path));
+		if (!ofs.is_open()) {
+			lastError = "Failed to open file for writing";
+			return false;
+		}
+		try {
+			ofs << toml::format(config);
+			ofs.close();
+			return true;
+		}
+		catch (const toml::exception& e) {
+			lastError = e.what();
+			return false;
+		}
+		return false;
+	}
+
+private:
+
+	// 从 sol::object 转换到 toml::node 的辅助函数
+	toml::value solObj2TomlValue(sol::object obj) {
+		sol::type type = obj.get_type();
+		switch (type) {
+		case sol::type::string:
+			return toml::value(obj.as<std::string>());
+		case sol::type::number:
+			if (obj.is<int64_t>()) {
+				return toml::value(obj.as<int64_t>());
+			}
+			return toml::value(obj.as<double>());
+		case sol::type::boolean:
+			return toml::value(obj.as<bool>());
+		case sol::type::table: {
+			sol::table luaTable = obj.as<sol::table>();
+			bool arrayLike = true;
+			if (luaTable.empty()) {
+				// 如果是空表，我们默认它是一个数组。
+				// 这是一个约定，你也可以选择默认为 table。
+				// 对于 toml 来说，空的 array [] 更常见。
+				arrayLike = true;
+			}
+			else {
+				// 遍历所有键，检查它们是否都是从1开始的连续整数
+				size_t expectedKey = 1;
+				for (auto& kv : luaTable) {
+					if (!kv.first.is<lua_Integer>() || kv.first.as<lua_Integer>() != expectedKey) {
+						arrayLike = false;
+						break;
+					}
+					expectedKey++;
+				}
+				// 确保 Lua table 的 #size 和我们遍历的元素数量一致
+				arrayLike &= (luaTable.size() == expectedKey - 1);
+			}
+
+			if (arrayLike) {
+				toml::array arr;
+				for (auto& kv : luaTable) {
+					arr.push_back(solObj2TomlValue(kv.second));
+				}
+				return arr;
+			}
+			else { // 否则，当作字典处理
+				toml::table tbl;
+				for (auto& kv : luaTable) {
+					// 确保键是字符串，因为 TOML 的键必须是字符串
+					if (kv.first.is<std::string>()) {
+						tbl.insert({ kv.first.as<std::string>(), solObj2TomlValue(kv.second) });
+					}
+					else {
+						tbl.insert({ "LuaToml: non-string key", solObj2TomlValue(kv.second) });
+					}
+				}
+				return tbl;
+			}
+		}
+		default:
+			return toml::value{ "LuaToml: unsupported type" };
+		}
+	}
+
+	// 递归转换函数：将 toml::value 转换为 sol::object
+	sol::object tomlValue2SolObject(const toml::value& value, sol::state_view lua) {
+		// 检查节点类型并进行相应转换
+		if (value.is_table()) {
+			sol::table resultMap = lua.create_table();
+			for (const auto& [key, val] : value.as_table()) {
+				resultMap[key] = tomlValue2SolObject(val, lua);
+			}
+			return sol::make_object(lua, resultMap);
+		}
+		else if (value.is_array()) {
+			sol::table resultVec = lua.create_table();
+			for (const auto& elem : value.as_array()) {
+				resultVec.add(tomlValue2SolObject(elem, lua));
+			}
+			return sol::make_object(lua, resultVec);
+		}
+		else if (value.is_string()) {
+			return sol::make_object(lua, value.as_string());
+		}
+		else if (value.is_integer()) {
+			return sol::make_object(lua, value.as_integer());
+		}
+		else if (value.is_floating()) {
+			return sol::make_object(lua, value.as_floating());
+		}
+		else if (value.is_boolean()) {
+			return sol::make_object(lua, value.as_boolean());
+		}
+		// 对于其他类型（如 toml::date, toml::time），我们返回 nil
+		return sol::make_object(lua, sol::nil);
+	}
+
+
+private:
+	toml::value config;
+	std::string lastError;
+};
+
 std::optional<std::shared_ptr<LuaStateInstance>> LuaManager::registerFunction(const std::string& scriptPath, const std::string& functionName, bool& needReboot) {
 	const fs::path stdScriptPath = fs::weakly_canonical(ascii2Wide(scriptPath));
 	if (!fs::exists(stdScriptPath)) {
@@ -63,6 +221,19 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 		"Multiple", NameType::Multiple
 	);
 
+	lua.new_enum("TransEngine",
+		"None", TransEngine::None,
+		"ForGalJson", TransEngine::ForGalJson,
+		"ForGalTsv", TransEngine::ForGalTsv,
+		"ForNovelTsv", TransEngine::ForNovelTsv,
+		"DeepseekJson", TransEngine::DeepseekJson,
+		"Sakura", TransEngine::Sakura,
+		"DumpName", TransEngine::DumpName,
+		"GenDict", TransEngine::GenDict,
+		"Rebuild", TransEngine::Rebuild,
+		"ShowNormal", TransEngine::ShowNormal
+	);
+
 	// 绑定 Sentence 结构体
 	lua.new_usertype<Sentence>("Sentence",
 		sol::constructors<Sentence()>(), // 允许在 Lua 中创建 Sentence
@@ -77,20 +248,32 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 		"problems", &Sentence::problems,
 		"translated_by", &Sentence::translated_by,
 		"translated_preview", &Sentence::translated_preview,
-		"other_info_contains", &Sentence::other_info_contains,
-		"other_info_get", &Sentence::other_info_get,
-		"other_info_set", &Sentence::other_info_set,
-		"other_info_get_all", &Sentence::other_info_get_all,
-		"other_info_set_all", &Sentence::other_info_set_all,
-		"other_info_erase", &Sentence::other_info_erase,
-		"other_info_clear", &Sentence::other_info_clear,
+		"other_info", sol::property([](Sentence& s)
+			{
+				return sol::as_table(s.other_info);
+			},
+			[](Sentence& s, const sol::table& otherInfo)
+			{
+				s.other_info = otherInfo.as<std::map<std::string, std::string>>();
+			}),
 		"problems_get_by_index", &Sentence::problems_get_by_index,
 		"problems_set_by_index", &Sentence::problems_set_by_index,
 		"complete", &Sentence::complete,
+		"notAnalyzeProblem", &Sentence::notAnalyzeProblem,
 		"nameType", &Sentence::nameType,
 		"prev", &Sentence::prev,
 		"next", &Sentence::next,
 		"originalLinebreak", &Sentence::originalLinebreak
+	);
+
+	lua.new_usertype<LuaToml>("LuaToml",
+		sol::constructors<LuaToml()>(), // 允许在 Lua 中创建 LuaToml
+		"open", &LuaToml::open,
+		"erase", &LuaToml::erase,
+		"set", &LuaToml::set,
+		"get", &LuaToml::get,
+		"save", &LuaToml::save,
+		"getLastError", &LuaToml::getLastError
 	);
 
 	// 绑定 utils 库

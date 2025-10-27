@@ -64,13 +64,6 @@ PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m) {
         .def_readwrite("next", &Sentence::next) // Sentence* <=> Sentence or None
         .def_readwrite("complete", &Sentence::complete)
         .def_readwrite("notAnalyzeProblem", &Sentence::notAnalyzeProblem)
-        .def("other_info_contains", &Sentence::other_info_contains)
-        .def("other_info_get", &Sentence::other_info_get)
-        .def("other_info_set", &Sentence::other_info_set)
-        .def("other_info_get_all", &Sentence::other_info_get_all)
-        .def("other_info_set_all", &Sentence::other_info_set_all)
-        .def("other_info_erase", &Sentence::other_info_erase)
-        .def("other_info_clear", &Sentence::other_info_clear)
         .def("problems_get_by_index", &Sentence::problems_get_by_index)
         .def("problems_set_by_index", &Sentence::problems_set_by_index);
 

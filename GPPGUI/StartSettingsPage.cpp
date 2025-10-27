@@ -22,11 +22,12 @@
 #include "NJCfgPage.h"
 #include "EpubCfgPage.h"
 #include "PDFCfgPage.h"
+#include "CustomFilePluginCfgPage.h"
 
 import Tool;
 
-StartSettingsPage::StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::ordered_value& projectConfig, QWidget* parent) :
-	BasePage(parent), _projectConfig(projectConfig), _projectDir(projectDir), _mainWindow(mainWindow)
+StartSettingsPage::StartSettingsPage(QWidget* mainWindow, fs::path& projectDir, toml::ordered_value& globalConfig, toml::ordered_value& projectConfig, QWidget* parent) :
+	BasePage(parent), _projectConfig(projectConfig), _globalConfig(globalConfig), _projectDir(projectDir), _mainWindow(mainWindow)
 {
 	setWindowTitle(tr("启动设置"));
 	setTitleVisible(false);
@@ -57,6 +58,7 @@ void StartSettingsPage::apply2Config()
 	_njCfgPage->apply2Config();
 	_epubCfgPage->apply2Config();
 	_pdfCfgPage->apply2Config();
+	_customFilePluginCfgPage->apply2Config();
 	if (_applyFunc) {
 		_applyFunc();
 	}
@@ -96,17 +98,23 @@ void StartSettingsPage::_setupUI()
 	_fileFormatComboBox->addItem("NormalJson");
 	_fileFormatComboBox->addItem("Epub");
 	_fileFormatComboBox->addItem("PDF");
+	_fileFormatComboBox->addItem("Custom");
 	if (!filePluginStr.isEmpty()) {
-		int index = _fileFormatComboBox->findText(filePluginStr);
-		if (index >= 0) {
-			_fileFormatComboBox->setCurrentIndex(index);
+		if (filePluginStr.toLower().startsWith("lua:") || filePluginStr.toLower().startsWith("python:")) {
+			_fileFormatComboBox->setCurrentIndex(3);
+		}
+		else {
+			int index = _fileFormatComboBox->findText(filePluginStr);
+			if (index >= 0) {
+				_fileFormatComboBox->setCurrentIndex(index);
+			}
 		}
 	}
 	buttonLayout->addWidget(_fileFormatComboBox);
 
 	// 针对文件格式的输出设置
 	ElaPushButton* outputSetting = new ElaPushButton(buttonArea);
-	outputSetting->setText(tr("文件输出设置"));
+	outputSetting->setText(tr("文件处理器设置"));
 	buttonLayout->addWidget(outputSetting);
 	connect(outputSetting, &ElaPushButton::clicked, this, &StartSettingsPage::_onOutputSettingClicked);
 
@@ -350,7 +358,23 @@ void StartSettingsPage::_setupUI()
 
 	_applyFunc = [=]()
 		{
-			insertToml(_projectConfig, "plugins.filePlugin", _fileFormatComboBox->currentText().toStdString());
+			if (_fileFormatComboBox->currentText() != "Custom") {
+				insertToml(_projectConfig, "plugins.filePlugin", _fileFormatComboBox->currentText().toStdString());
+			}
+			else {
+				const std::string& customFilePluginStr = toml::find_or(_projectConfig, "plugins", "customFilePlugin", "Lua/MySampleFilePlugin.lua");
+				fs::path customFilePluginPath = ascii2Wide(customFilePluginStr);
+				if (isSameExtension(customFilePluginPath, L".lua")) {
+					insertToml(_projectConfig, "plugins.filePlugin", "Lua:" + customFilePluginStr);
+				}
+				else if (isSameExtension(customFilePluginPath, L".py")) {
+					insertToml(_projectConfig, "plugins.filePlugin", "Python:" + customFilePluginStr);
+				}
+				else {
+					ElaMessageBar::error(ElaMessageBarType::BottomRight, tr("文件格式错误"), tr("自定义文件插件的格式必须是 .lua 或 .py 格式。"), 3000);
+					insertToml(_projectConfig, "plugins.filePlugin", customFilePluginStr);
+				}
+			}
 			insertToml(_projectConfig, "plugins.transEngine", translateMode->currentText().toStdString());
 		};
 
@@ -361,6 +385,8 @@ void StartSettingsPage::_setupUI()
 	addCentralWidget(_epubCfgPage, true, true, 0);
 	_pdfCfgPage = new PDFCfgPage(_projectConfig, this);
 	addCentralWidget(_pdfCfgPage, true, true, 0);
+	_customFilePluginCfgPage = new CustomFilePluginCfgPage(_projectConfig, _globalConfig, this);
+	addCentralWidget(_customFilePluginCfgPage, true, true, 0);
 }
 
 void StartSettingsPage::_onOutputSettingClicked()
@@ -374,6 +400,9 @@ void StartSettingsPage::_onOutputSettingClicked()
 	}
 	else if (fileFormat == "PDF") {
 		this->navigation(3);
+	}
+	else if (fileFormat == "Custom") {
+		this->navigation(4);
 	}
 }
 

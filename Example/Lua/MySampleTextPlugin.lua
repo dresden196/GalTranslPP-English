@@ -25,13 +25,6 @@ struct Sentence {
     bool complete = false;
     bool notAnalyzeProblem = false;
 
-    bool other_info_contains(const std::string& key);
-    std::string other_info_get(const std::string& key);
-    void other_info_set(const std::string& key, const std::string& value);
-    std::tuple<std::vector<std::string>, std::vector<std::string>> other_info_get_all();
-    void other_info_set_all(std::vector<std::string> keys, std::vector<std::string> values);
-    void other_info_erase(const std::string& key);
-    void other_info_clear();
     std::optional<std::string> problems_get_by_index(int index);
     bool problems_set_by_index(int index, const std::string& problem);
 };
@@ -55,6 +48,7 @@ function checkConditionForRetranslKeysFunc(sentence)
 end
 
 function checkConditionForSkipProblemsFunc(sentence)
+    local other_info_tbl = sentence.other_info
     if sentence.index == 278 then 
         -- Example/Python/MySampleTextPlugin 中有对此函数的进一步介绍
         current_problem = ""
@@ -64,21 +58,23 @@ function checkConditionForSkipProblemsFunc(sentence)
             else
                 local success = sentence:problems_set_by_index(i-1, "My new problem")
                 if success then
-                    sentence:other_info_set("luaSuccess", "New problem suc")
+                    other_info_tbl["luaSuccess"] = "New problem suc"
                 else
-                    sentence:other_info_set("luaFail", "New problem fail")
+                    other_info_tbl["luaFail"] = "New problem fail"
                 end
             end
         end
-        sentence:other_info_set("luaCheck", "The 278th")
-        sentence:other_info_set("luacp", current_problem) 
+        other_info_tbl["luaCheck"] = "The 278th"
+        other_info_tbl["luacp"] = current_problem 
     end
+    sentence.other_info = other_info_tbl
     return false
 end
 
 function run(sentence)
+    local other_info_tbl = sentence.other_info
     if sentence.index == 0 then
-        sentence:other_info_set("MySampleKeyForFirstSentence", "MySampleValueForFirstSentence")
+        other_info_tbl["MySampleKeyForFirstSentence"] = "MySampleValueForFirstSentence"
     end
     if sentence.next == nil and sentence.prev ~= nil and sentence.prev.nameType == NameType.None then
         sentence.problems:add("MySampleProblemForLastSentence")
@@ -92,9 +88,10 @@ function run(sentence)
             parts[i] = "[" .. value[1] .. "]"
         end
         local result = table.concat(parts, "#")
-        sentence:other_info_set("tokens", result)
+        other_info_tbl["tokens"] = result
         utils.logger:info(string.format("测试 logger ，当前 index: %d", sentence.index))
     end
+    sentence.other_info = other_info_tbl
 end
 
 function init(projectDir)
