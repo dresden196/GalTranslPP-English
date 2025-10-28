@@ -48,7 +48,6 @@ function checkConditionForRetranslKeysFunc(sentence)
 end
 
 function checkConditionForSkipProblemsFunc(sentence)
-    local other_info_tbl = sentence.other_info
     if sentence.index == 278 then 
         -- Example/Python/MySampleTextPlugin 中有对此函数的进一步介绍
         current_problem = ""
@@ -58,23 +57,23 @@ function checkConditionForSkipProblemsFunc(sentence)
             else
                 local success = sentence:problems_set_by_index(i-1, "My new problem")
                 if success then
-                    other_info_tbl["luaSuccess"] = "New problem suc"
+                    sentence.other_info["luaSuccess"] = "New problem suc"
                 else
-                    other_info_tbl["luaFail"] = "New problem fail"
+                    sentence.other_info["luaFail"] = "New problem fail"
                 end
             end
         end
-        other_info_tbl["luaCheck"] = "The 278th"
-        other_info_tbl["luacp"] = current_problem 
+        sentence.other_info["luaCheck"] = "The 278th"
+        sentence.other_info["luacp"] = current_problem 
     end
-    sentence.other_info = other_info_tbl
     return false
 end
 
 function run(sentence)
-    local other_info_tbl = sentence.other_info
     if sentence.index == 0 then
-        other_info_tbl["MySampleKeyForFirstSentence"] = "MySampleValueForFirstSentence"
+        sentence.other_info["MySampleKeyForFirstSentence"] = "MySampleValueForFirstSentence"
+    elseif sentence.index == 278 then
+        sentence.problems:add("278FlagProblem")
     end
     if sentence.next == nil and sentence.prev ~= nil and sentence.prev.nameType == NameType.None then
         sentence.problems:add("MySampleProblemForLastSentence")
@@ -88,25 +87,26 @@ function run(sentence)
             parts[i] = "[" .. value[1] .. "]"
         end
         local result = table.concat(parts, "#")
-        other_info_tbl["tokens"] = result
+        sentence.other_info["tokens"] = result
+        sentence.other_info["other_info_size"] = tostring(#sentence.other_info + 1)
         utils.logger:info(string.format("测试 logger ，当前 index: %d", sentence.index))
     end
-    sentence.other_info = other_info_tbl
 end
 
 function init(projectDir)
-    utils.logger:info(string.format("MySamplePlugin 初始化成功，projectDir: '%s'", projectDir))
+    utils.logger:info(string.format("MySampleTextPluginFromLua 初始化成功，projectDir: '%s'", projectDir))
 end
 
 function unload()
-    local cmd = [[D:\GALGAME\linshi\天冥のコンキスタ\WORK\#toSjis.bat]]
-    local cmd_acp = utils.ascii2Ascii(cmd, 65001, 0)
-    local handle = io.popen(cmd_acp, 'r')
-    if handle then
-        local output = handle:read("*a")
-        handle:close()
-        utils.logger:info("--- BAT 脚本的输出内容 开始 ---\n" .. output .. "\n--- BAT 脚本的输出内容 结束 ---")
-    else
-        utils.logger:error("无法执行 BAT")
-    end
+    ---- ctrl + /
+    -- local cmd = [[D:\GALGAME\linshi\天冥のコンキスタ\WORK\#toSjis.bat]]
+    -- local cmd_acp = utils.ascii2Ascii(cmd, 65001, 0)
+    -- local handle = io.popen(cmd_acp, 'r')
+    -- if handle then
+    --     local output = handle:read("*a")
+    --     handle:close()
+    --     utils.logger:info("--- BAT 脚本的输出内容 开始 ---\n" .. output .. "\n--- BAT 脚本的输出内容 结束 ---")
+    -- else
+    --     utils.logger:error("无法执行 BAT")
+    -- end
 end

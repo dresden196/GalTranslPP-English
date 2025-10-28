@@ -73,6 +73,8 @@ export {
 
     public:
 
+        void beforeRun();
+
         virtual void run() override;
 
         EpubTranslator(const fs::path& projectDir, std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger);
@@ -202,10 +204,8 @@ EpubTranslator::EpubTranslator(const fs::path& projectDir, std::shared_ptr<ICont
 }
 
 
-void EpubTranslator::run()
+void EpubTranslator::beforeRun()
 {
-    m_logger->info("GalTransl++ EpubTranslator 启动...");
-
     for (const auto& dir : { m_epubInputDir, m_epubOutputDir }) {
         if (!fs::exists(dir)) {
             fs::create_directories(dir);
@@ -495,6 +495,10 @@ void EpubTranslator::run()
             m_logger->info("已重建 EPUB 文件: {}", wide2Ascii(outputEpubPath));
         };
 
+}
 
+void EpubTranslator::run() {
+    m_logger->info("GalTransl++ EpubTranslator 启动...");
+    this->EpubTranslator::beforeRun();
     NormalJsonTranslator::run();
 }

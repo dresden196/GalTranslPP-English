@@ -2,6 +2,7 @@ module;
 
 #define _RANGES_
 #include <toml.hpp>
+#include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 #include <sol/sol.hpp>
 #include <unicode/unistr.h>
@@ -13,6 +14,161 @@ module LuaManager;
 import PythonManager;
 
 namespace fs = std::filesystem;
+
+class LuaJson {
+public:
+
+	std::string getLastError() const {
+		return lastError;
+	}
+
+	bool open(const std::string& path) {
+		lastError.clear();
+		try {
+			json = nlohmann::json::parse(fs::path(ascii2Wide(path)));
+			return true;
+		}
+		catch (const nlohmann::json::parse_error& e) {
+			lastError = e.what();
+			return false;
+		}
+	}
+
+	//size_t erase(const std::string& key) {
+	//	return eraseJson(json, key);
+	//}
+
+	//void set(const std::string& key, sol::object value) {
+	//	insertJson(json, key, solObj2JsonValue(value));
+	//}
+
+	//sol::object get(sol::this_state s, const std::string& key) {
+	//	sol::state_view lua(s);
+	//	if (auto jsonValueOpt = parseJson(json, key)) {
+	//		// 将找到的 json 节点转换为 sol::object
+	//		return jsonValue2SolObject(*jsonValueOpt, lua);
+	//	}
+	//	// 如果找不到键，返回 nil
+	//	return sol::make_object(lua, sol::nil);
+	//}
+
+	bool save(const std::string& path) {
+		std::ofstream ofs(ascii2Wide(path));
+		if (!ofs.is_open()) {
+			lastError = "Failed to open file for writing";
+			return false;
+		}
+		try {
+			ofs << json.dump(2);
+			ofs.close();
+			return true;
+		}
+		catch (const nlohmann::json::parse_error& e) {
+			lastError = e.what();
+			return false;
+		}
+		return false;
+	}
+
+private:
+
+	// 从 sol::object 转换到 nlohmann::json 的辅助函数
+	nlohmann::json solObj2JsonValue(sol::object obj) {
+		sol::type type = obj.get_type();
+		switch (type) {
+		case sol::type::string:
+			return obj.as<std::string>();
+		case sol::type::number:
+			if (obj.is<int64_t>()) {
+				return obj.as<int64_t>();
+			}
+			return obj.as<double>();
+		case sol::type::boolean:
+			return obj.as<bool>();
+		case sol::type::table: {
+			sol::table luaTable = obj.as<sol::table>();
+			bool arrayLike = true;
+			if (luaTable.empty()) {
+				// 如果是空表，我们默认它是一个数组。
+				// 这是一个约定，你也可以选择默认为 table。
+				// 对于 json 来说，空的 array [] 更常见。
+				arrayLike = true;
+			}
+			else {
+				// 遍历所有键，检查它们是否都是从1开始的连续整数
+				size_t expectedKey = 1;
+				for (auto& kv : luaTable) {
+					if (!kv.first.is<lua_Integer>() || kv.first.as<lua_Integer>() != expectedKey) {
+						arrayLike = false;
+						break;
+					}
+					expectedKey++;
+				}
+				// 确保 Lua table 的 #size 和我们遍历的元素数量一致
+				arrayLike &= (luaTable.size() == expectedKey - 1);
+			}
+
+			if (arrayLike) {
+				nlohmann::json arr = nlohmann::json::array();
+				for (auto& kv : luaTable) {
+					arr.push_back(solObj2JsonValue(kv.second));
+				}
+				return arr;
+			}
+			else { // 否则，当作字典处理
+				nlohmann::json tbl = nlohmann::json::object();
+				for (auto& kv : luaTable) {
+					// 确保键是字符串，因为 JSON 的键必须是字符串
+					if (kv.first.is<std::string>()) {
+						tbl[kv.first.as<std::string>()] = solObj2JsonValue(kv.second);
+					}
+					else {
+						tbl["LuaJson: non-string key"] = solObj2JsonValue(kv.second);
+					}
+				}
+				return tbl;
+			}
+		}
+		default:
+			return "LuaJson: unsupported type";
+		}
+	}
+
+	// 递归转换函数：将 nlohmann::json 转换为 sol::object
+	sol::object jsonValue2SolObject(const nlohmann::json& value, sol::state_view lua) {
+		// 检查节点类型并进行相应转换
+		switch (value.type()) {
+		case nlohmann::json::value_t::string:
+			return sol::make_object(lua, value.get<std::string>());
+		case nlohmann::json::value_t::number_integer:
+			return sol::make_object(lua, value.get<int64_t>());
+		case nlohmann::json::value_t::number_float:
+			return sol::make_object(lua, value.get<double>());
+		case nlohmann::json::value_t::boolean:
+			return sol::make_object(lua, value.get<bool>());
+		case nlohmann::json::value_t::array: {
+			sol::table resultArray = lua.create_table();
+			for (const auto& elem : value) {
+				resultArray.add(jsonValue2SolObject(elem, lua));
+			}
+			return sol::make_object(lua, resultArray);
+		}
+		case nlohmann::json::value_t::object: {
+			sol::table resultMap = lua.create_table();
+			for (const auto& [key, val] : value.items()) {
+				resultMap[key] = jsonValue2SolObject(val, lua);
+			}
+			return sol::make_object(lua, resultMap);
+		}
+		default:
+			return sol::make_object(lua, sol::nil);
+		}
+	}
+
+	std::string lastError;
+	nlohmann::json json;
+
+};
 
 class LuaToml {
 public:
@@ -248,14 +404,7 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 		"problems", &Sentence::problems,
 		"translated_by", &Sentence::translated_by,
 		"translated_preview", &Sentence::translated_preview,
-		"other_info", sol::property([](Sentence& s)
-			{
-				return sol::as_table(s.other_info);
-			},
-			[](Sentence& s, const sol::table& otherInfo)
-			{
-				s.other_info = otherInfo.as<std::map<std::string, std::string>>();
-			}),
+		"other_info", &Sentence::other_info,
 		"problems_get_by_index", &Sentence::problems_get_by_index,
 		"problems_set_by_index", &Sentence::problems_set_by_index,
 		"complete", &Sentence::complete,
@@ -274,6 +423,47 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 		"get", &LuaToml::get,
 		"save", &LuaToml::save,
 		"getLastError", &LuaToml::getLastError
+	);
+
+	lua.new_usertype<fs::path>("Path",
+		sol::meta_function::construct,
+		sol::factories([](const std::string& str)
+			{
+				return fs::path(ascii2Wide(str));
+			},
+			[]()
+			{
+				return fs::path();
+			},
+			[](const fs::path& p)
+			{
+				return fs::path(p);
+			}),
+		"value", sol::property([](const fs::path& self)
+			{
+				return wide2Ascii(self);
+			},
+			[](fs::path& self, const std::string& str)
+			{
+				self = ascii2Wide(str);
+			}),
+		sol::meta_function::to_string,
+		[](const fs::path& self)
+		{
+			return wide2Ascii(self);
+		},
+		sol::meta_function::division, sol::overload(
+			[](const fs::path& self, const fs::path& other) { return self / other; },
+			[](const fs::path& self, const std::string& other) { return self / ascii2Wide(other); },
+			[](const std::string& self, const fs::path& other) { return ascii2Wide(self) / other; }),
+		sol::meta_function::equal_to, [](const fs::path& self, const fs::path& other) { return self == other; },
+		"filename", sol::property([](const fs::path& self) { return wide2Ascii(self.filename()); }),
+		"stem", sol::property([](const fs::path& self) { return wide2Ascii(self.stem()); }),
+		"extension", sol::property([](const fs::path& self) { return wide2Ascii(self.extension()); }),
+		"parent_path", sol::property([](const fs::path& self) { return wide2Ascii(self.parent_path()); }),
+		"empty", sol::property([](const fs::path& self) { return self.empty(); }),
+		"is_absolute", sol::property([](const fs::path& self) { return self.is_absolute(); }),
+		"is_relative", sol::property([](const fs::path& self) { return self.is_relative(); })
 	);
 
 	// 绑定 utils 库
@@ -394,34 +584,29 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 		};
 
 	// 绑定 spdlog::logger
-	auto loggerUsertype = lua.new_usertype<spdlog::logger>(
-		"spdlog_logger",
-		sol::no_constructor
+	lua.new_enum("spdlogLevel",
+		"trace", spdlog::level::trace,
+		"debug", spdlog::level::debug,
+		"info", spdlog::level::info,
+		"warn", spdlog::level::warn,
+		"err", spdlog::level::err,
+		"critical", spdlog::level::critical
 	);
-	loggerUsertype["trace"] = [](spdlog::logger& logger, const std::string& msg)
-		{
-			logger.trace(msg);
-		};
-	loggerUsertype["debug"] = [](spdlog::logger& logger, const std::string& msg)
-		{
-			logger.debug(msg);
-		};
-	loggerUsertype["info"] = [](spdlog::logger& logger, const std::string& msg)
-		{
-			logger.info(msg);
-		};
-	loggerUsertype["warn"] = [](spdlog::logger& logger, const std::string& msg)
-		{
-			logger.warn(msg);
-		};
-	loggerUsertype["error"] = [](spdlog::logger& logger, const std::string& msg)
-		{
-			logger.error(msg);
-		};
-	loggerUsertype["critical"] = [](spdlog::logger& logger, const std::string& msg)
-		{
-			logger.critical(msg);
-		};
+	lua.new_usertype<spdlog::logger>(
+		"spdlogLogger",
+		sol::no_constructor,
+		"name", &spdlog::logger::name,
+		"level", &spdlog::logger::level,
+		"set_level", &spdlog::logger::set_level,
+		"set_pattern", [](spdlog::logger& logger, const std::string& pattern) { logger.set_pattern(pattern); },
+		"flush", &spdlog::logger::flush,
+		"trace", [](spdlog::logger& logger, const std::string& msg) { logger.trace(msg); },
+		"debug", [](spdlog::logger& logger, const std::string& msg) { logger.debug(msg); },
+		"info", [](spdlog::logger& logger, const std::string& msg) { logger.info(msg); },
+		"warn", [](spdlog::logger& logger, const std::string& msg) { logger.warn(msg); },
+		"error", [](spdlog::logger& logger, const std::string& msg) { logger.error(msg); },
+		"critical", [](spdlog::logger& logger, const std::string& msg) { logger.critical(msg); }
+	);
 	utilsTable["logger"] = m_logger;
 
 	auto supplyTokenizerFunc = [&](const std::string& mode)

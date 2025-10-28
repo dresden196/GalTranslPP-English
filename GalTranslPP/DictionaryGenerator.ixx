@@ -320,7 +320,9 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
 }
 
 void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const fs::path& outputFilePath) {
-
+    if (jsonFiles.empty()) {
+        throw std::runtime_error("没有输入文件，无法生成字典。");
+    }
     preprocessAndTokenize(jsonFiles);
     auto selectedIndices = solveSentenceSelection();
     if (int maxSelectedIndicesCount = std::max(m_totalSentences / 250, 128); selectedIndices.size() > maxSelectedIndicesCount) {

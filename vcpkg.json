@@ -16,7 +16,6 @@
     "libzip",
     "gumbo",
     "cpp-base64",
-    "lua",
-    "sol2"
+    "lua"
   ]
 }

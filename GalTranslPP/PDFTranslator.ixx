@@ -30,6 +30,8 @@ export {
 
     public:
 
+        void beforeRun();
+
         virtual void run() override;
 
         PDFTranslator(const fs::path& projectDir, std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger);
@@ -70,10 +72,8 @@ PDFTranslator::PDFTranslator(const fs::path& projectDir, std::shared_ptr<IContro
 }
 
 
-void PDFTranslator::run()
+void PDFTranslator::beforeRun()
 {
-    m_logger->info("GalTransl++ PDFTranslator 启动...");
-
     for (const auto& dir : { m_pdfInputDir, m_pdfOutputDir }) {
         if (!fs::exists(dir)) {
             fs::create_directories(dir);
@@ -142,5 +142,10 @@ void PDFTranslator::run()
             }
         };
 
+}
+
+void PDFTranslator::run() {
+    m_logger->info("GalTransl++ PDFTranslator 启动...");
+    this->PDFTranslator::beforeRun();
     NormalJsonTranslator::run();
 }

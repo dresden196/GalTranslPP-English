@@ -23,7 +23,7 @@ export {
         bool m_skipH;
         std::vector<std::string> m_hKeys;
         std::vector<CheckSeCondFunc> m_skipKeys;
-        bool m_needReboot;
+        bool m_needReboot = false;
 
         void processSkipSentence(Sentence* se, const std::string& info);
 

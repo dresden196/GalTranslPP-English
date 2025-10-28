@@ -93,6 +93,7 @@ export {
         std::shared_mutex m_cacheMutex;
         std::mutex m_outputMutex;
 
+        ctpl::thread_pool m_threadPool{1};
         APIPool m_apiPool;
         GptDictionary m_gptDictionary;
         NormalDictionary m_preDictionary;
@@ -120,6 +121,10 @@ export {
         {
             m_logger->info("所有任务已完成！NormalJsonTranslator结束。");
         }
+
+        std::optional<std::vector<fs::path>> beforeRun();
+
+        void afterRun();
 
         virtual void run() override;
     };
@@ -1096,8 +1101,7 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
 }
 
 // ================================================         run           ========================================
-void NormalJsonTranslator::run() {
-    m_logger->info("GalTransl++ NormalJsonTranslator 启动...");
+std::optional<std::vector<fs::path>> NormalJsonTranslator::beforeRun() {
 
     if (fs::exists(m_cacheDir)) {
         std::error_code ec;
@@ -1206,7 +1210,7 @@ void NormalJsonTranslator::run() {
                 newNameTable[key] = toml::array{ toml::find_or(orgNameTable, key, 0, ""), nameTableMap[key] };
             }
             catch (...) {
-                newNameTable[key] = toml::array{ "", nameTableMap[key]};
+                newNameTable[key] = toml::array{ "", nameTableMap[key] };
             }
         }
         ofs.open(nameTablePath);
@@ -1216,7 +1220,7 @@ void NormalJsonTranslator::run() {
         if (m_transEngine == TransEngine::DumpName) {
             m_completedSentences += m_totalSentences;
             m_controller->updateBar(m_totalSentences);
-            return;
+            return std::nullopt;
         }
     }
     // 人名表处理完毕
@@ -1228,7 +1232,7 @@ void NormalJsonTranslator::run() {
             {
                 this->preProcess(se);
             };
-        DictionaryGenerator generator(m_controller, m_logger, m_apiPool, m_tokenizeSourceLangFunc, 
+        DictionaryGenerator generator(m_controller, m_logger, m_apiPool, m_tokenizeSourceLangFunc,
             preProcessFunc, m_systemPrompt, m_userPrompt, m_apiStrategy,
             m_maxRetries, m_threadsNum, m_apiTimeOutMs, m_checkQuota);
         fs::path outputFilePath = m_projectDir / L"项目GPT字典-生成.toml";
@@ -1237,7 +1241,7 @@ void NormalJsonTranslator::run() {
             inputPath = m_inputDir / inputPath;
         }
         generator.generate(inputPaths, outputFilePath);
-        return;
+        return std::nullopt;
     }
     // 字典生成完毕
 
@@ -1311,58 +1315,44 @@ void NormalJsonTranslator::run() {
     }
     // 单文件分割完毕
 
-
-    // 分发文件，开始翻译
-    {
-        std::vector<fs::path> relFilePaths;
-        if (!m_needsCombining) {
-            relFilePaths = std::move(relJsonPaths);
-        }
-        else {
-            for (const auto& relPartPath : m_splitFilePartsToJson | std::views::keys) {
-                relFilePaths.push_back(relPartPath);
-            }
-        }
-        if (relFilePaths.empty()) {
-            throw std::runtime_error("未找到任何待翻译文件。");
-        }
-
-        if (m_sortMethod == "size") {
-            std::ranges::sort(relFilePaths, [&](const fs::path& a, const fs::path& b)
-                {
-                    return m_needsCombining ? (fs::file_size(m_inputCacheDir / a) > fs::file_size(m_inputCacheDir / b)) :
-                        (fs::file_size(m_inputDir / a) > fs::file_size(m_inputDir / b));
-                });
-        }
-        else if (m_sortMethod == "name") {
-            std::ranges::sort(relFilePaths);
-        }
-        else {
-            throw std::invalid_argument(std::format("未知的排序模式: {}", m_sortMethod));
-        }
-
-        ctpl::thread_pool pool(std::min(m_threadsNum, (int)relFilePaths.size()));
-        std::vector<std::future<void>> results;
-
-        for (const auto& filePath : relFilePaths) {
-            results.emplace_back(pool.push([=](const int id)
-                {
-                    this->processFile(filePath, id);
-                }));
-        }
-        m_logger->info("已将 {} 个文件任务分配到线程池，等待处理完成...", results.size());
-        for (auto& result : results) {
-            result.get();
+    // 分发文件
+    std::vector<fs::path> relFilePaths;
+    if (!m_needsCombining) {
+        relFilePaths = std::move(relJsonPaths);
+    }
+    else {
+        for (const auto& relPartPath : m_splitFilePartsToJson | std::views::keys) {
+            relFilePaths.push_back(relPartPath);
         }
     }
-    // 翻译结束
-    
+    if (relFilePaths.empty()) {
+        throw std::runtime_error("未找到任何待翻译文件。");
+    }
 
+    if (m_sortMethod == "size") {
+        std::ranges::sort(relFilePaths, [&](const fs::path& a, const fs::path& b)
+            {
+                return m_needsCombining ? (fs::file_size(m_inputCacheDir / a) > fs::file_size(m_inputCacheDir / b)) :
+                    (fs::file_size(m_inputDir / a) > fs::file_size(m_inputDir / b));
+            });
+    }
+    else if (m_sortMethod == "name") {
+        std::ranges::sort(relFilePaths);
+    }
+    else {
+        throw std::invalid_argument(std::format("未知的排序模式: {}", m_sortMethod));
+    }
+    m_threadPool.resize(std::min(m_threadsNum, (int)relFilePaths.size()));
+    return relFilePaths;
+}
+
+void NormalJsonTranslator::afterRun() {
     // 问题概览
     if (m_problemOverview.as_array().empty()) {
         m_logger->info("\n\n```\n无问题概览\n```\n");
     }
     else {
+        std::ofstream ofs;
         ofs.open(m_projectDir / L"翻译问题概览.toml");
         ofs << toml::format("problemOverview", m_problemOverview);
         ofs.close();
@@ -1419,4 +1409,30 @@ void NormalJsonTranslator::run() {
     if (!m_controller->shouldStop() && m_transEngine == TransEngine::Rebuild && m_completedSentences != m_totalSentences) {
         m_logger->critical("重建过程中有句子未命中缓存 ({}/{} lines)，请检查日志以定位问题。", m_completedSentences.load(), m_totalSentences);
     }
+}
+
+void NormalJsonTranslator::run() {
+
+    m_logger->info("GalTransl++ NormalJsonTranslator 启动...");
+    std::optional<std::vector<fs::path>> relFilePathsOpt = this->NormalJsonTranslator::beforeRun();
+    if (!relFilePathsOpt.has_value()) {
+        return;
+    }
+    const std::vector<fs::path>& relFilePaths = relFilePathsOpt.value();
+    // 开始翻译
+    {
+        std::vector<std::future<void>> results;
+        for (const auto& filePath : relFilePaths) {
+            results.emplace_back(m_threadPool.push([=](const int id)
+                {
+                    this->processFile(filePath, id);
+                }));
+        }
+        m_logger->info("已将 {} 个文件任务分配到线程池，等待处理完成...", results.size());
+        for (auto& result : results) {
+            result.get();
+        }
+    }
+    // 翻译结束
+    this->NormalJsonTranslator::afterRun();
 }

@@ -2,8 +2,7 @@ module;
 
 #include <spdlog/spdlog.h>
 #include <sol/sol.hpp>
-#define PATH_CVT(className, memberName) sol::property([](className& self) { return wide2Ascii(self.memberName); }, \
-[](className& self, const std::string& pathStr) { self.memberName = ascii2Wide(pathStr); })
+#include <ctpl_stl.h>
 
 export module LuaTranslator;
 
@@ -16,16 +15,6 @@ import LuaManager;
 namespace fs = std::filesystem;
 
 export {
-
-	struct JsonStrInfo {
-		std::vector<EpubTextNodeInfo> metadata;
-		// 存储json文件相对路径到原始 HTML 完整路径的映射
-		std::string htmlPath;
-		// 存储json文件相对路径到其所属 epub 完整路径的映射
-		std::string epubPath;
-		// 存储json文件相对路径到 normal_post 完整路径的映射
-		std::string normalPostPath;
-	};
 
 	template<typename Base>
 	class LuaTranslator : public Base {
@@ -68,248 +57,183 @@ export {
 			this->m_luaManager.registerFunction(scriptPath, "unload", m_needReboot);
 
 			sol::state& luaState = *(m_luaState->lua);
-			if constexpr (std::is_base_of_v<ITranslator, Base>) {
-				luaState.new_usertype<ITranslator>("ITranslator",
-					sol::no_constructor,
-					"run", &ITranslator::run
-				);
-			}
-			if constexpr (std::is_base_of_v<NormalJsonTranslator, Base>) {
-				luaState.new_usertype<IController>("IController",
-					"make_bar", &IController::makeBar,
-					"write_log", &IController::writeLog,
-					"add_thread_num", &IController::addThreadNum,
-					"reduce_thread_num", &IController::reduceThreadNum,
-					"update_bar", &IController::updateBar,
-					"should_stop", &IController::shouldStop,
-					"flush", &IController::flush
-				);
-				luaState.new_usertype<NormalJsonTranslator>("NormalJsonTranslator",
-					sol::base_classes, sol::bases<ITranslator>(),
-					"m_transEngine", &NormalJsonTranslator::m_transEngine,
-					"m_controller", &NormalJsonTranslator::m_controller,
-					"m_projectDir", PATH_CVT(NormalJsonTranslator, m_projectDir),
-					"m_inputDir", PATH_CVT(NormalJsonTranslator, m_inputDir),
-					"m_inputCacheDir", PATH_CVT(NormalJsonTranslator, m_inputCacheDir),
-					"m_outputDir", PATH_CVT(NormalJsonTranslator, m_outputDir),
-					"m_outputCacheDir", PATH_CVT(NormalJsonTranslator, m_outputCacheDir),
-					"m_cacheDir", PATH_CVT(NormalJsonTranslator, m_cacheDir),
-					"m_systemPrompt", &NormalJsonTranslator::m_systemPrompt,
-					"m_userPrompt", &NormalJsonTranslator::m_userPrompt,
-					"m_targetLang", &NormalJsonTranslator::m_targetLang,
-					"m_totalSentences", &NormalJsonTranslator::m_totalSentences,
-					"m_completedSentences", &NormalJsonTranslator::m_completedSentences,
-					"m_threadsNum", &NormalJsonTranslator::m_threadsNum,
-					"m_batchSize", &NormalJsonTranslator::m_batchSize,
-					"m_contextHistorySize", &NormalJsonTranslator::m_contextHistorySize,
-					"m_maxRetries", &NormalJsonTranslator::m_maxRetries,
-					"m_saveCacheInterval", &NormalJsonTranslator::m_saveCacheInterval,
-					"m_apiTimeOutMs", &NormalJsonTranslator::m_apiTimeOutMs,
-					"m_checkQuota", &NormalJsonTranslator::m_checkQuota,
-					"m_smartRetry", &NormalJsonTranslator::m_smartRetry,
-					"m_usePreDictInName", &NormalJsonTranslator::m_usePreDictInName,
-					"m_usePostDictInName", &NormalJsonTranslator::m_usePostDictInName,
-					"m_usePreDictInMsg", &NormalJsonTranslator::m_usePreDictInMsg,
-					"m_usePostDictInMsg", &NormalJsonTranslator::m_usePostDictInMsg,
-					"m_useGptDictToReplaceName", &NormalJsonTranslator::m_useGptDictToReplaceName,
-					"m_outputWithSrc", &NormalJsonTranslator::m_outputWithSrc,
-					"m_apiStrategy", &NormalJsonTranslator::m_apiStrategy,
-					"m_sortMethod", &NormalJsonTranslator::m_sortMethod,
-					"m_splitFile", &NormalJsonTranslator::m_splitFile,
-					"m_splitFileNum", &NormalJsonTranslator::m_splitFileNum,
-					"m_linebreakSymbol", &NormalJsonTranslator::m_linebreakSymbol,
-					"m_needsCombining", &NormalJsonTranslator::m_needsCombining,
-					"m_splitFilePartsToJson", sol::property([](NormalJsonTranslator& self, sol::this_state s)
-						{
-							sol::state_view lua(s);
-							sol::table partsTable = lua.create_table();
-							for (const auto& [key, value] : self.m_splitFilePartsToJson) {
-								partsTable[wide2Ascii(key)] = wide2Ascii(value);
-							}
-							return partsTable;
-						},
-						[](NormalJsonTranslator& self, sol::table partsTable)
-						{
-							self.m_splitFilePartsToJson.clear();
-							for (const auto& [key, value] : partsTable) {
-								if (key.is<std::string>() && value.is<std::string>()) {
-									self.m_splitFilePartsToJson.insert({ ascii2Wide(key.as<std::string>()), ascii2Wide(value.as<std::string>()) });
-								}
-							}
-						}),
-					"m_jsonToSplitFileParts", sol::property([](NormalJsonTranslator& self, sol::this_state s)
-						{
-							sol::state_view lua(s);
-							sol::table partsTable = lua.create_table();
-							for (const auto& [key, value] : self.m_jsonToSplitFileParts) {
-								sol::table partTable = lua.create_table();
-								for (const auto& [part, isComplete] : value) {
-									partTable[wide2Ascii(part)] = isComplete;
-								}
-								partsTable[wide2Ascii(key)] = partTable;
-							}
-							return partsTable;
-						},
-						[](NormalJsonTranslator& self, sol::table partsTable)
-						{
-							self.m_jsonToSplitFileParts.clear();
-							for (const auto& [key, value] : partsTable) {
-								if (key.is<std::string>() && value.is<sol::table>()) {
-									std::map<fs::path, bool> partMap;
-									for (const auto& [part, isComplete] : value.as<sol::table>()) {
-										if (part.is<std::string>() && isComplete.is<bool>()) {
-											partMap[ascii2Wide(part.as<std::string>())] = isComplete.as<bool>();
-										}
-									}
-									self.m_jsonToSplitFileParts.insert({ ascii2Wide(key.as<std::string>()), partMap });
-								}
-							}
-						}),
-					"m_onFileProcessed", sol::property([](NormalJsonTranslator& self, sol::this_state s)
-						{
-							sol::state_view lua(s);
-							NormalJsonTranslator* classPtr = &self;
-							std::function<void(std::string)> onFileProcessed = [classPtr](std::string relFilePath)
-								{
-									classPtr->m_onFileProcessed(ascii2Wide(relFilePath));
-								};
-							return onFileProcessed;
-						},
-						[](NormalJsonTranslator& self, std::function<void(std::string)> onFileProcessed)
-						{
-							// 这里的相对路径是相对 gt_input 来说的
-							self.m_onFileProcessed = [onFileProcessed](fs::path relFilePath)
-								{
-									onFileProcessed(wide2Ascii(relFilePath));
-								};
-						}),
-					"preProcess", &NormalJsonTranslator::preProcess,
-					"postProcess", &NormalJsonTranslator::postProcess,
-					"processFile", &NormalJsonTranslator::processFile,
-					"normalJsonTranslator_run", [](NormalJsonTranslator& self){ self.NormalJsonTranslator::run(); }
-				);
-			}
-
-			if constexpr (std::is_base_of_v<EpubTranslator, Base>) {
-				luaState.new_usertype<EpubTextNodeInfo>("EpubTextNodeInfo",
-					sol::constructors<EpubTextNodeInfo()>(),
-					"offset", &EpubTextNodeInfo::offset,
-					"length", &EpubTextNodeInfo::length
-				);
-				luaState.new_usertype<JsonStrInfo>("JsonStrInfo",
-					sol::constructors<JsonStrInfo()>(),
-					"metadata", &JsonStrInfo::metadata,
-					"htmlPath", &JsonStrInfo::htmlPath,
-					"epubPath", &JsonStrInfo::epubPath,
-					"normalPostPath", &JsonStrInfo::normalPostPath
-				);
-				luaState.new_usertype<EpubTranslator>("EpubTranslator",
-					sol::base_classes, sol::bases<NormalJsonTranslator>(),
-					"m_epubInputDir", PATH_CVT(EpubTranslator, m_epubInputDir),
-					"m_epubOutputDir", PATH_CVT(EpubTranslator, m_epubOutputDir),
-					"m_tempUnpackDir", PATH_CVT(EpubTranslator, m_tempUnpackDir),
-					"m_tempRebuildDir", PATH_CVT(EpubTranslator, m_tempRebuildDir),
-					"m_bilingualOutput", &EpubTranslator::m_bilingualOutput,
-					"m_originalTextColor", &EpubTranslator::m_originalTextColor,
-					"m_originalTextScale", &EpubTranslator::m_originalTextScale,
-					"m_jsonToInfoMap", sol::property([](EpubTranslator& self, sol::this_state s)
-						{
-							sol::state_view lua(s);
-							sol::table infoTable = lua.create_table();
-							for (const auto& [key, value] : self.m_jsonToInfoMap) {
-								JsonStrInfo info;
-								info.metadata = value.metadata;
-								info.htmlPath = wide2Ascii(value.htmlPath);
-								info.epubPath = wide2Ascii(value.epubPath);
-								info.normalPostPath = wide2Ascii(value.normalPostPath);
-								infoTable[wide2Ascii(key)] = info;
-							}
-							return infoTable;
-						},
-						[](EpubTranslator& self, sol::table infoTable)
-						{
-							self.m_jsonToInfoMap.clear();
-							for (const auto& kv : infoTable) {
-								if (kv.first.is<std::string>()) {
-									JsonInfo info;
-									JsonStrInfo strInfo = kv.second.as<JsonStrInfo>();
-									info.metadata = strInfo.metadata;
-									info.htmlPath = ascii2Wide(strInfo.htmlPath);
-									info.epubPath = ascii2Wide(strInfo.epubPath);
-									info.normalPostPath = ascii2Wide(strInfo.normalPostPath);
-									self.m_jsonToInfoMap[ascii2Wide(kv.first.as<std::string>())] = info;
-								}
-							}
-						}),
-					"m_epubToJsonsMap", sol::property([](EpubTranslator& self, sol::this_state s)
-						{
-							sol::state_view lua(s);
-							sol::table infoTable = lua.create_table();
-							for (const auto& [key, value] : self.m_epubToJsonsMap) {
-								sol::table jsonTable = lua.create_table();
-								for (const auto& [json, isComplete] : value) {
-									jsonTable[wide2Ascii(json)] = isComplete;
-								}
-								infoTable[wide2Ascii(key)] = jsonTable;
-							}
-							return infoTable;
-						},
-						[](EpubTranslator& self, sol::table infoTable)
-						{
-							self.m_epubToJsonsMap.clear();
-							for (const auto& kv : infoTable) {
-								if (kv.first.is<std::string>()) {
-									std::map<fs::path, bool> jsonMap;
-									sol::table jsonTable = kv.second.as<sol::table>();
-									for (const auto& [json, isComplete] : jsonTable) {
-										if (json.is<std::string>() && isComplete.is<bool>()) {
-											jsonMap[ascii2Wide(json.as<std::string>())] = isComplete.as<bool>();
-										}
-									}
-									self.m_epubToJsonsMap[ascii2Wide(kv.first.as<std::string>())] = jsonMap;
-								}
-							}
-						}),
-					"epubTranslator_run", [](EpubTranslator& self)
-					{
-						self.EpubTranslator::run();
+			luaState.new_usertype<ITranslator>("ITranslator",
+				sol::no_constructor,
+				"run", &ITranslator::run
+			);
+			auto threadPoolPushFunc = [](ctpl::thread_pool& self, LuaTranslator<Base>* classPtr, std::vector<fs::path> filePaths)
+				{
+					std::vector<std::future<void>> futures;
+					for (const auto& filePath : filePaths) {
+						futures.emplace_back(self.push([classPtr, filePath](const int id)
+							{
+								classPtr->processFile(filePath, id);
+							}));
 					}
-				);
-			}
-
-			if constexpr (std::is_base_of_v<PDFTranslator, Base>) {
-				luaState.new_usertype<PDFTranslator>("PDFTranslator",
-					sol::base_classes, sol::bases<NormalJsonTranslator>(),
-					"m_pdfInputDir", PATH_CVT(PDFTranslator, m_pdfInputDir),
-					"m_pdfOutputDir", PATH_CVT(PDFTranslator, m_pdfOutputDir),
-					"m_bilingualOutput", &PDFTranslator::m_bilingualOutput,
-					"m_jsonToPDFPathMap", sol::property([](PDFTranslator& self, sol::this_state s)
-						{
-							sol::state_view lua(s);
-							sol::table infoTable = lua.create_table();
-							for (const auto& [key, value] : self.m_jsonToPDFPathMap) {
-								infoTable[wide2Ascii(key)] = wide2Ascii(value);
-							}
-							return infoTable;
-						},
-						[](PDFTranslator& self, sol::table infoTable)
-						{
-							self.m_jsonToPDFPathMap.clear();
-							for (const auto& kv : infoTable) {
-								if (kv.first.is<std::string>() && kv.second.is<std::string>()) {
-									self.m_jsonToPDFPathMap.insert({ ascii2Wide(kv.first.as<std::string>()), ascii2Wide(kv.second.as<std::string>()) });
-								}
-							}
-						}),
-					"pdfTranslator_run", [](PDFTranslator& self)
-					{
-						self.PDFTranslator::run();
+					for (auto& future : futures) {
+						future.get();
 					}
-				);
-			}
+				};
+			luaState.new_usertype<IController>("IController",
+				"makeBar", &IController::makeBar,
+				"writeLog", &IController::writeLog,
+				"addThreadNum", &IController::addThreadNum,
+				"reduceThreadNum", &IController::reduceThreadNum,
+				"updateBar", &IController::updateBar,
+				"shouldStop", &IController::shouldStop,
+				"flush", &IController::flush
+			);
+			luaState.new_usertype<ctpl::thread_pool>("ThreadPool",
+				sol::no_constructor,
+				"push", sol::overload(threadPoolPushFunc, [=](ctpl::thread_pool& self, LuaTranslator<Base>* classPtr, std::vector<std::string> filePaths)
+					{
+						std::vector<fs::path> filePathsVec;
+						for (const auto& filePathStr : filePaths) {
+							filePathsVec.emplace_back(ascii2Wide(filePathStr));
+						}
+						threadPoolPushFunc(self, classPtr, filePathsVec);
+					}),
+				"resize", &ctpl::thread_pool::resize,
+				"size", &ctpl::thread_pool::size
+			);
+			luaState.new_usertype<NormalJsonTranslator>("NormalJsonTranslator",
+				sol::base_classes, sol::bases<ITranslator>(),
+				"m_transEngine", &NormalJsonTranslator::m_transEngine,
+				"m_controller", &NormalJsonTranslator::m_controller,
+				"m_projectDir", &NormalJsonTranslator::m_projectDir,
+				"m_inputDir", &NormalJsonTranslator::m_inputDir,
+				"m_inputCacheDir", &NormalJsonTranslator::m_inputCacheDir,
+				"m_outputDir", &NormalJsonTranslator::m_outputDir,
+				"m_outputCacheDir", &NormalJsonTranslator::m_outputCacheDir,
+				"m_cacheDir", &NormalJsonTranslator::m_cacheDir,
+				"m_systemPrompt", &NormalJsonTranslator::m_systemPrompt,
+				"m_userPrompt", &NormalJsonTranslator::m_userPrompt,
+				"m_targetLang", &NormalJsonTranslator::m_targetLang,
+				"m_totalSentences", &NormalJsonTranslator::m_totalSentences,
+				"m_completedSentences", &NormalJsonTranslator::m_completedSentences,
+				"m_threadsNum", &NormalJsonTranslator::m_threadsNum,
+				"m_batchSize", &NormalJsonTranslator::m_batchSize,
+				"m_contextHistorySize", &NormalJsonTranslator::m_contextHistorySize,
+				"m_maxRetries", &NormalJsonTranslator::m_maxRetries,
+				"m_saveCacheInterval", &NormalJsonTranslator::m_saveCacheInterval,
+				"m_apiTimeOutMs", &NormalJsonTranslator::m_apiTimeOutMs,
+				"m_checkQuota", &NormalJsonTranslator::m_checkQuota,
+				"m_smartRetry", &NormalJsonTranslator::m_smartRetry,
+				"m_usePreDictInName", &NormalJsonTranslator::m_usePreDictInName,
+				"m_usePostDictInName", &NormalJsonTranslator::m_usePostDictInName,
+				"m_usePreDictInMsg", &NormalJsonTranslator::m_usePreDictInMsg,
+				"m_usePostDictInMsg", &NormalJsonTranslator::m_usePostDictInMsg,
+				"m_useGptDictToReplaceName", &NormalJsonTranslator::m_useGptDictToReplaceName,
+				"m_outputWithSrc", &NormalJsonTranslator::m_outputWithSrc,
+				"m_apiStrategy", &NormalJsonTranslator::m_apiStrategy,
+				"m_sortMethod", &NormalJsonTranslator::m_sortMethod,
+				"m_splitFile", &NormalJsonTranslator::m_splitFile,
+				"m_splitFileNum", &NormalJsonTranslator::m_splitFileNum,
+				"m_linebreakSymbol", &NormalJsonTranslator::m_linebreakSymbol,
+				"m_needsCombining", &NormalJsonTranslator::m_needsCombining,
+				"m_splitFilePartsToJson", sol::property([](NormalJsonTranslator& self, sol::this_state s)
+					{
+						sol::state_view lua(s);
+						sol::table table = lua.create_table();
+						for (const auto& [key, value] : self.m_splitFilePartsToJson) {
+							table[key] = value;
+						}
+						return table;
+					}),
+				"m_jsonToSplitFileParts", sol::property([](NormalJsonTranslator& self, sol::this_state s)
+					{
+						sol::state_view lua(s);
+						sol::table table = lua.create_table();
+						for (const auto& [key, value] : self.m_jsonToSplitFileParts) {
+							sol::table valueTable = lua.create_table();
+							for (const auto& [key2, value2] : value) {
+								valueTable[key2] = value2;
+							}
+							table[key] = valueTable;
+						}
+						return table;
+					}, [](NormalJsonTranslator& self, sol::this_state s, decltype(NormalJsonTranslator::m_jsonToSplitFileParts) table) { self.m_jsonToSplitFileParts = table; }),
+				"m_onFileProcessed", &NormalJsonTranslator::m_onFileProcessed,
+				"m_threadPool", &NormalJsonTranslator::m_threadPool,
+				"preProcess", &NormalJsonTranslator::preProcess,
+				"postProcess", &NormalJsonTranslator::postProcess,
+				"processFile", &NormalJsonTranslator::processFile,
+				"normalJsonTranslator_beforeRun", &NormalJsonTranslator::beforeRun,
+				"normalJsonTranslator_afterRun", &NormalJsonTranslator::afterRun,
+				"normalJsonTranslator_run", [](NormalJsonTranslator& self) { self.NormalJsonTranslator::run(); }
+			);
+
+			luaState.new_usertype<EpubTextNodeInfo>("EpubTextNodeInfo",
+				sol::constructors<EpubTextNodeInfo()>(),
+				"offset", &EpubTextNodeInfo::offset,
+				"length", &EpubTextNodeInfo::length
+			);
+			luaState.new_usertype<JsonInfo>("JsonInfo",
+				sol::constructors<JsonInfo()>(),
+				"metadata", &JsonInfo::metadata,
+				"htmlPath", &JsonInfo::htmlPath,
+				"epubPath", &JsonInfo::epubPath,
+				"normalPostPath", &JsonInfo::normalPostPath
+			);
+			luaState.new_usertype<EpubTranslator>("EpubTranslator",
+				sol::base_classes, sol::bases<ITranslator, NormalJsonTranslator>(),
+				"m_epubInputDir", &EpubTranslator::m_epubInputDir,
+				"m_epubOutputDir", &EpubTranslator::m_epubOutputDir,
+				"m_tempUnpackDir", &EpubTranslator::m_tempUnpackDir,
+				"m_tempRebuildDir", &EpubTranslator::m_tempRebuildDir,
+				"m_bilingualOutput", &EpubTranslator::m_bilingualOutput,
+				"m_originalTextColor", &EpubTranslator::m_originalTextColor,
+				"m_originalTextScale", &EpubTranslator::m_originalTextScale,
+				"m_jsonToInfoMap", sol::property([](EpubTranslator& self, sol::this_state s)
+					{
+						sol::state_view lua(s);
+						sol::table table = lua.create_table();
+						for (const auto& [key, value] : self.m_jsonToInfoMap) {
+							table[key] = value;
+						}
+						return table;
+					}, [](EpubTranslator& self, sol::this_state s, decltype(EpubTranslator::m_jsonToInfoMap) table) { self.m_jsonToInfoMap = table; }),
+				"m_epubToJsonsMap", sol::property([](EpubTranslator& self, sol::this_state s)
+					{
+						sol::state_view lua(s);
+						sol::table table = lua.create_table();
+						for (const auto& [key, value] : self.m_epubToJsonsMap) {
+							sol::table valueTable = lua.create_table();
+							for (const auto& [key2, value2] : value) {
+								valueTable[key2] = value2;
+							}
+							table[key] = valueTable;
+						}
+						return table;
+					}, [](EpubTranslator& self, sol::this_state s, decltype(EpubTranslator::m_epubToJsonsMap) table) { self.m_epubToJsonsMap = table; }),
+				"epubTranslator_beforeRun", &EpubTranslator::beforeRun,
+				"epubTranslator_run", [](EpubTranslator& self) { self.EpubTranslator::run(); }
+			);
+
+			luaState.new_usertype<PDFTranslator>("PDFTranslator",
+				sol::base_classes, sol::bases<ITranslator, NormalJsonTranslator>(),
+				"m_pdfInputDir", &PDFTranslator::m_pdfInputDir,
+				"m_pdfOutputDir", &PDFTranslator::m_pdfOutputDir,
+				"m_bilingualOutput", &PDFTranslator::m_bilingualOutput,
+				"m_jsonToPDFPathMap", sol::property([](PDFTranslator& self, sol::this_state s)
+					{
+						sol::state_view lua(s);
+						sol::table table = lua.create_table();
+						for (const auto& [key, value] : self.m_jsonToPDFPathMap) {
+							table[key] = value;
+						}
+						return table;
+					}, [](PDFTranslator& self, sol::this_state s, decltype(PDFTranslator::m_jsonToPDFPathMap) table) { self.m_jsonToPDFPathMap = table; }),
+				"pdfTranslator_beforeRun", &PDFTranslator::beforeRun,
+				"pdfTranslator_run", [](PDFTranslator& self) { self.PDFTranslator::run(); }
+			);
 
 			luaState.new_usertype<LuaTranslator<Base>>("LuaTranslator",
-				sol::base_classes, sol::bases<Base>()
+				sol::base_classes, sol::bases<ITranslator,
+				std::conditional_t<std::is_base_of_v<NormalJsonTranslator, Base>, NormalJsonTranslator, void>,
+				std::conditional_t<std::is_base_of_v<EpubTranslator, Base>, EpubTranslator, void>,
+				std::conditional_t<std::is_base_of_v<PDFTranslator, Base>, PDFTranslator, void>
+				>()
 			);
 			luaState["luaTranslator"] = this;
 

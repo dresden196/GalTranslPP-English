@@ -18,6 +18,8 @@ UpdateWidget::UpdateWidget(QWidget* parent)
     QStringList updateList = {
         "1. 新增 Lua 脚本扩展支持",
         "2. 修复字符集检查的竞态条件 bug",
+        "3. 修复 SkipTrans 无事跳 Python 重启的 bug",
+
     };
 
     mainLayout->addWidget(updateTitle);
