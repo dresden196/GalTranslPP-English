@@ -18,12 +18,12 @@ function run()
     -- luaTranslator:epubTranslator_run()
     -- luaTranslator:pdfTranslator_run()
 
-    ---- Lua 没有多线程，所有函数都是阻塞的
-    ---- 但并不影响 TextPlugin，即使你的 conditionFunc 放在这个脚本里也没问题
-    ---- 因为 FilePlugin 和 TextPlugin 用的是不同的 LuaState(Lua环境)
-    ---- 如果想在 Lua 中使用 C++ NormalJsonTranslaor 的文件多线程
-    ---- 除过直接调用 run 函数之外
-    ---- 唯一的办法是使用 m_threadPool:push(luaTranslator , Vec{Paths}) (包括这个函数本身也是阻塞的)
+    -- Lua 没有多线程，所有函数都是阻塞的
+    -- 但并不影响 TextPlugin，即使你的 conditionFunc 放在这个脚本里也没问题
+    -- 因为 FilePlugin 和 TextPlugin 用的是不同的 LuaState(Lua环境)
+    -- 如果想在 Lua 中使用 C++ NormalJsonTranslaor 的文件多线程
+    -- 除过直接调用 run 函数之外
+    -- 唯一的办法是使用 m_threadPool:push(luaTranslator , Vec{Paths}) (包括这个函数本身也是阻塞的)
     -- local relFilePaths = luaTranslator:normalJsonTranslator_beforeRun()
     -- if relFilePaths == nil then 
     --     utils.logger:info("可能是 DumpName 或 GenDict 之类无需 processFile 的 TransEngine")
@@ -37,6 +37,7 @@ function run()
     -- luaTranslator.m_threadPool:resize(35)
     -- luaTranslator.m_controller:makeBar(luaTranslator.m_totalSentences, 35)
     -- luaTranslator.m_threadPool:push(luaTranslator, relFilePaths)
+    -- luaTranslator:normalJsonTranslator_afterRun()
 
     -- luaTranslator:epubTranslator_beforeRun()
     -- -- std::function<void(fs::path)>
@@ -51,10 +52,14 @@ end
 
 function init()
     utils.logger:info("MySampleFilePluginFromLua starts")
-end
-
-function unload()
-    utils.logger:info("MySampleFilePluginFromLua unloads")
+    utils.logger:info("apiStrategy: " .. luaTranslator.m_apiStrategy)
+    local tomlConfig = toml.parse(luaTranslator.m_projectDir / "config.toml")
+    if tomlConfig == nil then
+        utils.logger:info("出错错了喵")
+    else
+        local epubPreReg1 = tomlConfig.plugins.Epub.preprocRegex[1]
+        utils.logger:info("{epubPreReg1} org: " .. epubPreReg1.org .. ", rep: " .. epubPreReg1.rep)
+    end
 end
 
 function countMap(map)
@@ -66,6 +71,7 @@ function countMap(map)
 end
 
 function unload()
+    utils.logger:info("MySampleFilePluginFromLua unloads")
     -- std::map<fs::path, std::map<fs::path, bool>> m_jsonToSplitFileParts;
     local partsTable = luaTranslator.m_jsonToSplitFileParts
     local strs = {}
@@ -73,14 +79,20 @@ function unload()
         for splitFilePart, comp in pairs(filePartsMap) do
             if comp then
                 table.insert(strs, splitFilePart.value)
+                local j = json.parse(luaTranslator.m_cacheDir / splitFilePart)
+                if j == nil then
+                    utils.logger:info("出错错了喵")
+                elseif #j >= 1 then
+                    table.insert(strs, j[1].translated_preview)
+                end
             else
                 utils.logger:error("不应该发生")
             end
         end
     end
     utils.logger:info("map keys: \n" .. table.concat(strs, "\n"))
-    ---- map中如果有自定义类型如 Path，则返回的是副本，如果想修改，不能像 other_info 那样直接用other_info[k] = v
-    ---- 必须 luaTranslator.map = copy
+
+    -- -- 为了能使用 pairs 遍历，map返回类型都是副本，如果想修改，必须 luaTranslator.mapVar = copy
     -- utils.logger:info("原有 " .. tostring(countMap(luaTranslator.m_jsonToSplitFileParts)) .. " 个 key-value 对")
     -- local newPartTable = { MyNewPartPath1 = false, ["MyNewPartPath2"] = false }
     -- luaTranslator.m_jsonToSplitFileParts[Path.new("MyNewJsonPathKey")] = newPartTable
@@ -91,7 +103,6 @@ function unload()
 
     -- local jsonToInfoMap = luaTranslator.m_jsonToInfoMap
     -- for jsonPath, jsonInfo in pairs(jsonToInfoMap) do
-    --     -- vector 和不带自定义类型的 map 都可以 # 取 size
     --     utils.logger:info("metadataVecSize: " .. tostring(#jsonInfo.metadata))
     --     for i=1, #jsonInfo.metadata do
     --         utils.logger:info("offset: " .. tostring(jsonInfo.metadata[i].offset) .. ", length: " .. tostring(jsonInfo.metadata[i].length))

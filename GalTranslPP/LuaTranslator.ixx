@@ -3,6 +3,10 @@ module;
 #include <spdlog/spdlog.h>
 #include <sol/sol.hpp>
 #include <ctpl_stl.h>
+#define NESTED_CVT(className, memberName) sol::property([](className& self, sol::this_state s) \
+{ \
+	return sol::nested<decltype(className::memberName)>(self.memberName); \
+}, [](className& self, sol::this_state s, decltype(className::memberName) table) { self.memberName = std::move(table); }) 
 
 export module LuaTranslator;
 
@@ -131,28 +135,8 @@ export {
 				"m_splitFileNum", &NormalJsonTranslator::m_splitFileNum,
 				"m_linebreakSymbol", &NormalJsonTranslator::m_linebreakSymbol,
 				"m_needsCombining", &NormalJsonTranslator::m_needsCombining,
-				"m_splitFilePartsToJson", sol::property([](NormalJsonTranslator& self, sol::this_state s)
-					{
-						sol::state_view lua(s);
-						sol::table table = lua.create_table();
-						for (const auto& [key, value] : self.m_splitFilePartsToJson) {
-							table[key] = value;
-						}
-						return table;
-					}),
-				"m_jsonToSplitFileParts", sol::property([](NormalJsonTranslator& self, sol::this_state s)
-					{
-						sol::state_view lua(s);
-						sol::table table = lua.create_table();
-						for (const auto& [key, value] : self.m_jsonToSplitFileParts) {
-							sol::table valueTable = lua.create_table();
-							for (const auto& [key2, value2] : value) {
-								valueTable[key2] = value2;
-							}
-							table[key] = valueTable;
-						}
-						return table;
-					}, [](NormalJsonTranslator& self, sol::this_state s, decltype(NormalJsonTranslator::m_jsonToSplitFileParts) table) { self.m_jsonToSplitFileParts = table; }),
+				"m_splitFilePartsToJson", NESTED_CVT(NormalJsonTranslator, m_splitFilePartsToJson),
+				"m_jsonToSplitFileParts", NESTED_CVT(NormalJsonTranslator, m_jsonToSplitFileParts),
 				"m_onFileProcessed", &NormalJsonTranslator::m_onFileProcessed,
 				"m_threadPool", &NormalJsonTranslator::m_threadPool,
 				"preProcess", &NormalJsonTranslator::preProcess,
@@ -184,28 +168,8 @@ export {
 				"m_bilingualOutput", &EpubTranslator::m_bilingualOutput,
 				"m_originalTextColor", &EpubTranslator::m_originalTextColor,
 				"m_originalTextScale", &EpubTranslator::m_originalTextScale,
-				"m_jsonToInfoMap", sol::property([](EpubTranslator& self, sol::this_state s)
-					{
-						sol::state_view lua(s);
-						sol::table table = lua.create_table();
-						for (const auto& [key, value] : self.m_jsonToInfoMap) {
-							table[key] = value;
-						}
-						return table;
-					}, [](EpubTranslator& self, sol::this_state s, decltype(EpubTranslator::m_jsonToInfoMap) table) { self.m_jsonToInfoMap = table; }),
-				"m_epubToJsonsMap", sol::property([](EpubTranslator& self, sol::this_state s)
-					{
-						sol::state_view lua(s);
-						sol::table table = lua.create_table();
-						for (const auto& [key, value] : self.m_epubToJsonsMap) {
-							sol::table valueTable = lua.create_table();
-							for (const auto& [key2, value2] : value) {
-								valueTable[key2] = value2;
-							}
-							table[key] = valueTable;
-						}
-						return table;
-					}, [](EpubTranslator& self, sol::this_state s, decltype(EpubTranslator::m_epubToJsonsMap) table) { self.m_epubToJsonsMap = table; }),
+				"m_jsonToInfoMap", NESTED_CVT(EpubTranslator, m_jsonToInfoMap),
+				"m_epubToJsonsMap", NESTED_CVT(EpubTranslator, m_epubToJsonsMap),
 				"epubTranslator_beforeRun", &EpubTranslator::beforeRun,
 				"epubTranslator_run", [](EpubTranslator& self) { self.EpubTranslator::run(); }
 			);
@@ -215,15 +179,7 @@ export {
 				"m_pdfInputDir", &PDFTranslator::m_pdfInputDir,
 				"m_pdfOutputDir", &PDFTranslator::m_pdfOutputDir,
 				"m_bilingualOutput", &PDFTranslator::m_bilingualOutput,
-				"m_jsonToPDFPathMap", sol::property([](PDFTranslator& self, sol::this_state s)
-					{
-						sol::state_view lua(s);
-						sol::table table = lua.create_table();
-						for (const auto& [key, value] : self.m_jsonToPDFPathMap) {
-							table[key] = value;
-						}
-						return table;
-					}, [](PDFTranslator& self, sol::this_state s, decltype(PDFTranslator::m_jsonToPDFPathMap) table) { self.m_jsonToPDFPathMap = table; }),
+				"m_jsonToPDFPathMap", NESTED_CVT(PDFTranslator, m_jsonToPDFPathMap),
 				"pdfTranslator_beforeRun", &PDFTranslator::beforeRun,
 				"pdfTranslator_run", [](PDFTranslator& self) { self.PDFTranslator::run(); }
 			);

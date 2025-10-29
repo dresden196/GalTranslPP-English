@@ -8,72 +8,23 @@ module;
 #include <unicode/unistr.h>
 #include <unicode/uchar.h>
 #include <unicode/regex.h>
+#define NESTED_CVT(className, memberName) sol::property([](className& self, sol::this_state s) \
+{ \
+	return sol::nested<decltype(className::memberName)>(self.memberName); \
+}, [](className& self, sol::this_state s, decltype(className::memberName) table) { self.memberName = std::move(table); }) 
 
 module LuaManager;
 
 import PythonManager;
 
 namespace fs = std::filesystem;
+using json = nlohmann::json;
 
 class LuaJson {
 public:
 
-	std::string getLastError() const {
-		return lastError;
-	}
-
-	bool open(const std::string& path) {
-		lastError.clear();
-		try {
-			json = nlohmann::json::parse(fs::path(ascii2Wide(path)));
-			return true;
-		}
-		catch (const nlohmann::json::parse_error& e) {
-			lastError = e.what();
-			return false;
-		}
-	}
-
-	//size_t erase(const std::string& key) {
-	//	return eraseJson(json, key);
-	//}
-
-	//void set(const std::string& key, sol::object value) {
-	//	insertJson(json, key, solObj2JsonValue(value));
-	//}
-
-	//sol::object get(sol::this_state s, const std::string& key) {
-	//	sol::state_view lua(s);
-	//	if (auto jsonValueOpt = parseJson(json, key)) {
-	//		// 将找到的 json 节点转换为 sol::object
-	//		return jsonValue2SolObject(*jsonValueOpt, lua);
-	//	}
-	//	// 如果找不到键，返回 nil
-	//	return sol::make_object(lua, sol::nil);
-	//}
-
-	bool save(const std::string& path) {
-		std::ofstream ofs(ascii2Wide(path));
-		if (!ofs.is_open()) {
-			lastError = "Failed to open file for writing";
-			return false;
-		}
-		try {
-			ofs << json.dump(2);
-			ofs.close();
-			return true;
-		}
-		catch (const nlohmann::json::parse_error& e) {
-			lastError = e.what();
-			return false;
-		}
-		return false;
-	}
-
-private:
-
-	// 从 sol::object 转换到 nlohmann::json 的辅助函数
-	nlohmann::json solObj2JsonValue(sol::object obj) {
+	// 从 sol::object 转换到 json 的辅助函数
+	static json solObj2JsonValue(sol::object obj) {
 		sol::type type = obj.get_type();
 		switch (type) {
 		case sol::type::string:
@@ -91,7 +42,7 @@ private:
 			if (luaTable.empty()) {
 				// 如果是空表，我们默认它是一个数组。
 				// 这是一个约定，你也可以选择默认为 table。
-				// 对于 json 来说，空的 array [] 更常见。
+				// 对于 j 来说，空的 array [] 更常见。
 				arrayLike = true;
 			}
 			else {
@@ -109,16 +60,16 @@ private:
 			}
 
 			if (arrayLike) {
-				nlohmann::json arr = nlohmann::json::array();
+				json arr = json::array();
 				for (auto& kv : luaTable) {
 					arr.push_back(solObj2JsonValue(kv.second));
 				}
 				return arr;
 			}
 			else { // 否则，当作字典处理
-				nlohmann::json tbl = nlohmann::json::object();
+				json tbl = json::object();
 				for (auto& kv : luaTable) {
-					// 确保键是字符串，因为 JSON 的键必须是字符串
+					// 确保键是字符串，因为 j 的键必须是字符串
 					if (kv.first.is<std::string>()) {
 						tbl[kv.first.as<std::string>()] = solObj2JsonValue(kv.second);
 					}
@@ -134,26 +85,26 @@ private:
 		}
 	}
 
-	// 递归转换函数：将 nlohmann::json 转换为 sol::object
-	sol::object jsonValue2SolObject(const nlohmann::json& value, sol::state_view lua) {
+	// 递归转换函数：将 json 转换为 sol::object
+	static sol::object jsonValue2SolObject(const json& value, sol::state_view lua) {
 		// 检查节点类型并进行相应转换
 		switch (value.type()) {
-		case nlohmann::json::value_t::string:
+		case json::value_t::string:
 			return sol::make_object(lua, value.get<std::string>());
-		case nlohmann::json::value_t::number_integer:
+		case json::value_t::number_integer:
 			return sol::make_object(lua, value.get<int64_t>());
-		case nlohmann::json::value_t::number_float:
+		case json::value_t::number_float:
 			return sol::make_object(lua, value.get<double>());
-		case nlohmann::json::value_t::boolean:
+		case json::value_t::boolean:
 			return sol::make_object(lua, value.get<bool>());
-		case nlohmann::json::value_t::array: {
+		case json::value_t::array: {
 			sol::table resultArray = lua.create_table();
 			for (const auto& elem : value) {
 				resultArray.add(jsonValue2SolObject(elem, lua));
 			}
 			return sol::make_object(lua, resultArray);
 		}
-		case nlohmann::json::value_t::object: {
+		case json::value_t::object: {
 			sol::table resultMap = lua.create_table();
 			for (const auto& [key, val] : value.items()) {
 				resultMap[key] = jsonValue2SolObject(val, lua);
@@ -164,71 +115,13 @@ private:
 			return sol::make_object(lua, sol::nil);
 		}
 	}
-
-	std::string lastError;
-	nlohmann::json json;
-
 };
 
 class LuaToml {
 public:
 
-	std::string getLastError() const {
-		return lastError;
-	}
-
-	bool open(const std::string& path) {
-		lastError.clear();
-		try {
-			config = toml::parse(fs::path(ascii2Wide(path)));
-			return true;
-		}
-		catch (const toml::exception& e) {
-			lastError = e.what();
-			return false;
-		}
-	}
-
-	size_t erase(const std::string& key) {
-		return eraseToml(config, key);
-	}
-
-	void set(const std::string& key, sol::object value) {
-		insertToml(config, key, solObj2TomlValue(value));
-	}
-
-	sol::object get(sol::this_state s, const std::string& key) {
-		sol::state_view lua(s);
-		if (auto tomlValueOpt = parseToml<toml::value>(config, key)) {
-			// 将找到的 toml 节点转换为 sol::object
-			return tomlValue2SolObject(*tomlValueOpt, lua);
-		}
-		// 如果找不到键，返回 nil
-		return sol::make_object(lua, sol::nil);
-	}
-
-	bool save(const std::string& path) {
-		std::ofstream ofs(ascii2Wide(path));
-		if (!ofs.is_open()) {
-			lastError = "Failed to open file for writing";
-			return false;
-		}
-		try {
-			ofs << toml::format(config);
-			ofs.close();
-			return true;
-		}
-		catch (const toml::exception& e) {
-			lastError = e.what();
-			return false;
-		}
-		return false;
-	}
-
-private:
-
 	// 从 sol::object 转换到 toml::node 的辅助函数
-	toml::value solObj2TomlValue(sol::object obj) {
+	static toml::value solObj2TomlValue(sol::object obj) {
 		sol::type type = obj.get_type();
 		switch (type) {
 		case sol::type::string:
@@ -290,21 +183,21 @@ private:
 	}
 
 	// 递归转换函数：将 toml::value 转换为 sol::object
-	sol::object tomlValue2SolObject(const toml::value& value, sol::state_view lua) {
+	static sol::object tomlValue2SolObject(const toml::value& value, sol::state_view lua) {
 		// 检查节点类型并进行相应转换
 		if (value.is_table()) {
 			sol::table resultMap = lua.create_table();
 			for (const auto& [key, val] : value.as_table()) {
 				resultMap[key] = tomlValue2SolObject(val, lua);
 			}
-			return sol::make_object(lua, resultMap);
+			return resultMap;
 		}
 		else if (value.is_array()) {
 			sol::table resultVec = lua.create_table();
 			for (const auto& elem : value.as_array()) {
 				resultVec.add(tomlValue2SolObject(elem, lua));
 			}
-			return sol::make_object(lua, resultVec);
+			return resultVec;
 		}
 		else if (value.is_string()) {
 			return sol::make_object(lua, value.as_string());
@@ -321,11 +214,6 @@ private:
 		// 对于其他类型（如 toml::date, toml::time），我们返回 nil
 		return sol::make_object(lua, sol::nil);
 	}
-
-
-private:
-	toml::value config;
-	std::string lastError;
 };
 
 std::optional<std::shared_ptr<LuaStateInstance>> LuaManager::registerFunction(const std::string& scriptPath, const std::string& functionName, bool& needReboot) {
@@ -404,7 +292,7 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 		"problems", &Sentence::problems,
 		"translated_by", &Sentence::translated_by,
 		"translated_preview", &Sentence::translated_preview,
-		"other_info", &Sentence::other_info,
+		"other_info", NESTED_CVT(Sentence, other_info),
 		"problems_get_by_index", &Sentence::problems_get_by_index,
 		"problems_set_by_index", &Sentence::problems_set_by_index,
 		"complete", &Sentence::complete,
@@ -413,16 +301,6 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 		"prev", &Sentence::prev,
 		"next", &Sentence::next,
 		"originalLinebreak", &Sentence::originalLinebreak
-	);
-
-	lua.new_usertype<LuaToml>("LuaToml",
-		sol::constructors<LuaToml()>(), // 允许在 Lua 中创建 LuaToml
-		"open", &LuaToml::open,
-		"erase", &LuaToml::erase,
-		"set", &LuaToml::set,
-		"get", &LuaToml::get,
-		"save", &LuaToml::save,
-		"getLastError", &LuaToml::getLastError
 	);
 
 	lua.new_usertype<fs::path>("Path",
@@ -457,14 +335,85 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 			[](const fs::path& self, const std::string& other) { return self / ascii2Wide(other); },
 			[](const std::string& self, const fs::path& other) { return ascii2Wide(self) / other; }),
 		sol::meta_function::equal_to, [](const fs::path& self, const fs::path& other) { return self == other; },
-		"filename", sol::property([](const fs::path& self) { return wide2Ascii(self.filename()); }),
-		"stem", sol::property([](const fs::path& self) { return wide2Ascii(self.stem()); }),
-		"extension", sol::property([](const fs::path& self) { return wide2Ascii(self.extension()); }),
-		"parent_path", sol::property([](const fs::path& self) { return wide2Ascii(self.parent_path()); }),
+		"filename", sol::property([](const fs::path& self) { return self.filename(); }),
+		"stem", sol::property([](const fs::path& self) { return self.stem(); }),
+		"extension", sol::property([](const fs::path& self) { return self.extension(); }),
+		"parent_path", sol::property([](const fs::path& self) { return self.parent_path(); }),
 		"empty", sol::property([](const fs::path& self) { return self.empty(); }),
 		"is_absolute", sol::property([](const fs::path& self) { return self.is_absolute(); }),
-		"is_relative", sol::property([](const fs::path& self) { return self.is_relative(); })
+		"is_relative", sol::property([](const fs::path& self) { return self.is_relative(); }),
+		"equivalent", [](const fs::path& self, const fs::path& other) { return fs::equivalent(self, other); },
+		"weakly_canonical", [](const fs::path& self) { return fs::weakly_canonical(self); },
+		"canonical", [](const fs::path& self) { return fs::canonical(self); },
+		"relative_to", [](const fs::path& self, const fs::path& base) { return fs::relative(self, base); }
 	);
+
+	sol::table luaTomlTable = lua.create_named_table("toml");
+	auto luaTomlParseFunc = [](fs::path path, sol::this_state s)
+		{
+			sol::state_view lua = s;
+			try {
+				toml::value tomlValue = toml::parse(path);
+				return LuaToml::tomlValue2SolObject(tomlValue, lua);
+			}
+			catch (const toml::exception&) {
+				return sol::make_object(lua, sol::nil);
+			}
+		};
+	luaTomlTable["parse"] = sol::overload(luaTomlParseFunc, [=](const std::string& str, sol::this_state s) { return luaTomlParseFunc(ascii2Wide(str), s); });
+	auto luaTomlSaveFunc = [](const fs::path& path, sol::object obj) -> std::optional<std::string>
+		{
+			toml::value tomlValue = LuaToml::solObj2TomlValue(obj);
+			try {
+				std::ofstream ofs(path);
+				if (!ofs.is_open()) {
+					std::string err = std::format("Failed to open file for writing: {}", wide2Ascii(path));
+					return err;
+				}
+				ofs << toml::format(tomlValue);
+				ofs.close();
+				return std::nullopt;
+			}
+			catch (const toml::exception& e) {
+				std::string err = std::format("Failed to save toml: {}", e.what());
+				return err;
+			}
+		};
+	luaTomlTable["save"] = sol::overload(luaTomlSaveFunc, [=](const std::string& str, sol::object obj) { return luaTomlSaveFunc(ascii2Wide(str), obj); });
+
+	auto luaJsonTable = lua.create_named_table("json");
+	auto luaJsonParseFunc = [](const fs::path& path, sol::this_state s)
+		{
+			sol::state_view lua = s;
+			try {
+				std::ifstream ifs(path);
+				json jsonValue = json::parse(ifs);
+				return LuaJson::jsonValue2SolObject(jsonValue, lua);
+			}
+			catch (const std::exception&) {
+				return sol::make_object(lua, sol::nil);
+			}
+		};
+	luaJsonTable["parse"] = sol::overload(luaJsonParseFunc, [=](const std::string& str, sol::this_state s) { return luaJsonParseFunc(ascii2Wide(str), s); });
+	auto luaJsonSaveFunc = [](const fs::path& path, sol::object obj, sol::optional<int> indent) -> std::optional<std::string>
+		{
+			json jsonValue = LuaJson::solObj2JsonValue(obj);
+			try {
+				std::ofstream ofs(path);
+				if (!ofs.is_open()) {
+					std::string err = std::format("Failed to open file for writing: {}", wide2Ascii(path));
+					return err;
+				}
+				ofs << jsonValue.dump(indent.value_or(2));
+				ofs.close();
+				return std::nullopt;
+			}
+			catch (const std::exception& e) {
+				std::string err = std::format("Failed to save json: {}", e.what());
+				return err;
+			}
+		};
+	luaJsonTable["save"] = sol::overload(luaJsonSaveFunc, [=](const std::string& str, sol::object obj, sol::optional<int> indent) { return luaJsonSaveFunc(ascii2Wide(str), obj, indent); });
 
 	// 绑定 utils 库
 	sol::table utilsTable = lua.create_named_table("utils");

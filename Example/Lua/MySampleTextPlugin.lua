@@ -63,15 +63,21 @@ function checkConditionForSkipProblemsFunc(sentence)
                 end
             end
         end
-        sentence.other_info["luaCheck"] = "The 278th"
-        sentence.other_info["luacp"] = current_problem 
+        local other_info_map = sentence.other_info
+        other_info_map["luaCheck"] = "The 278th"
+        other_info_map["luaCp"] = current_problem
+        sentence.other_info = other_info_map
     end
     return false
 end
 
 function run(sentence)
+    -- 为了能使用 pairs 遍历，map返回类型都是副本，如果想修改，必须 mapVar = copy
+    -- vector 就没有这么多事
+    local other_info_map = sentence.other_info
     if sentence.index == 0 then
-        sentence.other_info["MySampleKeyForFirstSentence"] = "MySampleValueForFirstSentence"
+        other_info_map["MySampleKeyForFirstSentence"] = "MySampleValueForFirstSentence"
+        sentence.other_info = other_info_map
     elseif sentence.index == 278 then
         sentence.problems:add("278FlagProblem")
     end
@@ -80,6 +86,8 @@ function run(sentence)
         sentence.notAnalyzeProblem = true
     end
     if sentence.translated_preview == "久远紧锁眉头，脸上写着「骗人的吧，喂」。" then
+        -- utils, json, toml 等无实例类纯工具表直接使用 .func(...) 调用即可
+        -- logger，translator 等有具体实例的对象需要用 :func(...) 或 .func(self, ...) 调用
         local wordpos_vec, entity_vec = utils.targetLang_tokenizeFunc(sentence.translated_preview)
         local tokens = utils.splitIntoTokens(wordpos_vec, sentence.translated_preview)
         local parts = {}
@@ -87,9 +95,9 @@ function run(sentence)
             parts[i] = "[" .. value[1] .. "]"
         end
         local result = table.concat(parts, "#")
-        sentence.other_info["tokens"] = result
-        sentence.other_info["other_info_size"] = tostring(#sentence.other_info + 1)
-        utils.logger:info(string.format("测试 logger ，当前 index: %d", sentence.index))
+        other_info_map["tokens"] = result
+        utils.logger.info(utils.logger, string.format("测试 logger ，当前 index: %d", sentence.index))
+        sentence.other_info = other_info_map
     end
 end
 
@@ -98,7 +106,8 @@ function init(projectDir)
 end
 
 function unload()
-    ---- ctrl + /
+    -- -- ctrl + /
+    -- utils.logger:info("MySampleTextPluginFromLua unloads")
     -- local cmd = [[D:\GALGAME\linshi\天冥のコンキスタ\WORK\#toSjis.bat]]
     -- local cmd_acp = utils.ascii2Ascii(cmd, 65001, 0)
     -- local handle = io.popen(cmd_acp, 'r')

@@ -173,8 +173,7 @@ export {
     }
 
     template<typename T, typename TC>
-    auto parseToml(const toml::basic_value<TC>& config, const std::string& path) -> std::optional<T> {
-        const std::vector<std::string> keys = splitString(path, '.');
+    auto parseToml(const toml::basic_value<TC>& config, const std::vector<std::string>& keys) -> std::optional<T> {
         if (
             keys.empty() ||
             std::ranges::any_of(keys, [](const std::string& key) { return key.empty(); })
@@ -187,9 +186,14 @@ export {
         return std::nullopt;
     }
 
-    template<typename TC>
-    size_t eraseToml(toml::basic_value<TC>& table, const std::string& path) {
+    template<typename T, typename TC>
+    auto parseToml(const toml::basic_value<TC>& config, const std::string& path) -> std::optional<T> {
         const std::vector<std::string> keys = splitString(path, '.');
+        return parseToml<T>(config, keys);
+    }
+
+    template<typename TC>
+    size_t eraseToml(toml::basic_value<TC>& table, const std::vector<std::string>& keys) {
         if (
             keys.empty() ||
             std::ranges::any_of(keys, [](const std::string& key) { return key.empty(); })
@@ -207,10 +211,22 @@ export {
         return (*pCurrentTable).erase(keys.back());
     }
 
-    template<typename TC,typename T>
-    toml::basic_value<TC>& insertToml(toml::basic_value<TC>& table, const std::string& path, const T& value)
-    {
+    template<typename TC>
+    size_t eraseToml(toml::basic_value<TC>& table, const std::string& path) {
         const std::vector<std::string> keys = splitString(path, '.');
+        return eraseToml(table, keys);
+    }
+
+    template<typename TC, typename T>
+    toml::basic_value<TC>& insertToml(toml::basic_value<TC>& table, const std::vector<std::string>& keys, const T& value)
+    {
+        if (
+            keys.empty() ||
+            std::ranges::any_of(keys, [](const std::string& key) { return key.empty(); })
+            )
+        {
+            return table;
+        }
         auto* pCurrentTable = &table.as_table();
         for (size_t i = 0; i < keys.size() - 1; i++) {
             auto& subTable = (*pCurrentTable)[keys[i]];
@@ -229,6 +245,13 @@ export {
         }
         lastVal.comments() = orgComments;
         return table;
+    }
+
+    template<typename TC,typename T>
+    toml::basic_value<TC>& insertToml(toml::basic_value<TC>& table, const std::string& path, const T& value)
+    {
+        const std::vector<std::string> keys = splitString(path, '.');
+        return insertToml(table, keys, value);
     }
 
 }
