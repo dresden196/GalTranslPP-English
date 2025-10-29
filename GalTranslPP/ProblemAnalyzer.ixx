@@ -46,9 +46,17 @@ export {
 
 		Problems m_problems;
 
+        static thread_local std::unique_ptr<chrome_lang_id::NNetLanguageIdentifier> m_langIdentifier;
+        static thread_local std::unique_ptr<CodePageChecker> m_codePageChecker;
+
 	public:
 
         ProblemAnalyzer(std::shared_ptr<spdlog::logger> logger) : m_logger(logger) {}
+
+        ~ProblemAnalyzer() {
+            m_langIdentifier.reset();
+            m_codePageChecker.reset();
+        }
 
 		void loadProblems(const std::vector<std::string>& problemList, const std::string& punctSet, const std::string& codePage, double langProbability);
 
@@ -197,7 +205,9 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
 
         if (origTextLen > 6 || transTextLen > 6) {
             std::set<std::string> langSet;
-            auto m_langIdentifier = std::make_unique<chrome_lang_id::NNetLanguageIdentifier>(3, 300);
+            if (!m_langIdentifier) {
+                m_langIdentifier = std::make_unique<chrome_lang_id::NNetLanguageIdentifier>(3, 300);
+            } 
             if (origTextLen > 6) {
                 auto results = m_langIdentifier->FindTopNMostFreqLangs(origTextToCheck, 3);
                 for (const auto& result : results) {
@@ -235,9 +245,11 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
 
     // 8. 非法字符
     if (m_problems.invalidChar.use) {
-        static thread_local std::unique_ptr<CodePageChecker> codePageChecker = std::make_unique<CodePageChecker>(m_codePage, m_logger);
+        if (!m_codePageChecker) {
+            m_codePageChecker = std::make_unique<CodePageChecker>(m_codePage, m_logger);
+        }
         const std::string& transView = chooseStringRef(sentence, m_problems.invalidChar.check);
-        const std::string& unmappedChars = codePageChecker->findUnmappableChars(transView);
+        const std::string& unmappedChars = m_codePageChecker->findUnmappableChars(transView);
         if (!unmappedChars.empty()) {
             sentence->problems.push_back("非 " + m_codePage + " 字符: " + unmappedChars);
         }

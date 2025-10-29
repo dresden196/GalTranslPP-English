@@ -15,15 +15,12 @@ function run()
     luaTranslator.m_onFileProcessed = on_file_processed
     luaTranslator:normalJsonTranslator_run()
 
-    -- luaTranslator:epubTranslator_run()
-    -- luaTranslator:pdfTranslator_run()
-
-    -- Lua 没有多线程，所有函数都是阻塞的
-    -- 但并不影响 TextPlugin，即使你的 conditionFunc 放在这个脚本里也没问题
-    -- 因为 FilePlugin 和 TextPlugin 用的是不同的 LuaState(Lua环境)
-    -- 如果想在 Lua 中使用 C++ NormalJsonTranslaor 的文件多线程
-    -- 除过直接调用 run 函数之外
-    -- 唯一的办法是使用 m_threadPool:push(luaTranslator , Vec{Paths}) (包括这个函数本身也是阻塞的)
+    -- -- Lua 没有多线程，所有函数都是阻塞的
+    -- -- 但并不影响 TextPlugin，即使你的 conditionFunc 放在这个脚本里也没问题
+    -- -- 因为 FilePlugin 和 TextPlugin 用的是不同的 LuaState(Lua环境)
+    -- -- 如果想在 Lua 中使用 C++ NormalJsonTranslaor 的文件多线程
+    -- -- 除过直接调用 run 函数之外
+    -- -- 唯一的办法是使用 m_threadPool:push(luaTranslator , Vec{Paths}) (包括这个函数本身也是阻塞的)
     -- local relFilePaths = luaTranslator:normalJsonTranslator_beforeRun()
     -- if relFilePaths == nil then 
     --     utils.logger:info("可能是 DumpName 或 GenDict 之类无需 processFile 的 TransEngine")

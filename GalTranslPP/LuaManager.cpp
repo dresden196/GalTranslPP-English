@@ -612,7 +612,7 @@ LuaTextPlugin::LuaTextPlugin(const fs::path& projectDir, const std::string& scri
 	luaManager.registerFunction(scriptPath, "unload", m_needReboot);
 
 	try {
-		m_luaState->functions["init"](wide2Ascii(projectDir));
+		m_luaState->functions["init"](projectDir);
 	}
 	catch (const sol::error& e) {
 		m_logger->error("{} init函数 执行失败", scriptPath);

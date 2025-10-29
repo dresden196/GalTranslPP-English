@@ -34,7 +34,7 @@ export {
 
     class CodePageChecker {
     private:
-        std::shared_ptr<spdlog::logger> m_logger;
+        std::weak_ptr<spdlog::logger> m_logger;
         std::string m_codePage;
         std::string m_unmappableCharsResult;
         UConverterPtr m_u8Converter;

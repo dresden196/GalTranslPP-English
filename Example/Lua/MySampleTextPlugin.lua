@@ -89,12 +89,11 @@ function run(sentence)
         -- utils, json, toml 等无实例类纯工具表直接使用 .func(...) 调用即可
         -- logger，translator 等有具体实例的对象需要用 :func(...) 或 .func(self, ...) 调用
         local wordpos_vec, entity_vec = utils.targetLang_tokenizeFunc(sentence.translated_preview)
-        local tokens = utils.splitIntoTokens(wordpos_vec, sentence.translated_preview)
         local parts = {}
         for i, value in ipairs(wordpos_vec) do
             parts[i] = "[" .. value[1] .. "]"
         end
-        local result = table.concat(parts, "#")
+        local result = table.concat(parts, "#") .. "_lua"
         other_info_map["tokens"] = result
         utils.logger.info(utils.logger, string.format("测试 logger ，当前 index: %d", sentence.index))
         sentence.other_info = other_info_map
@@ -102,7 +101,7 @@ function run(sentence)
 end
 
 function init(projectDir)
-    utils.logger:info(string.format("MySampleTextPluginFromLua 初始化成功，projectDir: '%s'", projectDir))
+    utils.logger:info(string.format("MySampleTextPluginFromLua 初始化成功，projectDir: '%s'", projectDir.value))
 end
 
 function unload()

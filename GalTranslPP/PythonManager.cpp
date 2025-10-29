@@ -1,6 +1,5 @@
 module;
 
-#define _RANGES_
 #include <pybind11/stl.h>
 #include <pybind11/complex.h>
 #include <pybind11/functional.h>
@@ -10,24 +9,85 @@ module;
 #include <mecab/mecab.h>
 #include <toml.hpp>
 #include <spdlog/spdlog.h>
+#include <ctpl_stl.h>
 
 module PythonManager;
 
+import NormalJsonTranslator;
+import EpubTranslator;
+import PDFTranslator;
+
 namespace fs = std::filesystem;
 namespace py = pybind11;
+
+// 为 std::filesystem::path 提供 pybind11 类型转换器
+namespace pybind11 {
+    namespace detail {
+
+        template <>
+        struct type_caster<fs::path> {
+        public:
+            // PYBIND11_TYPE_CASTER 宏定义了 boilerplate 代码，比如 value 成员变量
+            PYBIND11_TYPE_CASTER(fs::path, const_name("os.PathLike"));
+
+            // 1. Python -> C++ 的转换
+            //    当 C++ 函数的参数是 fs::path 时，这个 load 函数会被调用
+            bool load(handle src, bool) {
+                // 检查输入是否是 Python 的 str 或 pathlib.Path 对象
+                if (py::isinstance<py::str>(src)) {
+                    // 如果是字符串，直接转换
+                    value = fs::path(ascii2Wide(src.cast<std::string>()));
+                    return true;
+                }
+
+                // 尝试将对象当作 os.PathLike (比如 pathlib.Path) 处理
+                // 通过调用 str() 将其转换为字符串路径
+                // py::str(src) 会调用对象的 __str__ 方法
+                try {
+                    std::string path_str = py::str(src);
+                    value = fs::path(ascii2Wide(path_str));
+                    return true;
+                }
+                catch (const py::error_already_set&) {
+                    // 如果转换失败，忽略异常并返回 false
+                    return false;
+                }
+            }
+
+            // 2. C++ -> Python 的转换
+            //    当 C++ 函数返回 fs::path 时，这个 cast 函数会被调用
+            static handle cast(const fs::path& src, return_value_policy, handle) {
+                // 将 C++ 的 fs::path 转换为 Python 的 pathlib.Path 对象
+                // 首先，将 fs::path 转换为 UTF-8 字符串
+                std::string pathStr = wide2Ascii(src.wstring());
+
+                // 导入 Python 的 pathlib 模块
+                py::module_ pathlib = py::module_::import("pathlib");
+
+                // 创建一个 pathlib.Path 对象
+                py::object pyPath = pathlib.attr("Path")(pathStr);
+
+                // detach() 的作用是增加 Python 对象的引用计数，
+                // 防止在我们返回 handle 后它被立即销毁。
+                return pyPath.release();
+            }
+        };
+
+    }
+} // namespace pybind11::detail
 
 // 定义一个 C++ 模块，它将被嵌入到 Python 解释器中
 // 所有脚本都可以通过 `import gpp_plugin_api` 来使用这些功能
 PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m) {
 
-    // 绑定 NameType 枚举
+    m.doc() = "C++ API for Python-based plugins";
+
     py::enum_<NameType>(m, "NameType")
         .value("None", NameType::None)
         .value("Single", NameType::Single)
         .value("Multiple", NameType::Multiple)
-        .export_values(); // 允许在 Python 中直接使用 plugin_api.Single 这样的形式
+        .export_values(); // 允许在 Python 中直接使用 gpp_plugin_api.Single 这样的形式
 
-    // None, ForGalJson, ForGalTsv, ForNovelTsv, DeepseekJson, Sakura, DumpName, GenDict, Rebuild, ShowNormal
     py::enum_<TransEngine>(m, "TransEngine")
         .value("None", TransEngine::None)
         .value("ForGalJson", TransEngine::ForGalJson)
@@ -39,13 +99,12 @@ PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m) {
         .value("GenDict", TransEngine::GenDict)
         .value("Rebuild", TransEngine::Rebuild)
         .value("ShowNormal", TransEngine::ShowNormal)
-        .export_values(); // 允许在 Python 中直接使用 plugin_api.ForGalJson 这样的形式
+        .export_values();
 
     // 绑定 Sentence 结构体
-    // 注意：对于指针成员 prev 和 next，pybind11 会自动处理。
     // 如果指针是 nullptr，在 Python 中会是 None。
     py::class_<Sentence>(m, "Sentence")
-        .def(py::init<>()) // 允许在 Python 中创建实例: s = plugin_api.Sentence()
+        .def(py::init<>()) // 允许在 Python 中创建实例: s = gpp_plugin_api.Sentence()
         .def_readwrite("index", &Sentence::index)
         .def_readwrite("name", &Sentence::name)
         .def_readwrite("names", &Sentence::names) // std::vector<string> <=> list[str]
@@ -67,9 +126,22 @@ PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m) {
         .def("problems_get_by_index", &Sentence::problems_get_by_index)
         .def("problems_set_by_index", &Sentence::problems_set_by_index);
 
+    py::enum_<spdlog::level::level_enum>(m, "LogLevel")
+        .value("trace", spdlog::level::trace)
+        .value("debug", spdlog::level::debug)
+        .value("info", spdlog::level::info)
+        .value("warn", spdlog::level::warn)
+        .value("err", spdlog::level::err)
+        .value("critical", spdlog::level::critical)
+        .export_values();
+
     // 绑定 spdlog::logger 类型，以便 Python 知道 "logger" 是什么
     // 使用 std::shared_ptr 作为持有者类型，因为 m_logger 就是一个 shared_ptr
-    py::class_<spdlog::logger, std::shared_ptr<spdlog::logger>>(m, "Logger")
+    py::class_<spdlog::logger, std::shared_ptr<spdlog::logger>>(m, "spdlogLogger")
+        .def("name", &spdlog::logger::name)
+        .def("level", &spdlog::logger::level)
+        .def("set_level", &spdlog::logger::set_level)
+        .def("set_pattern", [](spdlog::logger& logger, const std::string& pattern) { logger.set_pattern(pattern); })
         .def("trace", [](spdlog::logger& logger, const std::string& msg) { logger.trace(msg); })
         .def("debug", [](spdlog::logger& logger, const std::string& msg) { logger.debug(msg); })
         .def("info", [](spdlog::logger& logger, const std::string& msg) { logger.info(msg); })
@@ -77,14 +149,132 @@ PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m) {
         .def("error", [](spdlog::logger& logger, const std::string& msg) { logger.error(msg); })
         .def("critical", [](spdlog::logger& logger, const std::string& msg) { logger.critical(msg); });
 
+    py::module_ utilsSubmodule = m.def_submodule("utils", "A submodule for utility functions");
+
+    utilsSubmodule
+        .def("ascii2Ascii", &ascii2Ascii)
+        .def("executeCommand", &executeCommand)
+        .def("getConsoleWidth", &getConsoleWidth)
+        .def("removePunctuation", &removePunctuation)
+        .def("removeWhitespace", &removeWhitespace)
+        .def("getMostCommonChar", &getMostCommonChar)
+        .def("splitIntoTokens", &splitIntoTokens)
+        .def("splitIntoGraphemes", &splitIntoGraphemes)
+        .def("extractKatakana", &extractKatakana)
+        .def("extractKana", &extractKana)
+        .def("extractLatin", &extractLatin)
+        .def("extractHangul", &extractHangul)
+        .def("getTraditionalChineseExtractor", &getTraditionalChineseExtractor);
+
     py::class_<IController, std::shared_ptr<IController>>(m, "IController")
-        .def("make_bar", &IController::makeBar)
-        .def("write_log", &IController::writeLog)
-        .def("add_thread_num", &IController::addThreadNum)
-        .def("reduce_thread_num", &IController::reduceThreadNum)
-        .def("update_bar", &IController::updateBar)
-        .def("should_stop", &IController::shouldStop)
+        .def("makeBar", &IController::makeBar)
+        .def("writeLog", &IController::writeLog)
+        .def("addThreadNum", &IController::addThreadNum)
+        .def("reduceThreadNum", &IController::reduceThreadNum)
+        .def("updateBar", &IController::updateBar)
+        .def("shouldStop", &IController::shouldStop)
         .def("flush", &IController::flush);
+
+    // ITranslator
+    py::class_<ITranslator>(m, "ITranslator")
+        // 不要绑定构造函数，因为 Python 不应该创建这个接口的实例
+        .def("run", &ITranslator::run);
+
+    py::class_<ctpl::thread_pool>(m, "ThreadPool")
+        .def("resize", &ctpl::thread_pool::resize)
+        .def("size", &ctpl::thread_pool::size);
+
+    py::class_<NormalJsonTranslator, ITranslator>(m, "NormalJsonTranslator")
+        .def_readwrite("m_transEngine", &NormalJsonTranslator::m_transEngine)
+        .def_readwrite("m_controller", &NormalJsonTranslator::m_controller)
+        .def_readwrite("m_projectDir", &NormalJsonTranslator::m_projectDir)
+        .def_readwrite("m_inputDir", &NormalJsonTranslator::m_inputDir)
+        .def_readwrite("m_inputCacheDir", &NormalJsonTranslator::m_inputCacheDir)
+        .def_readwrite("m_outputDir", &NormalJsonTranslator::m_outputDir)
+        .def_readwrite("m_outputCacheDir", &NormalJsonTranslator::m_outputCacheDir)
+        .def_readwrite("m_cacheDir", &NormalJsonTranslator::m_cacheDir)
+        .def_readwrite("m_systemPrompt", &NormalJsonTranslator::m_systemPrompt)
+        .def_readwrite("m_userPrompt", &NormalJsonTranslator::m_userPrompt)
+        .def_readwrite("m_targetLang", &NormalJsonTranslator::m_targetLang)
+        .def_readwrite("m_totalSentences", &NormalJsonTranslator::m_totalSentences)
+        .def_property("m_completedSentences", [](NormalJsonTranslator& self) {return self.m_completedSentences.load(); },
+            [](NormalJsonTranslator& self, int val) { self.m_completedSentences = val; })
+        .def_readwrite("m_threadsNum", &NormalJsonTranslator::m_threadsNum)
+        .def_readwrite("m_batchSize", &NormalJsonTranslator::m_batchSize)
+        .def_readwrite("m_contextHistorySize", &NormalJsonTranslator::m_contextHistorySize)
+        .def_readwrite("m_maxRetries", &NormalJsonTranslator::m_maxRetries)
+        .def_readwrite("m_saveCacheInterval", &NormalJsonTranslator::m_saveCacheInterval)
+        .def_readwrite("m_apiTimeOutMs", &NormalJsonTranslator::m_apiTimeOutMs)
+        .def_readwrite("m_checkQuota", &NormalJsonTranslator::m_checkQuota)
+        .def_readwrite("m_smartRetry", &NormalJsonTranslator::m_smartRetry)
+        .def_readwrite("m_usePreDictInName", &NormalJsonTranslator::m_usePreDictInName)
+        .def_readwrite("m_usePostDictInName", &NormalJsonTranslator::m_usePostDictInName)
+        .def_readwrite("m_usePreDictInMsg", &NormalJsonTranslator::m_usePreDictInMsg)
+        .def_readwrite("m_usePostDictInMsg", &NormalJsonTranslator::m_usePostDictInMsg)
+        .def_readwrite("m_useGptDictToReplaceName", &NormalJsonTranslator::m_useGptDictToReplaceName)
+        .def_readwrite("m_outputWithSrc", &NormalJsonTranslator::m_outputWithSrc)
+        .def_readwrite("m_apiStrategy", &NormalJsonTranslator::m_apiStrategy)
+        .def_readwrite("m_sortMethod", &NormalJsonTranslator::m_sortMethod)
+        .def_readwrite("m_splitFile", &NormalJsonTranslator::m_splitFile)
+        .def_readwrite("m_splitFileNum", &NormalJsonTranslator::m_splitFileNum)
+        .def_readwrite("m_linebreakSymbol", &NormalJsonTranslator::m_linebreakSymbol)
+        .def_readwrite("m_needsCombining", &NormalJsonTranslator::m_needsCombining)
+        .def_readwrite("m_splitFilePartsToJson", &NormalJsonTranslator::m_splitFilePartsToJson)
+        .def_readwrite("m_jsonToSplitFileParts", &NormalJsonTranslator::m_jsonToSplitFileParts)
+        .def_property("m_onFileProcessed", [](NormalJsonTranslator& self) {return self.m_onFileProcessed; },
+            [](NormalJsonTranslator& self, std::function<void(fs::path)> func)
+            {
+                std::function<void(fs::path)> wrappedFunc = [func](fs::path path)
+                    {
+                        auto taskFunc = [&]()
+                            {
+                                func(path);
+                            };
+                        PythonManager::getInstance().submitTask(std::move(taskFunc)).get();
+                    };
+                self.m_onFileProcessed = std::move(wrappedFunc);
+            })
+        .def_property("m_threadPool", [](NormalJsonTranslator& self) -> ctpl::thread_pool& {return self.m_threadPool; }, nullptr, py::return_value_policy::reference_internal)
+        .def("preProcess", &NormalJsonTranslator::preProcess)
+        .def("postProcess", &NormalJsonTranslator::postProcess)
+        .def("processFile", &NormalJsonTranslator::processFile)
+        .def("normalJsonTranslator_beforeRun", &NormalJsonTranslator::beforeRun)
+        .def("normalJsonTranslator_afterRun", &NormalJsonTranslator::afterRun)
+        .def("normalJsonTranslator_run", [](NormalJsonTranslator& self) { self.NormalJsonTranslator::run(); });
+
+    py::class_<EpubTextNodeInfo>(m, "EpubTextNodeInfo")
+        .def(py::init<>())
+        .def_readwrite("offset", &EpubTextNodeInfo::offset)
+        .def_readwrite("length", &EpubTextNodeInfo::length);
+
+    py::class_<JsonInfo>(m, "JsonInfo")
+        .def(py::init<>())
+        .def_readwrite("metadata", &JsonInfo::metadata)
+        .def_readwrite("htmlPath", &JsonInfo::htmlPath)
+        .def_readwrite("epubPath", &JsonInfo::epubPath)
+        .def_readwrite("normalPostPath", &JsonInfo::normalPostPath);
+
+    py::class_<EpubTranslator, NormalJsonTranslator>(m, "EpubTranslator")
+        .def_readwrite("m_epubInputDir", &EpubTranslator::m_epubInputDir)
+        .def_readwrite("m_epubOutputDir", &EpubTranslator::m_epubOutputDir)
+        .def_readwrite("m_tempUnpackDir", &EpubTranslator::m_tempUnpackDir)
+        .def_readwrite("m_tempRebuildDir", &EpubTranslator::m_tempRebuildDir)
+        .def_readwrite("m_bilingualOutput", &EpubTranslator::m_bilingualOutput)
+        .def_readwrite("m_originalTextColor", &EpubTranslator::m_originalTextColor)
+        .def_readwrite("m_originalTextScale", &EpubTranslator::m_originalTextScale)
+        .def_readwrite("m_jsonToInfoMap", &EpubTranslator::m_jsonToInfoMap)
+        .def_readwrite("m_epubToJsonsMap", &EpubTranslator::m_epubToJsonsMap)
+        .def("epubTranslator_beforeRun", &EpubTranslator::beforeRun)
+        .def("epubTranslator_run", [](EpubTranslator& self) { self.EpubTranslator::run(); });
+
+    py::class_<PDFTranslator, NormalJsonTranslator>(m, "PDFTranslator")
+        .def_readwrite("m_pdfInputDir", &PDFTranslator::m_pdfInputDir)
+        .def_readwrite("m_pdfOutputDir", &PDFTranslator::m_pdfOutputDir)
+        .def_readwrite("m_bilingualOutput", &PDFTranslator::m_bilingualOutput)
+        .def_readwrite("m_jsonToPDFPathMap", &PDFTranslator::m_jsonToPDFPathMap)
+        .def("pdfTranslator_beforeRun", &PDFTranslator::beforeRun)
+        .def("pdfTranslator_run", [](PDFTranslator& self) { self.PDFTranslator::run(); });
+
 }
 
 PythonTextPlugin::PythonTextPlugin(const fs::path& projectDir, const std::string& modulePath, std::shared_ptr<spdlog::logger> logger)
@@ -106,7 +296,7 @@ PythonTextPlugin::PythonTextPlugin(const fs::path& projectDir, const std::string
     auto initTaskFunc = [&]()
         {
             try {
-                (*m_pyModule->processors_["init"])(wide2Ascii(projectDir));
+                (*m_pyModule->processors_["init"])(projectDir);
             }
             catch (const py::error_already_set& e) {
                 throw std::runtime_error(modulePath + " init函数 执行失败: " + e.what());
@@ -119,7 +309,7 @@ PythonTextPlugin::PythonTextPlugin(const fs::path& projectDir, const std::string
 
 PythonTextPlugin::~PythonTextPlugin()
 {
-    auto loggerDeleteTaskFunc = [this]()
+    auto unloadTaskFunc = [this]()
         {
             try {
                 if (auto unloadFunc = m_pyModule->processors_["unload"]; unloadFunc.operator bool() && py::isinstance<py::function>(*unloadFunc)) {
@@ -131,7 +321,7 @@ PythonTextPlugin::~PythonTextPlugin()
                 throw std::runtime_error(m_modulePath + " unload函数 执行失败: " + e.what());
             }
         };
-    PythonManager::getInstance().submitTask(std::move(loggerDeleteTaskFunc)).get();
+    PythonManager::getInstance().submitTask(std::move(unloadTaskFunc)).get();
 }
 
 void PythonTextPlugin::run(Sentence* se) {
@@ -375,7 +565,7 @@ void PythonManager::registerCustomTypes(std::shared_ptr<PythonModule> pythonModu
         };
     setupTokenizer("sourceLang_");
     setupTokenizer("targetLang_");
-    pythonModule->module_->attr("logger") = logger;
+    pythonModule->module_->attr("logger") = (logger);
 }
 
 PythonManager& PythonManager::getInstance() {

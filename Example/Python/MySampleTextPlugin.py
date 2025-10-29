@@ -1,31 +1,30 @@
 # 必须: 导入 C++ 绑定的模块
-import gpp_plugin_api
-
-# 全局变量，由 C++ 注入
-logger = None
-sourceLang_tokenizeFunc = None
-targetLang_tokenizeFunc = None
+import gpp_plugin_api as gpp
+from pathlib import Path
 
 # Sentence 的声明详见 Example/Lua/MySampleTextPlugin.lua
 
-# --- 可选的分词器配置 ---
-# 如果你的插件需要分词功能，取消注释并配置这些变量
-# C++ 端会在初始化时读取它们
-#
+# 全局变量，由 C++ 注入
+# python 中的 logger 和 toknizeFunc 不在 utils 中而是在当前模块的全局变量中
+logger = None
+
 # sourceLang_useTokenizer = True
 # sourceLang_tokenizerBackend = "spaCy"
 # sourceLang_spaCyModelName = "ja_core_news_sm"
-#
-# targetLang_useTokenizer = True
-# targetLang_tokenizerBackend = "pkuseg"
+# sourceLang_tokenizeFunc = None
 # ...
 
-def checkConditionForRetranslKeysFunc(se: gpp_plugin_api.Sentence) -> bool:
+targetLang_useTokenizer = True
+targetLang_tokenizerBackend = "pkuseg"
+targetLang_tokenizeFunc = None
+# ...
+
+def checkConditionForRetranslKeysFunc(se: gpp.Sentence) -> bool:
     if se.index == 278:
         logger.info("RetransFromPython")
     return False
 
-def checkConditionForSkipProblemsFunc(se: gpp_plugin_api.Sentence) -> bool:
+def checkConditionForSkipProblemsFunc(se: gpp.Sentence) -> bool:
     if se.index == 278:
         # retranslKey 中检查的 se 是一个副本，只负责检查，怎么设置都不会影响到要翻译和输出的部分
         # 但 skipProblems 的检查提供的是要输出的 se 的引用
@@ -47,30 +46,30 @@ def checkConditionForSkipProblemsFunc(se: gpp_plugin_api.Sentence) -> bool:
                     se.other_info |= { f"pyFail{i}": "New problem fail" }
 
         se.other_info |= { "pythonCheck": "The 278th" }
-        se.other_info |= { "pycp": current_problem }
+        se.other_info |= { "pyCp": current_problem }
         logger.info("SkipProblemsFromPython")
     return False
 
-def init(project_dir: str):
+def init(project_dir: Path):
     """
     插件初始化函数，由 C++ 调用一次。
     """
-    logger.info(f"Python plugin initialized for project: {project_dir}")】
+    logger.info(f"MySampleTextPluginFromLua 初始化成功，projectDir: {project_dir}")
 
 
-def run(se: gpp_plugin_api.Sentence):
+def run(se: gpp.Sentence):
     """
     处理每个句子的主函数。
     se 是一个 C++ Sentence 对象的代理。
     """
-    try:
-        if se.next == None:
-            # 和 Lua 不同，Python 里所有的 vector 和 map 属于复制过来的，不能直接 append
-            se.problems += ["MySampleProblemForLastSentence"]
-        if se.prev == None:
-            se.other_info |= { "MyInfoKeyForFirstSentence": "MyTestValue" }
+    if se.translated_preview == "久远紧锁眉头，脸上写着「骗人的吧，喂」。":
+        wordpos_vec, entity_vec = targetLang_tokenizeFunc(se.translated_preview)
+        # 其它(虽然没几个)工具函数依然在 utils 里
+        tokens = gpp.utils.splitIntoTokens(wordpos_vec, se.translated_preview)
+        parts = [f"[{value[0]}]" for value in wordpos_vec]
+        result = "#".join(parts) + "_python"
+        se.other_info |= { "tokens": result }
 
-    except Exception as e:
-        logger.error(f"Error in Python run function: {e}")
-        raise
 
+def unload():
+    pass
