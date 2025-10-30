@@ -16,6 +16,7 @@
     "libzip",
     "gumbo",
     "cpp-base64",
-    "lua"
+    "lua",
+    "proxy"
   ]
 }

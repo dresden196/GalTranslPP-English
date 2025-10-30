@@ -1,12 +1,7 @@
 module;
 
-#define _RANGES_
-#include <pybind11/stl.h>
-#include <pybind11/complex.h>
-#include <pybind11/functional.h>
-#include <pybind11/stl_bind.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/embed.h>
+#define PYBIND11_HEADERS
+#include "GPPMacros.hpp"
 #include <spdlog/spdlog.h>
 #include <toml.hpp>
 #include <spdlog/sinks/basic_file_sink.h>

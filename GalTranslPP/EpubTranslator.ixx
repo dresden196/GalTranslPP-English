@@ -6,7 +6,6 @@
 #include <zip.h>
 #include <gumbo.h>
 #include <toml.hpp>
-#include <nlohmann/json.hpp>
 
 export module EpubTranslator;
 

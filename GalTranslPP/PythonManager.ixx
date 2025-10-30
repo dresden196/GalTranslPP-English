@@ -1,12 +1,7 @@
 ﻿module;
 
-#include <pybind11/stl.h>
-#include <pybind11/complex.h>
-#include <pybind11/functional.h>
-#include <pybind11/stl_bind.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/embed.h>
-#include <mecab/mecab.h>
+#define PYBIND11_HEADERS
+#include "GPPMacros.hpp"
 #include <toml.hpp>
 #include <spdlog/spdlog.h>
 #pragma comment(lib, "../lib/python3.lib")
@@ -78,19 +73,27 @@ export {
 
         std::future<void> submitTask(std::function<void()> taskFunc); // 提交任务到队列
 
+        void registerPythonThread() {
+            m_pythonThreads.insert(std::this_thread::get_id());
+        }
+        void erasePythonThread() {
+            m_pythonThreads.erase(std::this_thread::get_id());
+        }
+
         void checkDependency(const std::vector<std::string>& dependencies, std::shared_ptr<spdlog::logger> logger);
         std::shared_ptr<PythonModule> registerNLPFunction(const std::string& moduleName, const std::string& modelName, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
         std::optional<std::shared_ptr<PythonModule>> registerFunction(const std::string& modulePath, const std::string& functionName, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
 
     private:
-        std::thread::id m_threadId;
+        std::set<std::thread::id> m_pythonThreads;
         PythonManager();
         void run(); // 守护线程的执行函数
-        void registerCustomTypes(std::shared_ptr<PythonModule> pythonModule, const std::string& modulePath, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
+        void registerCustomTypes(std::shared_ptr<PythonModule> pythonModule, const std::string& modulePath, std::shared_ptr<spdlog::logger> logger, bool& needReboot, std::function<void()>& getNLPFunc);
 
         // e.g. { "tokenize_spacy", <pybind11::module, { {"ja_core_news_trf", <pybind11::object>}, {"en_core_web_trf", <pybind11::object> } }> }
         std::map<std::string, std::weak_ptr<PythonModule>> m_pyModules;
-        std::mutex m_mutex;
+        std::recursive_mutex m_pyModulesMapMutex;
+        std::mutex m_threadsSetMutex;
         std::thread m_pyThread; // 守护线程
         SafeQueue<std::unique_ptr<PythonTask>> m_taskQueue;
     };
@@ -99,34 +102,13 @@ export {
     void pythonDeleter(T* ptr) {
         auto deleteTaskFunc = [ptr]()
             {
+                if constexpr (std::is_same_v<T, py::module_>) {
+                    py::module_ importlib = py::module_::import("importlib");
+                    importlib.attr("reload")(*ptr);
+                }
                 delete ptr;
             };
         PythonManager::getInstance().submitTask(std::move(deleteTaskFunc));
     }
-
-    std::function<NLPResult(const std::string&)> getMeCabTokenizeFunc(const std::string& mecabDictDir, std::shared_ptr<spdlog::logger> logger);
-    std::function<NLPResult(const std::string&)> getNLPTokenizeFunc(const std::vector<std::string>& dependencies, const std::string& moduleName,
-        const std::string& modelName, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
-    std::optional<CheckSeCondFunc> getPythonCheckSeCondFunc(const std::string& modulePath, const std::string& functionName, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
-
-    std::tuple<bool, std::string> extractPDF(const fs::path& pdfPath, const fs::path& jsonPath, bool showProgress = false);
-    std::tuple<bool, std::string> rejectPDF(const fs::path& orgPDFPath, const fs::path& translatedJsonPath, const fs::path& outputPDFPath,
-        bool noMono = false, bool noDual = false, bool showProgress = false);
-
-
-    class PythonTextPlugin : public IPlugin {
-    private:
-        std::vector<std::function<NLPResult(const std::string&)>> m_tokenizeFuncs;
-        std::shared_ptr<PythonModule> m_pyModule;
-        std::shared_ptr<py::object> m_pyRunFunc;
-        std::string m_modulePath;
-        bool m_needReboot = false;
-
-    public:
-        PythonTextPlugin(const fs::path& projectDir, const std::string& modulePath, std::shared_ptr<spdlog::logger> logger);
-        virtual bool needReboot() override { return m_needReboot; }
-        virtual void run(Sentence* se) override;
-        virtual ~PythonTextPlugin() override;
-    };
 
 }

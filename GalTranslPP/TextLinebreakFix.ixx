@@ -6,7 +6,7 @@
 export module TextLinebreakFix;
 
 import Tool;
-import PythonManager;
+import NLPTool;
 export import IPlugin;
 
 namespace fs = std::filesystem;

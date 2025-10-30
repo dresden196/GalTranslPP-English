@@ -7,7 +7,6 @@ module;
 export module LuaManager;
 
 import Tool;
-export import IPlugin;
 
 namespace fs = std::filesystem;
 
@@ -35,20 +34,6 @@ export {
 		std::shared_ptr<spdlog::logger> m_logger;
 
 		void registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateInstance, const std::string& scriptPath, bool& needReboot);
-	};
-
-	class LuaTextPlugin : public IPlugin {
-	private:
-		std::shared_ptr<LuaStateInstance> m_luaState;
-		sol::function m_luaRunFunc;
-		std::string m_scriptPath;
-		bool m_needReboot = false;
-
-	public:
-		LuaTextPlugin(const fs::path& projectDir, const std::string& scriptPath, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger);
-		virtual bool needReboot() override { return m_needReboot; }
-		virtual void run(Sentence* se) override;
-		virtual ~LuaTextPlugin() override;
 	};
 }
 

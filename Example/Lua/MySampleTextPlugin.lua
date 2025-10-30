@@ -93,8 +93,8 @@ function run(sentence)
         for i, value in ipairs(wordpos_vec) do
             parts[i] = "[" .. value[1] .. "]"
         end
-        local result = table.concat(parts, "#") .. "_lua"
-        other_info_map["tokens"] = result
+        local result = table.concat(parts, "#")
+        other_info_map["tokens_lua"] = result
         utils.logger.info(utils.logger, string.format("测试 logger ，当前 index: %d", sentence.index))
         sentence.other_info = other_info_map
     end

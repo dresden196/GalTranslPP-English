@@ -2,12 +2,11 @@
 
 #include <spdlog/spdlog.h>
 #include <toml.hpp>
-#include <nlohmann/json.hpp>
 
 export module PDFTranslator;
 
 import Tool;
-import PythonManager;
+import PDFTool;
 import NormalJsonTranslator;
 
 namespace fs = std::filesystem;
@@ -63,7 +62,7 @@ PDFTranslator::PDFTranslator(const fs::path& projectDir, std::shared_ptr<IContro
 
         m_bilingualOutput = parseToml<bool>(projectConfig, pluginConfig, "plugins.PDF.输出双语翻译文件");
 
-        PythonManager::getInstance().checkDependency({ "babeldoc" }, m_logger);
+        checkPDFDependency(m_logger);
     }
     catch (const toml::exception& e) {
         m_logger->critical("PDF 配置文件解析失败");

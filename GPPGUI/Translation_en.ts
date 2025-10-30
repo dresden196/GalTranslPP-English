@@ -2546,38 +2546,38 @@
 <context>
     <name>ReadDicts</name>
     <message>
-        <location filename="ReadDicts.cpp" line="50"/>
-        <location filename="ReadDicts.cpp" line="61"/>
-        <location filename="ReadDicts.cpp" line="78"/>
-        <location filename="ReadDicts.cpp" line="106"/>
-        <location filename="ReadDicts.cpp" line="183"/>
-        <location filename="ReadDicts.cpp" line="194"/>
-        <location filename="ReadDicts.cpp" line="215"/>
-        <location filename="ReadDicts.cpp" line="221"/>
+        <location filename="ReadDicts.cpp" line="49"/>
+        <location filename="ReadDicts.cpp" line="60"/>
+        <location filename="ReadDicts.cpp" line="77"/>
+        <location filename="ReadDicts.cpp" line="105"/>
+        <location filename="ReadDicts.cpp" line="182"/>
+        <location filename="ReadDicts.cpp" line="193"/>
+        <location filename="ReadDicts.cpp" line="214"/>
+        <location filename="ReadDicts.cpp" line="220"/>
         <source>解析失败</source>
         <translation>Fail to analyze</translation>
     </message>
     <message>
-        <location filename="ReadDicts.cpp" line="51"/>
-        <location filename="ReadDicts.cpp" line="184"/>
+        <location filename="ReadDicts.cpp" line="50"/>
+        <location filename="ReadDicts.cpp" line="183"/>
         <source> 不符合 toml 规范</source>
         <translation> is nonconforming</translation>
     </message>
     <message>
-        <location filename="ReadDicts.cpp" line="62"/>
-        <location filename="ReadDicts.cpp" line="195"/>
+        <location filename="ReadDicts.cpp" line="61"/>
+        <location filename="ReadDicts.cpp" line="194"/>
         <source> 不是预期的 json 格式</source>
         <translation> is nonconforming</translation>
     </message>
     <message>
-        <location filename="ReadDicts.cpp" line="79"/>
-        <location filename="ReadDicts.cpp" line="216"/>
+        <location filename="ReadDicts.cpp" line="78"/>
+        <location filename="ReadDicts.cpp" line="215"/>
         <source> 不符合 json 规范</source>
         <translation> is nonconforming</translation>
     </message>
     <message>
-        <location filename="ReadDicts.cpp" line="107"/>
-        <location filename="ReadDicts.cpp" line="222"/>
+        <location filename="ReadDicts.cpp" line="106"/>
+        <location filename="ReadDicts.cpp" line="221"/>
         <source> 不是支持的格式</source>
         <translation> is not supported</translation>
     </message>

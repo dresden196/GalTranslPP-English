@@ -1,28 +1,19 @@
 module;
 
-#define _RANGES_
 #include <spdlog/spdlog.h>
 #include <toml.hpp>
-#include <sol/sol.hpp>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
-#include <nlohmann/json.hpp>
 
 export module NJ_ImplTool;
 
-export import IPlugin;
 export import Tool;
-export import LuaManager;
 
 using json = nlohmann::json;
 using ordered_json = nlohmann::ordered_json;
 namespace fs = std::filesystem;
 
 export {
-
-    std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::string>& pluginNames, const fs::path& projectDir,
-        LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger,
-        const toml::value& projectConfig);
 
     std::string generateCacheKey(const Sentence* s);
 

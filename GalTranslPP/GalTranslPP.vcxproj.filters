@@ -64,11 +64,8 @@
     <ClCompile Include="LuaManager.ixx">
       <Filter>Tools</Filter>
     </ClCompile>
-    <ClCompile Include="Condition_Tool.ixx">
+    <ClCompile Include="ConditionTool.ixx">
       <Filter>Tools\Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="NJ_ImplTool.cpp">
-      <Filter>Tools\Utils\specialized</Filter>
     </ClCompile>
     <ClCompile Include="PythonManager.cpp">
       <Filter>Tools</Filter>
@@ -81,6 +78,27 @@
     </ClCompile>
     <ClCompile Include="PythonTranslator.ixx">
       <Filter>filePlugins</Filter>
+    </ClCompile>
+    <ClCompile Include="NLPTool.ixx">
+      <Filter>Tools\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="PDFTool.ixx">
+      <Filter>Tools\Utils\specialized</Filter>
+    </ClCompile>
+    <ClCompile Include="LuaTextPlugin.ixx">
+      <Filter>textPlugins</Filter>
+    </ClCompile>
+    <ClCompile Include="IPlugin.cpp">
+      <Filter>textPlugins</Filter>
+    </ClCompile>
+    <ClCompile Include="PythonTextPlugin.ixx">
+      <Filter>textPlugins</Filter>
+    </ClCompile>
+    <ClCompile Include="proxy.ixx">
+      <Filter>Tools\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="json.ixx">
+      <Filter>Tools\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -102,5 +120,10 @@
     <Filter Include="Tools\Base">
       <UniqueIdentifier>{94d1fba6-4217-4307-b40b-b02cfaf8d984}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GPPMacros.hpp">
+      <Filter>Tools\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

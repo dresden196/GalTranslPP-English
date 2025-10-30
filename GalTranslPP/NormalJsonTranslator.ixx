@@ -6,7 +6,8 @@
 #pragma comment(lib, "Shlwapi.lib")
 #endif
 
-#include <boost/regex.hpp>
+#define PYBIND11_HEADERS
+#include "GPPMacros.hpp"
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
@@ -16,20 +17,25 @@
 
 export module NormalJsonTranslator;
 
-import <nlohmann/json.hpp>;
 import APIPool;
-import Condition_Tool;
+import ConditionTool;
 import Dictionary;
 import DictionaryGenerator;
+import IPlugin;
 import ProblemAnalyzer;
 import NJ_ImplTool;
+import NLPTool;
+// 因为 PythonManager 全程序只有一个实例，但 LuaManager 每个 Translator 里有一个实例，ConditionTool 等模块会根据此实例生成对应的工具函数
+// Python 部分则直接根据 PythonoManager 单例生成，所以这里不需要 import PythonManager，但需要 import LuaManager
 import LuaManager;
-import PythonManager;
 export import ITranslator;
 
 using json = nlohmann::json;
 using ordered_json = nlohmann::ordered_json;
+namespace py = pybind11;
 namespace fs = std::filesystem;
+
+PATH_CVT;
 
 export {
 
@@ -53,6 +59,7 @@ export {
 
         int m_totalSentences = 0;
         std::atomic<int> m_completedSentences = 0;
+        std::atomic<long long> m_pluginTimeUsed = 0;
 
         int m_threadsNum;
         int m_batchSize;
@@ -60,6 +67,7 @@ export {
         int m_maxRetries;
         int m_saveCacheInterval;
         int m_apiTimeOutMs;
+        bool m_pythonTranslator = false;
         bool m_checkQuota;
         bool m_smartRetry;
         bool m_usePreDictInName;
@@ -581,9 +589,11 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
     se->translated_preview = se->pre_translated_text;
     se->problems.clear();
 
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     for (auto& plugin : m_postPlugins) {
         plugin->run(se);
     }
+    m_pluginTimeUsed += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
 
     if (m_usePostDictInMsg) {
         se->translated_preview = m_postDictionary.doReplace(se, CachePart::TransPreview);
@@ -904,113 +914,119 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
                 }
             };
 
-        if (m_transEngine == TransEngine::Rebuild) {
-            if (fs::exists(cachePath)) {
-                cachePaths.push_back(cachePath);
+            if (m_transEngine == TransEngine::Rebuild) {
+                if (fs::exists(cachePath)) {
+                    cachePaths.push_back(cachePath);
+                }
             }
-        }
-        else if (m_needsCombining) {
-            std::optional<fs::path> additionalCachePath = std::nullopt;
-            auto it = m_splitFilePartsToJson.find(relInputPath);
-            if (it != m_splitFilePartsToJson.end() && fs::exists(m_cacheDir / it->second)) {
-                additionalCachePath = m_cacheDir / it->second;
-            }
-            // 这个逻辑还挺耗时的，我自己尝试优化结果大败而归
-            size_t pos = relInputPath.filename().wstring().rfind(L"_part_");
-            std::wstring orgStem = relInputPath.filename().wstring().substr(0, pos);
-            std::wstring cacheSpec = orgStem + L"_part_*.json";
-            // 分割优先读分割缓存
-            readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path(), additionalCachePath);
-        }
-        else {
-            if (fs::exists(cachePath)) {
-                cachePaths.push_back(cachePath);
-            }
-            std::wstring cacheSpec = relInputPath.stem().wstring() + L"_part_*.json";
-            // 非分割优先读整体缓存
-            readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
-        }
-
-        json totalCacheJsonList = json::array();
-        for (const auto& cp : cachePaths) {
-            std::shared_lock<std::shared_mutex> lock(m_cacheMutex);
-            try {
-                ifs.open(cp);
-                json cacheJsonList = json::parse(ifs);
-                ifs.close();
-                totalCacheJsonList.insert(totalCacheJsonList.end(), cacheJsonList.begin(), cacheJsonList.end());
-            }
-            catch (const json::exception& e) {
-                throw std::runtime_error(std::format("[线程 {}] 缓存文件 {} 解析失败: {}", threadId, wide2Ascii(cp), e.what()));
-            }
-        }
-        insertJsonArrToCacheMap(totalCacheJsonList);
-
-
-        for (auto& se : sentences) {
-            if (se.complete) {
-                m_completedSentences++;
-                m_controller->updateBar(); // 跳过已完成的句子
-                postProcess(&se);
-                continue;
-            }
-            std::string key = generateCacheKey(&se);
-            auto it = cacheMap.find(key);
-            if (it == cacheMap.end()) {
-                toTranslate.push_back(&se);
-                continue;
-            }
-            const auto& item = it->second;
-            // 命中缓存了就把 problems 带上
-            if (item.contains("problems")) {
-                se.problems = item["problems"].get<std::vector<std::string>>();
-            }
-            if (m_transEngine != TransEngine::Rebuild && hasRetranslKey(m_retranslKeys, item, &se)) {
-                toTranslate.push_back(&se);
-                continue;
+            else if (m_needsCombining) {
+                std::optional<fs::path> additionalCachePath = std::nullopt;
+                auto it = m_splitFilePartsToJson.find(relInputPath);
+                if (it != m_splitFilePartsToJson.end() && fs::exists(m_cacheDir / it->second)) {
+                    additionalCachePath = m_cacheDir / it->second;
+                }
+                // 这个逻辑还挺耗时的，我自己尝试优化结果大败而归
+                size_t pos = relInputPath.filename().wstring().rfind(L"_part_");
+                std::wstring orgStem = relInputPath.filename().wstring().substr(0, pos);
+                std::wstring cacheSpec = orgStem + L"_part_*.json";
+                // 分割优先读分割缓存
+                readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path(), additionalCachePath);
             }
             else {
-                se.pre_translated_text = item.value("pre_translated_text", "");
-                se.translated_by = item.value("translated_by", "");
-                se.complete = true;
-                m_completedSentences++;
-                m_controller->updateBar(); // 命中缓存
-                postProcess(&se);
+                if (fs::exists(cachePath)) {
+                    cachePaths.push_back(cachePath);
+                }
+                std::wstring cacheSpec = relInputPath.stem().wstring() + L"_part_*.json";
+                // 非分割优先读整体缓存
+                readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
             }
-        }
 
-        m_logger->info("[线程 {}] [文件 {}] 共 {} 句，命中缓存 {} 句，需翻译 {} 句。", threadId, wide2Ascii(relInputPath),
-            sentences.size(), sentences.size() - toTranslate.size(), toTranslate.size());
-
-        if (m_transEngine == TransEngine::Rebuild && !toTranslate.empty()) {
-            std::string notFoundSentences;
-            for (const auto& se : toTranslate) {
-                notFoundSentences += se->original_text + "\n";
+            json totalCacheJsonList = json::array();
+            for (const auto& cp : cachePaths) {
+                std::shared_lock<std::shared_mutex> lock(m_cacheMutex);
+                try {
+                    ifs.open(cp);
+                    json cacheJsonList = json::parse(ifs);
+                    ifs.close();
+                    totalCacheJsonList.insert(totalCacheJsonList.end(), cacheJsonList.begin(), cacheJsonList.end());
+                }
+                catch (const json::exception& e) {
+                    throw std::runtime_error(std::format("[线程 {}] 缓存文件 {} 解析失败: {}", threadId, wide2Ascii(cp), e.what()));
+                }
             }
-            m_logger->critical("[线程 {}] [文件 {}] 有 {} 句未命中缓存，这些句子是: {}", threadId, wide2Ascii(relInputPath), toTranslate.size(), notFoundSentences);
-            std::lock_guard<std::shared_mutex> lock(m_cacheMutex);
-            saveCache(sentences, cachePath);
-            m_controller->reduceThreadNum();
-            return;
-        }
+            insertJsonArrToCacheMap(totalCacheJsonList);
+
+
+            for (auto& se : sentences) {
+                if (se.complete) {
+                    m_completedSentences++;
+                    m_controller->updateBar(); // 跳过已完成的句子
+                    postProcess(&se);
+                    continue;
+                }
+                std::string key = generateCacheKey(&se);
+                auto it = cacheMap.find(key);
+                if (it == cacheMap.end()) {
+                    toTranslate.push_back(&se);
+                    continue;
+                }
+                const auto& item = it->second;
+                // 命中缓存了就把 problems 带上
+                if (item.contains("problems")) {
+                    se.problems = item["problems"].get<std::vector<std::string>>();
+                }
+                if (m_transEngine != TransEngine::Rebuild && hasRetranslKey(m_retranslKeys, item, &se)) {
+                    toTranslate.push_back(&se);
+                    continue;
+                }
+                else {
+                    se.pre_translated_text = item.value("pre_translated_text", "");
+                    se.translated_by = item.value("translated_by", "");
+                    se.complete = true;
+                    m_completedSentences++;
+                    m_controller->updateBar(); // 命中缓存
+                    postProcess(&se);
+                }
+            }
+
+            m_logger->info("[线程 {}] [文件 {}] 共 {} 句，命中缓存 {} 句，需翻译 {} 句。", threadId, wide2Ascii(relInputPath),
+                sentences.size(), sentences.size() - toTranslate.size(), toTranslate.size());
+
+            if (m_transEngine == TransEngine::Rebuild && !toTranslate.empty()) {
+                std::string notFoundSentences;
+                for (const auto& se : toTranslate) {
+                    notFoundSentences += se->original_text + "\n";
+                }
+                m_logger->critical("[线程 {}] [文件 {}] 有 {} 句未命中缓存，这些句子是: {}", threadId, wide2Ascii(relInputPath), toTranslate.size(), notFoundSentences);
+                std::lock_guard<std::shared_mutex> lock(m_cacheMutex);
+                saveCache(sentences, cachePath);
+                m_controller->reduceThreadNum();
+                return;
+            }
     }
 
-    int batchCount = 0;
-    for (size_t i = 0; i < toTranslate.size(); i += m_batchSize) {
-        if (m_controller->shouldStop()) {
-            m_controller->reduceThreadNum();
-            return;
+    if (!toTranslate.empty()) {
+        std::unique_ptr<py::gil_scoped_release> release;
+        if (m_pythonTranslator) {
+            release = std::make_unique<py::gil_scoped_release>();
         }
-        std::vector<Sentence*> batch(toTranslate.begin() + i, toTranslate.begin() + std::min(i + m_batchSize, toTranslate.size()));
-        translateBatchWithRetry(relInputPath, batch, threadId);
-        for (Sentence* se : batch) {
-            postProcess(se);
-        }
-        batchCount++;
-        if (batchCount % m_saveCacheInterval == 0) {
-            m_logger->debug("[线程 {}] [文件 {}] 达到保存间隔，正在更新缓存文件...", threadId, wide2Ascii(inputPath));
-            std::lock_guard<std::shared_mutex> lock(m_cacheMutex);
-            saveCache(sentences, cachePath);
+        int batchCount = 0;
+        for (size_t i = 0; i < toTranslate.size(); i += m_batchSize) {
+            if (m_controller->shouldStop()) {
+                m_controller->reduceThreadNum();
+                return;
+            }
+            std::vector<Sentence*> batch(toTranslate.begin() + i, toTranslate.begin() + std::min(i + m_batchSize, toTranslate.size()));
+            translateBatchWithRetry(relInputPath, batch, threadId);
+            for (Sentence* se : batch) {
+                postProcess(se);
+            }
+            batchCount++;
+            if (batchCount % m_saveCacheInterval == 0) {
+                m_logger->debug("[线程 {}] [文件 {}] 达到保存间隔，正在更新缓存文件...", threadId, wide2Ascii(inputPath));
+                std::lock_guard<std::shared_mutex> lock(m_cacheMutex);
+                saveCache(sentences, cachePath);
+            }
         }
     }
 
@@ -1081,16 +1097,17 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
                 std::ranges::any_of(splitFileParts, [](const auto& p) { return !p.second; })
                 )
             {
-                m_logger->debug("文件 {} 尚未全部处理完成，跳过合并。", wide2Ascii(relInputPath));
+                m_logger->debug("文件 {} 尚未全部处理完成，跳过合并。", wide2Ascii(originalRelFilePath));
                 return;
             }
-            m_logger->debug("开始合并 {} 的缓存文件...", wide2Ascii(relInputPath));
+            m_logger->debug("开始合并 {} 的缓存文件...", wide2Ascii(originalRelFilePath));
         }
         combineOutputFiles(originalRelFilePath, splitFileParts, m_logger, m_outputCacheDir, m_outputDir);
         std::lock_guard<std::mutex> lock(m_outputMutex);
         if (m_onFileProcessed) {
             m_onFileProcessed(originalRelFilePath);
         }
+        m_logger->debug("[线程 {}] [文件 {}] 合并处理完成。", threadId, wide2Ascii(originalRelFilePath));
     }
     else {
         std::lock_guard<std::mutex> lock(m_outputMutex);
@@ -1409,6 +1426,7 @@ void NormalJsonTranslator::afterRun() {
     if (!m_controller->shouldStop() && m_transEngine == TransEngine::Rebuild && m_completedSentences != m_totalSentences) {
         m_logger->critical("重建过程中有句子未命中缓存 ({}/{} lines)，请检查日志以定位问题。", m_completedSentences.load(), m_totalSentences);
     }
+    m_logger->info("Plugin time cost: {}ms", m_pluginTimeUsed.load());
 }
 
 void NormalJsonTranslator::run() {

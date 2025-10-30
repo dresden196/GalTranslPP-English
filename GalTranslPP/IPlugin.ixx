@@ -1,11 +1,14 @@
 module;
 
 #include <spdlog/spdlog.h>
+#include <sol/sol.hpp>
+#include <toml.hpp>
 
 export module IPlugin;
 
 export import std;
 export import GPPDefines;
+export import LuaManager;
 
 namespace fs = std::filesystem;
 
@@ -27,24 +30,8 @@ export {
 
 		virtual ~IPlugin();
 	};
-}
 
-
-module :private;
-
-IPlugin::IPlugin(const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger) :
-	m_projectDir(projectDir),
-	m_logger(logger)
-{
-
-}
-
-IPlugin::~IPlugin()
-{
-
-}
-
-bool IPlugin::needReboot()
-{
-	return false;
+	std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::string>& pluginNames, const fs::path& projectDir,
+		LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger,
+		const toml::value& projectConfig);
 }

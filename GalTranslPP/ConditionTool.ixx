@@ -1,6 +1,7 @@
 module;
 
-#define _RANGES_
+#define PYBIND11_HEADERS
+#include "GPPMacros.hpp"
 #include <toml.hpp>
 #include <spdlog/spdlog.h>
 #include <unicode/unistr.h>
@@ -8,13 +9,14 @@ module;
 #include <unicode/regex.h>
 #include <sol/sol.hpp>
 
-export module Condition_Tool;
+export module ConditionTool;
 
 import Tool;
 import PythonManager;
 import LuaManager;
 
 namespace fs = std::filesystem;
+namespace py = pybind11;
 
 export {
 
@@ -102,6 +104,8 @@ export {
         }
         return ConditionType::None;
     }
+
+    std::optional<CheckSeCondFunc> getPythonCheckSeCondFunc(const std::string& modulePath, const std::string& functionName, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
 
     template<typename TC>
     CheckSeCondFunc getCheckCondFunc(const toml::basic_value<TC>& condElem, const fs::path& projectDir, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger, bool& needReboot) {
@@ -263,4 +267,30 @@ bool checkGppCondition(const GPPCondition& gppCondition, const Sentence* se) {
             }
             return false;
         });
+}
+
+std::optional<CheckSeCondFunc> getPythonCheckSeCondFunc(const std::string& modulePath, const std::string& functionName, std::shared_ptr<spdlog::logger> logger, bool& needReboot)
+{
+    std::optional<std::shared_ptr<PythonModule>> pythonModuleOpt = PythonManager::getInstance().registerFunction(modulePath, functionName, logger, needReboot);
+    if (!pythonModuleOpt) {
+        return std::nullopt;
+    }
+    std::shared_ptr<PythonModule> pythonModule = *pythonModuleOpt;
+    std::shared_ptr<py::object> conditionFunc = pythonModule->processors_[functionName];
+    CheckSeCondFunc checkFunc = [pythonModule, conditionFunc, functionName](const Sentence* se) -> bool
+        {
+            bool result;
+            auto checkTaskFunc = [&]()
+                {
+                    try {
+                        result = (*conditionFunc)(se).cast<bool>();
+                    }
+                    catch (const py::error_already_set& e) {
+                        throw std::runtime_error(std::format("执行Python条件函数 {} 时发生错误: {}", functionName, e.what()));
+                    }
+                };
+            PythonManager::getInstance().submitTask(std::move(checkTaskFunc)).get();
+            return result;
+        };
+    return checkFunc;
 }

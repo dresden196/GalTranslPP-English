@@ -11,7 +11,7 @@ module;
 export module SkipTrans;
 
 import Tool;
-import Condition_Tool;
+import ConditionTool;
 import LuaManager;
 export import IPlugin;
 

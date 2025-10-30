@@ -1,7 +1,6 @@
 #include "ReadDicts.h"
 #include "ElaMessageBar.h"
 #include <toml.hpp>
-#include <nlohmann/json.hpp>
 
 import Tool;
 using json = nlohmann::json;

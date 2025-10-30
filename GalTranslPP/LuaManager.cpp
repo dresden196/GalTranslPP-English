@@ -1,21 +1,16 @@
 module;
 
-#define _RANGES_
+#include "GPPMacros.hpp"
 #include <toml.hpp>
-#include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 #include <sol/sol.hpp>
 #include <unicode/unistr.h>
 #include <unicode/uchar.h>
 #include <unicode/regex.h>
-#define NESTED_CVT(className, memberName) sol::property([](className& self, sol::this_state s) \
-{ \
-	return sol::nested<decltype(className::memberName)>(self.memberName); \
-}, [](className& self, sol::this_state s, decltype(className::memberName) table) { self.memberName = std::move(table); }) 
 
 module LuaManager;
 
-import PythonManager;
+import NLPTool;
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -80,6 +75,8 @@ public:
 				return tbl;
 			}
 		}
+		case sol::type::nil:
+			return nullptr;
 		default:
 			return "LuaJson: unsupported type";
 		}
@@ -91,6 +88,8 @@ public:
 		switch (value.type()) {
 		case json::value_t::string:
 			return sol::make_object(lua, value.get<std::string>());
+		case json::value_t::number_unsigned:
+			return sol::make_object(lua, value.get<uint64_t>());
 		case json::value_t::number_integer:
 			return sol::make_object(lua, value.get<int64_t>());
 		case json::value_t::number_float:
@@ -106,11 +105,13 @@ public:
 		}
 		case json::value_t::object: {
 			sol::table resultMap = lua.create_table();
-			for (const auto& [key, val] : value.items()) {
-				resultMap[key] = jsonValue2SolObject(val, lua);
+			for (const auto& jObj : value.items()) {
+				resultMap[jObj.key()] = jsonValue2SolObject(jObj.value(), lua);
 			}
 			return sol::make_object(lua, resultMap);
 		}
+		case json::value_t::null:
+		case json::value_t::discarded:
 		default:
 			return sol::make_object(lua, sol::nil);
 		}
@@ -349,68 +350,74 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 	);
 
 	sol::table luaTomlTable = lua.create_named_table("toml");
-	auto luaTomlParseFunc = [](fs::path path, sol::this_state s)
+	auto luaTomlParseFunc = [](fs::path path, sol::this_state s) -> std::tuple<sol::object, std::optional<std::string>>
 		{
 			sol::state_view lua = s;
 			try {
 				toml::value tomlValue = toml::parse(path);
-				return LuaToml::tomlValue2SolObject(tomlValue, lua);
+				return std::make_tuple(LuaToml::tomlValue2SolObject(tomlValue, lua), std::nullopt);
 			}
-			catch (const toml::exception&) {
-				return sol::make_object(lua, sol::nil);
+			catch (const toml::exception& e) {
+				return std::make_tuple(sol::make_object(lua, sol::nil), std::string(e.what()));
 			}
 		};
 	luaTomlTable["parse"] = sol::overload(luaTomlParseFunc, [=](const std::string& str, sol::this_state s) { return luaTomlParseFunc(ascii2Wide(str), s); });
-	auto luaTomlSaveFunc = [](const fs::path& path, sol::object obj) -> std::optional<std::string>
+	auto luaTomlSaveFunc = [](const fs::path& path, sol::object obj) -> std::tuple<bool, std::optional<std::string>>
 		{
 			toml::value tomlValue = LuaToml::solObj2TomlValue(obj);
 			try {
 				std::ofstream ofs(path);
 				if (!ofs.is_open()) {
-					std::string err = std::format("Failed to open file for writing: {}", wide2Ascii(path));
-					return err;
+					return std::make_tuple(false, std::string("Failed to open file for writing"));
 				}
 				ofs << toml::format(tomlValue);
 				ofs.close();
-				return std::nullopt;
+				return std::make_tuple(true, std::nullopt);
 			}
 			catch (const toml::exception& e) {
-				std::string err = std::format("Failed to save toml: {}", e.what());
-				return err;
+				return std::make_tuple(false, std::string(e.what()));
+			}
+		};
+	luaTomlTable["str"] = [](sol::object obj) -> std::tuple<std::optional<std::string>, std::optional<std::string>>
+		{
+			toml::value tomlValue = LuaToml::solObj2TomlValue(obj);
+			try {
+				return std::make_tuple(toml::format(tomlValue), std::nullopt);
+			}
+			catch (const toml::exception& e) {
+				return std::make_tuple(std::nullopt, std::string(e.what()));
 			}
 		};
 	luaTomlTable["save"] = sol::overload(luaTomlSaveFunc, [=](const std::string& str, sol::object obj) { return luaTomlSaveFunc(ascii2Wide(str), obj); });
 
 	auto luaJsonTable = lua.create_named_table("json");
-	auto luaJsonParseFunc = [](const fs::path& path, sol::this_state s)
+	auto luaJsonParseFunc = [](const fs::path& path, sol::this_state s) -> std::tuple<sol::object, std::optional<std::string>>
 		{
 			sol::state_view lua = s;
 			try {
 				std::ifstream ifs(path);
 				json jsonValue = json::parse(ifs);
-				return LuaJson::jsonValue2SolObject(jsonValue, lua);
+				return std::make_tuple(LuaJson::jsonValue2SolObject(jsonValue, lua), std::nullopt);
 			}
-			catch (const std::exception&) {
-				return sol::make_object(lua, sol::nil);
+			catch (const std::exception& e) {
+				return std::make_tuple(sol::make_object(lua, sol::nil), std::string(e.what()));
 			}
 		};
 	luaJsonTable["parse"] = sol::overload(luaJsonParseFunc, [=](const std::string& str, sol::this_state s) { return luaJsonParseFunc(ascii2Wide(str), s); });
-	auto luaJsonSaveFunc = [](const fs::path& path, sol::object obj, sol::optional<int> indent) -> std::optional<std::string>
+	auto luaJsonSaveFunc = [](const fs::path& path, sol::object obj, sol::optional<int> indent) -> std::tuple<bool, std::optional<std::string>>
 		{
 			json jsonValue = LuaJson::solObj2JsonValue(obj);
 			try {
 				std::ofstream ofs(path);
 				if (!ofs.is_open()) {
-					std::string err = std::format("Failed to open file for writing: {}", wide2Ascii(path));
-					return err;
+					return std::make_tuple(false, std::string("Failed to open file for writing"));
 				}
 				ofs << jsonValue.dump(indent.value_or(2));
 				ofs.close();
-				return std::nullopt;
+				return std::make_tuple(true, std::nullopt);
 			}
 			catch (const std::exception& e) {
-				std::string err = std::format("Failed to save json: {}", e.what());
-				return err;
+				return std::make_tuple(false, std::string(e.what()));
 			}
 		};
 	luaJsonTable["save"] = sol::overload(luaJsonSaveFunc, [=](const std::string& str, sol::object obj, sol::optional<int> indent) { return luaJsonSaveFunc(ascii2Wide(str), obj, indent); });
@@ -593,56 +600,4 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 	supplyTokenizerFunc("sourceLang_");
 	supplyTokenizerFunc("targetLang_");
 
-}
-
-LuaTextPlugin::LuaTextPlugin(const fs::path& projectDir, const std::string& scriptPath, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger)
-	: IPlugin(projectDir, logger), m_scriptPath(scriptPath)
-{
-	m_logger->info("正在初始化 Lua 插件 {}", scriptPath);
-	std::optional<std::shared_ptr<LuaStateInstance>> luaStateOpt = luaManager.registerFunction(scriptPath, "init", m_needReboot);
-	if (!luaStateOpt.has_value()) {
-		throw std::runtime_error(scriptPath + " init函数 初始化失败");
-	}
-	luaStateOpt = luaManager.registerFunction(scriptPath, "run", m_needReboot);
-	if (!luaStateOpt.has_value()) {
-		throw std::runtime_error(scriptPath + " run函数 初始化失败");
-	}
-	m_luaState = luaStateOpt.value();
-	m_luaRunFunc = m_luaState->functions["run"];
-	luaManager.registerFunction(scriptPath, "unload", m_needReboot);
-
-	try {
-		m_luaState->functions["init"](projectDir);
-	}
-	catch (const sol::error& e) {
-		m_logger->error("{} init函数 执行失败", scriptPath);
-		throw std::runtime_error(e.what());
-	}
-
-	m_logger->info("{} 初始化成功", scriptPath);
-}
-
-LuaTextPlugin::~LuaTextPlugin()
-{
-	sol::function unloadFunc = m_luaState->functions["unload"];
-	if (unloadFunc.valid()) {
-		try {
-			std::lock_guard<std::mutex> lock(m_luaState->executionMutex);
-			unloadFunc();
-		}
-		catch (const sol::error& e) {
-			m_logger->error("Error while unloading script: {}", e.what());
-		}
-	}
-}
-
-void LuaTextPlugin::run(Sentence* se) {
-	std::lock_guard<std::mutex> lock(m_luaState->executionMutex);
-	try {
-		m_luaRunFunc(se);
-	}
-	catch (const sol::error& e) {
-		m_logger->error("{} run函数 执行失败", m_scriptPath);
-		throw std::runtime_error(e.what());
-	}
 }

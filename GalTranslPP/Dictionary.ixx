@@ -9,9 +9,8 @@
 export module Dictionary;
 
 import Tool;
-import Condition_Tool;
+import ConditionTool;
 import LuaManager;
-import PythonManager;
 
 namespace fs = std::filesystem;
 

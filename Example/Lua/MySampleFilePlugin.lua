@@ -50,9 +50,9 @@ end
 function init()
     utils.logger:info("MySampleFilePluginFromLua starts")
     utils.logger:info("apiStrategy: " .. luaTranslator.m_apiStrategy)
-    local tomlConfig = toml.parse(luaTranslator.m_projectDir / "config.toml")
+    local tomlConfig, errMsg = toml.parse(luaTranslator.m_projectDir / "config.toml")
     if tomlConfig == nil then
-        utils.logger:info("出错错了喵")
+        utils.logger:info("出错错了喵: " .. errMsg)
     else
         local epubPreReg1 = tomlConfig.plugins.Epub.preprocRegex[1]
         utils.logger:info("{epubPreReg1} org: " .. epubPreReg1.org .. ", rep: " .. epubPreReg1.rep)
@@ -76,9 +76,9 @@ function unload()
         for splitFilePart, comp in pairs(filePartsMap) do
             if comp then
                 table.insert(strs, splitFilePart.value)
-                local j = json.parse(luaTranslator.m_cacheDir / splitFilePart)
+                local j, errMsg = json.parse(luaTranslator.m_cacheDir / splitFilePart)
                 if j == nil then
-                    utils.logger:info("出错错了喵")
+                    utils.logger:info("出错错了喵: " .. errMsg)
                 elseif #j >= 1 then
                     table.insert(strs, j[1].translated_preview)
                 end

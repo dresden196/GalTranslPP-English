@@ -14,8 +14,7 @@ export {
         std::shared_ptr<spdlog::logger> m_logger;
         std::mutex m_mutex;
 
-        std::random_device m_rd;
-        std::mt19937 m_gen;
+        std::unique_ptr<std::mt19937> m_gen;
 
     public:
         APIPool(std::shared_ptr<spdlog::logger> logger);
@@ -40,7 +39,7 @@ export {
 
 module :private;
 
-APIPool::APIPool(std::shared_ptr<spdlog::logger> logger) : m_logger(logger), m_gen(m_rd()) {}
+APIPool::APIPool(std::shared_ptr<spdlog::logger> logger) : m_logger(logger), m_gen(std::make_unique<std::mt19937>(std::random_device{}())) {}
 
 void APIPool::loadAPIs(const std::vector<TranslationApi>& apis) {
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -58,7 +57,7 @@ std::optional<TranslationApi> APIPool::getApi() {
 
     // 生成一个随机索引
     std::uniform_int_distribution<> distrib(0, (int)m_apis.size() - 1);
-    int index = distrib(m_gen);
+    int index = distrib(*m_gen);
 
     return m_apis[index];
 }

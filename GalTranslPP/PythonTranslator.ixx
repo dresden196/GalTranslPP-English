@@ -1,10 +1,7 @@
 module;
 
-#include <pybind11/stl.h>
-#include <pybind11/complex.h>
-#include <pybind11/functional.h>
-#include <pybind11/stl_bind.h>
-#include <pybind11/pybind11.h>
+#define PYBIND11_HEADERS
+#include "GPPMacros.hpp"
 #include <pybind11/embed.h>
 #include <spdlog/spdlog.h>
 
@@ -18,6 +15,8 @@ import PythonManager;
 
 namespace fs = std::filesystem;
 namespace py = pybind11;
+
+PATH_CVT;
 
 export {
 
@@ -49,6 +48,7 @@ export {
 		PythonTranslator(const std::string& modulePath, Args&&... args) :
 			Base(std::forward<Args>(args)...), m_modulePath(modulePath)
 		{
+			this->m_pythonTranslator = true;
 			m_translatorName = wide2Ascii(fs::path(ascii2Wide(m_modulePath)).filename());
 			std::optional<std::shared_ptr<PythonModule>> pythonModuleOpt = PythonManager::getInstance().registerFunction(m_modulePath, "init", this->m_logger, m_needReboot);
 			if (!pythonModuleOpt.has_value()) {
@@ -87,7 +87,7 @@ export {
 						if (auto unloadFuncPtr = m_pythonModule->processors_["unload"]; unloadFuncPtr.operator bool()) {
 							(*unloadFuncPtr)();
 						}
-						m_pythonModule->module_->attr("logger") = py::none();
+						//m_pythonModule->module_->attr("logger") = py::none();
 						this->m_onFileProcessed = {};
 					}
 					catch (const py::error_already_set& e) {

@@ -1,12 +1,9 @@
 module;
 
+#include "GPPMacros.hpp"
 #include <spdlog/spdlog.h>
 #include <sol/sol.hpp>
 #include <ctpl_stl.h>
-#define NESTED_CVT(className, memberName) sol::property([](className& self, sol::this_state s) \
-{ \
-	return sol::nested<decltype(className::memberName)>(self.memberName); \
-}, [](className& self, sol::this_state s, decltype(className::memberName) table) { self.memberName = std::move(table); }) 
 
 export module LuaTranslator;
 

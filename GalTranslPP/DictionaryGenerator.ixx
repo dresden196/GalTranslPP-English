@@ -4,7 +4,6 @@
 #include <boost/regex.hpp>
 #include <cpr/cpr.h>
 #include <toml.hpp>
-#include <nlohmann/json.hpp>
 #include <ctpl_stl.h>
 
 export module DictionaryGenerator;

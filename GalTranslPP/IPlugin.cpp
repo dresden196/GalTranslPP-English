@@ -1,18 +1,37 @@
 module;
 
-#define _RANGES_
 #include <spdlog/spdlog.h>
-#include <toml.hpp>
 #include <sol/sol.hpp>
+#include <toml.hpp>
 
-module NJ_ImplTool;
+module IPlugin;
 
-import PythonManager;
+import Tool;
 import TextPostFull2Half;
 import TextLinebreakFix;
 import SkipTrans;
+import LuaTextPlugin;
+import PythonTextPlugin;
 
 namespace fs = std::filesystem;
+
+IPlugin::IPlugin(const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger) :
+    m_projectDir(projectDir),
+    m_logger(logger)
+{
+
+}
+
+IPlugin::~IPlugin()
+{
+
+}
+
+bool IPlugin::needReboot()
+{
+    return false;
+}
+
 
 std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::string>& pluginNames, const fs::path& projectDir,
     LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger,
