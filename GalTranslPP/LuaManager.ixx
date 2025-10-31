@@ -23,7 +23,8 @@ export {
 
 	public:
 		//
-		std::optional<std::shared_ptr<LuaStateInstance>> registerFunction(const std::string& scriptPath, const std::string& functionName, bool& needReboot);
+		std::optional<std::shared_ptr<LuaStateInstance>> registerFunction
+		(const std::string& scriptPath, const std::string& functionName, bool& needReboot);
 
 		LuaManager(std::shared_ptr<spdlog::logger> logger) : m_logger(logger) {}
 

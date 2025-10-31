@@ -85,13 +85,18 @@ int main(int argc, char* argv[])
                     PyConfig_SetString(&config, &config.home, pyEnvPath.c_str());
                     PyConfig_SetString(&config, &config.pythonpath_env, envZipPath.c_str());
                     py::initialize_interpreter(&config);
+                    py::list sysPaths = py::module_::import("sys").attr("path");
+                    std::ofstream ofs(L"BaseConfig/pythonSysPaths.txt");
+                    for (const auto& path : sysPaths) {
+                        ofs << path.cast<std::string>() << std::endl;
+                    }
                     py::module_::import("sys").attr("path").attr("append")("BaseConfig/pyScripts");
                     release = std::make_unique<py::gil_scoped_release>();
                 }
             }
         }
         catch (...) {
-            
+
         }
 
         QCommandLineParser parser;
@@ -200,9 +205,11 @@ int main(int argc, char* argv[])
 
         int result = a.exec();
         if (release) {
-            PythonManager::getInstance().stop();
+            PythonMainInterpreterManager::getInstance().stop();
             release.reset();
+            // 这里应该是有一处内存泄漏导致的崩溃
             py::finalize_interpreter();
+            MessageBoxW(nullptr, L"Python 解释器已释放", L"提示", MB_ICONINFORMATION);
         }
 
         // 程序退出前，确保服务器关闭

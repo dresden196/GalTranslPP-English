@@ -2,7 +2,8 @@
 #include <Windows.h>
 #endif
 
-#include <pybind11/embed.h>
+#define PYBIND11_HEADERS
+#include "../GalTranslPP/GPPMacros.hpp"
 #include <spdlog/spdlog.h>
 #include <toml.hpp>
 
@@ -38,16 +39,13 @@ int main(int argc, char* argv[])
                 }
             }
             if (!envZipPath.empty()) {
-                std::streambuf* cinbuf = std::cin.rdbuf();
-                std::streambuf* coutbuf = std::cout.rdbuf();
-                std::streambuf* cerrbuf = std::cerr.rdbuf();
                 PyConfig config;
                 PyConfig_InitPythonConfig(&config);
                 PyConfig_SetString(&config, &config.home, pyEnvPath.c_str());
                 PyConfig_SetString(&config, &config.pythonpath_env, envZipPath.c_str());
                 py::initialize_interpreter(&config);
                 py::module_::import("sys").attr("path").attr("append")("BaseConfig/pyScripts");
-                //release = std::make_unique<py::gil_scoped_release>();
+                release = std::make_unique<py::gil_scoped_release>();
             }
         }
         else {
@@ -73,12 +71,6 @@ int main(int argc, char* argv[])
 
         std::string inputPathStr;
         if (release) {
-            /*auto inputTaskFunc = [&]()
-                {
-                    auto builtins = py::module_::import("builtins");
-                    inputPathStr = builtins.attr("input")("").cast<std::string>();
-                };
-            PythonManager::getInstance().submitTask(std::move(inputTaskFunc)).get();*/
             py::gil_scoped_acquire acquire;
             auto builtins = py::module_::import("builtins");
             inputPathStr = builtins.attr("input")("").cast<std::string>();
@@ -148,9 +140,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    PythonManager::getInstance().stop();
     release.reset();
-    py::finalize_interpreter();
 
     return 0;
 }

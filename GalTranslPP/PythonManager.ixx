@@ -4,13 +4,10 @@
 #include "GPPMacros.hpp"
 #include <toml.hpp>
 #include <spdlog/spdlog.h>
-#pragma comment(lib, "../lib/python3.lib")
-#pragma comment(lib, "../lib/python312.lib")
 
 export module PythonManager;
 
 import Tool;
-export import IPlugin;
 
 namespace fs = std::filesystem;
 namespace py = pybind11;
@@ -55,60 +52,192 @@ export {
         std::promise<void> promise; // 用于返回结果
     };
 
-    struct PythonModule {
-        std::shared_ptr<py::module_> module_;
-        std::map<std::string, std::shared_ptr<py::object>> processors_;
+    class PythonMainInterpreterManager {
+    public:
+
+        static PythonMainInterpreterManager& getInstance() {
+            static PythonMainInterpreterManager instance;
+            return instance;
+        }
+        ~PythonMainInterpreterManager(){}
+
+        void stop() {
+            m_taskQueue.stop();
+            if (m_daemonThread.joinable()) {
+                m_daemonThread.join();
+            }
+        }
+
+        PythonMainInterpreterManager(PythonMainInterpreterManager&) = delete;
+        PythonMainInterpreterManager(PythonMainInterpreterManager&&) = delete;
+
+        std::future<void> submitTask(std::function<void()> taskFunc) {
+            std::unique_ptr<PythonTask> task = std::make_unique<PythonTask>();
+            task->taskFunc = std::move(taskFunc);
+            auto future = task->promise.get_future();
+            m_taskQueue.push(std::move(task));
+            return future;
+        }
+        
+        std::shared_ptr<py::object> registerNLPFunction
+        (const std::string& moduleName, const std::string& modelName, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
+
+    private:
+
+        PythonMainInterpreterManager() {
+            if (Py_IsInitialized()) {
+                m_daemonThread = std::thread(&PythonMainInterpreterManager::daemonThreadFunc, this);
+            }
+            else {
+                throw std::runtime_error("Python 环境未初始化");
+            }
+        }
+
+        void daemonThreadFunc() {
+            py::gil_scoped_acquire acquire;
+            try {
+                py::module_::import("gpp_plugin_api");
+            }
+            catch (const py::error_already_set& e) {
+                throw std::runtime_error("import gpp_plugin_api 时出现异常: " + std::string(e.what()));
+            }
+            while (true) {
+                auto taskOpt = m_taskQueue.pop();
+                if (!taskOpt) {
+                    break;
+                }
+                auto task = std::move(*taskOpt);
+                try {
+                    task->taskFunc();
+                    task->promise.set_value();
+                }
+                catch (const std::exception&) {
+                    task->promise.set_exception(std::current_exception());
+                }
+                catch (...) {
+                    task->promise.set_exception(std::make_exception_ptr(std::runtime_error("PythonMainInterpreterManager::daemonThreadFunc 出现未知异常")));
+                }
+            }
+        }
+
+        std::mutex m_mutex;
+        std::map<std::string, std::map<std::string, std::weak_ptr<py::object>>> m_nlpModuleFunctions;
+        std::thread m_daemonThread; // 守护线程
+        SafeQueue<std::unique_ptr<PythonTask>> m_taskQueue;
+    };
+
+    template <typename T>
+    void pythonMainInterpreterDeleter(T* ptr) {
+        auto deleteTaskFunc = [ptr]()
+            {
+                delete ptr;
+            };
+        PythonMainInterpreterManager::getInstance().submitTask(std::move(deleteTaskFunc));
+    }
+
+    struct PythonInterpreterInstance {
+        std::unique_ptr<py::subinterpreter> subInterpreter;
+        // 这里的 functions 只允许用 weak_ptr 继承
+        std::map<std::string, std::shared_ptr<py::object>> functions;
+        std::thread daemonThread;
+        SafeQueue<std::unique_ptr<PythonTask>> m_taskQueue;
+
+        void daemonThreadFunc() {
+            py::subinterpreter_scoped_activate activate(*subInterpreter);
+            try {
+                py::module_::import("sys").attr("path").attr("append")("BaseConfig/pyScripts");
+                py::module_::import("gpp_plugin_api");
+            }
+            catch (const py::error_already_set& e) {
+                throw std::runtime_error("import gpp_plugin_api 时出现异常: " + std::string(e.what()));
+            }
+            while (true) {
+                auto taskOpt = m_taskQueue.pop();
+                if (!taskOpt) {
+                    break;
+                }
+                auto task = std::move(*taskOpt);
+                try {
+                    task->taskFunc();
+                    task->promise.set_value();
+                }
+                catch (const std::exception&) {
+                    task->promise.set_exception(std::current_exception());
+                }
+                catch (...) {
+                    task->promise.set_exception(std::make_exception_ptr(std::runtime_error("PythonInterpreterInstance::daemonThreadFunc 出现未知异常")));
+                }
+            }
+        }
+
+        std::future<void> submitTask(std::function<void()> taskFunc) {
+            std::unique_ptr<PythonTask> task = std::make_unique<PythonTask>();
+            task->taskFunc = std::move(taskFunc);
+            auto future = task->promise.get_future();
+            m_taskQueue.push(std::move(task));
+            return future;
+        }
+
+        PythonInterpreterInstance() {
+            auto createSubInterpreterTaskFunc = [&]()
+                {
+                    try {
+                        subInterpreter = std::unique_ptr<py::subinterpreter>(new py::subinterpreter{ py::subinterpreter::create() });
+                    }
+                    catch (const std::exception& e) {
+                        throw std::runtime_error("PythonInterpreterInstance 构造时出现异常: " + std::string(e.what()));
+                    }
+                };
+            PythonMainInterpreterManager::getInstance().submitTask(std::move(createSubInterpreterTaskFunc)).get();
+            daemonThread = std::thread(&PythonInterpreterInstance::daemonThreadFunc, this);
+        }
+
+        ~PythonInterpreterInstance() {
+            auto functionClearTaskFunc = [this]()
+                {
+                    try {
+                        this->functions.clear();
+                    }
+                    catch (const std::exception& e) {
+                        throw std::runtime_error("PythonInterpreterInstance::functionClearTaskFunc 出现异常: " + std::string(e.what()));
+                    }
+                };
+            submitTask(functionClearTaskFunc).get();
+            m_taskQueue.stop();
+            if (daemonThread.joinable()) {
+                daemonThread.join();
+            }
+            auto destroySubInterpreterTaskFunc = [&]()
+                {
+                    try {
+                        subInterpreter.reset();
+                    }
+                    catch (const std::exception& e) {
+                        throw std::runtime_error("PythonInterpreterInstance 析构时出现异常: " + std::string(e.what()));
+                    }
+                };
+            PythonMainInterpreterManager::getInstance().submitTask(std::move(destroySubInterpreterTaskFunc)).get();
+        }
     };
 
     class PythonManager {
 
     public:
-        static PythonManager& getInstance();
-        ~PythonManager();
 
-        void stop();
+        std::optional<std::shared_ptr<PythonInterpreterInstance>> registerFunction
+        (const std::string& modulePath, const std::string& functionName, bool& needReboot);
 
-        PythonManager(PythonManager&) = delete;
-        PythonManager(PythonManager&&) = delete;
-
-        std::future<void> submitTask(std::function<void()> taskFunc); // 提交任务到队列
-
-        void registerPythonThread() {
-            m_pythonThreads.insert(std::this_thread::get_id());
-        }
-        void erasePythonThread() {
-            m_pythonThreads.erase(std::this_thread::get_id());
-        }
-
-        void checkDependency(const std::vector<std::string>& dependencies, std::shared_ptr<spdlog::logger> logger);
-        std::shared_ptr<PythonModule> registerNLPFunction(const std::string& moduleName, const std::string& modelName, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
-        std::optional<std::shared_ptr<PythonModule>> registerFunction(const std::string& modulePath, const std::string& functionName, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
+        PythonManager(std::shared_ptr<spdlog::logger> logger) : m_logger(logger) {}
 
     private:
-        std::set<std::thread::id> m_pythonThreads;
-        PythonManager();
-        void run(); // 守护线程的执行函数
-        void registerCustomTypes(std::shared_ptr<PythonModule> pythonModule, const std::string& modulePath, std::shared_ptr<spdlog::logger> logger, bool& needReboot, std::function<void()>& getNLPFunc);
 
-        // e.g. { "tokenize_spacy", <pybind11::module, { {"ja_core_news_trf", <pybind11::object>}, {"en_core_web_trf", <pybind11::object> } }> }
-        std::map<std::string, std::weak_ptr<PythonModule>> m_pyModules;
-        std::recursive_mutex m_pyModulesMapMutex;
-        std::mutex m_threadsSetMutex;
-        std::thread m_pyThread; // 守护线程
-        SafeQueue<std::unique_ptr<PythonTask>> m_taskQueue;
+        void registerCustomTypes(const std::string& moduleName, bool& needReboot);
+
+        std::map<fs::path, std::shared_ptr<PythonInterpreterInstance>> m_interpreters;
+
+        std::shared_ptr<spdlog::logger> m_logger;
     };
 
-    template <typename T>
-    void pythonDeleter(T* ptr) {
-        auto deleteTaskFunc = [ptr]()
-            {
-                if constexpr (std::is_same_v<T, py::module_>) {
-                    py::module_ importlib = py::module_::import("importlib");
-                    importlib.attr("reload")(*ptr);
-                }
-                delete ptr;
-            };
-        PythonManager::getInstance().submitTask(std::move(deleteTaskFunc));
-    }
+    void checkPythonDependencies(const std::vector<std::string>& dependencies, std::shared_ptr<spdlog::logger> logger);
 
 }

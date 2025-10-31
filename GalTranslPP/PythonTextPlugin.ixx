@@ -18,14 +18,13 @@ export {
 
     class PythonTextPlugin : public IPlugin {
     private:
-        std::vector<std::function<NLPResult(const std::string&)>> m_tokenizeFuncs;
-        std::shared_ptr<PythonModule> m_pyModule;
-        std::shared_ptr<py::object> m_pyRunFunc;
+        std::shared_ptr<PythonInterpreterInstance> m_pythonInterpreter;
+        std::weak_ptr<py::object> m_pythonRunFunc;
         std::string m_modulePath;
         bool m_needReboot = false;
 
     public:
-        PythonTextPlugin(const fs::path& projectDir, const std::string& modulePath, std::shared_ptr<spdlog::logger> logger);
+        PythonTextPlugin(const fs::path& projectDir, const std::string& modulePath, PythonManager& pythonManager, std::shared_ptr<spdlog::logger> logger);
         virtual bool needReboot() override { return m_needReboot; }
         virtual void run(Sentence* se) override;
         virtual ~PythonTextPlugin() override;
@@ -35,62 +34,63 @@ export {
 
 module :private;
 
-PythonTextPlugin::PythonTextPlugin(const fs::path& projectDir, const std::string& modulePath, std::shared_ptr<spdlog::logger> logger)
+PythonTextPlugin::PythonTextPlugin(const fs::path& projectDir, const std::string& modulePath, PythonManager& pythonManager, std::shared_ptr<spdlog::logger> logger)
     : IPlugin(projectDir, logger), m_modulePath(modulePath)
 {
     m_logger->info("正在初始化 Python 插件 {}", modulePath);
-    std::optional<std::shared_ptr<PythonModule>> pythonModuleOpt = PythonManager::getInstance().registerFunction(m_modulePath, "init", logger, m_needReboot);
-    if (!pythonModuleOpt.has_value()) {
+    std::optional<std::shared_ptr<PythonInterpreterInstance>> pythonInterpreterOpt = pythonManager.registerFunction(m_modulePath, "init", m_needReboot);
+    if (!pythonInterpreterOpt.has_value()) {
         throw std::runtime_error(modulePath + " init函数 初始化失败");
     }
-    pythonModuleOpt = PythonManager::getInstance().registerFunction(m_modulePath, "run", logger, m_needReboot);
-    if (!pythonModuleOpt.has_value()) {
+    pythonInterpreterOpt = pythonManager.registerFunction(m_modulePath, "run", m_needReboot);
+    if (!pythonInterpreterOpt.has_value()) {
         throw std::runtime_error(modulePath + " run函数 初始化失败");
     }
-    m_pyModule = pythonModuleOpt.value();
-    m_pyRunFunc = m_pyModule->processors_["run"];
-    PythonManager::getInstance().registerFunction(m_modulePath, "unload", logger, m_needReboot);
+    m_pythonInterpreter = pythonInterpreterOpt.value();
+    m_pythonRunFunc = m_pythonInterpreter->functions["run"];
+    pythonManager.registerFunction(m_modulePath, "unload", m_needReboot);
 
-    auto initTaskFunc = [&]()
+    m_pythonInterpreter->submitTask([&]()
         {
             try {
-                (*m_pyModule->processors_["init"])(projectDir);
+                (*(m_pythonInterpreter->functions["init"]))(projectDir);
             }
             catch (const py::error_already_set& e) {
                 throw std::runtime_error(modulePath + " init函数 执行失败: " + e.what());
             }
-        };
-    PythonManager::getInstance().submitTask(std::move(initTaskFunc)).get();
+        }).get();
 
     m_logger->info("{} 初始化成功", modulePath);
 }
 
 PythonTextPlugin::~PythonTextPlugin()
 {
-    auto unloadTaskFunc = [this]()
+    m_pythonInterpreter->submitTask([&]()
         {
             try {
-                if (auto unloadFunc = m_pyModule->processors_["unload"]; unloadFunc.operator bool() && py::isinstance<py::function>(*unloadFunc)) {
+                if (auto unloadFunc = m_pythonInterpreter->functions["unload"]; unloadFunc.operator bool() && py::isinstance<py::function>(*unloadFunc)) {
                     (*unloadFunc)();
                 }
-                //m_pyModule->module_->attr("logger") = py::none();
             }
             catch (const py::error_already_set& e) {
                 throw std::runtime_error(m_modulePath + " unload函数 执行失败: " + e.what());
             }
-        };
-    PythonManager::getInstance().submitTask(std::move(unloadTaskFunc)).get();
+        }).get();
 }
 
 void PythonTextPlugin::run(Sentence* se) {
-    auto runTaskFunc = [&]()
+    m_pythonInterpreter->submitTask([&]()
         {
             try {
-                (*m_pyRunFunc)(se); // 使用 py::object 的 operator() 来调用 Python 函数
+                if (auto runFuncLocked = m_pythonRunFunc.lock()) {
+                    (*runFuncLocked)(se); // 使用 shared_ptr 的 operator() 来调用 Python 函数
+                }
+                else {
+                    throw std::runtime_error(m_modulePath + " run函数 已被释放");
+                }
             }
             catch (const py::error_already_set& e) {
                 throw std::runtime_error(m_modulePath + " run函数 执行失败: " + e.what());
             }
-        };
-    PythonManager::getInstance().submitTask(std::move(runTaskFunc)).get();
+        }).get();
 }

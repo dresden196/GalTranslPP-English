@@ -1,5 +1,7 @@
 ﻿module;
 
+#define PYBIND11_HEADERS
+#include "GPPMacros.hpp"
 #include <spdlog/spdlog.h>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
@@ -10,6 +12,7 @@ export module Dictionary;
 
 import Tool;
 import ConditionTool;
+import PythonManager;
 import LuaManager;
 
 namespace fs = std::filesystem;
@@ -40,7 +43,8 @@ export {
             m_tokenizeSourceLangFunc = tokenizeFunc;
         }
 
-        void loadFromFile(const fs::path& filePath, const fs::path& projectDir, LuaManager& luaManager, bool& needReboot);
+        void loadFromFile(const fs::path& filePath, const fs::path& projectDir,
+            PythonManager& pythonManager, LuaManager& luaManager, bool& needReboot);
 
         std::string generatePrompt(const std::vector<Sentence*>& batch, TransEngine transEngine);
 
@@ -71,7 +75,8 @@ export {
 
         NormalDictionary(std::shared_ptr<spdlog::logger> logger) : m_logger(logger) {}
 
-        void loadFromFile(const fs::path& filePath, const fs::path& projectDir, LuaManager& luaManager, bool& needReboot);
+        void loadFromFile(const fs::path& filePath, const fs::path& projectDir,
+            PythonManager& pythonManager, LuaManager& luaManager, bool& needReboot);
 
         void sort();
 
@@ -159,7 +164,8 @@ std::string GptDictionary::generatePrompt(const std::vector<Sentence*>& batch, T
     return {};
 }
 
-void GptDictionary::loadFromFile(const fs::path& filePath, const fs::path& projectDir, LuaManager& luaManager, bool& needReboot) {
+void GptDictionary::loadFromFile(const fs::path& filePath, const fs::path& projectDir,
+    PythonManager&, LuaManager&, bool& needReboot) {
     if (!fs::exists(filePath)) {
         m_logger->error("GPT 字典文件不存在: {}", wide2Ascii(filePath));
         return;
@@ -257,7 +263,8 @@ void GptDictionary::checkDicUse(Sentence* sentence, CachePart base, CachePart ch
 
 
 
-void NormalDictionary::loadFromFile(const fs::path& filePath, const fs::path& projectDir, LuaManager& luaManager, bool& needReboot) {
+void NormalDictionary::loadFromFile(const fs::path& filePath, const fs::path& projectDir,
+    PythonManager& pythonManager, LuaManager& luaManager, bool& needReboot) {
     if (!fs::exists(filePath)) {
         m_logger->warn("字典文件不存在: {}", wide2Ascii(filePath));
         return;
@@ -301,7 +308,7 @@ void NormalDictionary::loadFromFile(const fs::path& filePath, const fs::path& pr
             entry.priority = toml::find_or(el, "priority", 0);
 
             if (getConditionType(el) != ConditionType::None) {
-                entry.dictCondition = getCheckCondFunc(el, projectDir, luaManager, m_logger, needReboot);
+                entry.dictCondition = getCheckSeCondFunc(el, projectDir, pythonManager, luaManager, m_logger, needReboot);
             }
             m_entries.push_back(entry);
             count++;

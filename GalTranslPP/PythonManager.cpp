@@ -91,14 +91,6 @@ PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m, py::multiple_interpreters::per_inter
     py::module_ utilsSubmodule = m.def_submodule("utils", "A submodule for utility functions");
 
     utilsSubmodule
-        .def("registerPythonThread", []()
-            {
-                PythonManager::getInstance().registerPythonThread();
-            })
-        .def("erasePythonThread", []()
-            {
-                PythonManager::getInstance().erasePythonThread();
-            })
         .def("executeCommand", &executeCommand)
         .def("getConsoleWidth", &getConsoleWidth)
         .def("removePunctuation", &removePunctuation)
@@ -167,19 +159,7 @@ PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m, py::multiple_interpreters::per_inter
         .def_readwrite("m_needsCombining", &NormalJsonTranslator::m_needsCombining)
         .def_readwrite("m_splitFilePartsToJson", &NormalJsonTranslator::m_splitFilePartsToJson)
         .def_readwrite("m_jsonToSplitFileParts", &NormalJsonTranslator::m_jsonToSplitFileParts)
-        .def_property("m_onFileProcessed", [](NormalJsonTranslator& self) {return self.m_onFileProcessed; },
-            [](NormalJsonTranslator& self, std::function<void(fs::path)> func)
-            {
-                std::function<void(fs::path)> wrappedFunc = [func](fs::path path)
-                    {
-                        auto taskFunc = [&]()
-                            {
-                                func(path);
-                            };
-                        PythonManager::getInstance().submitTask(std::move(taskFunc)).get();
-                    };
-                self.m_onFileProcessed = std::move(wrappedFunc);
-            })
+        .def_readwrite("m_onFileProcessed", &NormalJsonTranslator::m_onFileProcessed)
         .def_property("m_threadPool", [](NormalJsonTranslator& self) -> ctpl::thread_pool& {return self.m_threadPool; }, nullptr, py::return_value_policy::reference_internal)
         .def("preProcess", &NormalJsonTranslator::preProcess)
         .def("postProcess", &NormalJsonTranslator::postProcess)
@@ -220,7 +200,7 @@ PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m, py::multiple_interpreters::per_inter
 
 }
 
-void PythonManager::checkDependency(const std::vector<std::string>& dependencies, std::shared_ptr<spdlog::logger> logger)
+void checkPythonDependencies(const std::vector<std::string>& dependencies, std::shared_ptr<spdlog::logger> logger)
 {
     for (const auto& dependency : dependencies) {
         logger->debug("正在检查依赖 {}", dependency);
@@ -251,310 +231,173 @@ void PythonManager::checkDependency(const std::vector<std::string>& dependencies
                     }
                 }
             };
-        PythonManager::getInstance().submitTask(std::move(checkDependencyTaskFunc)).get();
+        PythonMainInterpreterManager::getInstance().submitTask(std::move(checkDependencyTaskFunc)).get();
         logger->debug("依赖 {} 检查完毕", dependency);
     }
     logger->debug("所有依赖均已安装");
 }
 
-std::shared_ptr<PythonModule> PythonManager::registerNLPFunction(const std::string& moduleName, const std::string& modelName, std::shared_ptr<spdlog::logger> logger, bool& needReboot) {
-    
-    std::lock_guard<std::recursive_mutex> lock(m_pyModulesMapMutex);
-    std::shared_ptr<PythonModule> pythonModule;
-    auto it = m_pyModules.find(moduleName);
-    if (it != m_pyModules.end() && !it->second.expired()) {
-        pythonModule = it->second.lock();
-    }
-    if (!pythonModule) {
-        // 模块不存在，尝试加载
-        logger->info("正在加载模块 {}", moduleName);
-        auto importTaskFunc = [&]()
-            {
-                try {
-                    std::shared_ptr<py::module_> pyModule = std::shared_ptr<py::module_>(new py::module_{ py::module_::import(moduleName.c_str()) },
-                        pythonDeleter<py::module_>);
-                    py::module_ importlib = py::module_::import("importlib");
-                    importlib.attr("reload")(*pyModule);
-                    pythonModule = std::shared_ptr<PythonModule>(new PythonModule{ pyModule, {} });
-                    m_pyModules.insert_or_assign(moduleName, pythonModule);
-                }
-                catch (const py::error_already_set& e) {
-                    throw std::runtime_error("加载模块 " + moduleName + " 时出现异常: " + e.what());
-                }
-            };
-        PythonManager::getInstance().submitTask(std::move(importTaskFunc)).get();
-        logger->info("模块 {} 已加载", moduleName);
-    }
+std::shared_ptr<py::object> PythonMainInterpreterManager::registerNLPFunction
+(const std::string& moduleName, const std::string& modelName, std::shared_ptr<spdlog::logger> logger, bool& needReboot) {
 
-    if (!pythonModule->processors_.contains(modelName)) {
-        // 模型类不存在，尝试加载
-        logger->info("正在加载模块 {} 的模型 {}", moduleName, modelName);
-        auto loadModelClassTaskFunc = [&]()
-            {
-                try {
-                    bool modelInstalled = pythonModule->module_->attr("check_model")(modelName).cast<bool>();
-                    if (!modelInstalled) {
-                        logger->error("模块 {} 的模型 {} 未安装，正在尝试安装", moduleName, modelName);
-                        std::vector<std::string> installArgs = pythonModule->module_->attr("get_download_command")(modelName).cast<std::vector<std::string>>();
-                        std::string installCommand;
-                        for (const auto& arg : installArgs) {
-                            installCommand += arg + " ";
-                        }
-                        // 这个安装时间长，搞个窗口出来显示进度条吧
-                        logger->info("将在 3s 后开始安装模型，请勿关闭接下来出现的窗口！");
-                        std::this_thread::sleep_for(std::chrono::seconds(3));
-                        logger->info("正在执行安装命令: {}", installCommand);
-                        if (!executeCommand((fs::absolute(Py_GetPrefix()) / L"python.exe").wstring(), ascii2Wide(installCommand), true)) {
-                            throw std::runtime_error("安装模型 " + modelName + " 的命令失败");
-                        }
-                        modelInstalled = pythonModule->module_->attr("check_model")(modelName).cast<bool>();
-                        if (modelInstalled) {
-                            logger->info("模块 {} 的模型 {} 安装成功", moduleName, modelName);
-                            pythonModule->processors_.insert(std::make_pair(modelName, std::shared_ptr<py::object>{}));
-                            // 不重启会找不到新下载的模型...
-                            needReboot = true;
-                            return;
-                        }
-                        else {
-                            throw std::runtime_error("模块 " + moduleName + " 的模型 " + modelName + " 安装失败");
-                        }
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (auto moduleFuncLocked = m_nlpModuleFunctions[moduleName][modelName].lock()) {
+        return moduleFuncLocked;
+    }
+    std::shared_ptr<py::object> pythonNLPModuleFunc;
+
+    logger->info("正在加载模块 {} 的模型 {}", moduleName, modelName);
+    auto loadModelTaskFunc = [&]()
+        {
+            try {
+                py::module_ nlpModule = py::module_::import(moduleName.c_str());
+                bool modelInstalled = nlpModule.attr("check_model")(modelName).cast<bool>();
+                if (!modelInstalled) {
+                    logger->error("模块 {} 的模型 {} 未安装，正在尝试安装", moduleName, modelName);
+                    std::vector<std::string> installArgs = nlpModule.attr("get_download_command")(modelName).cast<std::vector<std::string>>();
+                    std::string installCommand;
+                    for (const auto& arg : installArgs) {
+                        installCommand += arg + " ";
                     }
-                    std::shared_ptr<py::object> processorClass = std::shared_ptr<py::object>(new py::object{ pythonModule->module_->attr("NLPProcessor")(modelName) },
-                        pythonDeleter<py::object>);
-                    pythonModule->processors_.insert(std::make_pair(modelName, processorClass));
+                    // 这个安装时间长，搞个窗口出来显示进度条吧
+                    logger->info("将在 3s 后开始安装模型，请勿关闭接下来出现的窗口！");
+                    std::this_thread::sleep_for(std::chrono::seconds(3));
+                    logger->info("正在执行安装命令: {}", installCommand);
+                    if (!executeCommand((fs::absolute(Py_GetPrefix()) / L"python.exe").wstring(), ascii2Wide(installCommand), true)) {
+                        throw std::runtime_error("安装模型 " + modelName + " 的命令失败");
+                    }
+                    modelInstalled = nlpModule.attr("check_model")(modelName).cast<bool>();
+                    if (modelInstalled) {
+                        logger->info("模块 {} 的模型 {} 安装成功", moduleName, modelName);
+                        m_nlpModuleFunctions[moduleName].insert_or_assign(modelName, std::weak_ptr<py::object>{});
+                        // 不重启会找不到新下载的模型...因为已导入的 nlp 库模块不会 reload
+                        needReboot = true;
+                        return;
+                    }
+                    else {
+                        throw std::runtime_error("模块 " + moduleName + " 的模型 " + modelName + " 安装失败");
+                    }
                 }
-                catch (const py::error_already_set& e) {
-                    throw std::runtime_error("加载模块 " + moduleName + " 的模型 " + modelName + " 时出现异常: " + e.what());
-                }
-            };
-        PythonManager::getInstance().submitTask(std::move(loadModelClassTaskFunc)).get();
-    }
-    // 验证一下是不是 空 ptr，比如另一个 Translator 安过但还没重启
-    else {
-        logger->debug("正在验证模块 {} 的模型 {}", moduleName, modelName);
-        if (!pythonModule->processors_[modelName].operator bool()) {
-            needReboot = true;
-        }
-        logger->debug("模块 {} 的模型 {} 已验证", moduleName, modelName);
-    }
+                pythonNLPModuleFunc = std::shared_ptr<py::object>(new py::object{ nlpModule.attr("NLPProcessor")(modelName).attr("process_text") },
+                    pythonMainInterpreterDeleter<py::object>);
+                m_nlpModuleFunctions[moduleName].insert_or_assign(modelName, std::weak_ptr<py::object>{pythonNLPModuleFunc});
+            }
+            catch (const py::error_already_set& e) {
+                throw std::runtime_error("加载模块 " + moduleName + " 的模型 " + modelName + " 时出现异常: " + e.what());
+            }
+        };
+    PythonMainInterpreterManager::getInstance().submitTask(std::move(loadModelTaskFunc)).get();
     logger->debug("模块 {} 的模型 {} 已加载", moduleName, modelName);
-    return pythonModule;
+    return pythonNLPModuleFunc;
 }
 
-std::optional<std::shared_ptr<PythonModule>> PythonManager::registerFunction(const std::string& modulePath, const std::string& functionName, std::shared_ptr<spdlog::logger> logger, bool& needReboot) {
+std::optional<std::shared_ptr<PythonInterpreterInstance>> PythonManager::registerFunction
+(const std::string& modulePath, const std::string& functionName, bool& needReboot) {
 
-    std::lock_guard<std::recursive_mutex> lock(m_pyModulesMapMutex);
-    fs::path stdScriptPath = fs::weakly_canonical(ascii2Wide(modulePath));
-    if (!fs::exists(stdScriptPath)) {
-        logger->error("Script is not found: {}", modulePath);
+    fs::path stdModulePath = fs::weakly_canonical(ascii2Wide(modulePath));
+    if (!fs::exists(stdModulePath)) {
+        m_logger->error("Script is not found: {}", modulePath);
         return std::nullopt;
     }
 
-    std::string moduleName = wide2Ascii(stdScriptPath.stem());
-    std::shared_ptr<PythonModule> pythonModule;
-    auto it = m_pyModules.find(moduleName);
-    if (it != m_pyModules.end() && !it->second.expired()) {
-        pythonModule = it->second.lock();
-    }
-    if (!pythonModule) {
-        std::function<void()> getNLPFuncNeedToDoInThisThread;
-        auto loadModuleTaskFunc = [&]()
+    std::string moduleName = wide2Ascii(stdModulePath.stem());
+    auto it = m_interpreters.find(stdModulePath);
+    if (it == m_interpreters.end()) {
+        std::shared_ptr<PythonInterpreterInstance> pythonInterpreter = std::make_shared<PythonInterpreterInstance>();
+        pythonInterpreter->submitTask([&]()
             {
                 try {
-                    py::module_ sys = py::module_::import("sys");
-                    sys.attr("path").attr("append")(wide2Ascii(stdScriptPath.parent_path()));
-                    std::shared_ptr<py::module_> pyModule = std::shared_ptr<py::module_>(new py::module_{ py::module_::import(moduleName.c_str()) },
-                        pythonDeleter<py::module_>);
-                    py::module_ importlib = py::module_::import("importlib");
-                    importlib.attr("reload")(*pyModule);
-                    pythonModule = std::shared_ptr<PythonModule>(new PythonModule{ pyModule, {} });
-                    m_pyModules.insert_or_assign(moduleName, pythonModule);
-                    registerCustomTypes(pythonModule, modulePath, logger, needReboot, getNLPFuncNeedToDoInThisThread);
+                    if (stdModulePath.has_parent_path()) {
+                        py::list sysPaths = py::module_::import("sys").attr("path");
+                        if (!sysPaths.contains(wide2Ascii(stdModulePath.parent_path()))) {
+                            py::module_::import("sys").attr("path").attr("append")(wide2Ascii(stdModulePath.parent_path()));
+                        }
+                    }
+                    registerCustomTypes(moduleName, needReboot);
                 }
                 catch (const py::error_already_set& e) {
                     throw std::runtime_error("加载模块 " + moduleName + " 时出现异常: " + e.what());
                 }
-            };
-        PythonManager::getInstance().submitTask(std::move(loadModuleTaskFunc)).get();
-        if (getNLPFuncNeedToDoInThisThread) {
-            getNLPFuncNeedToDoInThisThread();
+            }).get();
+        auto retPair = m_interpreters.insert({ stdModulePath, pythonInterpreter });
+        if (retPair.second) {
+            it = retPair.first;
+        }
+        else {
+            throw std::runtime_error("模块 " + moduleName + " 加载失败");
         }
     }
-    if (!pythonModule->processors_.contains(functionName)) {
+
+    std::shared_ptr<PythonInterpreterInstance> pythonInterpreter = it->second;
+    if (!pythonInterpreter->functions.contains(functionName)) {
         bool success = true;
-        auto loadFunctionTaskFunc = [&]()
+        pythonInterpreter->submitTask([&]()
             {
                 try {
-                    if (!py::hasattr(*pythonModule->module_, functionName.c_str())) {
-                        logger->debug("Failed to load function {} from script {}", functionName, modulePath);
+                    py::module_ pythonModule = py::module_::import(moduleName.c_str());
+                    if (!py::hasattr(pythonModule, functionName.c_str())) {
+                        m_logger->debug("Failed to load function {} from script {}", functionName, modulePath);
                         success = false;
                         return;
                     }
-                    py::object func = pythonModule->module_->attr(functionName.c_str());
+                    py::object func = pythonModule.attr(functionName.c_str());
                     if (!func || !py::isinstance<py::function>(func)) {
-                        logger->debug("Failed to load function {} from script {}", functionName, modulePath);
+                        m_logger->debug("Failed to load function {} from script {}", functionName, modulePath);
                         success = false;
                         return;
                     }
-                    std::shared_ptr<py::object> processorFunc = std::shared_ptr<py::object>(new py::object{ func },
-                        pythonDeleter<py::object>);
-                    pythonModule->processors_.insert(std::make_pair(functionName, processorFunc));
+                    std::shared_ptr<py::object> pyFunc = std::shared_ptr<py::object>(new py::object{ std::move(func) });
+                    pythonInterpreter->functions.insert({ functionName, std::move(pyFunc) });
                 }
                 catch (const py::error_already_set& e) {
                     throw std::runtime_error("加载模块 " + moduleName + " 的函数 " + functionName + " 时出现异常: " + e.what());
                 }
-            };
-        PythonManager::getInstance().submitTask(std::move(loadFunctionTaskFunc)).get();
+            }).get();
         if (!success) {
             return std::nullopt;
         }
     }
-    return pythonModule;
+    return pythonInterpreter;
 }
 
-void PythonManager::registerCustomTypes(std::shared_ptr<PythonModule> pythonModule, const std::string& modulePath, std::shared_ptr<spdlog::logger> logger, bool& needReboot, std::function<void()>& getNLPFunc) {
-
+void PythonManager::registerCustomTypes
+(const std::string& moduleName, bool& needReboot) {
+    // 这个函数是在子解释器的守护线程里执行的
+    py::module_ pythonModule = py::module_::import(moduleName.c_str());
     auto setupTokenizer = [&](const std::string& mode)
         {
             std::string useTokenizerFlag = mode + "useTokenizer";
-            if (py::hasattr(*pythonModule->module_, useTokenizerFlag.c_str()) && pythonModule->module_->attr(useTokenizerFlag.c_str()).cast<bool>()) {
-                const std::string tokenizerBackend = pythonModule->module_->attr((mode + "tokenizerBackend").c_str()).cast<std::string>();
+            if (py::hasattr(pythonModule, useTokenizerFlag.c_str()) && pythonModule.attr(useTokenizerFlag.c_str()).cast<bool>()) {
+                const std::string tokenizerBackend = pythonModule.attr((mode + "tokenizerBackend").c_str()).cast<std::string>();
                 if (tokenizerBackend == "MeCab") {
-                    const std::string mecabDictDir = pythonModule->module_->attr((mode + "mecabDictDir").c_str()).cast<std::string>();
-                    logger->info("{} 正在检查 MeCab 环境...", modulePath);
-                    pythonModule->module_->attr((mode + "tokenizeFunc").c_str()) = getMeCabTokenizeFunc(mecabDictDir, logger);
-                    logger->info("{} MeCab 环境检查完毕。", modulePath);
+                    const std::string mecabDictDir = pythonModule.attr((mode + "mecabDictDir").c_str()).cast<std::string>();
+                    m_logger->info("{} 正在检查 MeCab 环境...", moduleName);
+                    pythonModule.attr((mode + "tokenizeFunc").c_str()) = getMeCabTokenizeFunc(mecabDictDir, m_logger);
+                    m_logger->info("{} MeCab 环境检查完毕。", moduleName);
                 }
                 else if (tokenizerBackend == "spaCy") {
-                    const std::string spaCyModelName = pythonModule->module_->attr((mode + "spaCyModelName").c_str()).cast<std::string>();
-                    std::function<void()> orgGetNLPFunc = getNLPFunc;
-                    getNLPFunc = [=, &needReboot]()
-                        {
-                            if (orgGetNLPFunc) {
-                                orgGetNLPFunc();
-                            }
-                            std::function<NLPResult(const std::string&)> nlpFunc = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, logger, needReboot);
-                            auto setNLPTaskFunc = [&]()
-                                {
-                                    logger->info("{} 正在检查 spaCy 环境...", modulePath);
-                                    pythonModule->module_->attr((mode + "tokenizeFunc").c_str()) = std::move(nlpFunc);
-                                    logger->info("{} spaCy 环境检查完毕。", modulePath);
-                                };
-                            PythonManager::getInstance().submitTask(std::move(setNLPTaskFunc)).get();
-                        };
+                    const std::string spaCyModelName = pythonModule.attr((mode + "spaCyModelName").c_str()).cast<std::string>();
+                    m_logger->info("{} 正在检查 spaCy 环境...", moduleName);
+                    pythonModule.attr((mode + "tokenizeFunc").c_str()) = getNLPTokenizeFunc({ "spacy" }, "tokenizer_spacy", spaCyModelName, m_logger, needReboot);
+                    m_logger->info("{} spaCy 环境检查完毕。", moduleName);
                 }
                 else if (tokenizerBackend == "Stanza") {
-                    const std::string stanzaLang = pythonModule->module_->attr((mode + "stanzaLang").c_str()).cast<std::string>();
-                    std::function<void()> orgGetNLPFunc = getNLPFunc;
-                    getNLPFunc = [=, &needReboot]()
-                        {
-                            if (orgGetNLPFunc) {
-                                orgGetNLPFunc();
-                            }
-                            std::function<NLPResult(const std::string&)> nlpFunc = getNLPTokenizeFunc({ "stanza" }, "tokenizer_stanza", stanzaLang, logger, needReboot);
-                            auto setNLPTaskFunc = [&]()
-                                {
-                                    logger->info("{} 正在检查 Stanza 环境...", modulePath);
-                                    pythonModule->module_->attr((mode + "tokenizeFunc").c_str()) = std::move(nlpFunc);
-                                    logger->info("{} Stanza 环境检查完毕。", modulePath);
-                                };
-                            PythonManager::getInstance().submitTask(std::move(setNLPTaskFunc)).get();
-                        };
+                    const std::string stanzaLang = pythonModule.attr((mode + "stanzaLang").c_str()).cast<std::string>();
+                    m_logger->info("{} 正在检查 Stanza 环境...", moduleName);
+                    pythonModule.attr((mode + "tokenizeFunc").c_str()) = getNLPTokenizeFunc({ "stanza" }, "tokenizer_stanza", stanzaLang, m_logger, needReboot);
+                    m_logger->info("{} Stanza 环境检查完毕。", moduleName);
                 }
                 else if (tokenizerBackend == "pkuseg") {
-                    std::function<void()> orgGetNLPFunc = getNLPFunc;
-                    getNLPFunc = [=, &needReboot]()
-                        {
-                            if (orgGetNLPFunc) {
-                                orgGetNLPFunc();
-                            }
-                            std::function<NLPResult(const std::string&)> nlpFunc = getNLPTokenizeFunc({ "setuptools", "nes-py", "cython", "pkuseg" }, "tokenizer_pkuseg", "default", logger, needReboot);
-                            auto setNLPTaskFunc = [&]()
-                                {
-                                    logger->info("{} 正在检查 pkuseg 环境...", modulePath);
-                                    pythonModule->module_->attr((mode + "tokenizeFunc").c_str()) = std::move(nlpFunc);
-                                    logger->info("{} pkuseg 环境检查完毕。", modulePath);
-                                };
-                            PythonManager::getInstance().submitTask(std::move(setNLPTaskFunc)).get();
-                        };
+                    m_logger->info("{} 正在检查 pkuseg 环境...", moduleName);
+                    pythonModule.attr((mode + "tokenizeFunc").c_str()) = getNLPTokenizeFunc({ "setuptools", "nes-py", "cython", "pkuseg" }, "tokenizer_pkuseg", "default", m_logger, needReboot);
+                    m_logger->info("{} pkuseg 环境检查完毕。", moduleName);
                 }
                 else {
-                    throw std::invalid_argument(modulePath + " 无效的 tokenizerBackend: " + tokenizerBackend);
+                    throw std::invalid_argument(moduleName + " 无效的 tokenizerBackend: " + tokenizerBackend);
                 }
             }
         };
     setupTokenizer("sourceLang_");
     setupTokenizer("targetLang_");
-    pythonModule->module_->attr("logger") = (logger);
-}
-
-PythonManager& PythonManager::getInstance() {
-    static PythonManager instance;
-    return instance;
-}
-
-PythonManager::PythonManager() {
-    // 构造函数只启动线程，不做任何Python操作
-    if (Py_IsInitialized()) {
-        m_pyThread = std::thread(&PythonManager::run, this);
-    }
-    else {
-        throw std::runtime_error("Python 环境未初始化");
-    }
-}
-
-PythonManager::~PythonManager() {
-    // 类单例的析构都没啥用，直接手动调 stop() 吧
-}
-
-void PythonManager::stop() {
-    m_taskQueue.stop();
-    if (m_pyThread.joinable()) {
-        m_pyThread.join();
-    }
-}
-
-// 守护线程的执行体
-void PythonManager::run() {
-    py::gil_scoped_acquire acquire;
-    try {
-        m_pythonThreads.insert(std::this_thread::get_id());
-        py::module_::import("gpp_plugin_api");
-    }
-    catch (const py::error_already_set& e) {
-        throw std::runtime_error("import gpp_plugin_api 时出现异常: " + std::string(e.what()));
-    }
-    while (true) {
-        auto taskOpt = m_taskQueue.pop();
-        if (!taskOpt) {
-            // 队列已停止且为空，退出循环
-            break;
-        }
-        auto task = std::move(*taskOpt);
-        try {
-            task->taskFunc();
-            task->promise.set_value();
-        }
-        catch (const std::exception&) {
-            task->promise.set_exception(std::current_exception());
-        }
-        catch (...) {
-            task->promise.set_exception(std::make_exception_ptr(std::runtime_error("PythonManager::run 出现未知异常")));
-        }
-    }
-}
-
-std::future<void> PythonManager::submitTask(std::function<void()> taskFunc) {
-    {
-        std::lock_guard<std::mutex> lock(m_threadsSetMutex);
-        if (m_pythonThreads.contains(std::this_thread::get_id())) {
-            taskFunc();
-            return std::async(std::launch::deferred, []() {});
-        }
-    }
-    std::unique_ptr<PythonTask> task = std::make_unique<PythonTask>();
-    task->taskFunc = std::move(taskFunc);
-    auto future = task->promise.get_future();
-    m_taskQueue.push(std::move(task));
-    return future;
+    pythonModule.attr("logger") = m_logger;
 }

@@ -11,7 +11,7 @@
     ![BuildTools](img/BuildTools.png?raw=true)
   - **必需工作负载**: `使用 C++ 的桌面开发`
   - **必需工具集**: `MSVC v143` (VS 2022) 和 `MSVC v145`
-- **Python 3.12.10**: 不一定非得安装，但需要其中的 lib 和 dll，可以只下载本仓库中的 `python-3.12.10-embed-amd64.zip`
+- **Python 3.12.10**: 本仓库中的 `python-3.12.10-embed-amd64.zip`
 - **版本控制工具**: [git](https://git-scm.com/)
 
 ## 2. 安装核心依赖
@@ -35,7 +35,7 @@ cd vcpkg
 
 - 1、  访问 [Qt 官方网站](https://www.qt.io/download-qt-installer-oss)下载并运行Qt社区开源版本(LGPL协议)的在线安装器 (需要注册 Qt 账户)。
 - 2、  在安装器的组件选择页面，确保勾选以下组件:
-  - `Qt` → `Qt 6.9.2` → `MSVC 2022 64-bit`
+  - `Qt` → `Qt 6.9.2(或更高，但不保证兼容性)` → `MSVC 2022 64-bit`
 
 ## 3. 获取项目源码
 
@@ -51,8 +51,7 @@ cd GalTranslPP
 ### 4.1 配置 Python 库
 
 - 1、 在 `GalTranslPP` 根目录下手动创建一个名为 `lib` 的新文件夹。
-- 2、 将 Python 3.12.10 附带的 `python3.lib` 和 `python312.lib` 复制到刚刚创建的 `lib` 文件夹中。
-- 3、 将 `GalTranslPP` 文件夹中的 `Python.zip` 解压到当前文件夹，程序会用到里面的头文件。
+- 2、 将 `GalTranslPP` 文件夹中的 `Python.zip` 解压到当前文件夹，程序会用到里面的头文件。
 
 ### 4.2 配置 Visual Studio 与 Qt
 
@@ -113,8 +112,6 @@ cd GalTranslPP
 
 - 1、  将`Example`文件夹内的`BaseConfig`和`sampleProject`文件夹复制到`GalTranslPP\Release\GPPCLI`
 - 2、  将以下文件复制到程序根目录
-  -  `python3.dll`
-  -  `python312.dll`
   -  `3rdParty\OpenCC\out\install\x64-Release\bin\opencc.dll`
 
 ### 6.2 GPPGUI
@@ -128,8 +125,6 @@ windeployqt path/to/GalTranslPP_GUI.exe
 ```
 
 - 4、将以下文件复制到程序根目录
-  - `python3.dll`
-  - `python312.dll`
   - `3rdParty\OpenCC\out\install\x64-Release\bin\opencc.dll`
   - `3rdParty\ElaWidgetTools\out\build\Release\ElaWidgetTools\ElaWidgetTools.dll`
 

@@ -25,9 +25,8 @@ import IPlugin;
 import ProblemAnalyzer;
 import NJ_ImplTool;
 import NLPTool;
-// 因为 PythonManager 全程序只有一个实例，但 LuaManager 每个 Translator 里有一个实例，ConditionTool 等模块会根据此实例生成对应的工具函数
-// Python 部分则直接根据 PythonoManager 单例生成，所以这里不需要 import PythonManager，但需要 import LuaManager
 import LuaManager;
+import PythonManager;
 export import ITranslator;
 
 using json = nlohmann::json;
@@ -84,6 +83,8 @@ export {
         // first: 要忽略的 problem 正则表达式 pattern，second: 忽略条件
         using SkipProblemCondition = std::pair<std::shared_ptr<icu::RegexPattern>, std::optional<CheckSeCondFunc>>;
         std::vector<SkipProblemCondition> m_skipProblems;
+
+        PythonManager m_pythonManager;
         LuaManager m_luaManager;
 
         bool m_needsCombining = false;
@@ -98,7 +99,6 @@ export {
         std::function<void(fs::path)> m_onFileProcessed;
         std::shared_mutex m_cacheMutex;
         std::mutex m_outputMutex;
-        py::scoped_subinterpreter sub{};
 
         ctpl::thread_pool m_threadPool{1};
         APIPool m_apiPool;
@@ -142,7 +142,7 @@ module :private;
 NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger,
     std::optional<fs::path> inputDir, std::optional<fs::path> inputCacheDir,
     std::optional<fs::path> outputDir, std::optional<fs::path> outputCacheDir) :
-    m_projectDir(projectDir), m_controller(controller), m_logger(logger), m_luaManager(logger),
+    m_projectDir(projectDir), m_controller(controller), m_logger(logger), m_luaManager(logger), m_pythonManager(logger),
     m_apiPool(logger), m_gptDictionary(logger), m_preDictionary(logger), m_postDictionary(logger), m_problemAnalyzer(logger)
 {
     m_inputDir = inputDir.value_or(m_projectDir / L"gt_input");
@@ -294,7 +294,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                 std::optional<std::vector<std::string>>
             >(configData, "plugins", "textPrePlugins");
             if (textPrePlugins) {
-                m_prePlugins = registerPlugins(*textPrePlugins, m_projectDir, m_luaManager, m_logger, configData);
+                m_prePlugins = registerPlugins(*textPrePlugins, m_projectDir, m_pythonManager, m_luaManager, m_logger, configData);
             }
         }
 
@@ -304,7 +304,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                 std::optional<std::vector<std::string>>
             >(configData, "plugins", "textPostPlugins");
             if (textPostPlugins) {
-                m_postPlugins = registerPlugins(*textPostPlugins, m_projectDir, m_luaManager, m_logger, configData);
+                m_postPlugins = registerPlugins(*textPostPlugins, m_projectDir, m_pythonManager, m_luaManager, m_logger, configData);
             }
         }
 
@@ -338,7 +338,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                     m_retranslKeys.push_back(std::move(checkFunc));
                 }
                 else if (elem.is_array() || elem.is_table()) {
-                    CheckSeCondFunc checkFunc = getCheckCondFunc(elem, m_projectDir, m_luaManager, m_logger, needReboot);
+                    CheckSeCondFunc checkFunc = getCheckSeCondFunc(elem, m_projectDir, m_pythonManager, m_luaManager, m_logger, needReboot);
                     m_retranslKeys.push_back(std::move(checkFunc));
                 }
                 else {
@@ -372,7 +372,7 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                         m_skipProblems.push_back({ pattern, std::nullopt });
                     }
                     else {
-                        CheckSeCondFunc checkFunc = getCheckCondFunc(elem, m_projectDir, m_luaManager, m_logger, needReboot);
+                        CheckSeCondFunc checkFunc = getCheckSeCondFunc(elem, m_projectDir, m_pythonManager, m_luaManager, m_logger, needReboot);
                         m_skipProblems.push_back({ pattern, std::move(checkFunc) });
                     }
                 }
@@ -421,13 +421,13 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
                 for (const auto& dictFileName : *dictFileNames) {
                     fs::path dictPath = m_projectDir / ascii2Wide(dictFileName);
                     if (fs::exists(dictPath)) {
-                        dict.loadFromFile(dictPath, m_projectDir, m_luaManager, needReboot);
+                        dict.loadFromFile(dictPath, m_projectDir, m_pythonManager, m_luaManager, needReboot);
                         continue;
                     }
                     else {
                         dictPath = defaultDictFolderPath / ascii2Wide(dictType) / ascii2Wide(dictFileName);
                         if (fs::exists(dictPath)) {
-                            dict.loadFromFile(dictPath, m_projectDir, m_luaManager, needReboot);
+                            dict.loadFromFile(dictPath, m_projectDir, m_pythonManager, m_luaManager, needReboot);
                         }
                     }
                 }
@@ -1358,7 +1358,6 @@ std::optional<std::vector<fs::path>> NormalJsonTranslator::beforeRun() {
     else {
         throw std::invalid_argument(std::format("未知的排序模式: {}", m_sortMethod));
     }
-    m_threadPool.resize(std::min(m_threadsNum, (int)relFilePaths.size()));
     return relFilePaths;
 }
 
@@ -1439,6 +1438,7 @@ void NormalJsonTranslator::run() {
     // 开始翻译
     {
         std::vector<std::future<void>> results;
+        m_threadPool.resize(std::min(m_threadsNum, (int)relFilePaths.size()));
         for (const auto& filePath : relFilePaths) {
             results.emplace_back(m_threadPool.push([=](const int id)
                 {

@@ -4,7 +4,6 @@
   "version": "2.0.3",
   "dependencies": [
     "nlohmann-json",
-    "pybind11",
     "toml11",
     "spdlog",
     "cpr",
@@ -17,6 +16,14 @@
     "gumbo",
     "cpp-base64",
     "lua",
-    "proxy"
-  ]
+    "proxy",
+    "pybind11"
+  ],
+  "overrides": [
+    {
+      "name": "python3",
+      "version": "3.12.9"
+    }
+  ],
+  "builtin-baseline": "271a5b8850aa50f9a40269cbf3cf414b36e333d6"
 }

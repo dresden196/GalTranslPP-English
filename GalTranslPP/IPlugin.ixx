@@ -1,5 +1,7 @@
 module;
 
+#define PYBIND11_HEADERS
+#include "GPPMacros.hpp"
 #include <spdlog/spdlog.h>
 #include <sol/sol.hpp>
 #include <toml.hpp>
@@ -9,6 +11,7 @@ export module IPlugin;
 export import std;
 export import GPPDefines;
 export import LuaManager;
+export import PythonManager;
 
 namespace fs = std::filesystem;
 
@@ -32,6 +35,6 @@ export {
 	};
 
 	std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::string>& pluginNames, const fs::path& projectDir,
-		LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger,
+		PythonManager& pythonManager, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger,
 		const toml::value& projectConfig);
 }

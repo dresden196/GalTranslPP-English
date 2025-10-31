@@ -1,5 +1,7 @@
 module;
 
+#define PYBIND11_HEADERS
+#include "GPPMacros.hpp"
 #include <spdlog/spdlog.h>
 #include <unicode/unistr.h>
 #include <unicode/uchar.h>
@@ -12,6 +14,7 @@ export module SkipTrans;
 
 import Tool;
 import ConditionTool;
+import PythonManager;
 import LuaManager;
 export import IPlugin;
 
@@ -28,7 +31,8 @@ export {
         void processSkipSentence(Sentence* se, const std::string& info);
 
     public:
-        SkipTrans(const fs::path& projectDir, const toml::value& projectConfig, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger);
+        SkipTrans(const fs::path& projectDir, const toml::value& projectConfig, PythonManager& pythonManager, LuaManager& luaManager,
+            std::shared_ptr<spdlog::logger> logger);
         virtual void run(Sentence* se) override;
         virtual bool needReboot() override { return m_needReboot; }
         virtual ~SkipTrans() = default;
@@ -37,7 +41,8 @@ export {
 
 module :private;
 
-SkipTrans::SkipTrans(const fs::path& projectDir, const toml::value& projectConfig, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger)
+SkipTrans::SkipTrans(const fs::path& projectDir, const toml::value& projectConfig, PythonManager& pythonManager, LuaManager& luaManager,
+    std::shared_ptr<spdlog::logger> logger)
     : IPlugin(projectDir, logger)
 {
     try {
@@ -69,7 +74,7 @@ SkipTrans::SkipTrans(const fs::path& projectDir, const toml::value& projectConfi
                 m_skipKeys.push_back(std::move(checkFunc));
             }
             else if (elem.is_array() || elem.is_table()) {
-                CheckSeCondFunc checkFunc = getCheckCondFunc(elem, m_projectDir, luaManager, m_logger, m_needReboot);
+                CheckSeCondFunc checkFunc = getCheckSeCondFunc(elem, m_projectDir, pythonManager, luaManager, m_logger, m_needReboot);
                 m_skipKeys.push_back(std::move(checkFunc));
             }
             else {

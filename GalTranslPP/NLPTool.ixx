@@ -66,25 +66,24 @@ std::function<NLPResult(const std::string&)> getMeCabTokenizeFunc(const std::str
 std::function<NLPResult(const std::string&)> getNLPTokenizeFunc(const std::vector<std::string>& dependencies, const std::string& moduleName,
     const std::string& modelName, std::shared_ptr<spdlog::logger> logger, bool& needReboot)
 {
-    PythonManager::getInstance().checkDependency(dependencies, logger);
-    std::shared_ptr<PythonModule> pythonModule = PythonManager::getInstance().registerNLPFunction(moduleName, modelName, logger, needReboot);
-    std::shared_ptr<py::object> processorClass = pythonModule->processors_[modelName];
+    checkPythonDependencies(dependencies, logger);
+    std::shared_ptr<py::object> pythonNLPFunc = PythonMainInterpreterManager::getInstance()
+        .registerNLPFunction(moduleName, modelName, logger, needReboot);
     std::function<NLPResult(const std::string&)> resultFunc;
-    if (processorClass) {
-        std::shared_ptr<py::object> processorFunc;
-        auto getFuncTaskFunc = [&]()
-            {
-                processorFunc = std::shared_ptr<py::object>(new py::object{ processorClass->attr("process_text") }, pythonDeleter<py::object>);
-            };
-        PythonManager::getInstance().submitTask(std::move(getFuncTaskFunc)).get();
-        resultFunc = [pythonModule, processorFunc](const std::string& text) -> NLPResult
+    if (pythonNLPFunc) {
+        resultFunc = [pythonNLPFunc](const std::string& text) -> NLPResult
             {
                 NLPResult result;
                 auto nlpTaskFunc = [&]()
                     {
-                        result = (*processorFunc)(text).cast<NLPResult>();
+                        try {
+                            result = (*pythonNLPFunc)(text).cast<NLPResult>();
+                        }
+                        catch (const py::error_already_set& e) {
+                            throw std::runtime_error(std::format("Python NLP 函数调用失败，错误信息: {}", e.what()));
+                        }
                     };
-                PythonManager::getInstance().submitTask(std::move(nlpTaskFunc)).get();
+                PythonMainInterpreterManager::getInstance().submitTask(std::move(nlpTaskFunc)).get();
                 return result;
             };
     }

@@ -29,12 +29,12 @@ export {
 	public:
 		virtual void run() override
 		{
-			this->m_logger->info("开始运行 LuaTranslator。");
+			this->m_logger->info("开始运行 LuaTranslator...");
 			try {
 				m_luaRunFunc();
 			}
 			catch (const sol::error& e) {
-				throw std::runtime_error(std::string("运行 LuaTranslator 失败: ") + e.what());
+				throw std::runtime_error(std::string("LuaTranslator 运行时异常: ") + e.what());
 			}
 		}
 

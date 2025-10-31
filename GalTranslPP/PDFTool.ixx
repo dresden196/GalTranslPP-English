@@ -36,7 +36,7 @@ std::tuple<bool, std::string> extractPDF(const fs::path& pdfPath, const fs::path
             std::tie(success, message) = py::module_::import("PDFConverter").attr("api_extract")
                 (pdfPath.wstring(), jsonPath.wstring(), showProgress).cast<std::tuple<bool, std::string>>();
         };
-    PythonManager::getInstance().submitTask(std::move(extractTaskFunc)).get();
+    PythonMainInterpreterManager::getInstance().submitTask(std::move(extractTaskFunc)).get();
     return std::make_tuple(success, message);
 }
 
@@ -51,10 +51,10 @@ std::tuple<bool, std::string> rejectPDF(const fs::path& orgPDFPath, const fs::pa
             std::tie(success, message) = py::module_::import("PDFConverter").attr("api_apply")
                 (orgPDFPath.wstring(), translatedJsonPath.wstring(), outputPDFPath.wstring(), noMono, noDual, showProgress).cast<std::tuple<bool, std::string>>();
         };
-    PythonManager::getInstance().submitTask(std::move(rejectTaskFunc)).get();
+    PythonMainInterpreterManager::getInstance().submitTask(std::move(rejectTaskFunc)).get();
     return std::make_tuple(success, message);
 }
 
 void checkPDFDependency(std::shared_ptr<spdlog::logger> logger) {
-    PythonManager::getInstance().checkDependency({ "babeldoc" }, logger);
+    checkPythonDependencies({ "babeldoc" }, logger);
 }

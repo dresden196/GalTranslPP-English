@@ -1,5 +1,7 @@
 module;
 
+#define PYBIND11_HEADERS
+#include "GPPMacros.hpp"
 #include <spdlog/spdlog.h>
 #include <sol/sol.hpp>
 #include <toml.hpp>
@@ -34,7 +36,7 @@ bool IPlugin::needReboot()
 
 
 std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::string>& pluginNames, const fs::path& projectDir,
-    LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger,
+    PythonManager& pythonManager, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger,
     const toml::value& projectConfig) {
     std::vector<std::shared_ptr<IPlugin>> plugins;
 
@@ -42,11 +44,13 @@ std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::str
         std::string pluginNameLower = str2Lower(pluginName);
         if (pluginNameLower.starts_with("lua:")) {
             std::string luaScriptPath = pluginName.substr(4);
-            plugins.push_back(std::make_shared<LuaTextPlugin>(projectDir, replaceStrInplace(luaScriptPath, "<PROJECT_DIR>", wide2Ascii(projectDir)), luaManager, logger));
+            plugins.push_back(std::make_shared<LuaTextPlugin>(projectDir, replaceStrInplace(luaScriptPath, "<PROJECT_DIR>", wide2Ascii(projectDir)),
+                luaManager, logger));
         }
         else if (pluginNameLower.starts_with("python:")) {
             std::string pythonModulePath = pluginName.substr(7);
-            plugins.push_back(std::make_shared<PythonTextPlugin>(projectDir, replaceStrInplace(pythonModulePath, "<PROJECT_DIR>", wide2Ascii(projectDir)), logger));
+            plugins.push_back(std::make_shared<PythonTextPlugin>(projectDir, replaceStrInplace(pythonModulePath, "<PROJECT_DIR>", wide2Ascii(projectDir)),
+                pythonManager, logger));
         }
         else if (pluginName == "TextPostFull2Half") {
             plugins.push_back(std::make_shared<TextPostFull2Half>(projectDir, projectConfig, logger));
@@ -55,7 +59,7 @@ std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::str
             plugins.push_back(std::make_shared<TextLinebreakFix>(projectDir, projectConfig, logger));
         }
         else if (pluginName == "SkipTrans") {
-            plugins.push_back(std::make_shared<SkipTrans>(projectDir, projectConfig, luaManager, logger));
+            plugins.push_back(std::make_shared<SkipTrans>(projectDir, projectConfig, pythonManager, luaManager, logger));
         }
     }
 

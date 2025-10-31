@@ -105,10 +105,9 @@ export {
         return ConditionType::None;
     }
 
-    std::optional<CheckSeCondFunc> getPythonCheckSeCondFunc(const std::string& modulePath, const std::string& functionName, std::shared_ptr<spdlog::logger> logger, bool& needReboot);
-
     template<typename TC>
-    CheckSeCondFunc getCheckCondFunc(const toml::basic_value<TC>& condElem, const fs::path& projectDir, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger, bool& needReboot) {
+    CheckSeCondFunc getCheckSeCondFunc(const toml::basic_value<TC>& condElem, const fs::path& projectDir,
+        PythonManager& pythonManager, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger, bool& needReboot) {
         std::vector<CheckSeCondFunc> funcs;
 
         auto appendFunctionFunc = [&](const auto& tbl)
@@ -136,7 +135,7 @@ export {
                     if (luaStateOpt) {
                         std::shared_ptr<LuaStateInstance> luaState = *luaStateOpt;
                         sol::function conditionFunc = luaState->functions[conditionFuncStr];
-                        CheckSeCondFunc checkFunc = [=](const Sentence* se) -> bool
+                        CheckSeCondFunc checkFunc = [luaState, conditionFunc, conditionFuncStr](const Sentence* se) -> bool
                             {
                                 std::lock_guard<std::mutex> lock(luaState->executionMutex);
                                 bool result;
@@ -159,10 +158,31 @@ export {
                 {
                     std::string conditionPythonStr = tbl.at("conditionScript").as_string().substr(7);
                     const std::string& conditionFuncStr = tbl.at("conditionFunc").as_string();
-                    std::optional<CheckSeCondFunc> checkFuncOpt = getPythonCheckSeCondFunc
-                        (replaceStrInplace(conditionPythonStr, "<PROJECT_DIR>", wide2Ascii(projectDir)), conditionFuncStr, logger, needReboot);
-                    if (checkFuncOpt) {
-                        funcs.push_back(std::move(*checkFuncOpt));
+                    std::optional<std::shared_ptr<PythonInterpreterInstance>> pythonInterpreterOpt = pythonManager.registerFunction(
+                        replaceStrInplace(conditionPythonStr, "<PROJECT_DIR>", wide2Ascii(projectDir)), conditionFuncStr, needReboot);
+                    if (pythonInterpreterOpt) {
+                        std::shared_ptr<PythonInterpreterInstance> pythonInterpreter = *pythonInterpreterOpt;
+                        std::weak_ptr<py::object> conditionFunc = pythonInterpreter->functions[conditionFuncStr];
+                        CheckSeCondFunc checkFunc = [pythonInterpreter, conditionFunc, conditionFuncStr](const Sentence* se) -> bool
+                            {
+                                bool result;
+                                pythonInterpreter->submitTask([&]()
+                                    {
+                                        try {
+                                            if (auto conditionFuncLocked = conditionFunc.lock()) {
+                                                result = (*conditionFuncLocked)(se).cast<bool>();
+                                            }
+                                            else {
+                                                throw std::runtime_error("Python条件函数已被释放");
+                                            }
+                                        }
+                                        catch (const py::error_already_set& e) {
+                                            throw std::runtime_error(std::format("执行Python条件函数 {} 时发生错误: {}", conditionFuncStr, e.what()));
+                                        }
+                                    }).get();
+                                return result;
+                            };
+                        funcs.push_back(std::move(checkFunc));
                     }
                     else {
                         throw std::runtime_error(std::format("注册Python脚本 {} 中的条件函数 {} 失败", conditionPythonStr, conditionFuncStr));
@@ -267,30 +287,4 @@ bool checkGppCondition(const GPPCondition& gppCondition, const Sentence* se) {
             }
             return false;
         });
-}
-
-std::optional<CheckSeCondFunc> getPythonCheckSeCondFunc(const std::string& modulePath, const std::string& functionName, std::shared_ptr<spdlog::logger> logger, bool& needReboot)
-{
-    std::optional<std::shared_ptr<PythonModule>> pythonModuleOpt = PythonManager::getInstance().registerFunction(modulePath, functionName, logger, needReboot);
-    if (!pythonModuleOpt) {
-        return std::nullopt;
-    }
-    std::shared_ptr<PythonModule> pythonModule = *pythonModuleOpt;
-    std::shared_ptr<py::object> conditionFunc = pythonModule->processors_[functionName];
-    CheckSeCondFunc checkFunc = [pythonModule, conditionFunc, functionName](const Sentence* se) -> bool
-        {
-            bool result;
-            auto checkTaskFunc = [&]()
-                {
-                    try {
-                        result = (*conditionFunc)(se).cast<bool>();
-                    }
-                    catch (const py::error_already_set& e) {
-                        throw std::runtime_error(std::format("执行Python条件函数 {} 时发生错误: {}", functionName, e.what()));
-                    }
-                };
-            PythonManager::getInstance().submitTask(std::move(checkTaskFunc)).get();
-            return result;
-        };
-    return checkFunc;
 }
