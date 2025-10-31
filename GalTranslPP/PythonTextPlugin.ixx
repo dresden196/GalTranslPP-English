@@ -35,8 +35,6 @@ export {
 
 module :private;
 
-PATH_CVT;
-
 PythonTextPlugin::PythonTextPlugin(const fs::path& projectDir, const std::string& modulePath, std::shared_ptr<spdlog::logger> logger)
     : IPlugin(projectDir, logger), m_modulePath(modulePath)
 {

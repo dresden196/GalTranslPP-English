@@ -1,5 +1,6 @@
+#define PYBIND11_HEADERS
+#include "../GalTranslPP/GPPMacros.hpp"
 #include <toml.hpp>
-#include <pybind11/embed.h>
 #include <QDir>
 #include <QApplication>
 #include <QTranslator>
@@ -47,15 +48,17 @@ int main(int argc, char* argv[])
 
     QApplication a(argc, argv);
     QDir::setCurrent(QApplication::applicationDirPath());
-    std::unique_ptr<py::gil_scoped_release> release;
 
     try {
+        std::unique_ptr<py::gil_scoped_release> release;
         bool checkUpdate = true;
+        bool allowMultiInstance = false;
         QTranslator translator;
         QTranslator qtBaseTranslator; // 用于翻译 Qt 内置对话框，如 QMessageBox 的按钮
         try {
             toml::value globalConfig = toml::parse(fs::path(L"BaseConfig/globalConfig.toml"));
             checkUpdate = toml::find_or(globalConfig, "autoCheckUpdate", true);
+            allowMultiInstance = toml::find_or(globalConfig, "allowMultiInstance", false);
             std::string language = toml::find_or(globalConfig, "language", "zh_CN");
             if (language == "en") {
                 if (qtBaseTranslator.load("qt_en.qm", "translations")) {
@@ -83,8 +86,7 @@ int main(int argc, char* argv[])
                     PyConfig_SetString(&config, &config.pythonpath_env, envZipPath.c_str());
                     py::initialize_interpreter(&config);
                     py::module_::import("sys").attr("path").attr("append")("BaseConfig/pyScripts");
-                    // GIL 锁归 PythonManager 管理
-                    release.reset(new py::gil_scoped_release);
+                    release = std::make_unique<py::gil_scoped_release>();
                 }
             }
         }
@@ -197,8 +199,11 @@ int main(int argc, char* argv[])
         }
 
         int result = a.exec();
-        PythonManager::getInstance().stop();
-        // python 解释器实例直接故意泄露即可，析构了反而会崩...
+        if (release) {
+            PythonManager::getInstance().stop();
+            release.reset();
+            py::finalize_interpreter();
+        }
 
         // 程序退出前，确保服务器关闭
         server.close();

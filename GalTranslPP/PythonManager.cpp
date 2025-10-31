@@ -15,11 +15,9 @@ import NLPTool;
 namespace fs = std::filesystem;
 namespace py = pybind11;
 
-PATH_CVT;
-
 // 定义一个 C++ 模块，它将被嵌入到 Python 解释器中
 // 所有脚本都可以通过 `import gpp_plugin_api` 来使用这些功能
-PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m) {
+PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m, py::multiple_interpreters::per_interpreter_gil()) {
 
     m.doc() = "C++ API for Python-based plugins";
 

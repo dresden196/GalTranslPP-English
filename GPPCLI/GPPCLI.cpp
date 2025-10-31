@@ -47,8 +47,7 @@ int main(int argc, char* argv[])
                 PyConfig_SetString(&config, &config.pythonpath_env, envZipPath.c_str());
                 py::initialize_interpreter(&config);
                 py::module_::import("sys").attr("path").attr("append")("BaseConfig/pyScripts");
-                // GIL 锁归 PythonManager 管理
-                release.reset(new py::gil_scoped_release);
+                //release = std::make_unique<py::gil_scoped_release>();
             }
         }
         else {
@@ -74,12 +73,15 @@ int main(int argc, char* argv[])
 
         std::string inputPathStr;
         if (release) {
-            auto inputTaskFunc = [&]()
+            /*auto inputTaskFunc = [&]()
                 {
                     auto builtins = py::module_::import("builtins");
                     inputPathStr = builtins.attr("input")("").cast<std::string>();
                 };
-            PythonManager::getInstance().submitTask(std::move(inputTaskFunc)).get();
+            PythonManager::getInstance().submitTask(std::move(inputTaskFunc)).get();*/
+            py::gil_scoped_acquire acquire;
+            auto builtins = py::module_::import("builtins");
+            inputPathStr = builtins.attr("input")("").cast<std::string>();
         }
         else {
             std::getline(std::cin, inputPathStr);
@@ -147,6 +149,8 @@ int main(int argc, char* argv[])
     }
 
     PythonManager::getInstance().stop();
+    release.reset();
+    py::finalize_interpreter();
 
     return 0;
 }

@@ -118,7 +118,7 @@ void PDFTranslator::beforeRun()
         }
     }
 
-    m_onFileProcessed = [&](const fs::path& relProcessedFile)
+    m_onFileProcessed = [this](const fs::path& relProcessedFile)
         {
             if (!m_jsonToPDFPathMap.contains(relProcessedFile)) {
                 m_logger->warn("未找到与 {} 对应的元数据，跳过", wide2Ascii(relProcessedFile));

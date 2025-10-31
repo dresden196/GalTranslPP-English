@@ -16,8 +16,6 @@ import PythonManager;
 namespace fs = std::filesystem;
 namespace py = pybind11;
 
-PATH_CVT;
-
 export {
 
 	template<typename Base>

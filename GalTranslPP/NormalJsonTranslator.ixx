@@ -35,8 +35,6 @@ using ordered_json = nlohmann::ordered_json;
 namespace py = pybind11;
 namespace fs = std::filesystem;
 
-PATH_CVT;
-
 export {
 
     class NormalJsonTranslator : public ITranslator {
@@ -100,6 +98,7 @@ export {
         std::function<void(fs::path)> m_onFileProcessed;
         std::shared_mutex m_cacheMutex;
         std::mutex m_outputMutex;
+        py::scoped_subinterpreter sub{};
 
         ctpl::thread_pool m_threadPool{1};
         APIPool m_apiPool;
