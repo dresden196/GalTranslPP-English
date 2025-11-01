@@ -21,21 +21,22 @@ export import IPlugin;
 namespace fs = std::filesystem;
 
 export {
-    class SkipTrans : public IPlugin {
+    class SkipTrans {
     private:
-        bool m_skipH;
         std::vector<std::string> m_hKeys;
         std::vector<CheckSeCondFunc> m_skipKeys;
+        std::shared_ptr<spdlog::logger> m_logger;
         bool m_needReboot = false;
+        bool m_skipH;
 
         void processSkipSentence(Sentence* se, const std::string& info);
 
     public:
         SkipTrans(const fs::path& projectDir, const toml::value& projectConfig, PythonManager& pythonManager, LuaManager& luaManager,
             std::shared_ptr<spdlog::logger> logger);
-        virtual void run(Sentence* se) override;
-        virtual bool needReboot() override { return m_needReboot; }
-        virtual ~SkipTrans() = default;
+        void run(Sentence* se);
+        bool needReboot() const { return m_needReboot; }
+        ~SkipTrans() = default;
     };
 }
 
@@ -43,7 +44,7 @@ module :private;
 
 SkipTrans::SkipTrans(const fs::path& projectDir, const toml::value& projectConfig, PythonManager& pythonManager, LuaManager& luaManager,
     std::shared_ptr<spdlog::logger> logger)
-    : IPlugin(projectDir, logger)
+    : m_logger(logger)
 {
     try {
         const auto pluginConfig = toml::parse(pluginConfigsPath / L"textPrePlugins/SkipTrans.toml");
@@ -74,7 +75,7 @@ SkipTrans::SkipTrans(const fs::path& projectDir, const toml::value& projectConfi
                 m_skipKeys.push_back(std::move(checkFunc));
             }
             else if (elem.is_array() || elem.is_table()) {
-                CheckSeCondFunc checkFunc = getCheckSeCondFunc(elem, m_projectDir, pythonManager, luaManager, m_logger, m_needReboot);
+                CheckSeCondFunc checkFunc = getCheckSeCondFunc(elem, projectDir, pythonManager, luaManager, m_logger, m_needReboot);
                 m_skipKeys.push_back(std::move(checkFunc));
             }
             else {

@@ -9,7 +9,7 @@
 #include <pybind11/subinterpreter.h>
 #endif
 
-#define NESTED_CVT(className, memberName) sol::property([](className& self, sol::this_state s) \
+#define NESTED_CVT(className, memberName) sol::property([](className& self) \
 { \
 	return sol::nested<decltype(className::memberName)>(self.memberName); \
-}, [](className& self, sol::this_state s, decltype(className::memberName) table) { self.memberName = std::move(table); }) 
+}, [](className& self, decltype(className::memberName) table) { self.memberName = std::move(table); }) 

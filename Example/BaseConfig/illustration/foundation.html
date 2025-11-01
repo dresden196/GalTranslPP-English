@@ -464,7 +464,7 @@ start /b 要运行文件的文件名
 <p>需要注册的工厂函数为 <code>createTranslator</code>。</p>
 <h3>添加插件处理器 (Plugin)</h3>
 <p>文本处理插件理论上分为预处理插件和后处理插件，GalTransl++不接受希望同时在译前和译后都生效的插件，那样会破坏对于插件处理顺序的自定义性。如果有需要请将您的插件分为 Pre版 和 Post版。</p>
-<p>所有插件均需继承自 <code>IPlugin</code>，并实现 <code>run</code> 方法，仅此即可。</p>
+<p>所有插件只需满足 <code>PPlugin</code> 约束即可。</p>
 <ul>
 <li><strong>对于译前插件</strong>：如果是非过滤型插件，原则上只允许修改 <code>pre_processed_text</code>。如果是过滤型插件，可以将 <code>complete</code> 置为 <code>true</code>，并负责填充 <code>pre_translated_text</code>。如有需要，也可以将 <code>notAnalyzeProblem</code> 置为 <code>true</code> 来阻止对此句的问题分析。</li>
 <li><strong>对于译后插件</strong>：原则上只允许修改 <code>translated_preview</code>。</li>

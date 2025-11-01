@@ -106,8 +106,8 @@ export {
         NormalDictionary m_postDictionary;
         ProblemAnalyzer m_problemAnalyzer;
         std::function<NLPResult(const std::string&)> m_tokenizeSourceLangFunc;
-        std::vector<std::shared_ptr<IPlugin>> m_prePlugins;
-        std::vector<std::shared_ptr<IPlugin>> m_postPlugins;
+        std::vector<pro::proxy<PPlugin>> m_prePlugins;
+        std::vector<pro::proxy<PPlugin>> m_postPlugins;
 
 
         void preProcess(Sentence* se);
@@ -577,7 +577,7 @@ void NormalJsonTranslator::preProcess(Sentence* se) {
     }
 
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    for (const auto& plugin : m_prePlugins) {
+    for (auto& plugin : m_prePlugins) {
         plugin->run(se);
         if (se->complete) {
             break;

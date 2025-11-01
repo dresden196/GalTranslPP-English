@@ -13,27 +13,29 @@ export import IPlugin;
 namespace fs = std::filesystem;
 
 export {
-    class TextPostFull2Half : public IPlugin {
+    class TextPostFull2Half {
     private:
-        bool m_replacePunctuation;
-        bool m_reverseConversion;
         std::unordered_map<std::string, std::string> m_customMap;
         std::unordered_map<char32_t, char32_t> m_conversionMap;
+        std::shared_ptr<spdlog::logger> m_logger;
+        bool m_replacePunctuation;
+        bool m_reverseConversion;
 
         void createConversionMap();
         std::string convertText(const std::string& text);
 
     public:
-        TextPostFull2Half(const fs::path& projectDir, const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger);
-        virtual void run(Sentence* se) override;
-        virtual ~TextPostFull2Half() = default;
+        TextPostFull2Half(const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger);
+        bool needReboot() const { return false; }
+        void run(Sentence* se);
+        ~TextPostFull2Half() = default;
     };
 }
 
 module :private;
 
-TextPostFull2Half::TextPostFull2Half(const fs::path& projectDir, const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger)
-    : IPlugin(projectDir, logger)
+TextPostFull2Half::TextPostFull2Half(const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger)
+    : m_logger(logger)
 {
     try {
         const auto pluginConfig = toml::parse(pluginConfigsPath / L"textPostPlugins/TextPostFull2Half.toml");

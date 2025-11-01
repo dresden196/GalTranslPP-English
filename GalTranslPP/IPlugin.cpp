@@ -17,47 +17,29 @@ import PythonTextPlugin;
 
 namespace fs = std::filesystem;
 
-IPlugin::IPlugin(const fs::path& projectDir, std::shared_ptr<spdlog::logger> logger) :
-    m_projectDir(projectDir),
-    m_logger(logger)
-{
-
-}
-
-IPlugin::~IPlugin()
-{
-
-}
-
-bool IPlugin::needReboot()
-{
-    return false;
-}
-
-
-std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::string>& pluginNames, const fs::path& projectDir,
+std::vector<pro::proxy<PPlugin>> registerPlugins(const std::vector<std::string>& pluginNames, const fs::path& projectDir,
     PythonManager& pythonManager, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger,
     const toml::value& projectConfig) {
-    std::vector<std::shared_ptr<IPlugin>> plugins;
+    std::vector<pro::proxy<PPlugin>> plugins;
 
     for (const auto& pluginName : pluginNames) {
         std::string pluginNameLower = str2Lower(pluginName);
         if (pluginNameLower.ends_with(".lua")) {
-            plugins.push_back(std::make_shared<LuaTextPlugin>(projectDir, replaceStr(pluginName, "<PROJECT_DIR>", wide2Ascii(projectDir)),
+            plugins.push_back(pro::make_proxy_shared<PPlugin, LuaTextPlugin>(projectDir, replaceStr(pluginName, "<PROJECT_DIR>", wide2Ascii(projectDir)),
                 luaManager, logger));
         }
         else if (pluginNameLower.ends_with(".py")) {
-            plugins.push_back(std::make_shared<PythonTextPlugin>(projectDir, replaceStr(pluginName, "<PROJECT_DIR>", wide2Ascii(projectDir)),
+            plugins.push_back(pro::make_proxy_shared<PPlugin, PythonTextPlugin>(projectDir, replaceStr(pluginName, "<PROJECT_DIR>", wide2Ascii(projectDir)),
                 pythonManager, logger));
         }
         else if (pluginName == "TextPostFull2Half") {
-            plugins.push_back(std::make_shared<TextPostFull2Half>(projectDir, projectConfig, logger));
+            plugins.push_back(pro::make_proxy_shared<PPlugin, TextPostFull2Half>(projectConfig, logger));
         }
         else if (pluginName == "TextLinebreakFix") {
-            plugins.push_back(std::make_shared<TextLinebreakFix>(projectDir, projectConfig, logger));
+            plugins.push_back(pro::make_proxy_shared<PPlugin, TextLinebreakFix>(projectConfig, logger));
         }
         else if (pluginName == "SkipTrans") {
-            plugins.push_back(std::make_shared<SkipTrans>(projectDir, projectConfig, pythonManager, luaManager, logger));
+            plugins.push_back(pro::make_proxy_shared<PPlugin, SkipTrans>(projectDir, projectConfig, pythonManager, luaManager, logger));
         }
     }
 

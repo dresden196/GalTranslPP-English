@@ -18,39 +18,40 @@ export {
 		None, Average, FixCharCount, KeepPositions, PreferPunctuations
 	};
 
-	class TextLinebreakFix : public IPlugin {
+	class TextLinebreakFix {
 
 	private:
 
+		std::function<NLPResult(const std::string&)> m_tokenizeTargetLangFunc;
+		std::vector<std::string> splitIntoTokens(const std::string& text);
+
+		double m_priorityThreshold = 0.2;
+		std::shared_ptr<spdlog::logger> m_logger;
 		LinebreakFixMode m_mode;
 		int m_segmentThreshold;
 		int m_errorThreshold;
 		bool m_forceFix;
 		bool m_useTokenizer;
 		bool m_needReboot = false;
-		double m_priorityThreshold = 0.2;
 
-
-		std::function<NLPResult(const std::string&)> m_tokenizeTargetLangFunc;
-		std::vector<std::string> splitIntoTokens(const std::string& text);
 
 	public:
 
-		TextLinebreakFix(const fs::path& projectDir, const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger);
+		TextLinebreakFix(const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger);
 
-		virtual bool needReboot() override { return m_needReboot; }
+		bool needReboot() const { return m_needReboot; }
 
-		virtual void run(Sentence* se) override;
+		void run(Sentence* se);
 
-		virtual ~TextLinebreakFix() = default;
+		~TextLinebreakFix() = default;
 	};
 }
 
 
 module :private;
 
-TextLinebreakFix::TextLinebreakFix(const fs::path& projectDir, const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger)
-	: IPlugin(projectDir, logger)
+TextLinebreakFix::TextLinebreakFix(const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger)
+	: m_logger(logger)
 {
 	try {
 		const auto pluginConfig = toml::parse(pluginConfigsPath / L"textPostPlugins/TextLinebreakFix.toml");

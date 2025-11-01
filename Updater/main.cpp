@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
             }
             extractZipExclude(sourceZip.toStdWString(), targetDir.toStdWString(), excludePreFixes);
         }
-        catch (const std::exception& e) {
+        catch (const std::exception&) {
 #ifdef Q_OS_WIN
             MessageBoxW(NULL, L"Failed to extract update package.", L"Updater", MB_ICONERROR | MB_TOPMOST);
 #endif
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
             QProcess::execute("Updater_new.exe", arguments);
         }
     }
-    catch (const std::exception& e) {
+    catch (const std::exception&) {
 #ifdef Q_OS_WIN
         MessageBoxW(NULL, L"Failed to extract updater_new.exe.", L"Updater", MB_ICONERROR | MB_TOPMOST);
 #endif

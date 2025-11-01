@@ -16,18 +16,19 @@ namespace py = pybind11;
 
 export {
 
-    class PythonTextPlugin : public IPlugin {
+    class PythonTextPlugin {
     private:
         std::shared_ptr<PythonInterpreterInstance> m_pythonInterpreter;
         std::weak_ptr<py::object> m_pythonRunFunc;
         std::string m_modulePath;
+        std::shared_ptr<spdlog::logger> m_logger;
         bool m_needReboot = false;
 
     public:
         PythonTextPlugin(const fs::path& projectDir, const std::string& modulePath, PythonManager& pythonManager, std::shared_ptr<spdlog::logger> logger);
-        virtual bool needReboot() override { return m_needReboot; }
-        virtual void run(Sentence* se) override;
-        virtual ~PythonTextPlugin() override;
+        bool needReboot() const { return m_needReboot; }
+        void run(Sentence* se);
+        ~PythonTextPlugin();
     };
 }
 
@@ -35,7 +36,7 @@ export {
 module :private;
 
 PythonTextPlugin::PythonTextPlugin(const fs::path& projectDir, const std::string& modulePath, PythonManager& pythonManager, std::shared_ptr<spdlog::logger> logger)
-    : IPlugin(projectDir, logger), m_modulePath(modulePath)
+    : m_logger(logger), m_modulePath(modulePath)
 {
     m_logger->info("正在初始化 Python 插件 {}", modulePath);
     std::optional<std::shared_ptr<PythonInterpreterInstance>> pythonInterpreterOpt = pythonManager.registerFunction(m_modulePath, "init", m_needReboot);

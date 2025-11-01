@@ -12,18 +12,19 @@ namespace fs = std::filesystem;
 
 export {
 
-	class LuaTextPlugin : public IPlugin {
+	class LuaTextPlugin {
 	private:
 		std::shared_ptr<LuaStateInstance> m_luaState;
 		sol::function m_luaRunFunc;
 		std::string m_scriptPath;
+		std::shared_ptr<spdlog::logger> m_logger;
 		bool m_needReboot = false;
 
 	public:
 		LuaTextPlugin(const fs::path& projectDir, const std::string& scriptPath, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger);
-		virtual bool needReboot() override { return m_needReboot; }
-		virtual void run(Sentence* se) override;
-		virtual ~LuaTextPlugin() override;
+		bool needReboot() const { return m_needReboot; }
+		void run(Sentence* se);
+		~LuaTextPlugin();
 	};
 }
 
@@ -32,7 +33,7 @@ module :private;
 
 
 LuaTextPlugin::LuaTextPlugin(const fs::path& projectDir, const std::string& scriptPath, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger)
-	: IPlugin(projectDir, logger), m_scriptPath(scriptPath)
+	: m_logger(logger), m_scriptPath(scriptPath)
 {
 	m_logger->info("正在初始化 Lua 插件 {}", scriptPath);
 	std::optional<std::shared_ptr<LuaStateInstance>> luaStateOpt = luaManager.registerFunction(scriptPath, "init", m_needReboot);
