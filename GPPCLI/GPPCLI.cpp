@@ -41,10 +41,21 @@ int main(int argc, char* argv[])
             if (!envZipPath.empty()) {
                 PyConfig config;
                 PyConfig_InitPythonConfig(&config);
-                PyConfig_SetString(&config, &config.home, pyEnvPath.c_str());
+                config.parse_argv = 0;
+                config.install_signal_handlers = 1;
+                PyConfig_SetString(&config, &config.home, fs::canonical(pyEnvPath).c_str());
                 PyConfig_SetString(&config, &config.pythonpath_env, envZipPath.c_str());
                 py::initialize_interpreter(&config);
-                py::module_::import("sys").attr("path").attr("append")("BaseConfig/pyScripts");
+                py::detail::get_num_interpreters_seen() = 1;
+                {
+                    py::module_::import("sys").attr("path").attr("append")(wide2Ascii(fs::absolute(L"BaseConfig/pyScripts")));
+                    py::list sysPaths = py::module_::import("sys").attr("path");
+                    std::ofstream ofs(L"BaseConfig/pythonSysPaths.txt");
+                    for (const auto& path : sysPaths) {
+                        ofs << path.cast<std::string>() << std::endl;
+                    }
+                    ofs.close();
+                }
                 release = std::make_unique<py::gil_scoped_release>();
             }
         }
@@ -59,6 +70,8 @@ int main(int argc, char* argv[])
     fs::path currentProjectPath;
 
     while (true) {
+        // 先清理所有可能残留的输入和屏幕
+        std::cin.clear();
         std::cout << "\n======================================================\n";
         std::cout << "GalTransl++ CLI - test v" << GPPVERSION << "\n";
         std::cout << "======================================================\n";
@@ -76,7 +89,9 @@ int main(int argc, char* argv[])
             inputPathStr = builtins.attr("input")("").cast<std::string>();
         }
         else {
-            std::getline(std::cin, inputPathStr);
+            if (!std::getline(std::cin, inputPathStr)) {
+                break; // 输入结束，退出程序
+            }
         }
 
         // --- 处理用户输入 ---
@@ -140,7 +155,11 @@ int main(int argc, char* argv[])
         }
     }
 
-    release.reset();
+    if (release) {
+        release.reset();
+        py::finalize_interpreter();
+    }
 
+    spdlog::info("程序退出。");
     return 0;
 }

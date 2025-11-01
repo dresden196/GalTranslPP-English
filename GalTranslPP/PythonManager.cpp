@@ -200,6 +200,81 @@ PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m, py::multiple_interpreters::per_inter
 
 }
 
+void PythonInterpreterInstance::daemonThreadFunc() {
+    py::subinterpreter_scoped_activate activate(*subInterpreter);
+    try {
+        py::module_::import("sys").attr("path").attr("append")(wide2Ascii(fs::absolute(L"BaseConfig/pyScripts")));
+        py::module_::import("gpp_plugin_api");
+    }
+    catch (const py::error_already_set& e) {
+        throw std::runtime_error("import gpp_plugin_api 时出现异常: " + std::string(e.what()));
+    }
+    while (true) {
+        auto taskOpt = m_taskQueue.pop();
+        if (!taskOpt) {
+            break;
+        }
+        auto task = std::move(*taskOpt);
+        try {
+            task->taskFunc();
+            task->promise.set_value();
+        }
+        catch (const std::exception&) {
+            task->promise.set_exception(std::current_exception());
+        }
+        catch (...) {
+            task->promise.set_exception(std::make_exception_ptr(std::runtime_error("PythonInterpreterInstance::daemonThreadFunc 出现未知异常")));
+        }
+    }
+}
+
+PythonInterpreterInstance::PythonInterpreterInstance() {
+    auto createSubInterpreterTaskFunc = [&]()
+        {
+            try {
+                PyInterpreterConfig cfg;
+                std::memset(&cfg, 0, sizeof(cfg));
+                cfg.allow_daemon_threads = 1;
+                cfg.allow_threads = 1;
+                cfg.check_multi_interp_extensions = 1;
+                cfg.gil = PyInterpreterConfig_OWN_GIL;
+                subInterpreter = std::unique_ptr<py::subinterpreter>(new py::subinterpreter{ py::subinterpreter::create(cfg) });
+            }
+            catch (const std::exception& e) {
+                throw std::runtime_error("PythonInterpreterInstance 构造时出现异常: " + std::string(e.what()));
+            }
+        };
+    PythonMainInterpreterManager::getInstance().submitTask(std::move(createSubInterpreterTaskFunc)).get();
+    daemonThread = std::thread(&PythonInterpreterInstance::daemonThreadFunc, this);
+}
+
+PythonInterpreterInstance::~PythonInterpreterInstance() {
+    auto functionClearTaskFunc = [&]()
+        {
+            try {
+                this->functions.clear();
+            }
+            catch (const std::exception& e) {
+                throw std::runtime_error("PythonInterpreterInstance::functionClearTaskFunc 出现异常: " + std::string(e.what()));
+            }
+        };
+    submitTask(std::move(functionClearTaskFunc)).get();
+    m_taskQueue.stop();
+    if (daemonThread.joinable()) {
+        daemonThread.join();
+    }
+    auto destroySubInterpreterTaskFunc = [&]()
+        {
+            try {
+                subInterpreter.reset();
+            }
+            catch (const std::exception& e) {
+                throw std::runtime_error("PythonInterpreterInstance 析构时出现异常: " + std::string(e.what()));
+            }
+        };
+    PythonMainInterpreterManager::getInstance().submitTask(std::move(destroySubInterpreterTaskFunc)).get();
+}
+
 void checkPythonDependencies(const std::vector<std::string>& dependencies, std::shared_ptr<spdlog::logger> logger)
 {
     for (const auto& dependency : dependencies) {

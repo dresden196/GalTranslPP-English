@@ -2,7 +2,8 @@
 import gpp_plugin_api as gpp
 from pathlib import Path
 import tomllib
-import concurrent.futures
+import threading
+import queue
 import time
 
 # 必须: 声明 pythonTranslator
@@ -14,27 +15,58 @@ logger = None
 def on_file_processed(rel_file_path: Path):
     logger.info(f"{rel_file_path} completed From Python")
 
-def process_file(rel_file_path, thread_id):
-    logger.info(f"Python 线程 {thread_id} 开始运行: {rel_file_path}")
-    gpp.utils.registerPythonThread()
-    logger.info(f"Python 线程 {thread_id} 注册线程完毕")
-    pythonTranslator.processFile(rel_file_path, thread_id)
-    #time.sleep(10)
-    logger.info(f"Python 线程 {thread_id} C++ 函数运行完毕")
-    gpp.utils.erasePythonThread()
-    logger.info(f"Python 线程 {thread_id} 运行完毕")
+
+def process_file(rel_file_path, index):
+    pythonTranslator.processFile(rel_file_path, index)
+
+def worker(task_queue):
+    while True:
+        try:
+            rel_file_path, index = task_queue.get(timeout=1)
+            if rel_file_path is None:  # 退出信号
+                break
+            process_file(rel_file_path, index)
+        except queue.Empty:
+            continue
+        finally:
+            task_queue.task_done()
 
 def run():
     logger.info("准备 run run")
     relFilePaths = pythonTranslator.normalJsonTranslator_beforeRun()
-    #pythonTranslator.m_onFileProcessed = on_file_processed
     MAX_WORKERS = 29
     pythonTranslator.m_controller.makeBar(pythonTranslator.m_totalSentences, MAX_WORKERS)
+
+    # 简单的单线程处理
     # for i, relFilePath in enumerate(relFilePaths):
     #     pythonTranslator.processFile(relFilePath, i)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        indices = range(len(relFilePaths))
-        results = executor.map(process_file, relFilePaths, indices)
+
+    # 使用手动线程管理
+    task_queue = queue.Queue()
+    threads = []
+    
+    # 创建工作线程
+    for _ in range(MAX_WORKERS):
+        t = threading.Thread(target=worker, args=(task_queue,))
+        t.daemon = True  # 设置为守护线程
+        t.start()
+        threads.append(t)
+    
+    # 添加任务
+    for i, relFilePath in enumerate(relFilePaths):
+        task_queue.put((relFilePath, i))
+    
+    # 等待所有任务完成
+    task_queue.join()
+    
+    # 发送退出信号
+    for _ in range(MAX_WORKERS):
+        task_queue.put((None, None))
+    
+    # 等待所有线程结束
+    for t in threads:
+        t.join()
+
     logger.info("所有 Python 线程执行完毕")
     pythonTranslator.normalJsonTranslator_afterRun()
 

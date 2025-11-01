@@ -142,33 +142,7 @@ export {
         std::thread daemonThread;
         SafeQueue<std::unique_ptr<PythonTask>> m_taskQueue;
 
-        void daemonThreadFunc() {
-            py::subinterpreter_scoped_activate activate(*subInterpreter);
-            try {
-                py::module_::import("sys").attr("path").attr("append")("BaseConfig/pyScripts");
-                py::module_::import("gpp_plugin_api");
-            }
-            catch (const py::error_already_set& e) {
-                throw std::runtime_error("import gpp_plugin_api 时出现异常: " + std::string(e.what()));
-            }
-            while (true) {
-                auto taskOpt = m_taskQueue.pop();
-                if (!taskOpt) {
-                    break;
-                }
-                auto task = std::move(*taskOpt);
-                try {
-                    task->taskFunc();
-                    task->promise.set_value();
-                }
-                catch (const std::exception&) {
-                    task->promise.set_exception(std::current_exception());
-                }
-                catch (...) {
-                    task->promise.set_exception(std::make_exception_ptr(std::runtime_error("PythonInterpreterInstance::daemonThreadFunc 出现未知异常")));
-                }
-            }
-        }
+        void daemonThreadFunc();
 
         std::future<void> submitTask(std::function<void()> taskFunc) {
             std::unique_ptr<PythonTask> task = std::make_unique<PythonTask>();
@@ -178,46 +152,9 @@ export {
             return future;
         }
 
-        PythonInterpreterInstance() {
-            auto createSubInterpreterTaskFunc = [&]()
-                {
-                    try {
-                        subInterpreter = std::unique_ptr<py::subinterpreter>(new py::subinterpreter{ py::subinterpreter::create() });
-                    }
-                    catch (const std::exception& e) {
-                        throw std::runtime_error("PythonInterpreterInstance 构造时出现异常: " + std::string(e.what()));
-                    }
-                };
-            PythonMainInterpreterManager::getInstance().submitTask(std::move(createSubInterpreterTaskFunc)).get();
-            daemonThread = std::thread(&PythonInterpreterInstance::daemonThreadFunc, this);
-        }
+        PythonInterpreterInstance();
 
-        ~PythonInterpreterInstance() {
-            auto functionClearTaskFunc = [this]()
-                {
-                    try {
-                        this->functions.clear();
-                    }
-                    catch (const std::exception& e) {
-                        throw std::runtime_error("PythonInterpreterInstance::functionClearTaskFunc 出现异常: " + std::string(e.what()));
-                    }
-                };
-            submitTask(functionClearTaskFunc).get();
-            m_taskQueue.stop();
-            if (daemonThread.joinable()) {
-                daemonThread.join();
-            }
-            auto destroySubInterpreterTaskFunc = [&]()
-                {
-                    try {
-                        subInterpreter.reset();
-                    }
-                    catch (const std::exception& e) {
-                        throw std::runtime_error("PythonInterpreterInstance 析构时出现异常: " + std::string(e.what()));
-                    }
-                };
-            PythonMainInterpreterManager::getInstance().submitTask(std::move(destroySubInterpreterTaskFunc)).get();
-        }
+        ~PythonInterpreterInstance();
     };
 
     class PythonManager {

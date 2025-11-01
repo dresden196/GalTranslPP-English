@@ -83,7 +83,7 @@ void PythonTextPlugin::run(Sentence* se) {
         {
             try {
                 if (auto runFuncLocked = m_pythonRunFunc.lock()) {
-                    (*runFuncLocked)(se); // 使用 shared_ptr 的 operator() 来调用 Python 函数
+                    (*runFuncLocked)(se);
                 }
                 else {
                     throw std::runtime_error(m_modulePath + " run函数 已被释放");
