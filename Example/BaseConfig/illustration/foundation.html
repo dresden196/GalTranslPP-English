@@ -96,6 +96,7 @@
 <li>更清晰的字典使用设定</li>
 <li>重翻时附带已知问题</li>
 <li>可自定义的问题比较对象</li>
+<li>对 条件判断/文本处理/文件格式处理 的自定义 Lua/python 语言支持</li>
 </ul>
 <p><img src="https://github.com/julixian/GalTranslPP/blob/master/img/notification.png?raw=true" alt="notification"></p>
 <h2>📖 流程说明</h2>
@@ -121,9 +122,9 @@
 <blockquote>
 <p><strong>⚠️ 特别注意</strong>：在使用单文件分割功能的情况下，由于缓存命中结合了上下文，所以当你改变文件本身，或者分割数/分割方式时，会有一部分无关的句子不能命中缓存。理论上文件切的越碎，最终分割出的文件份数比最大线程数超过的更多，则不能命中缓存的句子越多。GalTransl++会尽可能在这种情况下保证原有缓存的命中，不过如果希望达到更好的缓存命中，最好还是不改变分割方式和分割数。为此也可以使用 <code>ShowNormal</code> 模式观察切割后的文件。</p>
 </blockquote>
-<p><code>retranslKey</code>指的是重翻关键字，<code>problem</code>指的是缓存中的问题。</p>
+<p><code>retranslKey</code>指的是重翻关键字。</p>
 <p>GalTransl++会在翻译时自动分析翻译时常见问题，并将问题输出到缓存中。</p>
-<p>一般情况下，如果 <code>problem</code> 或 <code>orig_text</code>(一个缓存键，存储的是原始message) 中包含设定的<code>retranslKey</code>，则即使在实际翻译模式下命中缓存，这个句子依然会被重翻。所以如果只想重建缓存，要么得删除所有<code>retranslKey</code>，要么使用 <code>Rebuild</code> 模式忽略翻译。</p>
+<p>一般情况下，如果 <code>problems</code> 中包含设定的<code>retranslKey</code>(当然也可以是别的什么条件)，则即使在实际翻译模式下命中缓存，这个句子依然会被重翻。所以如果只想重建缓存，要么得删除所有<code>retranslKey</code>，要么使用 <code>Rebuild</code> 模式忽略翻译。</p>
 <h3>字典系统</h3>
 <p>GalTransl++的字典分为 <strong>译前字典</strong>，<strong>GPT字典</strong>，<strong>译后字典</strong> 三大类。每类字典都有 <strong>通用</strong> 和 <strong>项目</strong> 两种。</p>
 <p>顾名思义，通用字典可以被所有项目所见，项目字典只能被当前项目所见。</p>
@@ -169,14 +170,16 @@
 <ul>
 <li><code>index</code>: 索引顺序，一般不重要。</li>
 <li><code>name</code>: 人名，展示的是预处理后的人名(相当于pre_processed_name)，如果没有则为空。</li>
+<li><code>names</code>: 复数人名，仅见于部分 VNT 提出的文本中。</li>
 <li><code>name_preview</code>: 将输出的译后人名。</li>
+<li><code>names_preview</code>: 同上</li>
 <li><code>original_text</code>: 原文对照，与原文没有任何区别。</li>
 <li><code>pre_processed_text</code>: 经过一系列预处理后，即将执行AI翻译前时句子的样子。</li>
 <li><code>pre_translated_text</code>: AI返回的，未经过任何后处理的句子的样子。</li>
-<li><code>problem</code>: 在自动化找错中找出的问题。</li>
+<li><code>other_info</code>: 其它附加信息。</li>
+<li><code>problems</code>: 在自动化找错中找出的问题。</li>
 <li><code>translated_by</code>: 翻译此句子所用的 apikey 的设定模型。</li>
 <li><code>translated_preview</code>: 经过所有后处理之后，将输出的 message。</li>
-<li><code>other_info</code>: 其它附加信息。</li>
 </ul>
 <h3>替换型字典语法</h3>
 <ul>
@@ -209,11 +212,14 @@
 <h3>问题分析 语法示例:</h3>
 <p>retranslKeys 语法示例</p>
 <div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code># 正则表达式列表，如果句子缓存中的某条 problem 能被以下任一正则 search 通过，则进行重翻
-# 如果想对指定原文/译文进行重翻，请通过内联表数组指定 conditionTarget 和 conditionReg
+# 如果想对指定原文/译文进行重翻，请通过内联表(数组)指定 conditionTarget 和 conditionReg
+# 也可以指定 conditionScript 和 conditionFunc 来外接 lua/py 脚本(conditionFunc 接收 Sentence，返回bool)
+# &lt;PROJECT_DIR&gt;为代表当前路径字符串的宏
+# conditionTarget 加前缀 prev_ 或 next_ 可表示 前/后 句，如 prev_prev_orig_text 表示上上句原文，如果没有则条件失败
 retranslKeys = [
+  #[{ conditionScript='&lt;PROJECT_DIR&gt;/Lua/MySampleTextPlugin.lua',conditionFunc='funcName'},
+  #{ conditionScript='&lt;PROJECT_DIR&gt;/Python/MySampleTextPlugin.py',conditionFunc='funcName'}],
   #"残留日文",
-  [{ conditionTarget = 'orig_text', conditionReg = '^(?!.*隠さん).*$'},
-   { conditionTarget = 'trans_preview', conditionReg = '隐同学' }], # 重翻所有 原文中不含'隠さん'且译文中含'隐同学' 的句子
   "翻译失败", # 等效于 [{ conditionTarget = 'problems', conditionReg = '翻译失败' }]
 ]
 </code></pre>
@@ -226,13 +232,13 @@ retranslKeys = [
       </i>
     </button><!--beforeend--></div><!--afterend--></div><p>skipProblems 语法示例</p>
 <div><!--beforebegin--><div class="v-md-pre-wrapper copy-code-mode v-md-pre-wrapper- extra-class" extra-attr=""><!--afterbegin--><pre class="v-md-prism-"><code># 正则表达式列表，如果一条 problem 能被以下任一正则 search 通过，则不加入 problems 列表
-# 如果想忽略指定原文/译文的指定问题，请通过内联表数组指定 conditionTarget 和 conditionReg
-# 并在表数组第一项填入要忽略的 problem(同样也是正则表达式)
+# 如果想忽略指定原文/译文的指定问题，请通过内联表(数组)指定 conditionTarget 和 conditionReg
+# 并在表数组第一项填入要忽略的 problem (同样也是正则表达式)
 skipProblems = [
   # "^引入拉丁字母: Live$"  # 不加任何条件
   # 如果 原文中包含'モチモチ'且译文中包含'Q弹'，则忽略此句子中所有能被 '引入拉丁字母' search 通过的 problem
   [ '引入拉丁字母', { conditionTarget = 'preproc_text', conditionReg = 'モチモチ'},
-    { conditionTarget = 'trans_preview', conditionReg = 'Q弹'}], 
+    { conditionTarget = 'trans_preview', conditionReg = 'Q弹'}],
 ]
 </code></pre>
 
@@ -415,6 +421,11 @@ callback = [ { group = 2, org = '&lt;[^&gt;]*&gt;', rep = '' } ]
 <li>4、 尝试运行 <code>BaseConfig\pyScripts\check_spacy_gpu.py</code>，如果提示成功，则代表所有配置均已就绪。</li>
 <li>5、 此时打开 <code>BaseConfig\pyScripts\tokenizer_spacy.py</code> 文件，将 <code>#spacy.require_gpu()</code> 的#注释去掉，即可为 spaCy 启用 GPU加速。</li>
 </ul>
+<h3>Lua/Python 内嵌</h3>
+<div>
+这两种语言在程序内均为热更新(只要没有被其它任务占用)，更改后重新运行即可看到新的结果。
+</div><p>具体的代码示例详见 <code>Example/Lua</code> 及 <code>Example/Python</code>，工具函数/类函数的签名需要你自行翻阅一下源代码。</p>
+<div>
 <h2>其它程序说明</h2>
 <h3>自定义主页Popular卡片</h3>
 <p>具体示例详见 (Example/)BaseConfig/globalConfig.toml 中的 [[popularCards]] 数组。</p>
@@ -444,7 +455,7 @@ start /b 要运行文件的文件名
 <h2>🤝 贡献指南</h2>
 <p>GalTransl++在文件支持和插件支持上仍处于起步阶段，也不排除有其它优化的思路或需要修改的bug，如果有疑问或建议，欢迎提出 issue 或 PR。接下来主要说一下如何添加文件处理器/插件。</p>
 <h3>添加文件处理器 (Translator)</h3>
-<p>如你所见，GalTransl++的核心代码文件数量不超过二十个，接口也十分简单。</p>
+<p>如你所见，GalTransl++的核心代码文件数量<s>不超过二十个</s>(现在大抵是超了)，接口也十分简单。</p>
 <p>由于所有的文件处理器需直接/间接继承自 <code>ITranslator</code>，如无特殊情况，一般直接继承 <code>NormalJsonTranslator</code> 即可。</p>
 <p>这样只需要将相应文件提取为json，并重设提取文件夹为 <code>NormalJsonTranlator</code> 的 <code>inputDir</code> 文件夹，</p>
 <p>重设期望获取译后json的文件夹为其 <code>outputDir</code> 文件夹即可。</p>
@@ -452,10 +463,10 @@ start /b 要运行文件的文件名
 <p>可以借此来判断文件的写回时机，具体示例可见 <code>EpubTranslator</code>。</p>
 <p>需要注册的工厂函数为 <code>createTranslator</code>。</p>
 <h3>添加插件处理器 (Plugin)</h3>
-<p>文本处理插件理论上分为前处理插件和后处理插件，GalTransl++不接受希望同时在译前和译后都生效的插件，那样会破坏对于插件处理顺序的自定义性。如果有需要请将您的插件分为 Pre版 和 Post版。</p>
+<p>文本处理插件理论上分为预处理插件和后处理插件，GalTransl++不接受希望同时在译前和译后都生效的插件，那样会破坏对于插件处理顺序的自定义性。如果有需要请将您的插件分为 Pre版 和 Post版。</p>
 <p>所有插件均需继承自 <code>IPlugin</code>，并实现 <code>run</code> 方法，仅此即可。</p>
 <ul>
-<li><strong>对于译前插件</strong>：如果是非过滤型插件，原则上只允许修改 <code>pre_processed_text</code>。如果是过滤型插件，可以将 <code>complete</code> 置为 <code>true</code>，并负责填充 <code>pre_translated_text</code>。如有需要，也可以在 <code>other_info</code> 中插入信息键，以便之后在 <code>problemAnalyzer</code> 中过滤带此键的问题分析等。</li>
+<li><strong>对于译前插件</strong>：如果是非过滤型插件，原则上只允许修改 <code>pre_processed_text</code>。如果是过滤型插件，可以将 <code>complete</code> 置为 <code>true</code>，并负责填充 <code>pre_translated_text</code>。如有需要，也可以将 <code>notAnalyzeProblem</code> 置为 <code>true</code> 来阻止对此句的问题分析。</li>
 <li><strong>对于译后插件</strong>：原则上只允许修改 <code>translated_preview</code>。</li>
 </ul>
 <p>任意插件均可在 <code>other_info</code> 中插入键以在缓存中附带信息。</p>

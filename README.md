@@ -433,11 +433,11 @@ GalTransl++在文件支持和插件支持上仍处于起步阶段，也不排除
 
 ### 添加插件处理器 (Plugin)
 
-文本处理插件理论上分为前处理插件和后处理插件，GalTransl++不接受希望同时在译前和译后都生效的插件，那样会破坏对于插件处理顺序的自定义性。如果有需要请将您的插件分为 Pre版 和 Post版。
+文本处理插件理论上分为预处理插件和后处理插件，GalTransl++不接受希望同时在译前和译后都生效的插件，那样会破坏对于插件处理顺序的自定义性。如果有需要请将您的插件分为 Pre版 和 Post版。
 
 所有插件均需继承自 `IPlugin`，并实现 `run` 方法，仅此即可。
 
-* **对于译前插件**：如果是非过滤型插件，原则上只允许修改 `pre_processed_text`。如果是过滤型插件，可以将 `complete` 置为 `true`，并负责填充 `pre_translated_text`。如有需要，也可以在 `other_info` 中插入信息键，以便之后在 `problemAnalyzer` 中过滤带此键的问题分析等。
+* **对于译前插件**：如果是非过滤型插件，原则上只允许修改 `pre_processed_text`。如果是过滤型插件，可以将 `complete` 置为 `true`，并负责填充 `pre_translated_text`。如有需要，也可以将 `notAnalyzeProblem` 置为 `true` 来阻止对此句的问题分析。
 * **对于译后插件**：原则上只允许修改 `translated_preview`。
 
 任意插件均可在 `other_info` 中插入键以在缓存中附带信息。

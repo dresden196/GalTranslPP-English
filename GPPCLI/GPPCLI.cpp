@@ -161,6 +161,13 @@ int main(int argc, char* argv[])
         py::finalize_interpreter();
     }
 
+    try {
+        fs::remove(L"cache");
+    }
+    catch (...) {
+
+    }
+
     spdlog::info("程序退出。");
     return 0;
 }

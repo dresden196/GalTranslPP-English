@@ -100,7 +100,7 @@ void StartSettingsPage::_setupUI()
 	_fileFormatComboBox->addItem("PDF");
 	_fileFormatComboBox->addItem("Custom");
 	if (!filePluginStr.isEmpty()) {
-		if (filePluginStr.toLower().startsWith("lua:") || filePluginStr.toLower().startsWith("python:")) {
+		if (filePluginStr.toLower().endsWith(".lua") || filePluginStr.toLower().endsWith(".py")) {
 			_fileFormatComboBox->setCurrentIndex(3);
 		}
 		else {
