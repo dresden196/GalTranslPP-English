@@ -34,12 +34,6 @@
     <ClCompile Include="GPPDefines.ixx">
       <Filter>Tools\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="ITranslator.ixx">
-      <Filter>Tools\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="ITranslator.cpp">
-      <Filter>Tools\Base</Filter>
-    </ClCompile>
     <ClCompile Include="API_Tool.ixx">
       <Filter>Tools\Utils\specialized</Filter>
     </ClCompile>
@@ -100,6 +94,12 @@
     <ClCompile Include="json.ixx">
       <Filter>Tools\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="ITranslator.ixx">
+      <Filter>filePlugins</Filter>
+    </ClCompile>
+    <ClCompile Include="ITranslator.cpp">
+      <Filter>filePlugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="filePlugins">
@@ -116,9 +116,6 @@
     </Filter>
     <Filter Include="Tools\Utils\specialized">
       <UniqueIdentifier>{cb1a4c6b-be5d-4d19-bbc5-3de2ec63f522}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Tools\Base">
-      <UniqueIdentifier>{94d1fba6-4217-4307-b40b-b02cfaf8d984}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

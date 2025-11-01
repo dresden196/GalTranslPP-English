@@ -85,6 +85,7 @@ int main(int argc, char* argv[])
                     config.parse_argv = 0;
                     config.install_signal_handlers = 1;
                     PyConfig_SetString(&config, &config.home, fs::canonical(pyEnvPath).c_str());
+                    PyConfig_SetString(&config, &config.executable, fs::canonical(pyEnvPath / L"python.exe").c_str());
                     PyConfig_SetString(&config, &config.pythonpath_env, envZipPath.c_str());
                     py::initialize_interpreter(&config);
                     py::detail::get_num_interpreters_seen() = 1;

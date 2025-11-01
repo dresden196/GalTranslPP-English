@@ -9,15 +9,19 @@ from pathlib import Path
 logger = None
 
 # sourceLang_useTokenizer = True
-# sourceLang_tokenizerBackend = "spaCy"
+# sourceLang_tokenizerBackend = "MeCab"
+# sourceLang_meCabDictDir = "..."
 # sourceLang_spaCyModelName = "ja_core_news_sm"
+# targetLang_spaCyModelName = "..."
+# targetLang_stanzaLang = "..."
 # sourceLang_tokenizeFunc = None
 # ...
 
 targetLang_useTokenizer = True
 targetLang_tokenizerBackend = "pkuseg"
+# 如果使用提供的分词器则必须先定义 tokenizeFunc
 targetLang_tokenizeFunc = None
-# ...
+
 
 def checkConditionForRetranslKeysFunc(se: gpp.Sentence) -> bool:
     if se.index == 278:
@@ -30,7 +34,7 @@ def checkConditionForSkipProblemsFunc(se: gpp.Sentence) -> bool:
         # 但 skipProblems 的检查提供的是要输出的 se 的引用
         # 通过某个自定义的译后插件插入自定义的 flag problem
         # 再把 skipProblems 中最初的元素定义为此 problem 的全匹配检查
-        # 甚至可达成在译后字典执行完毕后再执行一次插件的效果(区别是不会调用 init)
+        # 甚至可达成在译后字典执行完毕后再执行一次插件的效果(区别是不会调用 init 和 unload)
         current_problem = ""
         for i, s in enumerate(se.problems):
             # 正则检查通过后，执行 Condition 验证时，当前正在检查的 problem 会拥有前缀 'Current problem:'
@@ -67,9 +71,9 @@ def run(se: gpp.Sentence):
         # 其它(虽然没几个)工具函数依然在 utils 里
         tokens = gpp.utils.splitIntoTokens(wordpos_vec, se.translated_preview)
         parts = [f"[{value[0]}]" for value in wordpos_vec]
-        result = "#".join(parts) + "_python"
-        se.other_info |= { "tokens": result }
-
+        result = "#".join(parts)
+        # 所有容器均为 copy，直接对其进行 insert，append 等是无效的
+        se.other_info |= { "tokens_python": result }
 
 def unload():
     pass

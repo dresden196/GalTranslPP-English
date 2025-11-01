@@ -29,6 +29,7 @@ export {
 
     public:
 
+        void init();
         void beforeRun();
 
         virtual void run() override;
@@ -53,6 +54,12 @@ PDFTranslator::PDFTranslator(const fs::path& projectDir, std::shared_ptr<IContro
         L"cache" / projectDir.filename() / L"pdf_json_input", L"cache" / projectDir.filename() / L"gt_input_cache",
         L"cache" / projectDir.filename() / L"pdf_json_output", L"cache" / projectDir.filename() / L"gt_output_cache")
 {
+    m_logger->info("GalTransl++ PDFTranslator 启动...");
+}
+
+void PDFTranslator::init()
+{
+    NormalJsonTranslator::init();
     m_pdfInputDir = m_projectDir / L"gt_input";
     m_pdfOutputDir = m_projectDir / L"gt_output";
 
@@ -118,7 +125,7 @@ void PDFTranslator::beforeRun()
         }
     }
 
-    m_onFileProcessed = [this](const fs::path& relProcessedFile)
+    m_onFileProcessed = [this](fs::path relProcessedFile)
         {
             if (!m_jsonToPDFPathMap.contains(relProcessedFile)) {
                 m_logger->warn("未找到与 {} 对应的元数据，跳过", wide2Ascii(relProcessedFile));
@@ -144,7 +151,13 @@ void PDFTranslator::beforeRun()
 }
 
 void PDFTranslator::run() {
-    m_logger->info("GalTransl++ PDFTranslator 启动...");
-    this->PDFTranslator::beforeRun();
-    NormalJsonTranslator::run();
+    NormalJsonTranslator::init();
+    PDFTranslator::init();
+    PDFTranslator::beforeRun();
+    std::optional<std::vector<fs::path>> relFilePathsOpt = NormalJsonTranslator::beforeRun();
+    if (!relFilePathsOpt.has_value()) {
+        return;
+    }
+    NormalJsonTranslator::process(std::move(relFilePathsOpt.value()));
+    NormalJsonTranslator::afterRun();
 }

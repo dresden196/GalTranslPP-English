@@ -95,7 +95,6 @@ export {
 
         std::map<std::string, std::string> m_nameMap;
         toml::ordered_value m_problemOverview = toml::array{};
-        ordered_json m_problemOverviewJson = ordered_json::array();
         std::function<void(fs::path)> m_onFileProcessed;
         std::shared_mutex m_cacheMutex;
         std::mutex m_outputMutex;
@@ -129,8 +128,9 @@ export {
             m_logger->info("所有任务已完成！NormalJsonTranslator结束。");
         }
 
+        void init();
         std::optional<std::vector<fs::path>> beforeRun();
-
+        void process(std::vector<fs::path> relFilePaths);
         void afterRun();
 
         virtual void run() override;
@@ -145,12 +145,16 @@ NormalJsonTranslator::NormalJsonTranslator(const fs::path& projectDir, std::shar
     m_projectDir(projectDir), m_controller(controller), m_logger(logger), m_luaManager(logger), m_pythonManager(logger),
     m_apiPool(logger), m_gptDictionary(logger), m_preDictionary(logger), m_postDictionary(logger), m_problemAnalyzer(logger)
 {
+    m_logger->info("GalTransl++ NormalJsonTranslator 启动...");
     m_inputDir = inputDir.value_or(m_projectDir / L"gt_input");
     m_inputCacheDir = inputCacheDir.value_or(L"cache" / m_projectDir.filename() / L"gt_input_cache");
     m_outputDir = outputDir.value_or(m_projectDir / L"gt_output");
     m_outputCacheDir = outputCacheDir.value_or(L"cache" / m_projectDir.filename() / L"gt_output_cache");
     m_cacheDir = m_projectDir / L"transl_cache";
+}
 
+void NormalJsonTranslator::init()
+{
     fs::path configPath = m_projectDir / L"config.toml";
     if (!fs::exists(configPath)) {
         throw std::runtime_error("找不到 config.toml 文件");
@@ -572,12 +576,14 @@ void NormalJsonTranslator::preProcess(Sentence* se) {
         se->pre_processed_text = m_preDictionary.doReplace(se, CachePart::PreprocText);
     }
 
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     for (const auto& plugin : m_prePlugins) {
         plugin->run(se);
         if (se->complete) {
             break;
         }
     }
+    m_pluginTimeUsed += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count();
 
 }
 
@@ -592,7 +598,7 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
     for (auto& plugin : m_postPlugins) {
         plugin->run(se);
     }
-    m_pluginTimeUsed += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
+    m_pluginTimeUsed += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count();
 
     if (m_usePostDictInMsg) {
         se->translated_preview = m_postDictionary.doReplace(se, CachePart::TransPreview);
@@ -1039,27 +1045,27 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
             if (se.problems.empty()) {
                 continue;
             }
-            toml::ordered_table tbl; ordered_json j;
-            tbl["filename"] = relInputPathStr; j["filename"] = relInputPathStr;
-            tbl["index"] = se.index; j["index"] = se.index;
+            toml::ordered_table tbl;
+            tbl["filename"] = relInputPathStr;
+            tbl["index"] = se.index;
             if (se.nameType == NameType::Single) {
-                tbl["name"] = se.name; j["name"] = se.name;
-                tbl["name_preview"] = se.name_preview; j["name_preview"] = se.name_preview;
+                tbl["name"] = se.name;
+                tbl["name_preview"] = se.name_preview;
             }
             else if (se.nameType == NameType::Multiple) {
-                tbl["names"] = se.names; j["names"] = se.names;
-                tbl["names_preview"] = se.names_preview; j["names_preview"] = se.names_preview;
+                tbl["names"] = se.names;
+                tbl["names_preview"] = se.names_preview;
             }
-            tbl["original_text"] = se.original_text; j["original_text"] = se.original_text;
+            tbl["original_text"] = se.original_text;
             if (!se.other_info.empty()) {
-                tbl["other_info"] = se.other_info; j["other_info"] = se.other_info;
+                tbl["other_info"] = se.other_info;
             }
-            tbl["pre_processed_text"] = se.pre_processed_text; j["pre_processed_text"] = se.pre_processed_text;
-            tbl["pre_translated_text"] = se.pre_translated_text; j["pre_translated_text"] = se.pre_translated_text;
-            tbl["problems"] = se.problems; j["problems"] = se.problems;
-            tbl["translated_by"] = se.translated_by; j["translated_by"] = se.translated_by;
-            tbl["translated_preview"] = se.translated_preview; j["translated_preview"] = se.translated_preview;
-            m_problemOverview.push_back(tbl); m_problemOverviewJson.push_back(j);
+            tbl["pre_processed_text"] = se.pre_processed_text;
+            tbl["pre_translated_text"] = se.pre_translated_text;
+            tbl["problems"] = se.problems;
+            tbl["translated_by"] = se.translated_by;
+            tbl["translated_preview"] = se.translated_preview;
+            m_problemOverview.push_back(tbl);
         }
     }
 
@@ -1102,14 +1108,20 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
             m_logger->debug("开始合并 {} 的缓存文件...", wide2Ascii(originalRelFilePath));
         }
         combineOutputFiles(originalRelFilePath, splitFileParts, m_logger, m_outputCacheDir, m_outputDir);
-        std::lock_guard<std::mutex> lock(m_outputMutex);
+        std::unique_lock<std::mutex> lock(m_outputMutex);
+        if (m_pythonTranslator) {
+            lock.unlock(); // 非常神奇
+        }
         if (m_onFileProcessed) {
             m_onFileProcessed(originalRelFilePath);
         }
         m_logger->debug("[线程 {}] [文件 {}] 合并处理完成。", threadId, wide2Ascii(originalRelFilePath));
     }
     else {
-        std::lock_guard<std::mutex> lock(m_outputMutex);
+        std::unique_lock<std::mutex> lock(m_outputMutex);
+        if (m_pythonTranslator) {
+            lock.unlock();
+        }
         if (m_onFileProcessed) {
             m_onFileProcessed(relInputPath);
         }
@@ -1372,7 +1384,7 @@ void NormalJsonTranslator::afterRun() {
         ofs << toml::format("problemOverview", m_problemOverview);
         ofs.close();
         ofs.open(m_projectDir / L"翻译问题概览.json");
-        ofs << m_problemOverviewJson.dump(2);
+        ofs << toml2Json(m_problemOverview).dump(2);
         ofs.close();
         m_logger->debug("已生成 翻译问题概览.json 和 翻译问题概览.toml 文件");
 
@@ -1424,32 +1436,30 @@ void NormalJsonTranslator::afterRun() {
     if (!m_controller->shouldStop() && m_transEngine == TransEngine::Rebuild && m_completedSentences != m_totalSentences) {
         m_logger->critical("重建过程中有句子未命中缓存 ({}/{} lines)，请检查日志以定位问题。", m_completedSentences.load(), m_totalSentences);
     }
-    m_logger->info("Plugin time cost: {}ms", m_pluginTimeUsed.load());
+    m_logger->info("Plugin time cost: {}ms", m_pluginTimeUsed.load() / 1000 / 1000);
+}
+
+void NormalJsonTranslator::process(std::vector<fs::path> relFilePaths) {
+    std::vector<std::future<void>> results;
+    m_threadPool.resize(std::min(m_threadsNum, (int)relFilePaths.size()));
+    for (const auto& filePath : relFilePaths) {
+        results.emplace_back(m_threadPool.push([=](const int id)
+            {
+                this->processFile(filePath, id);
+            }));
+    }
+    m_logger->info("已将 {} 个文件任务分配到线程池，等待处理完成...", results.size());
+    for (auto& result : results) {
+        result.get();
+    }
 }
 
 void NormalJsonTranslator::run() {
-
-    m_logger->info("GalTransl++ NormalJsonTranslator 启动...");
-    std::optional<std::vector<fs::path>> relFilePathsOpt = this->NormalJsonTranslator::beforeRun();
+    NormalJsonTranslator::init();
+    std::optional<std::vector<fs::path>> relFilePathsOpt = NormalJsonTranslator::beforeRun();
     if (!relFilePathsOpt.has_value()) {
         return;
     }
-    const std::vector<fs::path>& relFilePaths = relFilePathsOpt.value();
-    // 开始翻译
-    {
-        std::vector<std::future<void>> results;
-        m_threadPool.resize(std::min(m_threadsNum, (int)relFilePaths.size()));
-        for (const auto& filePath : relFilePaths) {
-            results.emplace_back(m_threadPool.push([=](const int id)
-                {
-                    this->processFile(filePath, id);
-                }));
-        }
-        m_logger->info("已将 {} 个文件任务分配到线程池，等待处理完成...", results.size());
-        for (auto& result : results) {
-            result.get();
-        }
-    }
-    // 翻译结束
-    this->NormalJsonTranslator::afterRun();
+    NormalJsonTranslator::process(std::move(relFilePathsOpt.value()));
+    NormalJsonTranslator::afterRun();
 }

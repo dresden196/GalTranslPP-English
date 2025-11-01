@@ -34,6 +34,8 @@ export {
     std::vector<json> splitJsonArrayNum(const json& originalData, int chunkSize);
 
     std::vector<json> splitJsonArrayEqual(const json& originalData, int numParts);
+
+    ordered_json toml2Json(const toml::ordered_value& tomlData);
 }
 
 
@@ -545,4 +547,34 @@ std::vector<json> splitJsonArrayEqual(const json& originalData, int numParts) {
         currentIndex += currentPartSize;
     }
     return parts;
+}
+
+ordered_json toml2Json(const toml::ordered_value& value) {
+    if (value.is_table()) {
+        ordered_json resultMap = ordered_json::object();
+        for (const auto& [key, val] : value.as_table()) {
+            resultMap[key] = toml2Json(val);
+        }
+        return resultMap;
+    }
+    else if (value.is_array()) {
+        ordered_json resultVec = ordered_json::array();
+        for (const auto& elem : value.as_array()) {
+            resultVec.push_back(toml2Json(elem));
+        }
+        return resultVec;
+    }
+    else if (value.is_string()) {
+        return value.as_string();
+    }
+    else if (value.is_integer()) {
+        return value.as_integer();
+    }
+    else if (value.is_floating()) {
+        return value.as_floating();
+    }
+    else if (value.is_boolean()) {
+        return value.as_boolean();
+    }
+    throw std::runtime_error("不支持的 TOML 数据类型");
 }

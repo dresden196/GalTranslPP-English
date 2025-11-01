@@ -178,8 +178,8 @@ retranslKeys 语法示例
 # <PROJECT_DIR>为代表当前路径字符串的宏
 # conditionTarget 加前缀 prev_ 或 next_ 可表示 前/后 句，如 prev_prev_orig_text 表示上上句原文，如果没有则条件失败
 retranslKeys = [
-  #[{ conditionScript='Lua:<PROJECT_DIR>/Lua/MySampleTextPlugin.lua',conditionFunc='funcName'},
-  #{ conditionScript='Python:<PROJECT_DIR>/Python/MySampleTextPlugin.py',conditionFunc='funcName'}],
+  #[{ conditionScript='<PROJECT_DIR>/Lua/MySampleTextPlugin.lua',conditionFunc='funcName'},
+  #{ conditionScript='<PROJECT_DIR>/Python/MySampleTextPlugin.py',conditionFunc='funcName'}],
   #"残留日文",
   "翻译失败", # 等效于 [{ conditionTarget = 'problems', conditionReg = '翻译失败' }]
 ]

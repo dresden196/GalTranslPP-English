@@ -38,6 +38,7 @@ targetLang_useTokenizer = true
 targetLang_tokenizerBackend = "pkuseg"
 --sourceLang_meCabDictDir = "..."
 --targetLang_spaCyModelName = "..."
+--targetLang_stanzaLang = "..."
 --...
 
 function checkConditionForRetranslKeysFunc(sentence)
@@ -72,8 +73,9 @@ function checkConditionForSkipProblemsFunc(sentence)
 end
 
 function run(sentence)
-    -- 为了能使用 pairs 遍历，map返回类型都是副本，如果想修改，必须 mapVar = copy
-    -- vector 就没有这么多事
+    -- 为了能使用 pairs 遍历，map 返回类型都是副本，如果想修改，必须 mapVar = copy
+    -- 但非递归的 vector 类型可使用 sol2 提供的 container 通用函数进行引用修改，具体函数及其作用详见
+    -- https://github.com/ThePhD/sol2/blob/main/documentation/source/containers.rst 的 container operations 部分
     local other_info_map = sentence.other_info
     if sentence.index == 0 then
         other_info_map["MySampleKeyForFirstSentence"] = "MySampleValueForFirstSentence"
@@ -86,7 +88,7 @@ function run(sentence)
         sentence.notAnalyzeProblem = true
     end
     if sentence.translated_preview == "久远紧锁眉头，脸上写着「骗人的吧，喂」。" then
-        -- utils, json, toml 等无实例类纯工具表直接使用 .func(...) 调用即可
+        -- utils, json, toml 等无实例类的纯工具表直接使用 .func(...) 调用即可
         -- logger，translator 等有具体实例的对象需要用 :func(...) 或 .func(self, ...) 调用
         local wordpos_vec, entity_vec = utils.targetLang_tokenizeFunc(sentence.translated_preview)
         local parts = {}
@@ -105,7 +107,8 @@ function init(projectDir)
 end
 
 function unload()
-    -- -- ctrl + /
+    -- ctrl + /
+    -- return
     -- utils.logger:info("MySampleTextPluginFromLua unloads")
     -- local cmd = [[D:\GALGAME\linshi\天冥のコンキスタ\WORK\#toSjis.bat]]
     -- local cmd_acp = utils.ascii2Ascii(cmd, 65001, 0)

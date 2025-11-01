@@ -72,6 +72,7 @@ export {
 
     public:
 
+        void init();
         void beforeRun();
 
         virtual void run() override;
@@ -119,6 +120,11 @@ EpubTranslator::EpubTranslator(const fs::path& projectDir, std::shared_ptr<ICont
         // m_outputDir                                               m_outputCacheDir
         L"cache" / projectDir.filename() / L"epub_json_input", L"cache" / projectDir.filename() / L"gt_input_cache",
         L"cache" / projectDir.filename() / L"epub_json_output", L"cache" / projectDir.filename() / L"gt_output_cache")
+{
+    m_logger->info("GalTransl++ EpubTranslator 启动...");
+}
+
+void EpubTranslator::init()
 {
     m_epubInputDir = m_projectDir / L"gt_input";
     m_epubOutputDir = m_projectDir / L"gt_output";
@@ -493,11 +499,16 @@ void EpubTranslator::beforeRun()
 
             m_logger->info("已重建 EPUB 文件: {}", wide2Ascii(outputEpubPath));
         };
-
 }
 
 void EpubTranslator::run() {
-    m_logger->info("GalTransl++ EpubTranslator 启动...");
-    this->EpubTranslator::beforeRun();
-    NormalJsonTranslator::run();
+    NormalJsonTranslator::init();
+    EpubTranslator::init();
+    EpubTranslator::beforeRun();
+    std::optional<std::vector<fs::path>> relFilePathsOpt = NormalJsonTranslator::beforeRun();
+    if (!relFilePathsOpt.has_value()) {
+        return;
+    }
+    NormalJsonTranslator::process(std::move(relFilePathsOpt.value()));
+    NormalJsonTranslator::afterRun();
 }

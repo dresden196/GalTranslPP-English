@@ -125,36 +125,36 @@ std::unique_ptr<ITranslator> createTranslator(const fs::path& projectDir, std::s
     // 日志配置结束
 
     std::string filePluginLower = str2Lower(filePlugin);
-    if (filePluginLower.starts_with("lua:")) {
+    if (filePluginLower.ends_with(".lua")) {
         const std::string& baseClassName = toml::find_or(configData, "plugins", "baseClassName", "NormalJson");
         if (baseClassName == "NormalJson") {
-            std::unique_ptr<ITranslator> translator = std::make_unique<LuaTranslator<NormalJsonTranslator>>(filePlugin.substr(4), projectDir, controller, logger);
+            std::unique_ptr<ITranslator> translator = std::make_unique<LuaTranslator<NormalJsonTranslator>>(filePlugin, projectDir, controller, logger);
             return translator;
         }
         else if (baseClassName == "Epub") {
-            std::unique_ptr<ITranslator> translator = std::make_unique<LuaTranslator<EpubTranslator>>(filePlugin.substr(4), projectDir, controller, logger);
+            std::unique_ptr<ITranslator> translator = std::make_unique<LuaTranslator<EpubTranslator>>(filePlugin, projectDir, controller, logger);
             return translator;
         }
         else if (baseClassName == "PDF") {
-            std::unique_ptr<ITranslator> translator = std::make_unique<LuaTranslator<PDFTranslator>>(filePlugin.substr(4), projectDir, controller, logger);
+            std::unique_ptr<ITranslator> translator = std::make_unique<LuaTranslator<PDFTranslator>>(filePlugin, projectDir, controller, logger);
             return translator;
         }
         else {
             throw std::runtime_error("Invalid base class name: " + baseClassName);
         }
     }
-    else if (filePluginLower.starts_with("python:")) {
+    else if (filePluginLower.ends_with(".py")) {
         const std::string& baseClassName = toml::find_or(configData, "plugins", "baseClassName", "NormalJson");
         if (baseClassName == "NormalJson") {
-            std::unique_ptr<ITranslator> translator = std::make_unique<PythonTranslator<NormalJsonTranslator>>(filePlugin.substr(7), projectDir, controller, logger);
+            std::unique_ptr<ITranslator> translator = std::make_unique<PythonTranslator<NormalJsonTranslator>>(filePlugin, projectDir, controller, logger);
             return translator;
         }
         else if (baseClassName == "Epub") {
-            std::unique_ptr<ITranslator> translator = std::make_unique<PythonTranslator<EpubTranslator>>(filePlugin.substr(7), projectDir, controller, logger);
+            std::unique_ptr<ITranslator> translator = std::make_unique<PythonTranslator<EpubTranslator>>(filePlugin, projectDir, controller, logger);
             return translator;
         }
         else if (baseClassName == "PDF") {
-            std::unique_ptr<ITranslator> translator = std::make_unique<PythonTranslator<PDFTranslator>>(filePlugin.substr(7), projectDir, controller, logger);
+            std::unique_ptr<ITranslator> translator = std::make_unique<PythonTranslator<PDFTranslator>>(filePlugin, projectDir, controller, logger);
             return translator;
         }
         else {

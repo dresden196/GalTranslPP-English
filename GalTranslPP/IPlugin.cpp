@@ -42,14 +42,12 @@ std::vector<std::shared_ptr<IPlugin>> registerPlugins(const std::vector<std::str
 
     for (const auto& pluginName : pluginNames) {
         std::string pluginNameLower = str2Lower(pluginName);
-        if (pluginNameLower.starts_with("lua:")) {
-            std::string luaScriptPath = pluginName.substr(4);
-            plugins.push_back(std::make_shared<LuaTextPlugin>(projectDir, replaceStrInplace(luaScriptPath, "<PROJECT_DIR>", wide2Ascii(projectDir)),
+        if (pluginNameLower.ends_with(".lua")) {
+            plugins.push_back(std::make_shared<LuaTextPlugin>(projectDir, replaceStr(pluginName, "<PROJECT_DIR>", wide2Ascii(projectDir)),
                 luaManager, logger));
         }
-        else if (pluginNameLower.starts_with("python:")) {
-            std::string pythonModulePath = pluginName.substr(7);
-            plugins.push_back(std::make_shared<PythonTextPlugin>(projectDir, replaceStrInplace(pythonModulePath, "<PROJECT_DIR>", wide2Ascii(projectDir)),
+        else if (pluginNameLower.ends_with(".py")) {
+            plugins.push_back(std::make_shared<PythonTextPlugin>(projectDir, replaceStr(pluginName, "<PROJECT_DIR>", wide2Ascii(projectDir)),
                 pythonManager, logger));
         }
         else if (pluginName == "TextPostFull2Half") {

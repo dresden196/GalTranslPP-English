@@ -364,16 +364,13 @@ void StartSettingsPage::_setupUI()
 			else {
 				const std::string& customFilePluginStr = toml::find_or(_projectConfig, "plugins", "customFilePlugin", "Lua/MySampleFilePlugin.lua");
 				fs::path customFilePluginPath = ascii2Wide(customFilePluginStr);
-				if (isSameExtension(customFilePluginPath, L".lua")) {
-					insertToml(_projectConfig, "plugins.filePlugin", "Lua:" + customFilePluginStr);
-				}
-				else if (isSameExtension(customFilePluginPath, L".py")) {
-					insertToml(_projectConfig, "plugins.filePlugin", "Python:" + customFilePluginStr);
-				}
-				else {
+				if (
+					!isSameExtension(customFilePluginPath, L".lua") &&
+					!isSameExtension(customFilePluginPath, L".py")
+					) {
 					ElaMessageBar::error(ElaMessageBarType::BottomRight, tr("文件格式错误"), tr("自定义文件插件的格式必须是 .lua 或 .py 格式。"), 3000);
-					insertToml(_projectConfig, "plugins.filePlugin", customFilePluginStr);
 				}
+				insertToml(_projectConfig, "plugins.filePlugin", customFilePluginStr);
 			}
 			insertToml(_projectConfig, "plugins.transEngine", translateMode->currentText().toStdString());
 		};

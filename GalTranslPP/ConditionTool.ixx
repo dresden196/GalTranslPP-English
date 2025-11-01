@@ -95,10 +95,10 @@ export {
         if (tbl.contains("conditionScript") && !tbl.at("conditionScript").as_string().empty()
             && tbl.contains("conditionFunc") && !tbl.at("conditionFunc").as_string().empty()) {
             std::string conditionScriptStr = str2Lower(tbl.at("conditionScript").as_string());
-            if (conditionScriptStr.starts_with("lua:")) {
+            if (conditionScriptStr.ends_with(".lua")) {
                 return ConditionType::Lua;
             }
-            else if (conditionScriptStr.starts_with("python:")) {
+            else if (conditionScriptStr.ends_with(".py")) {
                 return ConditionType::Python;
             }
         }
@@ -128,7 +128,7 @@ export {
 
                 case ConditionType::Lua:
                 {
-                    std::string conditionLuaStr = tbl.at("conditionScript").as_string().substr(4);
+                    std::string conditionLuaStr = tbl.at("conditionScript").as_string();
                     const std::string& conditionFuncStr = tbl.at("conditionFunc").as_string();
                     std::optional<std::shared_ptr<LuaStateInstance>> luaStateOpt = luaManager.registerFunction(
                         replaceStrInplace(conditionLuaStr, "<PROJECT_DIR>", wide2Ascii(projectDir)), conditionFuncStr, needReboot);
@@ -156,7 +156,7 @@ export {
                 break;
                 case ConditionType::Python:
                 {
-                    std::string conditionPythonStr = tbl.at("conditionScript").as_string().substr(7);
+                    std::string conditionPythonStr = tbl.at("conditionScript").as_string();
                     const std::string& conditionFuncStr = tbl.at("conditionFunc").as_string();
                     std::optional<std::shared_ptr<PythonInterpreterInstance>> pythonInterpreterOpt = pythonManager.registerFunction(
                         replaceStrInplace(conditionPythonStr, "<PROJECT_DIR>", wide2Ascii(projectDir)), conditionFuncStr, needReboot);

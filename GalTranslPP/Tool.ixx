@@ -109,6 +109,7 @@ export {
     std::vector<double> getSubstringPositions(const std::string& text, const std::string& sub);
 
     std::string& replaceStrInplace(std::string& str, const std::string& org, const std::string& rep);
+    std::string replaceStr(const std::string& str, const std::string& org, const std::string& rep);
 
     std::string extractCharactersByScripts(const std::string& sourceString, const std::vector<UScriptCode>& targetScripts);
 
@@ -700,6 +701,11 @@ std::vector<double> getSubstringPositions(const std::string& text, const std::st
 std::string& replaceStrInplace(std::string& str, const std::string& org, const std::string& rep) {
     str = str | std::views::split(org) | std::views::join_with(rep) | std::ranges::to<std::string>();
     return str;
+}
+
+std::string replaceStr(const std::string& str, const std::string& org, const std::string& rep) {
+    std::string result = str | std::views::split(org) | std::views::join_with(rep) | std::ranges::to<std::string>();
+    return result;
 }
 
 // 核心辅助函数
