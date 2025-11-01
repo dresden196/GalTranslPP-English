@@ -56,7 +56,6 @@ export {
 
         int m_totalSentences = 0;
         std::atomic<int> m_completedSentences = 0;
-        std::atomic<long long> m_pluginTimeUsed = 0;
 
         int m_threadsNum;
         int m_batchSize;
@@ -576,14 +575,12 @@ void NormalJsonTranslator::preProcess(Sentence* se) {
         se->pre_processed_text = m_preDictionary.doReplace(se, CachePart::PreprocText);
     }
 
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     for (auto& plugin : m_prePlugins) {
         plugin->run(se);
         if (se->complete) {
             break;
         }
     }
-    m_pluginTimeUsed += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count();
 
 }
 
@@ -594,11 +591,9 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
     se->translated_preview = se->pre_translated_text;
     se->problems.clear();
 
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     for (auto& plugin : m_postPlugins) {
         plugin->run(se);
     }
-    m_pluginTimeUsed += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count();
 
     if (m_usePostDictInMsg) {
         se->translated_preview = m_postDictionary.doReplace(se, CachePart::TransPreview);
@@ -1436,7 +1431,6 @@ void NormalJsonTranslator::afterRun() {
     if (!m_controller->shouldStop() && m_transEngine == TransEngine::Rebuild && m_completedSentences != m_totalSentences) {
         m_logger->critical("重建过程中有句子未命中缓存 ({}/{} lines)，请检查日志以定位问题。", m_completedSentences.load(), m_totalSentences);
     }
-    m_logger->info("Plugin time cost: {}ms", m_pluginTimeUsed.load() / 1000 / 1000);
 }
 
 void NormalJsonTranslator::process(std::vector<fs::path> relFilePaths) {

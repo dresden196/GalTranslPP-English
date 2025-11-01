@@ -100,7 +100,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -132,11 +132,13 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>if exist "$(TargetDir)..\GPPCLI_PRIVATE" copy "$(TargetPath)" "$(TargetDir)..\GPPCLI_PRIVATE\$(TargetName)$(TargetExt)"</Command>
+      <Command>if exist "$(TargetDir)..\GPPCLI_PRIVATE" copy "$(TargetPath)" "$(TargetDir)..\GPPCLI_PRIVATE\$(TargetName)$(TargetExt)"
+del "$(TargetDir)$(TargetName).exp"
+del "$(TargetDir)$(TargetName).lib"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

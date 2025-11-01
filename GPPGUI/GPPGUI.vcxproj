@@ -89,7 +89,9 @@ if not exist "$(TargetDir)..\GUICORE\translations" mkdir "$(TargetDir)..\GUICORE
 if exist "$(TargetDir)..\GPPGUI_PRIVATE" copy "$(TargetPath)" "$(TargetDir)..\GPPGUI_PRIVATE\$(TargetName)$(TargetExt)"
 if exist "$(TargetDir)..\GPPGUI_PRIVATE" copy "$(TargetDir)translations\Translation_*.*" "$(TargetDir)..\GPPGUI_PRIVATE\translations\"
 copy "$(TargetPath)" "$(TargetDir)..\GUICORE\$(TargetName)$(TargetExt)"
-copy "$(TargetDir)translations\Translation_*.*" "$(TargetDir)..\GUICORE\translations\"</Command>
+copy "$(TargetDir)translations\Translation_*.*" "$(TargetDir)..\GUICORE\translations\"
+del "$(TargetDir)$(TargetName).exp"
+del "$(TargetDir)$(TargetName).lib"</Command>
     </PostBuildEvent>
     <QtTranslation>
       <BuildAction>lupdate_lrelease</BuildAction>
