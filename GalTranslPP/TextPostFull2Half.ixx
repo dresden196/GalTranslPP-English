@@ -26,7 +26,6 @@ export {
 
     public:
         TextPostFull2Half(const toml::value& projectConfig, std::shared_ptr<spdlog::logger> logger);
-        bool needReboot() const { return false; }
         void run(Sentence* se);
         ~TextPostFull2Half() = default;
     };
