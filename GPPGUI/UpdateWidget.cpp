@@ -1,4 +1,4 @@
-#include "UpdateWidget.h"
+﻿#include "UpdateWidget.h"
 
 #include <QVBoxLayout>
 #include "ElaText.h"
@@ -16,9 +16,8 @@ UpdateWidget::UpdateWidget(QWidget* parent)
 
     ElaText* updateTitle = new ElaText("v" + QString::fromStdString(GPPVERSION) + " 更新", 15, this);
     QStringList updateList = {
-        "1. 新增自定义 Lua/Python 脚本扩展支持",
-        "2. 修复字符集检查的竞态条件 bug",
-        "3. 修复 SkipTrans 无事跳 Python 重启的 bug",
+        "1. 向 Prompt 中实验性的添加了 动态背景 功能",
+        "2. 优化了一些界面细节"
 
     };
 

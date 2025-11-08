@@ -341,7 +341,7 @@ nvcc --version
 
 #### 为 `spaCy` 启用 GPU加速
 
-- 1、 同 Stanza 第一条。
+- 1、 同 Stanza 第一条 和 第二条。
 - 2、 在 **嵌入式 Python环境(详见 Stanza第三条)中** 重新安装 spacy。`python -m pip uninstall spacy`，并确保此环境中没有安装 `cupy`。
 - 3、 根据自己的 CUDA 版本(查看 Stanza 第二条以查看如何获取 CUDA 版本)，安装 `cupy` 的特定版本，如 `cupy-cuda13x`: `python -m pip install cupy-cuda13x`，然后再把 spacy 装回来 `python -m pip install spacy`。
 - 4、 尝试运行 `BaseConfig\pyScripts\check_spacy_gpu.py`，如果提示成功，则代表所有配置均已就绪。

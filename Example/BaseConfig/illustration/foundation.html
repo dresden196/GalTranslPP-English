@@ -415,7 +415,7 @@ callback = [ { group = 2, org = '&lt;[^&gt;]*&gt;', rep = '' } ]
 </ul>
 <h4>为 <code>spaCy</code> 启用 GPU加速</h4>
 <ul>
-<li>1、 同 Stanza 第一条。</li>
+<li>1、 同 Stanza 第一条 和 第二条。</li>
 <li>2、 在 <strong>嵌入式 Python环境(详见 Stanza第三条)中</strong> 重新安装 spacy。<code>python -m pip uninstall spacy</code>，并确保此环境中没有安装 <code>cupy</code>。</li>
 <li>3、 根据自己的 CUDA 版本(查看 Stanza 第二条以查看如何获取 CUDA 版本)，安装 <code>cupy</code> 的特定版本，如 <code>cupy-cuda13x</code>: <code>python -m pip install cupy-cuda13x</code>，然后再把 spacy 装回来 <code>python -m pip install spacy</code>。</li>
 <li>4、 尝试运行 <code>BaseConfig\pyScripts\check_spacy_gpu.py</code>，如果提示成功，则代表所有配置均已就绪。</li>
