@@ -1,4 +1,4 @@
-// PluginSettingsPage.cpp
+﻿// PluginSettingsPage.cpp
 
 #include "PluginSettingsPage.h"
 #include "PluginItemWidget.h" // 引入自定义控件
@@ -149,7 +149,7 @@ void PluginSettingsPage::_setupUI()
         {
             ElaText* customPrePluginsTitle = new ElaText(title, 18, mainWidget);
             customPrePluginsTitle->setWordWrap(false);
-            ElaToolTip* customPrePluginsTip = new ElaToolTip(mainWidget);
+            ElaToolTip* customPrePluginsTip = new ElaToolTip(customPrePluginsTitle);
             customPrePluginsTip->setToolTip("用来加载自定义的 Lua/Python 插件");
             mainLayout->addWidget(customPrePluginsTitle);
             ElaPlainTextEdit* customPrePluginsEdit = new ElaPlainTextEdit(mainWidget);

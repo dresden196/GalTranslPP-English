@@ -52,28 +52,27 @@ ApiResponse performApiRequest(json& payload, const TranslationApi& api, int thre
         auto callbackLambda = [&](const std::string_view& data, intptr_t userdata) -> bool
             {
                 // 将接收到的数据块(string_view)追加到缓冲区(string)
+                logger->debug("[线程 {}] 接收到流式数据块: {}", threadId, replaceStr(std::string(data), "\n", "[n]"));
                 sseBuffer.append(data);
                 size_t pos;
                 while ((pos = sseBuffer.find('\n')) != std::string::npos) {
                     std::string line = sseBuffer.substr(0, pos);
                     sseBuffer.erase(0, pos + 1);
 
-                    if (line.rfind("data: ", 0) == 0) {
+                    if (line.starts_with("data: ")) {
                         std::string jsonDataStr = line.substr(6);
                         if (jsonDataStr == "[DONE]") {
                             return true;
                         }
                         try {
                             json chunk = json::parse(jsonDataStr);
-                            if (!chunk["choices"].empty() && chunk["choices"][0].contains("delta") && chunk["choices"][0]["delta"].contains("content")) {
-                                auto content_node = chunk["choices"][0]["delta"]["content"];
-                                if (content_node.is_string()) {
-                                    concatenatedContent += content_node.get<std::string>();
-                                }
+                            json& contentNode = chunk["choices"][0]["delta"]["content"];
+                            if (contentNode.is_string()) {
+                                concatenatedContent += contentNode.get<std::string>();
                             }
                         }
-                        catch (const json::exception&) {
-
+                        catch (...) {
+                            
                         }
                     }
                 }

@@ -1,9 +1,10 @@
-module;
+﻿module;
 
 #include <spdlog/spdlog.h>
 #include <toml.hpp>
 #include <unicode/regex.h>
 #include <unicode/unistr.h>
+#include <boost/regex.hpp>
 
 export module NJ_ImplTool;
 
@@ -22,7 +23,7 @@ export {
     void fillBlockAndMap(const std::vector<Sentence*>& batchToTransThisRound, std::map<int, Sentence*>& id2SentenceMap, std::string& inputBlock, TransEngine transEngine);
 
     void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThisRound, std::map<int, Sentence*>& id2SentenceMap, const std::string& modelName,
-        TransEngine transEngine, bool& parseError, int& parsedCount, std::shared_ptr<IController> controller, std::atomic<int>& completedSentences);
+        std::string& backgroudText, TransEngine transEngine, bool& parseError, int& parsedCount, std::shared_ptr<IController> controller, std::atomic<int>& completedSentences);
 
     void combineOutputFiles(const fs::path& originalRelFilePath, const std::map<fs::path, bool>& splitFileParts,
         std::shared_ptr<spdlog::logger> logger, const fs::path& outputCacheDir, const fs::path& outputDir);
@@ -84,9 +85,8 @@ std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine
             }
             current = current->prev;
         }
-        std::reverse(contextLines.begin(), contextLines.end());
         if (contextLines.empty()) return {};
-        for (const auto& line : contextLines) {
+        for (const auto& line : contextLines | std::views::reverse) {
             history += line + "\n";
         }
         break;
@@ -103,9 +103,8 @@ std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine
             }
             current = current->prev;
         }
-        std::reverse(contextLines.begin(), contextLines.end());
         if (contextLines.empty()) return {};
-        for (const auto& line : contextLines) {
+        for (const auto& line : contextLines | std::views::reverse) {
             history += line + "\n";
         }
         break;
@@ -130,8 +129,8 @@ std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine
             }
             current = current->prev;
         }
-        std::reverse(historyJson.begin(), historyJson.end());
-        for (const auto& item : historyJson) {
+        if (historyJson.empty()) return {};
+        for (const auto& item : historyJson | std::views::reverse) {
             history += item.dump() + "\n";
         }
         history = "```jsonline\n" + history + "```";
@@ -155,8 +154,8 @@ std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine
             }
             current = current->prev;
         }
-        std::reverse(contextLines.begin(), contextLines.end());
-        for (const auto& line : contextLines) {
+        if (contextLines.empty()) return {};
+        for (const auto& line : contextLines | std::views::reverse) {
             history += line + "\n";
         }
     }
@@ -221,10 +220,21 @@ void fillBlockAndMap(const std::vector<Sentence*>& batchToTransThisRound, std::m
 }
 
 void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThisRound, std::map<int, Sentence*>& id2SentenceMap, const std::string& modelName,
-    TransEngine transEngine, bool& parseError, int& parsedCount, std::shared_ptr<IController> controller, std::atomic<int>& completedSentences) {
-    if (content.find("</think>") != std::string::npos) {
-        content = content.substr(content.find("</think>") + 8);
+    std::string& backgroudText, TransEngine transEngine, bool& parseError, int& parsedCount, std::shared_ptr<IController> controller, std::atomic<int>& completedSentences) {
+    if (size_t pos = content.find("</think>"); pos != std::string::npos) {
+        content = content.substr(pos + 8);
     }
+
+    {
+        static boost::regex backgroundRegex{ R"(<background>\n*([\S\s]*?)\n*</background>)" };
+        boost::smatch match;
+        if (boost::regex_search(content, match, backgroundRegex)) {
+            std::string background = match[1].str();
+            replaceStrInplace(background, "<ORIGINAL>", backgroudText);
+            backgroudText = std::move(background);
+        }
+    }
+
     switch (transEngine) {
     case TransEngine::ForGalTsv:
     {
@@ -240,14 +250,14 @@ void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThis
 
         while (parsedCount < batchToTransThisRound.size() && std::getline(ss, line)) {
             if (line.empty() || line.find("```") != std::string::npos) continue;
-            auto parts = splitString(line, '\t');
+            const auto parts = splitString(line, '\t');
             if (parts.size() < 3) {
                 parseError = true;
                 continue;
             }
             try {
                 int id = std::stoi(parts[2]);
-                if (id2SentenceMap.count(id)) {
+                if (id2SentenceMap.contains(id)) {
                     if (parts[1].empty() && !id2SentenceMap[id]->pre_processed_text.empty()) {
                         parseError = true;
                         continue;
@@ -283,14 +293,14 @@ void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThis
 
         while (parsedCount < batchToTransThisRound.size() && std::getline(ss, line)) {
             if (line.empty() || line.find("```") != std::string::npos) continue;
-            auto parts = splitString(line, '\t');
+            const auto parts = splitString(line, '\t');
             if (parts.size() < 2) {
                 parseError = true;
                 continue;
             }
             try {
                 int id = std::stoi(parts[1]);
-                if (id2SentenceMap.count(id)) {
+                if (id2SentenceMap.contains(id)) {
                     if (parts[0].empty() && !id2SentenceMap[id]->pre_processed_text.empty()) {
                         parseError = true;
                         continue;
@@ -327,7 +337,7 @@ void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThis
             try {
                 json item = json::parse(line);
                 int id = item.at("id");
-                if (id2SentenceMap.count(id)) {
+                if (id2SentenceMap.contains(id)) {
                     if (item.at("dst").empty() && !id2SentenceMap[id]->pre_processed_text.empty()) {
                         parseError = true;
                         continue;
@@ -350,7 +360,7 @@ void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThis
 
     case TransEngine::Sakura:
     {
-        auto lines = splitString(content, '\n');
+        const auto lines = splitString(content, '\n');
         // 核心检查：行数是否匹配
         if (lines.size() != batchToTransThisRound.size()) {
             parseError = true;
@@ -390,7 +400,7 @@ void combineOutputFiles(const fs::path& originalRelFilePath, const std::map<fs::
     logger->debug("开始合并文件: {}", wide2Ascii(originalRelFilePath));
 
     std::vector<fs::path> partPaths;
-    for (const auto& [relPartPath, ready] : splitFileParts) {
+    for (const auto& relPartPath : splitFileParts | std::views::keys) {
         partPaths.push_back(relPartPath);
     }
 
@@ -501,6 +511,7 @@ void saveCache(const std::vector<Sentence>& allSentences, const fs::path& cacheP
     }
     std::ofstream ofs(cachePath);
     ofs << cacheJson.dump(2);
+    ofs.close();
 }
 
 

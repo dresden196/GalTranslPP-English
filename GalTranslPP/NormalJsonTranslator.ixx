@@ -113,7 +113,7 @@ export {
 
         void postProcess(Sentence* se);
 
-        bool translateBatchWithRetry(const fs::path& relInputPath, std::vector<Sentence*>& batch, int threadId);
+        bool translateBatchWithRetry(const fs::path& relInputPath, std::vector<Sentence*>& batch, std::string& backgroundText, int threadId);
 
         void processFile(const fs::path& relInputPath, int threadId);
 
@@ -503,7 +503,7 @@ void NormalJsonTranslator::init()
             || std::ranges::any_of(m_prePlugins, [](const auto& plugin) { return plugin->needReboot(); })
             || std::ranges::any_of(m_postPlugins, [](const auto& plugin) { return plugin->needReboot(); });
         if (needReboot) {
-            throw std::runtime_error("需要重启程序以应用新安装的 Python 模块");
+            throw std::runtime_error("需要重启程序以应用新安装的 NLP 模型");
         }
     }
     catch (const toml::exception& e) {
@@ -660,7 +660,7 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
 }
 
 
-bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath, std::vector<Sentence*>& batch, int threadId) {
+bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath, std::vector<Sentence*>& batch, std::string& backgroundText, int threadId) {
 
     if (batch.empty()) {
         return true;
@@ -698,8 +698,8 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
             std::vector<Sentence*> firstHalf(batchToTransThisRound.begin(), batchToTransThisRound.begin() + mid);
             std::vector<Sentence*> secondHalf(batchToTransThisRound.begin() + mid, batchToTransThisRound.end());
 
-            bool firstOk = translateBatchWithRetry(relInputPath, firstHalf, threadId);
-            bool secondOk = translateBatchWithRetry(relInputPath, secondHalf, threadId);
+            bool firstOk = translateBatchWithRetry(relInputPath, firstHalf, backgroundText, threadId);
+            bool secondOk = translateBatchWithRetry(relInputPath, secondHalf, backgroundText, threadId);
 
             return firstOk && secondOk;
         }
@@ -722,9 +722,21 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         std::map<int, Sentence*> id2SentenceMap; // 用于 TSV/JSON 
         fillBlockAndMap(batchToTransThisRound, id2SentenceMap, inputBlock, m_transEngine);
 
-        m_logger->info("[线程 {}] [文件 {}] 开始翻译\nProblems:\n{}\nDict:\n{}\ninputBlock:\n{}", threadId, wide2Ascii(relInputPath), inputProblems, glossary, inputBlock);
+        std::string logBlock;
+        if (!inputProblems.empty()) {
+            logBlock += "\nProblems:\n" + inputProblems;
+        }
+        if (!backgroundText.empty()) {
+            logBlock += "\nBackground:\n" + backgroundText;
+        }
+        if (!glossary.empty()) {
+            logBlock += "\nDict:\n" + glossary;
+        }
+        logBlock += "\ninputBlock:\n" + inputBlock;
+        m_logger->info("[线程 {}] [文件 {}] 开始翻译:\n{}", threadId, wide2Ascii(relInputPath), logBlock);
         std::string promptReq = m_userPrompt;
         replaceStrInplace(promptReq, "[Problem Description]", inputProblems);
+        replaceStrInplace(promptReq, "[Background Description]", backgroundText);
         replaceStrInplace(promptReq, "[Input]", inputBlock);
         replaceStrInplace(promptReq, "[TargetLang]", m_targetLang);
         replaceStrInplace(promptReq, "[Glossary]", glossary);
@@ -745,8 +757,9 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         json payload = { {"model", currentApi.modelName}, {"messages", messages} };
 
         ApiResponse response = performApiRequest(payload, currentApi, threadId, m_controller, m_logger, m_apiTimeOutMs);
+
         /*bool checkResponse(const ApiResponse & response, const TranslationApi & currentAPI, int& retryCount, const std::filesystem::path & relInputPath,
-            int threadId, bool m_checkQuota, const std::string & m_apiStrategy, APIPool & m_apiPool, std::shared_ptr<spdlog::logger> m_logger)*/
+            int threadId, bool m_checkQuota, const std::string & m_apiStrategy, APIPool & m_apiPool, std::shared_ptr<spdlog::logger> m_logger);*/
         if (!checkResponse(
             response, currentApi, retryCount, relInputPath, threadId, m_checkQuota, m_apiStrategy, m_apiPool, m_logger
         )) {
@@ -758,12 +771,16 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         int parsedCount = 0;
         bool parseError = false;
 
-        parseContent(response.content, batchToTransThisRound, id2SentenceMap, currentApi.modelName, m_transEngine, parseError, parsedCount,
-            m_controller, m_completedSentences);
+        /*void parseContent(std::string & content, std::vector<Sentence*>&batchToTransThisRound, std::map<int, Sentence*>&id2SentenceMap, const std::string & modelName,
+            std::string & backgroudText, TransEngine transEngine, bool& parseError, int& parsedCount, std::shared_ptr<IController> controller, std::atomic<int>&completedSentences);*/
+        parseContent(response.content, batchToTransThisRound, id2SentenceMap, currentApi.modelName,
+            backgroundText, m_transEngine, parseError, parsedCount, m_controller, m_completedSentences);
 
         if (parseError || parsedCount != batchToTransThisRound.size()) {
             retryCount++;
-            m_logger->warn("[线程 {}] [文件 {}] 解析失败或不完整 ({} / {}), 进行第 {} 次重试...", threadId, wide2Ascii(relInputPath.filename()), parsedCount, batchToTransThisRound.size(), retryCount);
+            if (!m_controller->shouldStop()) {
+                m_logger->warn("[线程 {}] [文件 {}] 解析失败或不完整 ({} / {}), 进行第 {} 次重试...", threadId, wide2Ascii(relInputPath), parsedCount, batchToTransThisRound.size(), retryCount);
+            }
             continue;
         }
 
@@ -771,7 +788,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         return true;
     }
 
-    m_logger->error("[线程 {}] [文件 {}] 批次翻译在 {} 次重试后彻底失败。", threadId, wide2Ascii(relInputPath.filename()), m_maxRetries);
+    m_logger->error("[线程 {}] [文件 {}] 批次翻译在 {} 次重试后彻底失败。", threadId, wide2Ascii(relInputPath), m_maxRetries);
     for (auto& pSentence : batch | std::views::filter([](const Sentence* pSentence) { return !pSentence->complete; })) {
         pSentence->pre_translated_text = "(Failed to translate)" + pSentence->pre_processed_text;
         pSentence->complete = true;
@@ -1011,13 +1028,14 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
             release = std::make_unique<py::gil_scoped_release>();
         }
         int batchCount = 0;
+        std::string backgroundText;
         for (size_t i = 0; i < toTranslate.size(); i += m_batchSize) {
             if (m_controller->shouldStop()) {
                 m_controller->reduceThreadNum();
                 return;
             }
             std::vector<Sentence*> batch(toTranslate.begin() + i, toTranslate.begin() + std::min(i + m_batchSize, toTranslate.size()));
-            translateBatchWithRetry(relInputPath, batch, threadId);
+            translateBatchWithRetry(relInputPath, batch, backgroundText, threadId);
             for (Sentence* se : batch) {
                 postProcess(se);
             }

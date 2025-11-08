@@ -1,4 +1,4 @@
-export module GPPDefines;
+﻿export module GPPDefines;
 
 export import std;
 
@@ -8,7 +8,9 @@ export {
 
     const std::string GPPVERSION = "2.0.4";
 
-    const std::string PYTHONVERSTION = "1.0.0";
+    const std::string PYTHONVERSION = "1.0.0";
+
+    const std::string PROMPTVERSION = "1.0.1";
 
     const fs::path pluginConfigsPath = L"BaseConfig/pluginConfigs";
 

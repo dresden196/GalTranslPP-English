@@ -1,4 +1,4 @@
-#include <toml.hpp>
+﻿#include <toml.hpp>
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QApplication>
@@ -39,15 +39,17 @@ int main(int argc, char* argv[]) {
 
 #ifdef Q_OS_WIN
     HMODULE hUser32 = LoadLibraryW(L"User32.dll");
-    uint64_t orgSetProcessDpiAwarenessContext = (uint64_t)(GetProcAddress(hUser32, "SetProcessDpiAwarenessContext"));
-    if (orgSetProcessDpiAwarenessContext) {
-        FnCast(orgSetProcessDpiAwarenessContext, SetProcessDpiAwarenessContext)(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    if (hUser32) {
+        uint64_t orgSetProcessDpiAwarenessContext = (uint64_t)(GetProcAddress(hUser32, "SetProcessDpiAwarenessContext"));
+        if (orgSetProcessDpiAwarenessContext) {
+            FnCast(orgSetProcessDpiAwarenessContext, SetProcessDpiAwarenessContext)(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+        }
+        FreeLibrary(hUser32);
     }
-    FreeLibrary(hUser32);
 #endif
 
     QCoreApplication a(argc, argv);
-    QCoreApplication::setApplicationName("Updater");
+    QCoreApplication::setApplicationName("GalTransl++ Updater");
 
     QCommandLineParser parser;
     parser.addHelpOption();
@@ -56,6 +58,9 @@ int main(int argc, char* argv[]) {
     parser.addOption({ {"t", "target"}, "Target directory for installation.", "target" });
     parser.addOption({ {"r", "restart"}, "Restart the main application after update is installed.", "restart" });
     parser.addOption({ {"n", "newActionFlag"}, "Flag to indicate a new action.", "newActionFlag" });
+    parser.addOption({ QStringList{"gppVersion"}, "Version of GalTranslPP.", "gppVersion" });
+    parser.addOption({ QStringList{"pythonVersion"}, "Version of Python.", "pythonVersion" });
+    parser.addOption({ QStringList{"promptVersion"}, "Version of Prompt.", "promptVersion" });
     parser.process(a);
 
     qint64 pid = parser.value("pid").toLongLong();
@@ -64,24 +69,31 @@ int main(int argc, char* argv[]) {
 
     if (pid == 0 || sourceZip.isEmpty() || targetDir.isEmpty()) {
 #ifdef Q_OS_WIN
-        MessageBoxW(NULL, L"Invalid arguments provided.", L"Updater", MB_ICONERROR | MB_TOPMOST);
+        MessageBoxW(NULL, L"Invalid arguments provided.", L"GalTransl++ Updater", MB_ICONERROR | MB_TOPMOST);
 #endif
         return -1;
     }
 
     if (parser.isSet("newActionFlag")) {
         try {
-            extractFileFromZip(sourceZip.toStdWString(), targetDir.toStdWString(), "update.toml");
-            const auto updateConfig = toml::parse(fs::path(L"update.toml"));
-            fs::remove(L"update.toml");
+            std::string orgPythonVersion = parser.isSet("pythonVersion")? parser.value("pythonVersion").toStdString() : "1.0.0";
+            std::string orgPromptVersion = parser.isSet("promptVersion")? parser.value("promptVersion").toStdString() : "1.0.0";
             std::set<std::string> excludePreFixes =
             {
-                "BaseConfig/python-3.12.10-embed-amd64", "BaseConfig/pyScripts", "update.toml"
+                "BaseConfig/python-3.12.10-embed-amd64", "BaseConfig/pyScripts", "BaseConfig/Prompt.toml",
             };
             bool isCompatible = true;
-            if (cmpVer(toml::find<std::string>(updateConfig, "PYTHON", "version"), PYTHONVERSTION, isCompatible)) {
+            if (cmpVer(orgPythonVersion, PYTHONVERSION, isCompatible)) {
                 excludePreFixes.erase("BaseConfig/python-3.12.10-embed-amd64");
                 excludePreFixes.erase("BaseConfig/pyScripts");
+            }
+            if (cmpVer(orgPromptVersion, PROMPTVERSION, isCompatible)) {
+#ifdef Q_OS_WIN
+                int ret = MessageBoxW(NULL, L"检测到新版本的 Prompt，是否更新 Prompt (会覆盖当前的默认提示词)？", L"GalTransl++ Updater", MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
+                if (ret == IDYES) {
+                    excludePreFixes.erase("BaseConfig/Prompt.toml");
+                }
+#endif
             }
             extractZipExclude(sourceZip.toStdWString(), targetDir.toStdWString(), excludePreFixes);
         }
@@ -108,6 +120,9 @@ int main(int argc, char* argv[]) {
             arguments << "--newActionFlag" << QString::number(QApplication::applicationPid());
             arguments << "--pid" << QString::number(QApplication::applicationPid());
             arguments << "--source" << sourceZip << "--target" << targetDir;
+            arguments << "--gppVersion" << QString::fromStdString(GPPVERSION);
+            arguments << "--pythonVersion" << QString::fromStdString(PYTHONVERSION);
+            arguments << "--promptVersion" << QString::fromStdString(PROMPTVERSION);
             QProcess::execute("Updater_new.exe", arguments);
         }
     }
@@ -121,7 +136,7 @@ int main(int argc, char* argv[]) {
     QFile::remove(sourceZip);
 
 #ifdef Q_OS_WIN
-    MessageBoxW(NULL, L"更新成功", L"成功", MB_OK | MB_TOPMOST);
+    MessageBoxW(NULL, L"GalTransl++ 更新成功", L"成功", MB_OK | MB_TOPMOST);
 #endif
 
     if (parser.isSet("restart")) {

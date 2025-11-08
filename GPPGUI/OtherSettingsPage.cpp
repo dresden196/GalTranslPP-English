@@ -14,6 +14,7 @@
 #include "ElaToolTip.h"
 #include "ElaContentDialog.h"
 #include "ElaInputDialog.h"
+#include "ElaDoubleText.h"
 
 import Tool;
 
@@ -150,12 +151,8 @@ void OtherSettingsPage::_setupUI()
 	// 保存配置
 	ElaScrollPageArea* saveArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* saveLayout = new QHBoxLayout(saveArea);
-	ElaText* saveLabel = new ElaText(saveArea);
-	ElaToolTip* saveTip = new ElaToolTip(saveLabel);
-	saveTip->setToolTip(tr("开始翻译或关闭程序时会自动保存所有项目的配置，一般无需手动保存。"));
-	saveLabel->setText(tr("保存项目配置"));
-	saveLabel->setWordWrap(false);
-	saveLabel->setTextPixelSize(16);
+	ElaDoubleText* saveLabel = new ElaDoubleText(saveArea,
+		tr("保存项目配置"), 16, tr("开始翻译或关闭程序时会自动保存所有项目的配置，一般无需手动保存"), 10, "");
 	saveLayout->addWidget(saveLabel);
 	saveLayout->addStretch();
 	ElaPushButton* saveButton = new ElaPushButton(saveArea);
@@ -172,11 +169,8 @@ void OtherSettingsPage::_setupUI()
 	// 刷新项目配置
 	ElaScrollPageArea* refreshArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* refreshLayout = new QHBoxLayout(refreshArea);
-	ElaText* refreshLabel = new ElaText(tr("刷新项目配置"), refreshArea);
-	refreshLabel->setTextPixelSize(16);
-	refreshLabel->setWordWrap(false);
-	ElaToolTip* refreshTip = new ElaToolTip(refreshLabel);
-	refreshTip->setToolTip(tr("将刷新现有配置和字典，谨慎使用。"));
+	ElaDoubleText* refreshLabel = new ElaDoubleText(refreshArea,
+		tr("刷新项目配置"), 16, tr("刷新现有配置和字典，谨慎使用"), 10, "");
 	refreshLayout->addWidget(refreshLabel);
 	refreshLayout->addStretch();
 	ElaPushButton* refreshButton = new ElaPushButton(refreshArea);
@@ -215,10 +209,8 @@ void OtherSettingsPage::_setupUI()
 	// 删除翻译缓存
 	ElaScrollPageArea* cacheArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* cacheLayout = new QHBoxLayout(cacheArea);
-	ElaText* cacheLabel = new ElaText(cacheArea);
-	cacheLabel->setText(tr("删除翻译缓存"));
-	cacheLabel->setWordWrap(false);
-	cacheLabel->setTextPixelSize(16);
+	ElaDoubleText* cacheLabel = new ElaDoubleText(cacheArea,
+		tr("删除翻译缓存"), 16, tr("删除项目的翻译缓存，下次翻译将会重新从头开始"), 10, "");
 	cacheLayout->addWidget(cacheLabel);
 	cacheLayout->addStretch();
 	ElaPushButton* cacheButton = new ElaPushButton(cacheArea);

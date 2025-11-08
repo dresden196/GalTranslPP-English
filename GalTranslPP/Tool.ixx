@@ -79,8 +79,8 @@ export {
             }
             return result;
         };
-    decltype(auto) splitString(const std::string& str, char delimiter) { return splitStringFunc(str, delimiter); }
-    decltype(auto) splitString(const std::string& str, const std::string& delimiter) { return splitStringFunc(str, delimiter); }
+    std::vector<std::string> splitString(const std::string& str, char delimiter) { return splitStringFunc(str, delimiter); }
+    std::vector<std::string> splitString(const std::string& str, const std::string& delimiter) { return splitStringFunc(str, delimiter); }
 
     std::vector<std::string> splitTsvLine(const std::string& line, const std::vector<std::string>& delimiters);
 

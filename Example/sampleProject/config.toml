@@ -79,13 +79,13 @@ threadsNum = 5             # 最大线程数
 sortMethod = "size"         # 翻译顺序，name为文件名，size为大文件优先，多线程时大文件优先可以提高整体速度[name/size]
 targetLang = "zh-cn"        # 翻译到的目标语言，包括但不限于[zh-cn/zh-tw/en/ja/ko/ru/fr]
 splitFile = "No"            # 是否启用单文件分割。Num: 每n条分割一次，Equal: 每个文件均分n份，No: 关闭单文件分割。[No/Num/Equal]
-splitFileNum = 10            # Num时，表示n句拆分一次；Equal时，表示每个文件均分拆成n部分。
+splitFileNum = 10            # Num时，表示n句拆分一次；Equal时，表示每个文件均分拆成n部分
 saveCacheInterval = 1       # 每翻译n次保存一次缓存
 linebreakSymbol = "auto"    # 这个项目在json中使用的换行符
 maxRetries = 5              # 最大重试次数
 contextHistorySize = 8      # 携带上文数量
-smartRetry = true           # 解析结果失败时尝试折半重翻与清空上下文，避免无效重试。
-checkQuota = true           # 运行时动态检测key额度
+smartRetry = false          # 解析结果失败时尝试折半重翻与清空上下文，如果用的打野 key 其实不建议开这个
+checkQuota = true           # 运行时动态检测key额度，自动从 API 池中删除额度不足的 key
 logLevel = "info"
 saveLog = true
 

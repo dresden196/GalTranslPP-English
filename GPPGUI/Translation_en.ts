@@ -4,13 +4,13 @@
 <context>
     <name>APISettingsPage</name>
     <message>
-        <location filename="APISettingsPage.cpp" line="25"/>
-        <location filename="APISettingsPage.cpp" line="60"/>
+        <location filename="APISettingsPage.cpp" line="26"/>
+        <location filename="APISettingsPage.cpp" line="61"/>
         <source>API 设置</source>
         <translation>API settings</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="86"/>
+        <location filename="APISettingsPage.cpp" line="88"/>
         <source>API 使用策略</source>
         <translation>API strategy</translation>
     </message>
@@ -25,37 +25,37 @@
         <translation>API timeout</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="110"/>
+        <location filename="APISettingsPage.cpp" line="108"/>
         <source>API 请求超时时间，单位为秒</source>
         <translation>in seconds</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="122"/>
+        <location filename="APISettingsPage.cpp" line="118"/>
         <source>增加新 API</source>
         <translation>Add new API</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="179"/>
+        <location filename="APISettingsPage.cpp" line="175"/>
         <source>请输入 API Key(Sakura引擎可不填)</source>
         <translation>Please type in API Key(Sakura transEngine can ignore this)</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="195"/>
+        <location filename="APISettingsPage.cpp" line="191"/>
         <source>请输入 API Url</source>
         <translation>Please type in API Url</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="202"/>
+        <location filename="APISettingsPage.cpp" line="198"/>
         <source>模型名称</source>
         <translation>Model name</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="212"/>
+        <location filename="APISettingsPage.cpp" line="208"/>
         <source>请输入模型名称(Sakura引擎可不填)</source>
         <translation>Please type in model name(Sakura transEngine can ignore this)</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="230"/>
+        <location filename="APISettingsPage.cpp" line="226"/>
         <source>流式</source>
         <translation>Stream</translation>
     </message>
@@ -710,183 +710,199 @@
 <context>
     <name>CommonSettingsPage</name>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="25"/>
+        <location filename="CommonSettingsPage.cpp" line="26"/>
         <source>一般设置</source>
         <translation>Common settings</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="45"/>
+        <location filename="CommonSettingsPage.cpp" line="47"/>
         <source>单次请求翻译句子数量</source>
         <translation>Number per request to translate</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="49"/>
+        <location filename="CommonSettingsPage.cpp" line="47"/>
         <source>推荐值 &lt; 15</source>
         <translation>Recommend &lt; 15</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="63"/>
+        <location filename="CommonSettingsPage.cpp" line="61"/>
         <source>最大线程数</source>
         <translation>Max threads num</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="77"/>
+        <location filename="CommonSettingsPage.cpp" line="76"/>
         <source>翻译顺序</source>
         <translation>Translate order</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="80"/>
+        <location filename="CommonSettingsPage.cpp" line="76"/>
         <source>name为文件名，size为大文件优先，多线程时大文件优先可以提高整体速度</source>
         <translation>name: sorted by filename; size: prior for larger file, can increase speed when using multi-thread</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="84"/>
+        <location filename="CommonSettingsPage.cpp" line="80"/>
         <source>文件名</source>
         <translation>name</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="87"/>
+        <location filename="CommonSettingsPage.cpp" line="83"/>
         <source>文件大小</source>
         <translation>size</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="99"/>
+        <location filename="CommonSettingsPage.cpp" line="96"/>
         <source>翻译到的目标语言</source>
         <translation>Target language</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="102"/>
+        <location filename="CommonSettingsPage.cpp" line="96"/>
         <source>包括但不限于[zh-cn/zh-tw/en/ja/ko/ru/fr]</source>
         <translation>Include but not limited to[zh-cn/zh-tw/en/ja/ko/ru/fr]</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="117"/>
+        <location filename="CommonSettingsPage.cpp" line="112"/>
         <source>单文件分割</source>
         <translation>Split single file</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="120"/>
         <source>Num: 每n条分割一次，Equal: 每个文件均分n份，No: 关闭单文件分割。</source>
-        <translation>Num: split every n sentences; Equal: split every file to n parts equally.</translation>
+        <translation type="vanished">Num: split every n sentences; Equal: split every file to n parts equally.</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="160"/>
+        <location filename="CommonSettingsPage.cpp" line="153"/>
         <source>分割数量</source>
         <translation>Split num</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="163"/>
         <source>Num时，表示n句拆分一次；Equal时，表示每个文件均分拆成n部分。</source>
-        <translation>n.</translation>
+        <translation type="vanished">n.</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="182"/>
+        <location filename="CommonSettingsPage.cpp" line="173"/>
         <source>缓存保存间隔</source>
         <translation>Save interval</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="185"/>
+        <location filename="CommonSettingsPage.cpp" line="173"/>
         <source>每翻译n次保存一次缓存</source>
         <translation>Save cache after every n translation rounds</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="198"/>
+        <location filename="CommonSettingsPage.cpp" line="186"/>
         <source>最大重试次数</source>
         <translation>Max retry count</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="212"/>
+        <location filename="CommonSettingsPage.cpp" line="200"/>
         <source>携带上文数量</source>
         <translation>Num of context to attached</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="227"/>
+        <location filename="CommonSettingsPage.cpp" line="216"/>
         <source>智能重试</source>
         <translation>Smart retry</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="230"/>
-        <source>解析结果失败时尝试折半重翻与清空上下文，避免无效重试。</source>
-        <translation>If parsing the result fails, try re-translating by halving the content and clearing the context to avoid ineffective retries.</translation>
+        <location filename="CommonSettingsPage.cpp" line="229"/>
+        <source>运行时动态检测key额度，自动从 API 池中删除额度不足的 key</source>
+        <translation>Check quota dynamically during running, removing expired API from API pool automatically</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="242"/>
+        <source>解析结果失败时尝试折半重翻与清空上下文，避免无效重试。</source>
+        <translation type="vanished">If parsing the result fails, try re-translating by halving the content and clearing the context to avoid ineffective retries.</translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="229"/>
         <source>额度检测</source>
         <translation>Check quota</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="245"/>
         <source>运行时动态检测key额度</source>
-        <translation>Check quota dynamically during running</translation>
+        <translation type="vanished">Check quota dynamically during running</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="258"/>
+        <location filename="CommonSettingsPage.cpp" line="112"/>
+        <source>Num: 每n条分割一次，Equal: 每个文件均分n份，No: 关闭单文件分割</source>
+        <translation>Num: split every n sentences; Equal: split every file to n parts equally</translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="153"/>
+        <source>Num时，表示n句拆分一次；Equal时，表示每个文件均分拆成n部分</source>
+        <translation>n</translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="216"/>
+        <source>解析结果失败时尝试折半重翻与清空上下文</source>
+        <translation>If parsing the result fails, try re-translating by halving the content and clearing the context</translation>
+    </message>
+    <message>
+        <location filename="CommonSettingsPage.cpp" line="242"/>
         <source>日志级别</source>
         <translation>Log level</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="282"/>
+        <location filename="CommonSettingsPage.cpp" line="266"/>
         <source>保存项目日志</source>
         <translation>Save project logs</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="292"/>
+        <location filename="CommonSettingsPage.cpp" line="276"/>
         <source>分词器设置</source>
         <translation>Tokenizer settings</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="295"/>
+        <location filename="CommonSettingsPage.cpp" line="279"/>
         <source>用于生成字典和查错的分词器后端及其设置(应选择适合原文的后端/模型/字典)</source>
         <oldsource>用于生成字典和查错的分词器后端及其设置(针对原文)</oldsource>
         <translation>Tokenizer used to generate dict and analyze problems with its configs(should choose a backend/model/dict fit to source lang)</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="302"/>
+        <location filename="CommonSettingsPage.cpp" line="287"/>
         <source>分词器后端</source>
         <translation>Tokenizer backend</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="305"/>
+        <location filename="CommonSettingsPage.cpp" line="287"/>
         <source>除了MeCab，剩下的都依赖Python，所以速度变慢或内存占用变大是正常的</source>
         <translation>spaCy and Stanza depend on Python</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="322"/>
+        <location filename="CommonSettingsPage.cpp" line="305"/>
         <source>MeCab词典目录</source>
         <translation>MeCab dict dir</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="324"/>
+        <location filename="CommonSettingsPage.cpp" line="305"/>
         <source>MeCab词典目录，程序自带一个</source>
         <translation>Dir of MeCab&apos;s dictionary</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="337"/>
+        <location filename="CommonSettingsPage.cpp" line="317"/>
         <source>选择MeCab词典目录</source>
         <translation>Choose MeCab dict dir</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="349"/>
+        <location filename="CommonSettingsPage.cpp" line="328"/>
         <source>spaCy模型名称</source>
         <translation>spaCy model name</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="351"/>
+        <location filename="CommonSettingsPage.cpp" line="328"/>
         <source>spaCy模型名称，新模型下载后需重启程序</source>
         <translation>spaCy model name, you need reboot app after downloading a new model</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="353"/>
+        <location filename="CommonSettingsPage.cpp" line="328"/>
         <source>sm模型的效果有点一言难尽，有条件的建议上trf模型</source>
         <translation>sm model is not so satisfying, use trf model if conditions allowing</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="374"/>
+        <location filename="CommonSettingsPage.cpp" line="347"/>
         <source>Stanza语言ID</source>
         <translation>Stanza lang id</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="376"/>
+        <location filename="CommonSettingsPage.cpp" line="349"/>
         <source>Stanza语言ID，新模型下载后需重启程序</source>
         <translation>Stanza lang id, you need reboot app after downloading a new model</translation>
     </message>
@@ -899,9 +915,9 @@
         <translation type="vanished">can use relative path</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="333"/>
-        <location filename="CommonSettingsPage.cpp" line="363"/>
-        <location filename="CommonSettingsPage.cpp" line="385"/>
+        <location filename="CommonSettingsPage.cpp" line="313"/>
+        <location filename="CommonSettingsPage.cpp" line="336"/>
+        <location filename="CommonSettingsPage.cpp" line="358"/>
         <source>浏览</source>
         <translation>browse</translation>
     </message>
@@ -910,23 +926,23 @@
         <translation type="vanished">Choose dict dir</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="399"/>
+        <location filename="CommonSettingsPage.cpp" line="372"/>
         <source>本项目所使用的换行符</source>
         <translation>Linebreak symbol used in this project</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="402"/>
+        <location filename="CommonSettingsPage.cpp" line="375"/>
         <source>将换行符统一规范为 &amp;lt;br&amp;gt; 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行。&lt;br&gt;具体替换时机详见使用说明，auto为自动检测</source>
         <oldsource>将换行符统一规范为 &amp;lt;br&amp;gt; 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行，具体替换时机详见使用说明，auto为自动检测</oldsource>
         <translation>All linebreak symbols will be replaced to &amp;lt;br&amp;gt; for programming use</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="449"/>
+        <location filename="CommonSettingsPage.cpp" line="422"/>
         <source>解析失败</source>
         <translation>Fail to analyze</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="449"/>
+        <location filename="CommonSettingsPage.cpp" line="422"/>
         <source>linebreakSymbol不符合 toml 规范</source>
         <translation>linebreakSymbol is nonconforming</translation>
     </message>
@@ -1230,17 +1246,17 @@
 <context>
     <name>ElaInputDialog</name>
     <message>
-        <location filename="ElaInputDialog.cpp" line="18"/>
+        <location filename="ElaInputDialog.cpp" line="17"/>
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="ElaInputDialog.cpp" line="19"/>
+        <location filename="ElaInputDialog.cpp" line="18"/>
         <source>重置</source>
         <translation>Reset</translation>
     </message>
     <message>
-        <location filename="ElaInputDialog.cpp" line="20"/>
+        <location filename="ElaInputDialog.cpp" line="19"/>
         <source>确定</source>
         <translation>OK</translation>
     </message>
@@ -1874,222 +1890,235 @@
 <context>
     <name>OtherSettingsPage</name>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="23"/>
+        <location filename="OtherSettingsPage.cpp" line="24"/>
         <source>其它设置</source>
         <translation>Other settings</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="46"/>
+        <location filename="OtherSettingsPage.cpp" line="47"/>
         <source>项目路径</source>
         <translation>Project path</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="56"/>
+        <location filename="OtherSettingsPage.cpp" line="57"/>
         <source>打开文件夹</source>
         <translation>Open project dir</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="64"/>
+        <location filename="OtherSettingsPage.cpp" line="65"/>
         <source>移动项目</source>
         <translation>Move project</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="68"/>
-        <location filename="OtherSettingsPage.cpp" line="79"/>
-        <location filename="OtherSettingsPage.cpp" line="87"/>
+        <location filename="OtherSettingsPage.cpp" line="69"/>
+        <location filename="OtherSettingsPage.cpp" line="80"/>
+        <location filename="OtherSettingsPage.cpp" line="88"/>
         <source>移动失败</source>
         <translation>Fail to move</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="68"/>
+        <location filename="OtherSettingsPage.cpp" line="69"/>
         <source>项目仍在运行中，无法移动</source>
         <translation>Project is still running</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="72"/>
+        <location filename="OtherSettingsPage.cpp" line="73"/>
         <source>请选择要移动到的文件夹</source>
         <translation>Please choose the dir you want to move to</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="79"/>
+        <location filename="OtherSettingsPage.cpp" line="80"/>
         <source>目录下已有同名文件夹</source>
         <translation>Dir with the same name has already existed</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="92"/>
+        <location filename="OtherSettingsPage.cpp" line="93"/>
         <source>移动成功</source>
         <translation>Moved successfully</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="92"/>
+        <location filename="OtherSettingsPage.cpp" line="93"/>
         <source> 项目已移动到新文件夹</source>
         <translation> has been moved to new dir</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="103"/>
+        <location filename="OtherSettingsPage.cpp" line="104"/>
         <source>项目更名</source>
         <translation>Rename project name</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="108"/>
+        <location filename="OtherSettingsPage.cpp" line="109"/>
         <source>更名</source>
         <translation>Rename</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="112"/>
-        <location filename="OtherSettingsPage.cpp" line="124"/>
-        <location filename="OtherSettingsPage.cpp" line="130"/>
-        <location filename="OtherSettingsPage.cpp" line="138"/>
+        <location filename="OtherSettingsPage.cpp" line="113"/>
+        <location filename="OtherSettingsPage.cpp" line="125"/>
+        <location filename="OtherSettingsPage.cpp" line="131"/>
+        <location filename="OtherSettingsPage.cpp" line="139"/>
         <source>更名失败</source>
         <translation>Fail to rename</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="112"/>
+        <location filename="OtherSettingsPage.cpp" line="113"/>
         <source>项目仍在运行中，无法更名</source>
         <translation>Project is still running</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="118"/>
+        <location filename="OtherSettingsPage.cpp" line="119"/>
         <source>请输入新的项目名称</source>
         <translation>Please type in new project name</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="118"/>
+        <location filename="OtherSettingsPage.cpp" line="119"/>
         <source>新的项目名</source>
         <translation>New name</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="124"/>
+        <location filename="OtherSettingsPage.cpp" line="125"/>
         <source>项目名不能为空且不能包含斜杠</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="130"/>
+        <location filename="OtherSettingsPage.cpp" line="131"/>
         <source>目录下已有同名文件或文件夹</source>
         <translation>File/dir with the same name has already existed</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="144"/>
+        <location filename="OtherSettingsPage.cpp" line="145"/>
         <source>更名成功</source>
         <translation>Renamed successfully</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="144"/>
+        <location filename="OtherSettingsPage.cpp" line="145"/>
         <source>项目已更名为 </source>
         <translation>Project has been renamed to </translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="155"/>
         <source>开始翻译或关闭程序时会自动保存所有项目的配置，一般无需手动保存。</source>
-        <translation>The app also automatically saves all project configs when beginning translating or exiting.</translation>
+        <translation type="vanished">The app also automatically saves all project configs when beginning translating or exiting.</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="156"/>
+        <location filename="OtherSettingsPage.cpp" line="155"/>
         <source>保存项目配置</source>
         <translation>Save project settings</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="162"/>
+        <location filename="OtherSettingsPage.cpp" line="159"/>
         <source>保存</source>
         <translation>Save</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="166"/>
+        <location filename="OtherSettingsPage.cpp" line="163"/>
         <source>保存成功</source>
         <translation>Saved successfully</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="166"/>
-        <location filename="OtherSettingsPage.cpp" line="262"/>
+        <location filename="OtherSettingsPage.cpp" line="163"/>
+        <location filename="OtherSettingsPage.cpp" line="254"/>
         <source>项目 </source>
         <translation>Project </translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="166"/>
+        <location filename="OtherSettingsPage.cpp" line="163"/>
         <source> 的配置信息已保存</source>
         <translation> &apos;s config info has been saved</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="175"/>
+        <location filename="OtherSettingsPage.cpp" line="173"/>
         <source>刷新项目配置</source>
         <translation>Refresh project configs</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="179"/>
         <source>将刷新现有配置和字典，谨慎使用。</source>
-        <translation>Take care because all configs and dicts of this project will be refreshed.</translation>
+        <translation type="vanished">Take care because all configs and dicts of this project will be refreshed.</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="183"/>
+        <location filename="OtherSettingsPage.cpp" line="177"/>
         <source>刷新</source>
         <translation>Refresh</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="194"/>
+        <location filename="OtherSettingsPage.cpp" line="188"/>
         <source>你确定要刷新项目配置吗？</source>
         <translation>Are you sure to refresh project config?</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="199"/>
+        <location filename="OtherSettingsPage.cpp" line="193"/>
         <source>GUI中未保存的数据将会被覆盖！</source>
         <translation>Data in GUI that not saved will be covered!</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="219"/>
+        <location filename="OtherSettingsPage.cpp" line="213"/>
         <source>删除翻译缓存</source>
         <translation>Delete translation cache</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="225"/>
+        <location filename="OtherSettingsPage.cpp" line="217"/>
         <source>删除</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="229"/>
-        <location filename="OtherSettingsPage.cpp" line="259"/>
+        <location filename="OtherSettingsPage.cpp" line="221"/>
+        <location filename="OtherSettingsPage.cpp" line="251"/>
         <source>删除失败</source>
         <translation>Fail to delete</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="229"/>
+        <location filename="OtherSettingsPage.cpp" line="221"/>
         <source>项目仍在运行中，无法删除缓存</source>
         <translation>Project is still running</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="187"/>
-        <location filename="OtherSettingsPage.cpp" line="235"/>
+        <location filename="OtherSettingsPage.cpp" line="181"/>
+        <location filename="OtherSettingsPage.cpp" line="227"/>
         <source>否</source>
         <translation>No</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="188"/>
-        <location filename="OtherSettingsPage.cpp" line="236"/>
+        <location filename="OtherSettingsPage.cpp" line="155"/>
+        <source>开始翻译或关闭程序时会自动保存所有项目的配置，一般无需手动保存</source>
+        <translation>The app also automatically saves all project configs when beginning translating or exiting</translation>
+    </message>
+    <message>
+        <location filename="OtherSettingsPage.cpp" line="173"/>
+        <source>刷新现有配置和字典，谨慎使用</source>
+        <translation>Take care because all configs and dicts of this project will be refreshed</translation>
+    </message>
+    <message>
+        <location filename="OtherSettingsPage.cpp" line="182"/>
+        <location filename="OtherSettingsPage.cpp" line="228"/>
         <source>思考人生</source>
         <translation>Thinking of life</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="189"/>
-        <location filename="OtherSettingsPage.cpp" line="237"/>
+        <location filename="OtherSettingsPage.cpp" line="183"/>
+        <location filename="OtherSettingsPage.cpp" line="229"/>
         <source>是</source>
         <translation>Yes</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="242"/>
+        <location filename="OtherSettingsPage.cpp" line="213"/>
+        <source>删除项目的翻译缓存，下次翻译将会重新从头开始</source>
+        <translation>Translation all over again</translation>
+    </message>
+    <message>
+        <location filename="OtherSettingsPage.cpp" line="234"/>
         <source>你确定要删除项目翻译缓存吗？</source>
         <translation>Are you sure to delete translation cache of this project?</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="247"/>
+        <location filename="OtherSettingsPage.cpp" line="239"/>
         <source>再次翻译将会重新从头开始！</source>
         <translation>You have to start all over again on next translation!</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="262"/>
+        <location filename="OtherSettingsPage.cpp" line="254"/>
         <source>删除成功</source>
         <translation>Deleted successfully</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="262"/>
+        <location filename="OtherSettingsPage.cpp" line="254"/>
         <source> 的翻译缓存已删除</source>
         <translation> &apos;s transl_cache has been deleted</translation>
     </message>
@@ -2097,112 +2126,112 @@
 <context>
     <name>PASettingsPage</name>
     <message>
-        <location filename="PASettingsPage.cpp" line="24"/>
+        <location filename="PASettingsPage.cpp" line="25"/>
         <source>问题分析</source>
         <translation>Problem analyze</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="45"/>
+        <location filename="PASettingsPage.cpp" line="46"/>
         <source>词频过高</source>
         <translation>High word frequency</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="45"/>
+        <location filename="PASettingsPage.cpp" line="46"/>
         <source>标点错漏</source>
         <translation>Error punctuations</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="45"/>
+        <location filename="PASettingsPage.cpp" line="46"/>
         <source>丢失换行</source>
         <translation>Lose linebreak</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="45"/>
+        <location filename="PASettingsPage.cpp" line="46"/>
         <source>多加换行</source>
         <translation>Redundant linebreak</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="45"/>
+        <location filename="PASettingsPage.cpp" line="46"/>
         <source>比原文长</source>
         <translation>Longer than src</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="45"/>
+        <location filename="PASettingsPage.cpp" line="46"/>
         <source>比原文长严格</source>
         <translation>Strictly longer</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="46"/>
+        <location filename="PASettingsPage.cpp" line="47"/>
         <source>字典未使用</source>
         <translation>Dict unused</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="46"/>
+        <location filename="PASettingsPage.cpp" line="47"/>
         <source>残留日文</source>
         <translation>Remain jp</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="46"/>
+        <location filename="PASettingsPage.cpp" line="47"/>
         <source>引入拉丁字母</source>
         <translation>Intro latin</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="46"/>
+        <location filename="PASettingsPage.cpp" line="47"/>
         <source>引入韩文</source>
         <translation>Intro hangul</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="46"/>
+        <location filename="PASettingsPage.cpp" line="47"/>
         <source>语言不通</source>
         <translation>Incorrect lang</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="46"/>
+        <location filename="PASettingsPage.cpp" line="47"/>
         <source>引入繁体字</source>
         <translation>Intro traditional Chinese</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="46"/>
+        <location filename="PASettingsPage.cpp" line="47"/>
         <source>非法字符</source>
         <translation>Invalid char</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="55"/>
+        <location filename="PASettingsPage.cpp" line="56"/>
         <source>要发现的问题清单</source>
         <translation>Problem List</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="82"/>
+        <location filename="PASettingsPage.cpp" line="84"/>
         <source>标点查错</source>
         <translation>Punctuations to check</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="86"/>
+        <location filename="PASettingsPage.cpp" line="84"/>
         <source>规定标点错漏要查哪些标点</source>
         <translation>Punctuations to check in &quot;Error punctuations&quot;</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="98"/>
+        <location filename="PASettingsPage.cpp" line="97"/>
         <source>语言置信度</source>
         <translation>Lang probability</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="101"/>
+        <location filename="PASettingsPage.cpp" line="97"/>
         <source>语言不通检测的语言置信度(0-1)，设置越高则检测越精准，但可能遗漏，反之亦然</source>
         <translation>Probability in &quot;incorrect lang&quot;, higher means preciser, but may omit</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="114"/>
+        <location filename="PASettingsPage.cpp" line="111"/>
         <source>字符集</source>
         <translation>Code page</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="118"/>
+        <location filename="PASettingsPage.cpp" line="111"/>
         <source>非法字符要检查的字符集</source>
         <translation>The code page to check in &quot;Invalid char&quot;</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="140"/>
+        <location filename="PASettingsPage.cpp" line="133"/>
         <source>点击下方『语法示例』按钮以获取具体语法规则及作用</source>
         <oldsource>点击下方『语法示例』按钮以获取语法规则及作用</oldsource>
         <translation>Push the button below to get detailed explanation of grammars and effects</translation>
@@ -2212,37 +2241,37 @@
         <translation type="vanished">is nonconforming</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="187"/>
+        <location filename="PASettingsPage.cpp" line="180"/>
         <source>重翻关键字设定</source>
         <translation>RetranslKeys setting</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="202"/>
+        <location filename="PASettingsPage.cpp" line="195"/>
         <source>查看 重翻关键字/跳过问题关键字/问题比较对象 设定的语法示例</source>
         <translation>Look up example grammars of retranslKeys/skipProblems/overwriteCompareObj</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="191"/>
+        <location filename="PASettingsPage.cpp" line="184"/>
         <source>跳过问题关键字设定</source>
         <translation>Skip problems keys setting</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="180"/>
+        <location filename="PASettingsPage.cpp" line="173"/>
         <source> 不符合 toml 规范</source>
         <translation> is nonconforming</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="195"/>
+        <location filename="PASettingsPage.cpp" line="188"/>
         <source>问题比较对象设定</source>
         <translation>Overwrite compare objects setting</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="200"/>
+        <location filename="PASettingsPage.cpp" line="193"/>
         <source>语法示例</source>
         <translation>Grammars examples</translation>
     </message>
     <message>
-        <location filename="PASettingsPage.cpp" line="180"/>
+        <location filename="PASettingsPage.cpp" line="173"/>
         <source>解析错误</source>
         <translation>Fail to analyze</translation>
     </message>
@@ -2273,11 +2302,16 @@
     <name>PluginItemWidget</name>
     <message>
         <location filename="PluginItemWidget.cpp" line="17"/>
+        <source>滤过插件</source>
+        <translation>Filter plugin</translation>
+    </message>
+    <message>
+        <location filename="PluginItemWidget.cpp" line="18"/>
         <source>全角半角转换插件</source>
         <translation>Full-width and half-width converting plugin</translation>
     </message>
     <message>
-        <location filename="PluginItemWidget.cpp" line="18"/>
+        <location filename="PluginItemWidget.cpp" line="19"/>
         <source>换行修复插件</source>
         <translation>Text linebreak fixing plugin</translation>
     </message>

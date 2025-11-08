@@ -157,6 +157,9 @@
     <ClCompile Include="CustomFilePluginCfgPage.cpp">
       <Filter>Source Files\ToolWidgetsImpl</Filter>
     </ClCompile>
+    <ClCompile Include="ElaDoubleText.cpp">
+      <Filter>Source Files\ToolWidgetsImpl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mainwindow.h">
@@ -265,6 +268,9 @@
       <Filter>Header Files\ToolWidgetsH</Filter>
     </QtMoc>
     <QtMoc Include="CustomFilePluginCfgPage.h">
+      <Filter>Header Files\ToolWidgetsH</Filter>
+    </QtMoc>
+    <QtMoc Include="ElaDoubleText.h">
       <Filter>Header Files\ToolWidgetsH</Filter>
     </QtMoc>
   </ItemGroup>

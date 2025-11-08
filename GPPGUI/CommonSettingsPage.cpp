@@ -17,6 +17,7 @@
 #include "ElaToggleSwitch.h"
 #include "ElaPushButton.h"
 #include "ElaToolTip.h"
+#include "ElaDoubleText.h"
 
 import Tool;
 
@@ -42,12 +43,9 @@ void CommonSettingsPage::_setupUI()
 	int requestNum = toml::find_or(_projectConfig, "common", "numPerRequestTranslate", 8);
 	ElaScrollPageArea* requestNumArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* requestNumLayout = new QHBoxLayout(requestNumArea);
-	ElaText* requestNumText = new ElaText(tr("单次请求翻译句子数量"), requestNumArea);
-	requestNumText->setWordWrap(false);
-	requestNumText->setTextPixelSize(16);
-	ElaToolTip* requestNumTip = new ElaToolTip(requestNumText);
-	requestNumTip->setToolTip(tr("推荐值 < 15"));
-	requestNumLayout->addWidget(requestNumText);
+	ElaDoubleText* requestNumTextWidget = new ElaDoubleText(requestNumArea,
+		tr("单次请求翻译句子数量"), 16, tr("推荐值 < 15"), 10, "");
+	requestNumLayout->addWidget(requestNumTextWidget);
 	requestNumLayout->addStretch();
 	ElaSpinBox* requestNumSpinBox = new ElaSpinBox(requestNumArea);
 	requestNumSpinBox->setFocus();
@@ -74,11 +72,9 @@ void CommonSettingsPage::_setupUI()
 	std::string order = toml::find_or(_projectConfig, "common", "sortMethod", "size");
 	ElaScrollPageArea* orderArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* orderLayout = new QHBoxLayout(orderArea);
-	ElaText* orderText = new ElaText(tr("翻译顺序"), orderArea);
-	orderText->setTextPixelSize(16);
-	ElaToolTip* orderTip = new ElaToolTip(orderText);
-	orderTip->setToolTip(tr("name为文件名，size为大文件优先，多线程时大文件优先可以提高整体速度"));
-	orderLayout->addWidget(orderText);
+	ElaDoubleText* orderTextWidget = new ElaDoubleText(orderArea,
+		tr("翻译顺序"), 16, tr("name为文件名，size为大文件优先，多线程时大文件优先可以提高整体速度"), 10, "");
+	orderLayout->addWidget(orderTextWidget);
 	orderLayout->addStretch();
 	QButtonGroup* orderGroup = new QButtonGroup(orderArea);
 	ElaRadioButton* orderNameRadio = new ElaRadioButton(tr("文件名"), orderArea);
@@ -96,11 +92,9 @@ void CommonSettingsPage::_setupUI()
 	QString targetStr = QString::fromStdString(target);
 	ElaScrollPageArea* targetArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* targetLayout = new QHBoxLayout(targetArea);
-	ElaText* targetText = new ElaText(tr("翻译到的目标语言"), targetArea);
-	targetText->setTextPixelSize(16);
-	ElaToolTip* targetTip = new ElaToolTip(targetText);
-	targetTip->setToolTip(tr("包括但不限于[zh-cn/zh-tw/en/ja/ko/ru/fr]"));
-	targetLayout->addWidget(targetText);
+	ElaDoubleText* targetTextWidget = new ElaDoubleText(targetArea,
+		tr("翻译到的目标语言"), 16, tr("包括但不限于[zh-cn/zh-tw/en/ja/ko/ru/fr]"), 10, "");
+	targetLayout->addWidget(targetTextWidget);
 	targetLayout->addStretch();
 	ElaLineEdit* targetLineEdit = new ElaLineEdit(targetArea);
 	targetLineEdit->setFixedWidth(150);
@@ -114,11 +108,9 @@ void CommonSettingsPage::_setupUI()
 	QWidget* splitHeaderWidget = new QWidget(splitArea);
 	splitArea->setDrawerHeader(splitHeaderWidget);
 	QHBoxLayout* splitLayout = new QHBoxLayout(splitHeaderWidget);
-	ElaText* splitText = new ElaText(tr("单文件分割"), splitHeaderWidget);
-	splitText->setTextPixelSize(16);
-	ElaToolTip* splitTip = new ElaToolTip(splitText);
-	splitTip->setToolTip(tr("Num: 每n条分割一次，Equal: 每个文件均分n份，No: 关闭单文件分割。"));
-	splitLayout->addWidget(splitText);
+	ElaDoubleText* splitTextWidget = new ElaDoubleText(splitHeaderWidget,
+		tr("单文件分割"), 16, tr("Num: 每n条分割一次，Equal: 每个文件均分n份，No: 关闭单文件分割"), 10, "");
+	splitLayout->addWidget(splitTextWidget);
 	splitLayout->addStretch();
 	QButtonGroup* splitGroup = new QButtonGroup(splitHeaderWidget);
 	ElaRadioButton* splitNoRadio = new ElaRadioButton("No", splitHeaderWidget);
@@ -157,11 +149,9 @@ void CommonSettingsPage::_setupUI()
 	int splitNum = toml::find_or(_projectConfig, "common", "splitFileNum", 1024);
 	QWidget* splitNumArea = new QWidget(splitArea);
 	QHBoxLayout* splitNumLayout = new QHBoxLayout(splitNumArea);
-	ElaText* splitNumText = new ElaText(tr("分割数量"), splitNumArea);
-	splitNumText->setTextPixelSize(16);
-	ElaToolTip* splitNumTip = new ElaToolTip(splitNumText);
-	splitNumTip->setToolTip(tr("Num时，表示n句拆分一次；Equal时，表示每个文件均分拆成n部分。"));
-	splitNumLayout->addWidget(splitNumText);
+	ElaDoubleText* splitNumTextWidget = new ElaDoubleText(splitNumArea,
+		tr("分割数量"), 16, tr("Num时，表示n句拆分一次；Equal时，表示每个文件均分拆成n部分"), 10, "");
+	splitNumLayout->addWidget(splitNumTextWidget);
 	splitNumLayout->addStretch();
 	ElaSpinBox* splitNumSpinBox = new ElaSpinBox(splitNumArea);
 	splitNumSpinBox->setRange(1, 10000);
@@ -179,11 +169,9 @@ void CommonSettingsPage::_setupUI()
 	int saveInterval = toml::find_or(_projectConfig, "common", "saveCacheInterval", 1);
 	ElaScrollPageArea* cacheArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* cacheLayout = new QHBoxLayout(cacheArea);
-	ElaText* cacheText = new ElaText(tr("缓存保存间隔"), cacheArea);
-	cacheText->setTextPixelSize(16);
-	ElaToolTip* cacheTip = new ElaToolTip(cacheText);
-	cacheTip->setToolTip(tr("每翻译n次保存一次缓存"));
-	cacheLayout->addWidget(cacheText);
+	ElaDoubleText* cacheTextWidget = new ElaDoubleText(cacheArea,
+		tr("缓存保存间隔"), 16, tr("每翻译n次保存一次缓存"), 10, "");
+	cacheLayout->addWidget(cacheTextWidget);
 	cacheLayout->addStretch();
 	ElaSpinBox* cacheSpinBox = new ElaSpinBox(cacheArea);
 	cacheSpinBox->setRange(1, 10000);
@@ -220,30 +208,26 @@ void CommonSettingsPage::_setupUI()
 	contextLayout->addWidget(contextSpinBox);
 	mainLayout->addWidget(contextArea);
 
-	// 智能重试  # 解析结果失败时尝试折半重翻与清空上下文，避免无效重试。
-	bool smartRetry = toml::find_or(_projectConfig, "common", "smartRetry", true);
+	// 智能重试
+	bool smartRetry = toml::find_or(_projectConfig, "common", "smartRetry", false);
 	ElaScrollPageArea* smartRetryArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* smartRetryLayout = new QHBoxLayout(smartRetryArea);
-	ElaText* smartRetryText = new ElaText(tr("智能重试"), smartRetryArea);
-	smartRetryText->setTextPixelSize(16);
-	ElaToolTip* smartRetryTip = new ElaToolTip(smartRetryText);
-	smartRetryTip->setToolTip(tr("解析结果失败时尝试折半重翻与清空上下文，避免无效重试。"));
-	smartRetryLayout->addWidget(smartRetryText);
+	ElaDoubleText* smartRetryTextWidget = new ElaDoubleText(smartRetryArea,
+		tr("智能重试"), 16, tr("解析结果失败时尝试折半重翻与清空上下文"), 10, "如果用的打野 key 其实不建议开这个");
+	smartRetryLayout->addWidget(smartRetryTextWidget);
 	smartRetryLayout->addStretch();
 	ElaToggleSwitch* smartRetryToggle = new ElaToggleSwitch(smartRetryArea);
 	smartRetryToggle->setIsToggled(smartRetry);
 	smartRetryLayout->addWidget(smartRetryToggle);
 	mainLayout->addWidget(smartRetryArea);
 
-	// 额度检测 # 运行时动态检测key额度
+	// 额度检测
 	bool checkQuota = toml::find_or(_projectConfig, "common", "checkQuota", true);
 	ElaScrollPageArea* checkQuotaArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* checkQuotaLayout = new QHBoxLayout(checkQuotaArea);
-	ElaText* checkQuotaText = new ElaText(tr("额度检测"), checkQuotaArea);
-	checkQuotaText->setTextPixelSize(16);
-	ElaToolTip* checkQuotaTip = new ElaToolTip(checkQuotaText);
-	checkQuotaTip->setToolTip(tr("运行时动态检测key额度"));
-	checkQuotaLayout->addWidget(checkQuotaText);
+	ElaDoubleText* checkQuotaTextWidget = new ElaDoubleText(checkQuotaArea,
+		tr("额度检测"), 16, tr("运行时动态检测key额度，自动从 API 池中删除额度不足的 key"), 10, "");
+	checkQuotaLayout->addWidget(checkQuotaTextWidget);
 	checkQuotaLayout->addStretch();
 	ElaToggleSwitch* checkQuotaToggle = new ElaToggleSwitch(checkQuotaArea);
 	checkQuotaToggle->setIsToggled(checkQuota);
@@ -299,11 +283,9 @@ void CommonSettingsPage::_setupUI()
 	std::string tokenizerBackend = toml::find_or(_projectConfig, "common", "tokenizerBackend", "MeCab");
 	ElaScrollPageArea* tokenizerBackendArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* tokenizerBackendLayout = new QHBoxLayout(tokenizerBackendArea);
-	ElaText* tokenizerBackendText = new ElaText(tr("分词器后端"), tokenizerBackendArea);
-	tokenizerBackendText->setTextPixelSize(16);
-	ElaToolTip* tokenizerBackendTip = new ElaToolTip(tokenizerBackendText);
-	tokenizerBackendTip->setToolTip(tr("除了MeCab，剩下的都依赖Python，所以速度变慢或内存占用变大是正常的"));
-	tokenizerBackendLayout->addWidget(tokenizerBackendText);
+	ElaDoubleText* tokenizerBackendTextWidget = new ElaDoubleText(tokenizerBackendArea,
+		tr("分词器后端"), 16, tr("除了MeCab，剩下的都依赖Python，所以速度变慢或内存占用变大是正常的"), 10, "");
+	tokenizerBackendLayout->addWidget(tokenizerBackendTextWidget);
 	tokenizerBackendLayout->addStretch();
 	ElaComboBox* tokenizerBackendComboBox = new ElaComboBox(tokenizerBackendArea);
 	tokenizerBackendComboBox->addItem("MeCab");
@@ -319,11 +301,9 @@ void CommonSettingsPage::_setupUI()
 	std::string mecabDictDir = toml::find_or(_projectConfig, "common", "mecabDictDir", "BaseConfig/mecabDict/mecab-ipadic-utf8");
 	ElaScrollPageArea* mecabDictDirArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* mecabDictDirLayout = new QHBoxLayout(mecabDictDirArea);
-	ElaText* mecabDictDirText = new ElaText(tr("MeCab词典目录"), mecabDictDirArea);
-	ElaToolTip* mecabDictDirTip = new ElaToolTip(mecabDictDirText);
-	mecabDictDirTip->setToolTip(tr("MeCab词典目录，程序自带一个"));
-	mecabDictDirText->setTextPixelSize(16);
-	mecabDictDirLayout->addWidget(mecabDictDirText);
+	ElaDoubleText* mecabDictDirTextWidget = new ElaDoubleText(mecabDictDirArea,
+		tr("MeCab词典目录"), 16, tr("MeCab词典目录，程序自带一个"), 10, "");
+	mecabDictDirLayout->addWidget(mecabDictDirTextWidget);
 	mecabDictDirLayout->addStretch();
 	ElaLineEdit* mecabDictDirLineEdit = new ElaLineEdit(mecabDictDirArea);
 	mecabDictDirLineEdit->setFixedWidth(400);
@@ -344,15 +324,8 @@ void CommonSettingsPage::_setupUI()
 	std::string spaCyModelName = toml::find_or(_projectConfig, "common", "spaCyModelName", "ja_core_news_sm");
 	ElaScrollPageArea* spaCyModelNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* spaCyModelNameLayout = new QHBoxLayout(spaCyModelNameArea);
-	QWidget* spaCyModelNameTextWidget = new QWidget(spaCyModelNameArea);
-	QVBoxLayout* spaCyModelNameTextLayout = new QVBoxLayout(spaCyModelNameTextWidget);
-	ElaText* spaCyModelNameText = new ElaText(tr("spaCy模型名称"), 15, spaCyModelNameArea);
-	ElaToolTip* spaCyModelNameTip = new ElaToolTip(spaCyModelNameText);
-	spaCyModelNameTip->setToolTip(tr("spaCy模型名称，新模型下载后需重启程序"));
-	spaCyModelNameTextLayout->addWidget(spaCyModelNameText);
-	ElaText* spaCyModelNameTipText = new ElaText(tr("sm模型的效果有点一言难尽，有条件的建议上trf模型"), 10, spaCyModelNameArea);
-	spaCyModelNameTipText->setWordWrap(false);
-	spaCyModelNameTextLayout->addWidget(spaCyModelNameTipText);
+	ElaDoubleText* spaCyModelNameTextWidget = new ElaDoubleText(spaCyModelNameArea,
+		tr("spaCy模型名称"), 16, tr("sm模型的效果有点一言难尽，有条件的建议上trf模型"), 10, tr("spaCy模型名称，新模型下载后需重启程序"));
 	spaCyModelNameLayout->addWidget(spaCyModelNameTextWidget);
 	spaCyModelNameLayout->addStretch();
 	ElaLineEdit* spaCyModelNameLineEdit = new ElaLineEdit(spaCyModelNameArea);

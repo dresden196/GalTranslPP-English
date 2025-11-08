@@ -16,6 +16,7 @@
 #include "ElaToggleButton.h"
 #include "ValueSliderWidget.h"
 #include "ElaFlowLayout.h"
+#include "ElaDoubleText.h"
 
 import Tool;
 
@@ -79,11 +80,8 @@ void PASettingsPage::_setupUI()
 	QString punctuationSetStr = QString::fromStdString(punctuationSet);
 	ElaScrollPageArea* punctuationListArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* punctuationListLayout = new QHBoxLayout(punctuationListArea);
-	ElaText* punctuationListTitle = new ElaText(tr("标点查错"), punctuationListArea);
-	punctuationListTitle->setWordWrap(false);
-	punctuationListTitle->setTextPixelSize(16);
-	ElaToolTip* punctuationListTip = new ElaToolTip(punctuationListTitle);
-	punctuationListTip->setToolTip(tr("规定标点错漏要查哪些标点"));
+	ElaDoubleText* punctuationListTitle = new ElaDoubleText(punctuationListArea,
+		tr("标点查错"), 16, tr("规定标点错漏要查哪些标点"), 10, "");
 	punctuationListLayout->addWidget(punctuationListTitle);
 	punctuationListLayout->addStretch();
 	ElaLineEdit* punctuationList = new ElaLineEdit(punctuationListArea);
@@ -95,10 +93,8 @@ void PASettingsPage::_setupUI()
 	double languageProbability = toml::find_or(_projectConfig, "problemAnalyze", "langProbability", 0.94);
 	ElaScrollPageArea* languageProbabilityArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* languageProbabilityLayout = new QHBoxLayout(languageProbabilityArea);
-	ElaText* languageProbabilityTitle = new ElaText(tr("语言置信度"), languageProbabilityArea);
-	languageProbabilityTitle->setTextPixelSize(16);
-	ElaToolTip* languageProbabilityTip = new ElaToolTip(languageProbabilityTitle);
-	languageProbabilityTip->setToolTip(tr("语言不通检测的语言置信度(0-1)，设置越高则检测越精准，但可能遗漏，反之亦然"));
+	ElaDoubleText* languageProbabilityTitle = new ElaDoubleText(languageProbabilityArea,
+		tr("语言置信度"), 16, tr("语言不通检测的语言置信度(0-1)，设置越高则检测越精准，但可能遗漏，反之亦然"), 10, "");
 	languageProbabilityLayout->addWidget(languageProbabilityTitle);
 	languageProbabilityLayout->addStretch();
 	ValueSliderWidget* languageProbabilitySlider = new ValueSliderWidget(languageProbabilityArea);
@@ -111,11 +107,8 @@ void PASettingsPage::_setupUI()
 	std::string codePage = toml::find_or(_projectConfig, "problemAnalyze", "codePage", "gbk");
 	ElaScrollPageArea* codePageArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* codePageLayout = new QHBoxLayout(codePageArea);
-	ElaText* codePageTitle = new ElaText(tr("字符集"), codePageArea);
-	codePageTitle->setTextPixelSize(16);
-	codePageTitle->setWordWrap(false);
-	ElaToolTip* codePageTip = new ElaToolTip(codePageTitle);
-	codePageTip->setToolTip(tr("非法字符要检查的字符集"));
+	ElaDoubleText* codePageTitle = new ElaDoubleText(codePageArea,
+		tr("字符集"), 16, tr("非法字符要检查的字符集"), 10, "");
 	codePageLayout->addWidget(codePageTitle);
 	codePageLayout->addStretch();
 	ElaLineEdit* codePageEdit = new ElaLineEdit(codePageArea);

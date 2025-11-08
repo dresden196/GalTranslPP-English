@@ -16,6 +16,7 @@
 #include "ElaToggleSwitch.h"
 #include "ElaToolTip.h"
 #include "ElaIcon.h"
+#include "ElaDoubleText.h"
 
 import Tool;
 
@@ -83,10 +84,8 @@ void APISettingsPage::_setupUI()
     bool isRandom = strategy == "random";
     ElaScrollPageArea* apiStrategyArea = new ElaScrollPageArea(this);
     QHBoxLayout* apiStrategyLayout = new QHBoxLayout(apiStrategyArea);
-    ElaText* apiStrategyTitle = new ElaText(tr("API 使用策略"), apiStrategyArea);
-    ElaToolTip* apiStrategyTip = new ElaToolTip(apiStrategyTitle);
-    apiStrategyTip->setToolTip(tr("令牌策略，random随机轮询，fallback优先第一个，出现[请求错误]时使用下一个"));
-    apiStrategyTitle->setTextPixelSize(15);
+    ElaDoubleText* apiStrategyTitle = new ElaDoubleText(apiStrategyArea,
+        tr("API 使用策略"), 16, tr("令牌策略，random随机轮询，fallback优先第一个，出现[请求错误]时使用下一个"), 10, "");
     apiStrategyLayout->addWidget(apiStrategyTitle);
     apiStrategyLayout->addStretch();
 
@@ -105,11 +104,8 @@ void APISettingsPage::_setupUI()
     int timeout = toml::find_or(_projectConfig, "backendSpecific", "OpenAI-Compatible", "apiTimeout", 180);
     ElaScrollPageArea* apiTimeoutArea = new ElaScrollPageArea(this);
     QHBoxLayout* apiTimeoutLayout = new QHBoxLayout(apiTimeoutArea);
-    ElaText* apiTimeoutTitle = new ElaText(tr("API 超时时间"), apiTimeoutArea);
-    ElaToolTip* apiTimeoutTip = new ElaToolTip(apiTimeoutTitle);
-    apiTimeoutTip->setToolTip(tr("API 请求超时时间，单位为秒"));
-    apiTimeoutTitle->setWordWrap(false);
-    apiTimeoutTitle->setTextPixelSize(15);
+    ElaDoubleText* apiTimeoutTitle = new ElaDoubleText(apiTimeoutArea,
+        tr("API 超时时间"), 16, tr("API 请求超时时间，单位为秒"), 10, "");
     apiTimeoutLayout->addWidget(apiTimeoutTitle);
     apiTimeoutLayout->addStretch();
 

@@ -1,8 +1,7 @@
-#include "ElaInputDialog.h"
+﻿#include "ElaInputDialog.h"
 
 #include <QVBoxLayout>
 #include <QFormLayout>
-#include <QDebug>
 
 #include "ElaScrollPageArea.h"
 #include "ElaText.h"

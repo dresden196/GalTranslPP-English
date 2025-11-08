@@ -141,6 +141,7 @@ del "$(TargetDir)$(TargetName).lib"</Command>
     <ClCompile Include="CustomFilePluginCfgPage.cpp" />
     <ClCompile Include="DefaultPromptPage.cpp" />
     <ClCompile Include="DictExSettingsPage.cpp" />
+    <ClCompile Include="ElaDoubleText.cpp" />
     <ClCompile Include="GptDictModel.cpp" />
     <ClCompile Include="DictSettingsPage.cpp" />
     <ClCompile Include="ElaInputDialog.cpp" />
@@ -270,6 +271,7 @@ del "$(TargetDir)$(TargetName).lib"</Command>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="CustomFilePluginCfgPage.h" />
+    <QtMoc Include="ElaDoubleText.h" />
     <ClInclude Include="ExponentialMovingAverageEstimator.hpp" />
     <ClInclude Include="NoWheelComboBox.h" />
     <QtMoc Include="SkipTransCfgPage.h" />
