@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #include "GPPMacros.hpp"
 #include <toml.hpp>
@@ -602,6 +602,7 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 	utilsTable["extractKana"] = &extractKana;
 	utilsTable["extractLatin"] = &extractLatin;
 	utilsTable["extractHangul"] = &extractHangul;
+	utilsTable["extractCJK"] = &extractCJK;
 	utilsTable["traditionalChineseExtractor"] = getTraditionalChineseExtractor(m_logger);
 	utilsTable["extractZip"] = [](const std::string& zipPath, const std::string& outputDir)
 		{

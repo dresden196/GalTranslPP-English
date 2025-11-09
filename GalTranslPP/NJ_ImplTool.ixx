@@ -22,7 +22,7 @@ export {
 
     void fillBlockAndMap(const std::vector<Sentence*>& batchToTransThisRound, std::map<int, Sentence*>& id2SentenceMap, std::string& inputBlock, TransEngine transEngine);
 
-    void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThisRound, std::map<int, Sentence*>& id2SentenceMap, const std::string& modelName,
+    void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThisRound, std::map<int, Sentence*>& id2SentenceMap, const std::string& modelName, bool showBackgroundText,
         std::string& backgroudText, TransEngine transEngine, bool& parseError, int& parsedCount, std::shared_ptr<IController> controller, std::atomic<int>& completedSentences);
 
     void combineOutputFiles(const fs::path& originalRelFilePath, const std::map<fs::path, bool>& splitFileParts,
@@ -219,7 +219,7 @@ void fillBlockAndMap(const std::vector<Sentence*>& batchToTransThisRound, std::m
     }
 }
 
-void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThisRound, std::map<int, Sentence*>& id2SentenceMap, const std::string& modelName,
+void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThisRound, std::map<int, Sentence*>& id2SentenceMap, const std::string& modelName, bool showBackgroundText,
     std::string& backgroudText, TransEngine transEngine, bool& parseError, int& parsedCount, std::shared_ptr<IController> controller, std::atomic<int>& completedSentences) {
     if (size_t pos = content.find("</think>"); pos != std::string::npos) {
         content = content.substr(pos + 8);
@@ -232,6 +232,9 @@ void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThis
             std::string background = match[1].str();
             replaceStrInplace(background, "<ORIGINAL>", backgroudText);
             backgroudText = std::move(background);
+        }
+        if (!showBackgroundText) {
+            content = boost::regex_replace(content, backgroundRegex, "");
         }
     }
 

@@ -246,7 +246,7 @@ Epub正则设置依然使用toml语法解析配置，并支持两种正则写法
 
 一般正则执行简单的匹配替换，例如使用下面的预处理正则，
 ```
-[[plugins.Epub.'预处理正则']]
+[[plugins.Epub.preprocRegex]]
 org = '<ruby><rb>(.+?)</rb><rt>(.+?)</rt></ruby>'
 rep = '[$2/$1]'
 ```
@@ -256,7 +256,7 @@ rep = '[$2/$1]'
 ```
 之后再遍历到此处时，「モテる男は\[つら/辛\]いね」 将被作为一个完整的句子被提取出来。如果之后搭配如下后处理正则，
 ```
-[[plugins.Epub.'后处理正则']]
+[[plugins.Epub.postprocRegex]]
 org = '\[([^/\[\]]+?)/([^/\[\]]+?)\]'
 rep = '<ruby><rb>$2</rb><rt>$1</rt></ruby>'
 ```
@@ -273,7 +273,7 @@ rep = '<ruby><rb>$2</rb><rt>$1</rt></ruby>'
 
 我们可以编写如下回调正则，
 ```
-[[plugins.Epub.'预处理正则']]
+[[plugins.Epub.preprocRegex]]
 org = '(<p[^>/]*>)(.*?)(</p>)'
 callback = [ { group = 2, org = '<[^>]*>', rep = '' } ]
 ```

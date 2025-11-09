@@ -72,7 +72,7 @@
 
     <h3>一般正则</h3>
     <p>一般正则执行简单的匹配替换，例如使用下面的预处理正则，</p>
-    <pre><code>[[plugins.Epub.'预处理正则']]
+    <pre><code>[[plugins.Epub.preprocRegex]]
 org = '&lt;ruby&gt;&lt;rb&gt;(.+?)&lt;/rb&gt;&lt;rt&gt;(.+?)&lt;/rt&gt;&lt;/ruby&gt;'
 rep = '[$2/$1]'</code></pre>
 
@@ -80,7 +80,7 @@ rep = '[$2/$1]'</code></pre>
     <pre><code>&lt;p class="class_s2C-0"&gt;「モテる男は[つら/辛]いね」&lt;/p&gt;</code></pre>
 
     <p>之后再遍历到此处时，「モテる男は[つら/辛]いね」 将被作为一个完整的句子被提取出来。如果之后搭配如下后处理正则，</p>
-    <pre><code>[[plugins.Epub.'后处理正则']]
+    <pre><code>[[plugins.Epub.postprocRegex]]
 org = '\[([^/\[\]]+?)/([^/\[\]]+?)\]'
 rep = '&lt;ruby&gt;&lt;rb&gt;$2&lt;/rb&gt;&lt;rt&gt;$1&lt;/rt&gt;&lt;/ruby&gt;'</code></pre>
     <p>则可在理想位置还原振假名效果(可以修改提示词告诉AI注音格式[振假名/基本文本]及保留要求来达到更好的保留效果)。当然如果只想在原文中保留振假名而在译文中删去，那也很简单，直接在译前字典中再写一个去注音字典即可。其它很多自定义需求也都可借此满足。</p>
@@ -91,7 +91,7 @@ rep = '&lt;ruby&gt;&lt;rb&gt;$2&lt;/rb&gt;&lt;rt&gt;$1&lt;/rt&gt;&lt;/ruby&gt;'<
 &lt;p class="class_s2C-0"&gt;　二人の女の子が火花を散らす。どちらからの好意も嬉しくて、ついつい甘んじてし&lt;span id="page_8"/&gt;まう。&lt;/p&gt;</code></pre>
     <p>假如我不想一个一个文件的看标签写正则，而是想要直接『删除所有<code>&lt;p&gt;&lt;/p&gt;</code>标签内的其余标签并保留非标签部分』来快速过滤的话，面对不擅长处理嵌套的简单正则，显然我们很难写出这样的正则/正则组来处理这个问题，那么此时就需要使用回调正则。</p>
     <p>我们可以编写如下回调正则，</p>
-    <pre><code>[[plugins.Epub.'预处理正则']]
+    <pre><code>[[plugins.Epub.preprocRegex]]
 org = '(&lt;p[^&gt;/]*&gt;)(.*?)(&lt;/p&gt;)'
 callback = [ { group = 2, org = '&lt;[^&gt;]*&gt;', rep = '' } ]</code></pre>
     <p>则这两句话会被替换为</p>

@@ -121,6 +121,8 @@ export {
 
     std::string extractHangul(const std::string& sourceString);
 
+    std::string extractCJK(const std::string& sourceString);
+
     std::function<std::string(const std::string&)> getTraditionalChineseExtractor(std::shared_ptr<spdlog::logger> logger);
 
     void extractZip(const fs::path& zipPath, const fs::path& outputDir);
@@ -749,6 +751,10 @@ std::string extractLatin(const std::string& sourceString) {
 
 std::string extractHangul(const std::string& sourceString) {
     return extractCharactersByScripts(sourceString, { USCRIPT_HANGUL });
+}
+
+std::string extractCJK(const std::string& sourceString) {
+    return extractCharactersByScripts(sourceString, { USCRIPT_HAN });
 }
 
 std::function<std::string(const std::string&)> getTraditionalChineseExtractor(std::shared_ptr<spdlog::logger> logger)

@@ -55,8 +55,7 @@ callback = [
 ]
 
 [[plugins.Epub.postprocRegex]]
-org = '\[([^/\[\]]+?)/([^/\[\]]+?)\]'
-rep = '<ruby><rb>$2</rb><rt>$1</rt></ruby>'
+
 
 [plugins.SkipTrans]
 skipH = false

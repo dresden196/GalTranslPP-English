@@ -64,7 +64,6 @@ export {
         int m_saveCacheInterval;
         int m_apiTimeOutMs;
         bool m_pythonTranslator = false;
-        bool m_showBackgroundText;
         bool m_checkQuota;
         bool m_smartRetry;
         bool m_usePreDictInName;
@@ -768,13 +767,12 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         }
 
         // --- 如果请求成功，则继续解析 ---
-        m_logger->info("[线程 {}] [文件 {}] 成功响应，解析结果: \n{}", threadId, wide2Ascii(relInputPath), response.content);
         int parsedCount = 0;
         bool parseError = false;
 
         /*void parseContent(std::string & content, std::vector<Sentence*>&batchToTransThisRound, std::map<int, Sentence*>&id2SentenceMap, const std::string & modelName,
             std::string & backgroudText, TransEngine transEngine, bool& parseError, int& parsedCount, std::shared_ptr<IController> controller, std::atomic<int>&completedSentences);*/
-        parseContent(response.content, batchToTransThisRound, id2SentenceMap, currentApi.modelName,
+        parseContent(response.content, batchToTransThisRound, id2SentenceMap, currentApi.modelName, m_logger->should_log(spdlog::level::debug),
             backgroundText, m_transEngine, parseError, parsedCount, m_controller, m_completedSentences);
 
         if (parseError || parsedCount != batchToTransThisRound.size()) {
@@ -783,6 +781,9 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
                 m_logger->warn("[线程 {}] [文件 {}] 解析失败或不完整 ({} / {}), 进行第 {} 次重试...", threadId, wide2Ascii(relInputPath), parsedCount, batchToTransThisRound.size(), retryCount);
             }
             continue;
+        }
+        else {
+            m_logger->info("[线程 {}] [文件 {}] 成功响应，解析结果: \n{}", threadId, wide2Ascii(relInputPath), response.content);
         }
 
         m_logger->debug("[线程 {}] 批次翻译成功，解析了 {} 句话。", threadId, parsedCount);

@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #define PYBIND11_HEADERS
 #include "GPPMacros.hpp"
@@ -102,6 +102,7 @@ PYBIND11_EMBEDDED_MODULE(gpp_plugin_api, m, py::multiple_interpreters::per_inter
         .def("extractKana", &extractKana)
         .def("extractLatin", &extractLatin)
         .def("extractHangul", &extractHangul)
+        .def("extractCJK", &extractCJK)
         .def("getTraditionalChineseExtractor", &getTraditionalChineseExtractor);
 
     py::class_<IController, std::shared_ptr<IController>>(m, "IController")
