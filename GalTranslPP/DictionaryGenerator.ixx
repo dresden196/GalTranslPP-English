@@ -162,12 +162,12 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
             wordsInSegment.insert(entity.front());
             m_wordCounter[entity.front()]++;
         }
-        if (m_logger->should_log(spdlog::level::debug)) {
+        if (m_logger->should_log(spdlog::level::trace)) {
             std::string entityStr;
             for (const auto& entity : entityVec) {
                 entityStr += "[" + entity.front() + ", " + entity[1] + "] ";
             }
-            m_logger->debug("原文: {}\n分词实体结果: {}", segment, entityStr);
+            m_logger->trace("原文: {}\n分词实体结果: {}", segment, entityStr);
         }
         m_segmentWords.push_back(wordsInSegment);
     }

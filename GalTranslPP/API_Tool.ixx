@@ -52,7 +52,7 @@ ApiResponse performApiRequest(json& payload, const TranslationApi& api, int thre
         auto callbackLambda = [&](const std::string_view& data, intptr_t userdata) -> bool
             {
                 // 将接收到的数据块(string_view)追加到缓冲区(string)
-                logger->debug("[线程 {}] 接收到流式数据块: {}", threadId, replaceStr(std::string(data), "\n", "[n]"));
+                logger->trace("[线程 {}] 接收到流式数据块: {}", threadId, replaceStr(std::string(data), "\n", "[n]"));
                 sseBuffer.append(data);
                 size_t pos;
                 while ((pos = sseBuffer.find('\n')) != std::string::npos) {
