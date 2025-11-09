@@ -76,18 +76,18 @@ int main(int argc, char* argv[]) {
 
     if (parser.isSet("newActionFlag")) {
         try {
-            std::string orgPythonVersion = parser.isSet("pythonVersion")? parser.value("pythonVersion").toStdString() : "1.0.0";
-            std::string orgPromptVersion = parser.isSet("promptVersion")? parser.value("promptVersion").toStdString() : "1.0.0";
+            std::string orgPythonVersion = parser.isSet("pythonVersion") ? parser.value("pythonVersion").toStdString() : "1.0.0";
+            std::string orgPromptVersion = parser.isSet("promptVersion") ? parser.value("promptVersion").toStdString() : "1.0.0";
             std::set<std::string> excludePreFixes =
             {
                 "BaseConfig/python-3.12.10-embed-amd64", "BaseConfig/pyScripts", "BaseConfig/Prompt.toml",
             };
             bool isCompatible = true;
-            if (cmpVer(orgPythonVersion, PYTHONVERSION, isCompatible)) {
+            if (cmpVer(PYTHONVERSION, orgPythonVersion, isCompatible)) {
                 excludePreFixes.erase("BaseConfig/python-3.12.10-embed-amd64");
                 excludePreFixes.erase("BaseConfig/pyScripts");
             }
-            if (cmpVer(orgPromptVersion, PROMPTVERSION, isCompatible)) {
+            if (cmpVer(PROMPTVERSION, orgPromptVersion, isCompatible)) {
 #ifdef Q_OS_WIN
                 int ret = MessageBoxW(NULL, L"检测到新版本的 Prompt，是否更新 Prompt (会覆盖当前的默认提示词)？", L"GalTransl++ Updater", MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
                 if (ret == IDYES) {
