@@ -8,6 +8,7 @@
 #include "ElaToggleSwitch.h"
 #include "ElaToolTip.h"
 #include "ElaIconButton.h"
+#include "ElaDoubleText.h"
 
 PluginItemWidget::PluginItemWidget(const QString& pluginName, QWidget* parent)
     : ElaScrollPageArea(parent)
@@ -22,11 +23,8 @@ PluginItemWidget::PluginItemWidget(const QString& pluginName, QWidget* parent)
     QHBoxLayout* mainLayout = new QHBoxLayout(this);
 
     // 插件名称
-    _pluginNameLabel = new ElaText(pluginName, this);
-    _pluginNameLabel->setTextPixelSize(16);
-    _pluginNameLabel->setWordWrap(false);
-    ElaToolTip* pluginToolTip = new ElaToolTip(_pluginNameLabel);
-    pluginToolTip->setToolTip(toolTipMap[pluginName]);
+    _pluginNameLabel = new ElaDoubleText(this,
+        pluginName, 16, toolTipMap[pluginName], 10, "");
 
     // 新增设置按钮
     _settingsButton = new ElaIconButton(ElaIconType::Gear, this);
@@ -66,7 +64,7 @@ PluginItemWidget::~PluginItemWidget()
 
 QString PluginItemWidget::getPluginName() const
 {
-    return _pluginNameLabel->text();
+    return _pluginNameLabel->getFirstLineText();
 }
 
 bool PluginItemWidget::isToggled() const

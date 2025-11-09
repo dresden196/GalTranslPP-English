@@ -1,6 +1,7 @@
-module;
+﻿module;
 
 #define PYBIND11_HEADERS
+#define SPDLOG_WCHAR_FILENAMES
 #include "GPPMacros.hpp"
 #include <spdlog/spdlog.h>
 #include <toml.hpp>
@@ -112,7 +113,7 @@ std::unique_ptr<ITranslator> createTranslator(const fs::path& projectDir, std::s
             fs::rename(logFilePath, newLogFilePath);
         }
         fs::path logFilePath = projectDir / L"logs" / (ascii2Wide(transEngine) + L"_0.log");
-        sinks.push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(wide2Ascii(logFilePath, 0), true));
+        sinks.push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFilePath.wstring(), true));
     }
     std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>(wide2Ascii(projectDir) + "-" + transEngine + "-Logger", sinks.begin(), sinks.end());
     //spdlog::register_logger(logger);

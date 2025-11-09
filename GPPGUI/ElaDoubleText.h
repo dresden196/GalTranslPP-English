@@ -16,10 +16,12 @@ public:
     explicit ElaDoubleText(QWidget* parent, const QString& firstLine, int firstLinePixelSize, const QString& secondLine, int secondLinePixelSize, const QString& toolTip);
     ~ElaDoubleText();
 
+    QString getFirstLineText() const;
+
 private:
-    ElaText* _firstLine;
-    ElaText* _secondLine;
-    ElaToolTip* _toolTip;
+    ElaText* _firstLine{ nullptr };
+    ElaText* _secondLine{ nullptr };
+    ElaToolTip* _toolTip{ nullptr };
 };
 
 #endif // ELADOUBLETEXT_H

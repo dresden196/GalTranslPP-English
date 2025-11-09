@@ -2301,17 +2301,17 @@
 <context>
     <name>PluginItemWidget</name>
     <message>
-        <location filename="PluginItemWidget.cpp" line="17"/>
+        <location filename="PluginItemWidget.cpp" line="18"/>
         <source>滤过插件</source>
         <translation>Filter plugin</translation>
     </message>
     <message>
-        <location filename="PluginItemWidget.cpp" line="18"/>
+        <location filename="PluginItemWidget.cpp" line="19"/>
         <source>全角半角转换插件</source>
         <translation>Full-width and half-width converting plugin</translation>
     </message>
     <message>
-        <location filename="PluginItemWidget.cpp" line="19"/>
+        <location filename="PluginItemWidget.cpp" line="20"/>
         <source>换行修复插件</source>
         <translation>Text linebreak fixing plugin</translation>
     </message>

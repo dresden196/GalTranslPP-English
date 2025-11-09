@@ -7,20 +7,25 @@ ElaDoubleText::ElaDoubleText(QWidget* parent, const QString& firstLine, int firs
 	: QWidget(parent)
 {
 	QVBoxLayout* textLayout = new QVBoxLayout(this);
-	ElaText* text = new ElaText(firstLine, firstLinePixelSize, this);
-	text->setWordWrap(false);
+	_firstLine = new ElaText(firstLine, firstLinePixelSize, this);
+	_firstLine->setWordWrap(false);
 
 	if (!toolTip.isEmpty()) {
-		ElaToolTip* tip = new ElaToolTip(text);
-		tip->setToolTip(toolTip);
+		_toolTip = new ElaToolTip(_firstLine);
+		_toolTip->setToolTip(toolTip);
 	}
-	textLayout->addWidget(text);
+	textLayout->addWidget(_firstLine);
 
 	if (!secondLine.isEmpty()) {
-		ElaText* text2 = new ElaText(secondLine, secondLinePixelSize, this);
-		text2->setWordWrap(false);
-		textLayout->addWidget(text2);
+		_secondLine = new ElaText(secondLine, secondLinePixelSize, this);
+		_secondLine->setWordWrap(false);
+		textLayout->addWidget(_secondLine);
 	}
+}
+
+QString ElaDoubleText::getFirstLineText() const
+{
+	return _firstLine->text();
 }
 
 ElaDoubleText::~ElaDoubleText()

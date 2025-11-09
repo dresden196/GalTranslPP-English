@@ -1,11 +1,11 @@
-// PluginItemWidget.h
+﻿// PluginItemWidget.h
 
 #ifndef PLUGINITEMWIDGET_H
 #define PLUGINITEMWIDGET_H
 
 #include "ElaScrollPageArea.h"
 
-class ElaText;
+class ElaDoubleText;
 class ElaToggleSwitch;
 class ElaIconButton;
 
@@ -34,7 +34,7 @@ Q_SIGNALS:
 
 private:
     // 内部控件
-    ElaText* _pluginNameLabel;
+    ElaDoubleText* _pluginNameLabel;
     ElaToggleSwitch* _enableSwitch;
     ElaIconButton* _moveUpButton;
     ElaIconButton* _moveDownButton;
