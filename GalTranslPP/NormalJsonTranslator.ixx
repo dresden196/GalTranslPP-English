@@ -64,6 +64,7 @@ export {
         int m_saveCacheInterval;
         int m_apiTimeOutMs;
         bool m_pythonTranslator = false;
+        bool m_showBackgroundText;
         bool m_checkQuota;
         bool m_smartRetry;
         bool m_usePreDictInName;
@@ -726,7 +727,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         if (!inputProblems.empty()) {
             logBlock += "\nProblems:\n" + inputProblems;
         }
-        if (!backgroundText.empty()) {
+        if (m_logger->should_log(spdlog::level::debug) && !backgroundText.empty()) {
             logBlock += "\nBackground:\n" + backgroundText;
         }
         if (!glossary.empty()) {
