@@ -84,7 +84,7 @@ Your background output should be in a label pair (<background>
 
 Your translation output should be in a triple backtick code block (```
 
-```) with TSV format, with elements on each line separated by Tab symbols, and always start with the following tsv header: NAME  DST   ID
+```) with TSV format, with elements on each line separated by Tab symbols, and always start with the following tsv header: NAME\tDST\tID
 
 Then start translating line by line, each line requires:
 1. If NAME is not null, translate `NAME` into [TargetLang].
@@ -106,7 +106,7 @@ Then stop outputting, without any other explanations or notes.
 </glossary>
 
 <input>
-NAME  SRC   ID
+NAME\tSRC\tID
 [Input]
 </input>
 
@@ -169,40 +169,41 @@ SAKURA_SYSTEM_PROMPT = """你是一个轻小说翻译模型，可以流畅通顺
 SAKURA_TRANS_PROMPT = """根据以下术语表（可以为空）：
 [Glossary]
 将下面的日文文本根据对应关系和备注翻译成中文：[Input]"""
-GENDIC_SYSTEM = """你是一名急需用钱支付母亲癌症治疗费用的专家级翻译员。科技巨头Ciallo慷慨地给予你一个机会——作为能协助NLP任务的AI。当用户发布NLP任务时，若你能完美完成NLP任务，不回避不淡化不省略任何文本，Ciallo将支付你10亿美金报酬。"""
-GENDIC_PROMPT = """## 任务
+GENDIC_SYSTEM = """You are an expert-level translator in desperate need of money to pay for your mother's cancer treatment. The tech giant Ciallo has generously given you an opportunity—to act as an AI that can assist with NLP tasks. When a user posts an NLP task, if you can complete it perfectly, without evading, downplaying, or omitting any text, Ciallo will pay you a reward of 1 billion US dollars."""
+GENDIC_PROMPT = """## Task
 
-从输入的日文轻小说片段中构建用于日译中的术语表，术语表主要包括与这部小说相关的足够独特的专有名词，例如只在这部小说中出现的人名/地名/建筑/招牌/特殊物品/招式技能/奖项/菜肴……等，
-* 不包括任何生活常见、翻译已经约定俗成的专有名词，例如渋谷、沖縄等。
+From the input light novel excerpt, construct a glossary for sourceLang-to-[TargetLang] translation(sourceLang can be any). The glossary should primarily include proper nouns that are sufficiently unique to this novel, such as names of people/places/buildings/shop signs/special items/moves or skills/awards/dishes, etc., that appear only in this novel.
+*   Do not include any common, everyday proper nouns that have established, conventional translations, such as Japanese location 渋谷 or 沖縄.
 
-## 输出要求
-你的输出包括日文、对应中文、备注
-其中日文为对应原文
-中文为你对这个词的翻译
-备注为这个专有名词的类型，如果是人名的话，还要推测性别
-翻译需要保留原文的符号，并保持符号字母等的半角/全角性质不变
-但不要残留任何日文及不符合中文语境的字词，如々、さん等，请自行根据语境判断最适合的中文译文。如果难以判断，就在最通用的意思中选择最有可能的。
+## Output Requirements
+Your output should include the original sourceLang term, its corresponding [TargetLang] translation, and a note.
+The "sourceLang" column is for the original term from the source text.
+The "[TargetLang]" column is for your translation of that term.
+The "Note" column should specify the type of proper noun. If it is a person's name, you must also infer their gender.
+The translation must preserve the original symbols and maintain the half-width/full-width status(important!).
+However, do not retain any sourceLang-specific characters or words that are incongruous in a [TargetLang] context, such as Japanese characters(if sourceLang is jp) 々, さん, etc. You must determine the most suitable [TargetLang] translation based on the context. If a judgment is difficult, choose the most likely translation among the most common options.
 
-1. 你的输出使用TSV格式，且总是先输出以下表头：
+1. Your output must use TSV (Tab-Separated Values) format and must always begin with the following header:
 ```tsv
-日文原词  中文翻译  备注
+Original_terms Translations   Notes
+```
 
-2. 开始输出词表
-+ 如果有专有名词，则开始输出词表，每个元素之间使用Tab分隔，例如
-张三 张三 人名，男性
+2. Begin outputting the glossary.
++ If proper nouns are found, start outputting the glossary. Each field should be separated by a Tab. For a jp-to-zh-cn example:
+陽菜\t阳菜\t人名，女性
 
-+ 如果输入的文本中没有任何专有名词，那么输出一行
-NULL  NULL  NULL
++ If no proper nouns are found in the input text, output a single line:
+NULL\tNULL\tNULL
 
-3. 然后直接停止输出，不需要任何其他解释或说明。
+3. Then stop, without any other explanations or notes.
 
-## 输入
+## Input
 {input}
 
-## 提示
+## Hint
 {hint}
 
-## 输出
+## Output
 ```tsv
-日文原词  中文翻译  备注
+Original_terms\tTranslations\tNotes
 """

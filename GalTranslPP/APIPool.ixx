@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #include <spdlog/spdlog.h>
 
@@ -123,8 +123,8 @@ bool checkResponse(const ApiResponse& response, const TranslationApi& currentAPI
     // 情况一：额度用尽 (Quota)
     if (
         m_checkQuota &&
-        (lowerErrorMsg.find("quota") != std::string::npos ||
-            lowerErrorMsg.find("invalid tokens") != std::string::npos)
+        (lowerErrorMsg.contains("quota") ||
+            lowerErrorMsg.contains("invalid tokens"))
         )
     {
         m_logger->error("[线程 {}] API Key [{}] 疑似额度用尽，短期内多次报告将从池中移除。", threadId, currentAPI.apikey);
@@ -133,7 +133,7 @@ bool checkResponse(const ApiResponse& response, const TranslationApi& currentAPI
         return false;
     }
     // key 没有这个模型
-    else if (lowerErrorMsg.find("no available") != std::string::npos) {
+    else if (lowerErrorMsg.contains("no available")) {
         m_logger->error("[线程 {}] API Key [{}] 没有 [{}] 模型，短期内多次报告将从池中移除。", threadId, currentAPI.apikey, currentAPI.modelName);
         m_apiPool.reportProblem(currentAPI);
         return false;
@@ -141,7 +141,7 @@ bool checkResponse(const ApiResponse& response, const TranslationApi& currentAPI
 
     // 情况二：频率限制 (429) 或其他可重试错误
     // 状态码 429 是最明确的信号
-    if (response.statusCode == 429 || lowerErrorMsg.find("rate limit") != std::string::npos || lowerErrorMsg.find("try again") != std::string::npos) {
+    if (response.statusCode == 429 || lowerErrorMsg.contains("rate limit") || lowerErrorMsg.contains("try again")) {
         // 429 也不加 retryCount
         m_logger->warn("[线程 {}] [文件 {}] 遇到频率限制或可重试错误，进行退避等待...", threadId, wide2Ascii(relInputPath));
 

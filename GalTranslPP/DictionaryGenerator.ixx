@@ -28,6 +28,7 @@ export {
         std::string m_systemPrompt;
         std::string m_userPrompt;
         std::string m_apiStrategy;
+        std::string m_targetLang;
         int m_threadsNum;
         int m_apiTimeoutMs;
         int m_maxRetries;
@@ -51,7 +52,7 @@ export {
 
     public:
         DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::function<NLPResult(const std::string&)> tokenizeFunc,
-            std::function<void(Sentence*)> preProcessFunc, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
+            std::function<void(Sentence*)> preProcessFunc, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy, const std::string& targetLang,
             int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota);
         void generate(const std::vector<fs::path>& jsonFiles, const fs::path& outputFilePath);
     };
@@ -61,11 +62,11 @@ export {
 module :private;
 
 DictionaryGenerator::DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::function<NLPResult(const std::string&)> tokenizeFunc,
-    std::function<void(Sentence*)> preProcessFunc, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy,
+    std::function<void(Sentence*)> preProcessFunc, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy, const std::string& targetLang,
     int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota)
     : m_controller(controller), m_logger(logger), m_apiPool(apiPool), m_tokenizeSourceLangFunc(tokenizeFunc),
-    m_preProcessFunc(preProcessFunc), m_systemPrompt(systemPrompt), m_userPrompt(userPrompt), m_apiStrategy(apiStrategy), m_maxRetries(maxRetries),
-    m_threadsNum(threadsNum), m_apiTimeoutMs(apiTimeoutMs), m_checkQuota(checkQuota)
+    m_preProcessFunc(preProcessFunc), m_systemPrompt(systemPrompt), m_userPrompt(userPrompt), m_apiStrategy(apiStrategy), m_targetLang(targetLang),
+    m_maxRetries(maxRetries), m_threadsNum(threadsNum), m_apiTimeoutMs(apiTimeoutMs), m_checkQuota(checkQuota)
 {
 
 }
@@ -75,7 +76,6 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
     std::string currentSegment;
     constexpr size_t MAX_SEGMENT_LEN = 512;
 
-    Sentence se;
     std::ifstream ifs;
     for (const auto& item : jsonFiles
         | std::views::transform([&](const fs::path& filePath)
@@ -87,6 +87,7 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
             }) | std::views::join)
     {
         m_totalSentences++;
+        Sentence se;
         if (item.contains("name")) {
             se.nameType = NameType::Single;
             se.name = item.value("name", "");
@@ -101,6 +102,9 @@ void DictionaryGenerator::preprocessAndTokenize(const std::vector<fs::path>& jso
         se.original_text = item.value("message", "");
 
         m_preProcessFunc(&se);
+        if (se.complete) {
+            continue;
+        }
         replaceStrInplace(se.pre_processed_text, "<br>", "");
         replaceStrInplace(se.pre_processed_text, "<tab>", "");
 
@@ -253,7 +257,7 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
     std::string hint = "无";
     std::string nameHit;
     for (const auto& name : m_nameSet) {
-        if (text.find(name) != std::string::npos) {
+        if (text.contains(name)) {
             nameHit += name + "\n";
         }
     }
@@ -262,6 +266,7 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
     }
 
     std::string prompt = m_userPrompt;
+    replaceStrInplace(prompt, "[TargetLang]", m_targetLang);
     replaceStrInplace(prompt, "{input}", text);
     replaceStrInplace(prompt, "{hint}", hint);
 
@@ -295,15 +300,16 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
         }
         else {
             m_logger->info("[线程 {}] AI 字典生成成功:\n {}", threadId, response.content);
-            auto lines = splitString(response.content, '\n');
+            const auto lines = splitString(response.content, '\n');
             for (const auto& line : lines) {
-                auto parts = splitString(line, '\t');
-                if (parts.size() < 3 || parts[0].starts_with("日文原词") || parts[0].starts_with("NULL")) continue;
-
+                const auto parts = splitString(line, '\t');
+                if (parts.size() < 3 || parts[0].starts_with("Original_terms") || parts[0].starts_with("日文原词") || parts[0].starts_with("NULL")) {
+                    continue;
+                }
                 std::lock_guard<std::mutex> lock(m_resultMutex);
                 m_finalCounter[parts[0]]++;
                 if (m_finalCounter[parts[0]] == 2) {
-                    m_logger->trace("发现重复术语: {}\t{}\t{}", parts[0], parts[1], parts[2]);
+                    m_logger->debug("发现重复术语: {}\t{}\t{}", parts[0], parts[1], parts[2]);
                 }
                 m_finalDict.emplace_back(parts[0], parts[1], parts[2]);
             }
@@ -363,7 +369,7 @@ void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const
     for (const auto& item : m_finalDict) {
         const auto& src = std::get<0>(item);
         const auto& note = std::get<2>(item);
-        if (m_finalCounter[src] > 1 || note.find("人名") != std::string::npos || note.find("地名") != std::string::npos || m_wordCounter.contains(src) || m_nameSet.contains(src)) {
+        if (m_finalCounter[src] > 1 || note.contains("人名") || note.contains("地名") || m_wordCounter.contains(src) || m_nameSet.contains(src)) {
             finalList.push_back(item);
         }
     }
@@ -389,5 +395,6 @@ void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const
     arr.as_array_fmt().fmt = toml::array_format::multiline;
     std::ofstream ofs(outputFilePath);
     ofs << toml::format(toml::ordered_value{ toml::ordered_table{{ "gptDict", arr }} });
+    ofs.close();
     m_logger->info("字典生成完成，共 {} 个词语，已保存到 {}", finalList.size(), wide2Ascii(outputFilePath));
 }

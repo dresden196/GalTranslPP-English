@@ -5,7 +5,7 @@
 #include <QProcess>
 #include <QDir>
 #include <QDebug>
-#include <QThread> // 用于延时
+#include <QThread>
 #pragma comment(lib, "../lib/GalTranslPP.lib")
 
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
         }
         catch (const std::exception&) {
 #ifdef Q_OS_WIN
-            MessageBoxW(NULL, L"Failed to extract update package.", L"Updater", MB_ICONERROR | MB_TOPMOST);
+            MessageBoxW(NULL, L"Failed to extract update package.", L"GalTransl++ Updater", MB_ICONERROR | MB_TOPMOST);
 #endif
             return -1;
         }
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     }
     catch (const std::exception&) {
 #ifdef Q_OS_WIN
-        MessageBoxW(NULL, L"Failed to extract updater_new.exe.", L"Updater", MB_ICONERROR | MB_TOPMOST);
+        MessageBoxW(NULL, L"Failed to extract Updater_new.exe.", L"GalTransl++ Updater", MB_ICONERROR | MB_TOPMOST);
 #endif
         return -1;
     }

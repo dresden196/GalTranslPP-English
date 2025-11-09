@@ -249,7 +249,7 @@ void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThis
         std::getline(ss, line); // Skip header
 
         while (parsedCount < batchToTransThisRound.size() && std::getline(ss, line)) {
-            if (line.empty() || line.find("```") != std::string::npos) continue;
+            if (line.empty() || line.contains("```")) continue;
             const auto parts = splitString(line, '\t');
             if (parts.size() < 3) {
                 parseError = true;
@@ -292,7 +292,7 @@ void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThis
         std::getline(ss, line); // Skip header
 
         while (parsedCount < batchToTransThisRound.size() && std::getline(ss, line)) {
-            if (line.empty() || line.find("```") != std::string::npos) continue;
+            if (line.empty() || line.contains("```")) continue;
             const auto parts = splitString(line, '\t');
             if (parts.size() < 2) {
                 parseError = true;
@@ -372,9 +372,11 @@ void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThis
             Sentence* currentSentence = batchToTransThisRound[i];
 
             // 尝试剥离说话人
-            if (!currentSentence->name.empty() && translatedLine.find(":::::") != std::string::npos) {
+            if (!currentSentence->name.empty()) {
                 size_t msgStart = translatedLine.find(":::::");
-                translatedLine = translatedLine.substr(msgStart + 5);
+                if (msgStart != std::string::npos) {
+                    translatedLine = translatedLine.substr(msgStart + 5);
+                }
             }
 
             currentSentence->pre_translated_text = translatedLine;
@@ -440,6 +442,7 @@ void combineOutputFiles(const fs::path& originalRelFilePath, const std::map<fs::
     createParent(finalOutputPath);
     std::ofstream ofs(finalOutputPath);
     ofs << combinedJson.dump(2);
+    ofs.close();
     logger->info("文件 {} 合并完成，已保存到 {}", wide2Ascii(originalRelFilePath), wide2Ascii(finalOutputPath));
 }
 

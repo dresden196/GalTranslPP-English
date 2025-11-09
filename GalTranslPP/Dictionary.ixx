@@ -105,7 +105,7 @@ std::string GptDictionary::generatePrompt(const std::vector<Sentence*>& batch, T
 
     std::string promptContent;
     for (const auto& entry : m_entries) {
-        if (batchText.find(entry.searchStr) != std::string::npos) {
+        if (batchText.contains(entry.searchStr)) {
             // *** 根据 transEngine 选择格式 ***
             switch (transEngine) {
             case TransEngine::ForGalJson:
@@ -228,7 +228,7 @@ void GptDictionary::checkDicUse(Sentence* sentence, CachePart base, CachePart ch
         const auto& replaceWords = splitString(entry.replaceStr, '/');
         bool found = false;
         for (const auto& word : replaceWords) {
-            if (transView.find(word) != std::string::npos) {
+            if (transView.contains(word)) {
                 found = true;
                 break;
             }

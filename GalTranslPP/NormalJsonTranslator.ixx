@@ -533,34 +533,34 @@ void NormalJsonTranslator::preProcess(Sentence* se) {
     }
 
     if (m_linebreakSymbol == "auto") {
-        if (se->pre_processed_text.find("<br>") != std::string::npos) {
+        if (se->pre_processed_text.contains("<br>")) {
             se->originalLinebreak = "<br>";
         }
-        else if (se->pre_processed_text.find("\\r\\n") != std::string::npos) {
+        else if (se->pre_processed_text.contains("\\r\\n")) {
             se->originalLinebreak = "\\r\\n";
         }
-        else if (se->pre_processed_text.find("\\n") != std::string::npos) {
+        else if (se->pre_processed_text.contains("\\n")) {
             se->originalLinebreak = "\\n";
         }
-        else if (se->pre_processed_text.find("\\r") != std::string::npos) {
+        else if (se->pre_processed_text.contains("\\r")) {
             se->originalLinebreak = "\\r";
         }
-        else if (se->pre_processed_text.find("\r\n") != std::string::npos) {
+        else if (se->pre_processed_text.contains("\r\n")) {
             se->originalLinebreak = "\r\n";
         }
-        else if (se->pre_processed_text.find("\n") != std::string::npos) {
+        else if (se->pre_processed_text.contains("\n")) {
             se->originalLinebreak = "\n";
         }
-        else if (se->pre_processed_text.find("\r") != std::string::npos) {
+        else if (se->pre_processed_text.contains("\r")) {
             se->originalLinebreak = "\r";
         }
-        else if (se->pre_processed_text.find("[r][n]") != std::string::npos) {
+        else if (se->pre_processed_text.contains("[r][n]")) {
             se->originalLinebreak = "[r][n]";
         }
-        else if (se->pre_processed_text.find("[n]") != std::string::npos) {
+        else if (se->pre_processed_text.contains("[n]")) {
             se->originalLinebreak = "[n]";
         }
-        else if (se->pre_processed_text.find("[r]") != std::string::npos) {
+        else if (se->pre_processed_text.contains("[r]")) {
             se->originalLinebreak = "[r]";
         }
     }
@@ -1274,7 +1274,7 @@ std::optional<std::vector<fs::path>> NormalJsonTranslator::beforeRun() {
                 this->preProcess(se);
             };
         DictionaryGenerator generator(m_controller, m_logger, m_apiPool, m_tokenizeSourceLangFunc,
-            preProcessFunc, m_systemPrompt, m_userPrompt, m_apiStrategy,
+            preProcessFunc, m_systemPrompt, m_userPrompt, m_apiStrategy, m_targetLang,
             m_maxRetries, m_threadsNum, m_apiTimeOutMs, m_checkQuota);
         fs::path outputFilePath = m_projectDir / L"项目GPT字典-生成.toml";
         std::vector<fs::path> inputPaths = std::move(relJsonPaths);

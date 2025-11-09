@@ -1,4 +1,4 @@
-module;
+﻿module;
 
 #define PYBIND11_HEADERS
 #include "GPPMacros.hpp"
@@ -54,7 +54,7 @@ std::function<NLPResult(const std::string&)> getMeCabTokenizeFunc(const std::str
                 std::string feature = node->feature;
                 //logger->trace("分词结果：{} ({})", surface, feature);
                 wordPosList.emplace_back(std::vector<std::string>{ surface, feature });
-                if (feature.find("固有名詞") != std::string::npos || !extractKatakana(surface).empty()) {
+                if (feature.contains("固有名詞") || !extractKatakana(surface).empty()) {
                     entityList.emplace_back(std::vector<std::string>{ surface, feature });
                 }
             }

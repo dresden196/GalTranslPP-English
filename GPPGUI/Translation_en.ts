@@ -897,12 +897,12 @@
         <translation>sm model is not so satisfying, use trf model if conditions allowing</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="347"/>
+        <location filename="CommonSettingsPage.cpp" line="348"/>
         <source>Stanza语言ID</source>
         <translation>Stanza lang id</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="349"/>
+        <location filename="CommonSettingsPage.cpp" line="348"/>
         <source>Stanza语言ID，新模型下载后需重启程序</source>
         <translation>Stanza lang id, you need reboot app after downloading a new model</translation>
     </message>
@@ -917,7 +917,7 @@
     <message>
         <location filename="CommonSettingsPage.cpp" line="313"/>
         <location filename="CommonSettingsPage.cpp" line="336"/>
-        <location filename="CommonSettingsPage.cpp" line="358"/>
+        <location filename="CommonSettingsPage.cpp" line="356"/>
         <source>浏览</source>
         <translation>browse</translation>
     </message>
@@ -926,23 +926,23 @@
         <translation type="vanished">Choose dict dir</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="372"/>
+        <location filename="CommonSettingsPage.cpp" line="370"/>
         <source>本项目所使用的换行符</source>
         <translation>Linebreak symbol used in this project</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="375"/>
+        <location filename="CommonSettingsPage.cpp" line="373"/>
         <source>将换行符统一规范为 &amp;lt;br&amp;gt; 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行。&lt;br&gt;具体替换时机详见使用说明，auto为自动检测</source>
         <oldsource>将换行符统一规范为 &amp;lt;br&amp;gt; 以方便检错和修复，也可以让如全角半角转化等插件方便忽略换行，具体替换时机详见使用说明，auto为自动检测</oldsource>
         <translation>All linebreak symbols will be replaced to &amp;lt;br&amp;gt; for programming use</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="422"/>
+        <location filename="CommonSettingsPage.cpp" line="420"/>
         <source>解析失败</source>
         <translation>Fail to analyze</translation>
     </message>
     <message>
-        <location filename="CommonSettingsPage.cpp" line="422"/>
+        <location filename="CommonSettingsPage.cpp" line="420"/>
         <source>linebreakSymbol不符合 toml 规范</source>
         <translation>linebreakSymbol is nonconforming</translation>
     </message>

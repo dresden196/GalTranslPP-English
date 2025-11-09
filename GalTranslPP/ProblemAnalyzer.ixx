@@ -97,8 +97,8 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
         const std::string& origText = chooseStringRef(sentence, m_problems.punctsMiss.base);
         const std::string& transView = chooseStringRef(sentence, m_problems.punctsMiss.check);
         for (const auto& punctToCheck : m_punctsToCheck) {
-            bool orgHas = origText.find(punctToCheck) != std::string::npos;
-            bool transHas = transView.find(punctToCheck) != std::string::npos;
+            bool orgHas = origText.contains(punctToCheck);
+            bool transHas = transView.contains(punctToCheck);
 
             if (orgHas && !transHas) sentence->problems.push_back("本有 " + punctToCheck + " 符号");
             if (!orgHas && transHas) sentence->problems.push_back("本无 " + punctToCheck + " 符号");

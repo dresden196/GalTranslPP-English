@@ -325,7 +325,7 @@ void CommonSettingsPage::_setupUI()
 	ElaScrollPageArea* spaCyModelNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* spaCyModelNameLayout = new QHBoxLayout(spaCyModelNameArea);
 	ElaDoubleText* spaCyModelNameTextWidget = new ElaDoubleText(spaCyModelNameArea,
-		tr("spaCy模型名称"), 16, tr("sm模型的效果有点一言难尽，有条件的建议上trf模型"), 10, tr("spaCy模型名称，新模型下载后需重启程序"));
+		tr("spaCy模型名称"), 16, tr("spaCy模型名称，新模型下载后需重启程序"), 10, tr("sm模型的效果有点一言难尽，有条件的建议上trf模型"));
 	spaCyModelNameLayout->addWidget(spaCyModelNameTextWidget);
 	spaCyModelNameLayout->addStretch();
 	ElaLineEdit* spaCyModelNameLineEdit = new ElaLineEdit(spaCyModelNameArea);
@@ -344,11 +344,9 @@ void CommonSettingsPage::_setupUI()
 	std::string stanzaLang = toml::find_or(_projectConfig, "common", "stanzaLang", "ja");
 	ElaScrollPageArea* stanzaLangArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* stanzaLangLayout = new QHBoxLayout(stanzaLangArea);
-	ElaText* stanzaLangText = new ElaText(tr("Stanza语言ID"), stanzaLangArea);
-	ElaToolTip* stanzaLangTip = new ElaToolTip(stanzaLangText);
-	stanzaLangTip->setToolTip(tr("Stanza语言ID，新模型下载后需重启程序"));
-	stanzaLangText->setTextPixelSize(16);
-	stanzaLangLayout->addWidget(stanzaLangText);
+	ElaDoubleText* stanzaLangTextWidget = new ElaDoubleText(stanzaLangArea,
+		tr("Stanza语言ID"), 16, tr("Stanza语言ID，新模型下载后需重启程序"), 10, "");
+	stanzaLangLayout->addWidget(stanzaLangTextWidget);
 	stanzaLangLayout->addStretch();
 	ElaLineEdit* stanzaLangLineEdit = new ElaLineEdit(stanzaLangArea);
 	stanzaLangLineEdit->setFixedWidth(200);

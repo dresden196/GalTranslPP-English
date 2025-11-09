@@ -1,4 +1,4 @@
-#define PYBIND11_HEADERS
+﻿#define PYBIND11_HEADERS
 #include "../GalTranslPP/GPPMacros.hpp"
 #include <toml.hpp>
 #include <QDir>

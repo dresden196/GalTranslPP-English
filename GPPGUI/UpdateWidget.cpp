@@ -17,7 +17,8 @@ UpdateWidget::UpdateWidget(QWidget* parent)
     ElaText* updateTitle = new ElaText("v" + QString::fromStdString(GPPVERSION) + " 更新", 15, this);
     QStringList updateList = {
         "1. 向 Prompt 中实验性的添加了 动态背景 功能",
-        "2. 优化了一些界面细节"
+        "2. GenDict 的 Prompt 通用化",
+        "3. 优化了一些界面细节",
 
     };
 
