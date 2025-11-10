@@ -337,10 +337,10 @@ void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const
         m_logger->info("任务终止，将不会生成字典文件。");
         return;
     }
-    int threadsNum = std::min(m_threadsNum, (int)selectedIndices.size());
-    m_logger->info("阶段三：启动 {} 个线程，向 AI 发送 {} 个任务...", threadsNum, selectedIndices.size());
-    m_controller->makeBar((int)selectedIndices.size(), threadsNum);
-    ctpl::thread_pool pool(threadsNum);
+    
+    m_logger->info("阶段三：启动 {} 个线程，向 AI 发送 {} 个任务...", m_threadsNum, selectedIndices.size());
+    m_controller->makeBar((int)selectedIndices.size(), m_threadsNum);
+    ctpl::thread_pool pool(m_threadsNum);
     std::vector<std::future<void>> results;
     for (int segmentIdx : selectedIndices) {
         results.emplace_back(pool.push([=](int threadId) 

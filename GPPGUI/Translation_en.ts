@@ -2015,7 +2015,7 @@
     </message>
     <message>
         <location filename="OtherSettingsPage.cpp" line="163"/>
-        <location filename="OtherSettingsPage.cpp" line="254"/>
+        <location filename="OtherSettingsPage.cpp" line="259"/>
         <source>项目 </source>
         <translation>Project </translation>
     </message>
@@ -2039,39 +2039,39 @@
         <translation>Refresh</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="188"/>
+        <location filename="OtherSettingsPage.cpp" line="193"/>
         <source>你确定要刷新项目配置吗？</source>
         <translation>Are you sure to refresh project config?</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="193"/>
+        <location filename="OtherSettingsPage.cpp" line="198"/>
         <source>GUI中未保存的数据将会被覆盖！</source>
         <translation>Data in GUI that not saved will be covered!</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="213"/>
+        <location filename="OtherSettingsPage.cpp" line="218"/>
         <source>删除翻译缓存</source>
         <translation>Delete translation cache</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="217"/>
+        <location filename="OtherSettingsPage.cpp" line="222"/>
         <source>删除</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="221"/>
-        <location filename="OtherSettingsPage.cpp" line="251"/>
+        <location filename="OtherSettingsPage.cpp" line="226"/>
+        <location filename="OtherSettingsPage.cpp" line="256"/>
         <source>删除失败</source>
         <translation>Fail to delete</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="221"/>
+        <location filename="OtherSettingsPage.cpp" line="226"/>
         <source>项目仍在运行中，无法删除缓存</source>
         <translation>Project is still running</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="181"/>
-        <location filename="OtherSettingsPage.cpp" line="227"/>
+        <location filename="OtherSettingsPage.cpp" line="186"/>
+        <location filename="OtherSettingsPage.cpp" line="232"/>
         <source>否</source>
         <translation>No</translation>
     </message>
@@ -2086,39 +2086,49 @@
         <translation>Take care because all configs and dicts of this project will be refreshed</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="182"/>
-        <location filename="OtherSettingsPage.cpp" line="228"/>
+        <location filename="OtherSettingsPage.cpp" line="181"/>
+        <source>刷新失败</source>
+        <translation>Fail to refresh</translation>
+    </message>
+    <message>
+        <location filename="OtherSettingsPage.cpp" line="181"/>
+        <source>项目仍在运行中，无法刷新</source>
+        <translation>Project is still running</translation>
+    </message>
+    <message>
+        <location filename="OtherSettingsPage.cpp" line="187"/>
+        <location filename="OtherSettingsPage.cpp" line="233"/>
         <source>思考人生</source>
         <translation>Thinking of life</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="183"/>
-        <location filename="OtherSettingsPage.cpp" line="229"/>
+        <location filename="OtherSettingsPage.cpp" line="188"/>
+        <location filename="OtherSettingsPage.cpp" line="234"/>
         <source>是</source>
         <translation>Yes</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="213"/>
+        <location filename="OtherSettingsPage.cpp" line="218"/>
         <source>删除项目的翻译缓存，下次翻译将会重新从头开始</source>
         <translation>Translation all over again</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="234"/>
+        <location filename="OtherSettingsPage.cpp" line="239"/>
         <source>你确定要删除项目翻译缓存吗？</source>
         <translation>Are you sure to delete translation cache of this project?</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="239"/>
+        <location filename="OtherSettingsPage.cpp" line="244"/>
         <source>再次翻译将会重新从头开始！</source>
         <translation>You have to start all over again on next translation!</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="254"/>
+        <location filename="OtherSettingsPage.cpp" line="259"/>
         <source>删除成功</source>
         <translation>Deleted successfully</translation>
     </message>
     <message>
-        <location filename="OtherSettingsPage.cpp" line="254"/>
+        <location filename="OtherSettingsPage.cpp" line="259"/>
         <source> 的翻译缓存已删除</source>
         <translation> &apos;s transl_cache has been deleted</translation>
     </message>

@@ -177,6 +177,11 @@ void OtherSettingsPage::_setupUI()
 	refreshButton->setText(tr("刷新"));
 	connect(refreshButton, &ElaPushButton::clicked, this, [=]()
 		{
+			if (toml::find_or(_projectConfig, "GUIConfig", "isRunning", true)) {
+				ElaMessageBar::warning(ElaMessageBarType::TopRight, tr("刷新失败"), tr("项目仍在运行中，无法刷新"), 3000);
+				return;
+			}
+
 			ElaContentDialog helpDialog(_mainWindow);
 			helpDialog.setLeftButtonText(tr("否"));
 			helpDialog.setMiddleButtonText(tr("思考人生"));
