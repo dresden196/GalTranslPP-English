@@ -86,9 +86,11 @@ void ProblemAnalyzer::analyze(Sentence* sentence, GptDictionary& gptDict, const 
         const std::string& origText = chooseStringRef(sentence, m_problems.highFrequency.base);
         const std::string& transView = chooseStringRef(sentence, m_problems.highFrequency.check);
         const auto [mostWord, wordCount] = getMostCommonChar(transView);
-        const auto [mostWordOrg, wordCountOrg] = getMostCommonChar(origText);
-        if (wordCount > 20 && wordCount > (wordCountOrg > 0 ? wordCountOrg * 2 : 20)) {
-            sentence->problems.push_back("词频过高-'" + mostWord + "'" + std::to_string(wordCount) + "次");
+        if (wordCount > 20) {
+            const auto [mostWordOrg, wordCountOrg] = getMostCommonChar(origText);
+            if (wordCount > (wordCountOrg > 0 ? wordCountOrg * 2 : 20)) {
+                sentence->problems.push_back("词频过高-'" + mostWord + "'" + std::to_string(wordCount) + "次");
+            }
         }
     }
 

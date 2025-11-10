@@ -37,6 +37,8 @@ def run(se: gpp.Sentence):
     pattern = r"\[([^\[\]/]+?)/([^\[\]/]+?)\]"
     # 这个世界上我唯一爱过的[ひと/女人]。
     orgTransView = se.translated_preview
+    if orgTransView.startswith("(Failed to translate)"):
+        return
     # 这个世界上我唯一爱过的。
     removeFurigana = re.sub(pattern, "", orgTransView)
     # ""
