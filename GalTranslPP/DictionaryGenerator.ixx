@@ -252,7 +252,6 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
     if (m_controller->shouldStop()) {
         return;
     }
-    m_controller->addThreadNum();
     std::string text = m_segments[segmentIndex];
     std::string hint = "无";
     std::string nameHit;
@@ -278,7 +277,6 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
     int retryCount = 0;
     while (retryCount < m_maxRetries) {
         if (m_controller->shouldStop()) {
-            m_controller->reduceThreadNum();
             return;
         }
         auto optApi = m_apiStrategy == "random" ? m_apiPool.getApi() : m_apiPool.getFirstApi();
@@ -321,7 +319,6 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
     }
 
     m_controller->updateBar();
-    m_controller->reduceThreadNum();
 }
 
 void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const fs::path& outputFilePath) {
@@ -345,7 +342,9 @@ void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const
     for (int segmentIdx : selectedIndices) {
         results.emplace_back(pool.push([=](int threadId) 
             {
+                m_controller->addThreadNum();
                 this->callLLMToGenerate(segmentIdx, threadId);
+                m_controller->reduceThreadNum();
             }));
     }
     for (auto& res : results) {

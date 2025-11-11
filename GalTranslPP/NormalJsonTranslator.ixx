@@ -1035,7 +1035,6 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
         std::string backgroundText;
         for (size_t i = 0; i < toTranslate.size(); i += m_batchSize) {
             if (m_controller->shouldStop()) {
-                m_controller->reduceThreadNum();
                 return;
             }
             std::vector<Sentence*> batch(toTranslate.begin() + i, toTranslate.begin() + std::min(i + m_batchSize, toTranslate.size()));
