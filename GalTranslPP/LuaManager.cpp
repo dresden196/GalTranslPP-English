@@ -438,7 +438,9 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 			for (const auto& filePath : filePaths) {
 				futures.emplace_back(self.push([classPtr, filePath](const int id)
 					{
+						classPtr->m_controller->addThreadNum();
 						classPtr->processFile(filePath, id);
+						classPtr->m_controller->reduceThreadNum();
 					}));
 			}
 			for (auto& future : futures) {
