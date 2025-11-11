@@ -47,21 +47,21 @@ module :private;
 * @brief 根据句子的上下文生成唯一的缓存键，复刻 GalTransl 逻辑
 */
 std::string generateCacheKey(const Sentence* s) {
-    std::string prev_text = "None";
+    std::string prevText = "None";
     const Sentence* temp = s->prev;
     if (temp) {
-        prev_text = getNameString(temp) + temp->original_text + temp->pre_processed_text;
+        prevText = getNameString(temp) + temp->original_text + temp->pre_processed_text;
     }
 
-    std::string current_text = getNameString(s) + s->original_text + s->pre_processed_text;
+    std::string currentText = getNameString(s) + s->original_text + s->pre_processed_text;
 
-    std::string next_text = "None";
+    std::string nextText = "None";
     temp = s->next;
     if (temp) {
-        next_text = getNameString(temp) + temp->original_text + temp->pre_processed_text;
+        nextText = getNameString(temp) + temp->original_text + temp->pre_processed_text;
     }
 
-    return prev_text + current_text + next_text;
+    return prevText + currentText + nextText;
 }
 
 std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine transEngine, int contextHistorySize, int maxTokens) {

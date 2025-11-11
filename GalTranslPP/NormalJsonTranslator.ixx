@@ -807,7 +807,6 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
         return;
     }
     m_logger->debug("[线程 {}] 开始处理文件: {}", threadId, wide2Ascii(relInputPath));
-    m_controller->addThreadNum();
 
     std::ifstream ifs;
     fs::path inputPath = m_needsCombining ? (m_inputCacheDir / relInputPath) : (m_inputDir / relInputPath);
@@ -874,6 +873,7 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
         createParent(showNormalPath);
         std::ofstream ofs(showNormalPath);
         ofs << showNormalJson.dump(2);
+        ofs.close();
         return;
     }
     // ShowNormal结束
@@ -1020,7 +1020,6 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
             m_logger->critical("[线程 {}] [文件 {}] 有 {} 句未命中缓存，这些句子是: {}", threadId, wide2Ascii(relInputPath), toTranslate.size(), notFoundSentences);
             std::lock_guard<std::shared_mutex> lock(m_cacheMutex);
             saveCache(sentences, cachePath);
-            m_controller->reduceThreadNum();
             return;
         }
     }
@@ -1123,7 +1122,6 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
                 )
             {
                 m_logger->debug("文件 {} 尚未全部处理完成，跳过合并。", wide2Ascii(originalRelFilePath));
-                m_controller->reduceThreadNum();
                 return;
             }
             m_logger->debug("开始合并 {} 的缓存文件...", wide2Ascii(originalRelFilePath));
@@ -1147,7 +1145,6 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
             m_onFileProcessed(relInputPath);
         }
     }
-    m_controller->reduceThreadNum();
 }
 
 // ================================================         run           ========================================
@@ -1466,7 +1463,9 @@ void NormalJsonTranslator::process(std::vector<fs::path> relFilePaths) {
     for (const auto& filePath : relFilePaths) {
         results.emplace_back(m_threadPool.push([=](const int id)
             {
+                m_controller->addThreadNum();
                 this->processFile(filePath, id);
+                m_controller->reduceThreadNum();
             }));
     }
     m_logger->info("已将 {} 个文件任务分配到线程池，等待处理完成...", results.size());
