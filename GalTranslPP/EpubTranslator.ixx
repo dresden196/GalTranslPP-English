@@ -460,6 +460,8 @@ void EpubTranslator::beforeRun()
                 }
 
                 if (zip_set_file_compression(za, idx, ZIP_CM_STORE, 0) < 0) {
+                    zip_source_free(s);
+                    zip_close(za);
                     throw std::runtime_error("无法将 mimetype 设置为不压缩模式。");
                 }
             }
@@ -483,10 +485,12 @@ void EpubTranslator::beforeRun()
                 else {
                     zip_source_t* s = zip_source_file(za, wide2Ascii(entry.path()).c_str(), 0, 0);
                     if (!s) {
+                        zip_close(za);
                         throw std::runtime_error(std::format("无法为文件 {} 创建 zip_source_file", entryName));
                     }
                     if (zip_file_add(za, entryName.c_str(), s, ZIP_FL_ENC_UTF_8) < 0) {
                         zip_source_free(s);
+                        zip_close(za);
                         throw std::runtime_error(std::format("无法将文件 {} 添加到 zip", entryName));
                     }
                 }

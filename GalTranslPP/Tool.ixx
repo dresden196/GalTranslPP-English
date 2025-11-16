@@ -876,6 +876,7 @@ void extractFileFromZip(const fs::path& zipPath, const fs::path& outputDir, cons
         else {
             zip_file* zf = zip_fopen_index(za, i, 0);
             if (!zf) {
+                zip_close(za);
                 throw std::runtime_error(std::format("Failed to open file in zip archive: {}, file: {}", wide2Ascii(zipPath), zs.name));
             }
             std::vector<char> buffer(zs.size);
@@ -907,6 +908,7 @@ void extractZip(const fs::path& zipPath, const fs::path& outputDir) {
         else {
             zip_file* zf = zip_fopen_index(za, i, 0);
             if (!zf) {
+                zip_close(za);
                 throw std::runtime_error(std::format("Failed to open file in zip archive: {}, file: {}", wide2Ascii(zipPath), zs.name));
             }
             std::vector<char> buffer(zs.size);
@@ -945,6 +947,7 @@ void extractZipExclude(const fs::path& zipPath, const fs::path& outputDir, const
         else {
             zip_file* zf = zip_fopen_index(za, i, 0);
             if (!zf) {
+                zip_close(za);
                 throw std::runtime_error(std::format("Failed to open file in zip archive: {}, file: {}", wide2Ascii(zipPath), zs.name));
             }
             std::vector<char> buffer(zs.size);
