@@ -17,7 +17,7 @@ UpdateWidget::UpdateWidget(QWidget* parent)
     ElaText* updateTitle = new ElaText("v" + QString::fromStdString(GPPVERSION) + " 更新", 15, this);
     QStringList updateList = {
         "1. 修复自定义文件插件无法使用 <PROJECT_DIR> 宏的 bug",
-
+        "2. 运行时显式禁止刷新项目设置",
     };
 
     mainLayout->addWidget(updateTitle);

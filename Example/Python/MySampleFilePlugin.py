@@ -17,7 +17,9 @@ logger = None
 def process_file(rel_file_path, worker_id):
     """包装函数，worker_id是线程编号"""
     try:
+        pythonTranslator.m_controller.addThreadNum()
         pythonTranslator.processFile(rel_file_path, worker_id)
+        pythonTranslator.m_controller.reduceThreadNum()
     except Exception as e:
         error_msg = f"[线程{worker_id}] 处理文件 {rel_file_path} 时出错: {str(e)}\n{traceback.format_exc()}"
         logger.error(error_msg)
