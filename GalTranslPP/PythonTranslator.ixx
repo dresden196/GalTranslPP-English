@@ -68,7 +68,7 @@ export {
 			m_pythonInterpreter->submitTask([&]()
 				{
 					try {
-						fs::path stdModulePath = fs::weakly_canonical(ascii2Wide(modulePath));
+						fs::path stdModulePath = fs::weakly_canonical(ascii2Wide(m_modulePath));
 						std::string moduleName = wide2Ascii(stdModulePath.stem());
 						py::module_ pythonTranslatorModule = py::module_::import(moduleName.c_str());
 						pythonTranslatorModule.attr("pythonTranslator") = (Base*)this;

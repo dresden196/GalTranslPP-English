@@ -35,28 +35,28 @@ module :private;
 LuaTextPlugin::LuaTextPlugin(const fs::path& projectDir, const std::string& scriptPath, LuaManager& luaManager, std::shared_ptr<spdlog::logger> logger)
 	: m_logger(logger), m_scriptPath(scriptPath)
 {
-	m_logger->info("正在初始化 Lua 插件 {}", scriptPath);
-	std::optional<std::shared_ptr<LuaStateInstance>> luaStateOpt = luaManager.registerFunction(scriptPath, "init", m_needReboot);
+	m_logger->info("正在初始化 Lua 插件 {}", m_scriptPath);
+	std::optional<std::shared_ptr<LuaStateInstance>> luaStateOpt = luaManager.registerFunction(m_scriptPath, "init", m_needReboot);
 	if (!luaStateOpt.has_value()) {
-		throw std::runtime_error(scriptPath + " init函数 初始化失败");
+		throw std::runtime_error(m_scriptPath + " init函数 初始化失败");
 	}
-	luaStateOpt = luaManager.registerFunction(scriptPath, "run", m_needReboot);
+	luaStateOpt = luaManager.registerFunction(m_scriptPath, "run", m_needReboot);
 	if (!luaStateOpt.has_value()) {
-		throw std::runtime_error(scriptPath + " run函数 初始化失败");
+		throw std::runtime_error(m_scriptPath + " run函数 初始化失败");
 	}
 	m_luaState = luaStateOpt.value();
 	m_luaRunFunc = m_luaState->functions["run"];
-	luaManager.registerFunction(scriptPath, "unload", m_needReboot);
+	luaManager.registerFunction(m_scriptPath, "unload", m_needReboot);
 
 	try {
 		m_luaState->functions["init"](projectDir);
 	}
 	catch (const sol::error& e) {
-		m_logger->error("{} init函数 执行失败", scriptPath);
+		m_logger->error("{} init函数 执行失败", m_scriptPath);
 		throw std::runtime_error(e.what());
 	}
 
-	m_logger->info("{} 初始化成功", scriptPath);
+	m_logger->info("{} 初始化成功", m_scriptPath);
 }
 
 LuaTextPlugin::~LuaTextPlugin()

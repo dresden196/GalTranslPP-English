@@ -38,14 +38,14 @@ module :private;
 PythonTextPlugin::PythonTextPlugin(const fs::path& projectDir, const std::string& modulePath, PythonManager& pythonManager, std::shared_ptr<spdlog::logger> logger)
     : m_logger(logger), m_modulePath(modulePath)
 {
-    m_logger->info("正在初始化 Python 插件 {}", modulePath);
+    m_logger->info("正在初始化 Python 插件 {}", m_modulePath);
     std::optional<std::shared_ptr<PythonInterpreterInstance>> pythonInterpreterOpt = pythonManager.registerFunction(m_modulePath, "init", m_needReboot);
     if (!pythonInterpreterOpt.has_value()) {
-        throw std::runtime_error(modulePath + " init函数 初始化失败");
+        throw std::runtime_error(m_modulePath + " init函数 初始化失败");
     }
     pythonInterpreterOpt = pythonManager.registerFunction(m_modulePath, "run", m_needReboot);
     if (!pythonInterpreterOpt.has_value()) {
-        throw std::runtime_error(modulePath + " run函数 初始化失败");
+        throw std::runtime_error(m_modulePath + " run函数 初始化失败");
     }
     m_pythonInterpreter = pythonInterpreterOpt.value();
     m_pythonRunFunc = m_pythonInterpreter->functions["run"];
@@ -57,11 +57,11 @@ PythonTextPlugin::PythonTextPlugin(const fs::path& projectDir, const std::string
                 (*(m_pythonInterpreter->functions["init"]))(projectDir);
             }
             catch (const py::error_already_set& e) {
-                throw std::runtime_error(modulePath + " init函数 执行失败: " + e.what());
+                throw std::runtime_error(m_modulePath + " init函数 执行失败: " + e.what());
             }
         }).get();
 
-    m_logger->info("{} 初始化成功", modulePath);
+    m_logger->info("{} 初始化成功", m_modulePath);
 }
 
 PythonTextPlugin::~PythonTextPlugin()

@@ -713,7 +713,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         for (const auto& problem : batchToTransThisRound
             | std::views::transform([](const Sentence* pSentence) { return pSentence->problems; })
             | std::views::join) {
-            if (inputProblems.find(problem) == std::string::npos) {
+            if (!inputProblems.contains(problem)) {
                 inputProblems += problem + "\n";
             }
         }
