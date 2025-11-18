@@ -144,11 +144,11 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
             }
             else {
                 bool hasUpdateFile = false;
-                if (fs::exists(L"GUICORE.zip")) {
-                    QString currentFileHash = "sha256:" + calculateFileSha256("GUICORE.zip");
+                if (fs::exists(L"GUICORE.7z")) {
+                    QString currentFileHash = "sha256:" + calculateFileSha256("GUICORE.7z");
                     QJsonArray assets = jsonObj["assets"].toArray();
                     for (int i = 0; i < assets.size(); i++) {
-                        if (assets[i].toObject()["name"] != "GUICORE.zip") {
+                        if (assets[i].toObject()["name"] != "GUICORE.7z") {
                             continue;
                         }
                         QString updateFileHash = assets[i].toObject()["digest"].toString();
@@ -178,7 +178,7 @@ void UpdateChecker::onReplyFinished(QNetworkReply* reply)
                     m_statusText->setText(tr("检测到新版本！"));
                     QJsonArray assets = jsonObj["assets"].toArray();
                     for (int i = 0; i < assets.size(); i++) {
-                        if (assets[i].toObject()["name"] != "GUICORE.zip") {
+                        if (assets[i].toObject()["name"] != "GUICORE.7z") {
                             continue;
                         }
                         ElaMessageBar::information(ElaMessageBarType::Top, tr("下载更新"), tr("正在下载更新包..."), 5000);
@@ -234,7 +234,7 @@ void UpdateChecker::onDownloadFinished(QNetworkReply* reply)
         return;
     }
 
-    std::ofstream ofs(L"GUICORE.zip", std::ios::binary);
+    std::ofstream ofs(L"GUICORE.7z", std::ios::binary);
     QByteArray responseData = reply->readAll();
     ofs.write(responseData.data(), responseData.size());
     ofs.close();

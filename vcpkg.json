@@ -17,7 +17,8 @@
     "cpp-base64",
     "lua",
     "proxy",
-    "pybind11"
+    "pybind11",
+    "bit7z"
   ],
   "overrides": [
     {

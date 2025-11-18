@@ -650,7 +650,7 @@ void MainWindow::_onCloseWindowClicked(bool restart)
     if (_updateChecker->getIsDownloadSucceed()) {
         QStringList arguments;
         arguments << "--pid" << QString::number(QApplication::applicationPid());
-        arguments << "--source" << QApplication::applicationDirPath() + "/GUICORE.zip";
+        arguments << "--source" << QApplication::applicationDirPath() + "/GUICORE.7z";
         arguments << "--target" << QApplication::applicationDirPath();
         if (restart) {
             arguments << "--restart" << QApplication::applicationFilePath();

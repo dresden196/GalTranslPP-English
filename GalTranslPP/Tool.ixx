@@ -5,8 +5,10 @@
 #include <Windows.h>
 #endif
 
+#define BIT7Z_AUTO_FORMAT
 #include <spdlog/spdlog.h>
-#include <zip.h>
+#include <bit7z/bitarchivereader.hpp>
+#include <bit7z/bitfileextractor.hpp>
 #include <unicode/unistr.h>
 #include <unicode/uchar.h>
 #include <unicode/brkiter.h>
@@ -857,108 +859,38 @@ std::function<std::string(const std::string&)> getTraditionalChineseExtractor(st
 }
 
 void extractFileFromZip(const fs::path& zipPath, const fs::path& outputDir, const std::string& fileName) {
-    int error = 0;
-    zip* za = zip_open(wide2Ascii(zipPath).c_str(), 0, &error);
-    if (!za) {
-        throw std::runtime_error(std::format("Failed to open zip archive: {}", wide2Ascii(zipPath)));
-    }
-    zip_int64_t numEntries = zip_get_num_entries(za, 0);
-    for (zip_int64_t i = 0; i < numEntries; i++) {
-        zip_stat_t zs;
-        zip_stat_index(za, i, 0, &zs);
-        if (fileName != zs.name) {
-            continue;
-        }
-        fs::path path = outputDir / ascii2Wide(zs.name);
-        if (zs.name[strlen(zs.name) - 1] == '/') {
-            fs::create_directories(path);
-        }
-        else {
-            zip_file* zf = zip_fopen_index(za, i, 0);
-            if (!zf) {
-                zip_close(za);
-                throw std::runtime_error(std::format("Failed to open file in zip archive: {}, file: {}", wide2Ascii(zipPath), zs.name));
-            }
-            std::vector<char> buffer(zs.size);
-            zip_fread(zf, buffer.data(), zs.size);
-            zip_fclose(zf);
-            fs::create_directories(path.parent_path());
-            std::ofstream ofs(path, std::ios::binary);
-            ofs.write(buffer.data(), buffer.size());
-        }
-        break;
-    }
-    zip_close(za);
+    bit7z::Bit7zLibrary library{ "7z.dll" };
+    bit7z::BitFileExtractor extractor{ library, bit7z::BitFormat::Auto };
+    extractor.setOverwriteMode(bit7z::OverwriteMode::Overwrite);
+    extractor.extractMatching(wide2Ascii(zipPath), fileName, wide2Ascii(outputDir));
 }
 
 void extractZip(const fs::path& zipPath, const fs::path& outputDir) {
-    int error = 0;
-    zip* za = zip_open(wide2Ascii(zipPath).c_str(), 0, &error);
-    if (!za) {
-        throw std::runtime_error(std::format("Failed to open zip archive: {}", wide2Ascii(zipPath)));
-    }
-    zip_int64_t numEntries = zip_get_num_entries(za, 0);
-    for (zip_int64_t i = 0; i < numEntries; i++) {
-        zip_stat_t zs;
-        zip_stat_index(za, i, 0, &zs);
-        fs::path path = outputDir / ascii2Wide(zs.name);
-        if (zs.name[strlen(zs.name) - 1] == '/') {
-            fs::create_directories(path);
-        }
-        else {
-            zip_file* zf = zip_fopen_index(za, i, 0);
-            if (!zf) {
-                zip_close(za);
-                throw std::runtime_error(std::format("Failed to open file in zip archive: {}, file: {}", wide2Ascii(zipPath), zs.name));
-            }
-            std::vector<char> buffer(zs.size);
-            zip_fread(zf, buffer.data(), zs.size);
-            zip_fclose(zf);
-            fs::create_directories(path.parent_path());
-            std::ofstream ofs(path, std::ios::binary);
-            ofs.write(buffer.data(), buffer.size());
-        }
-    }
-    zip_close(za);
+    bit7z::Bit7zLibrary library{ "7z.dll" };
+    bit7z::BitFileExtractor extractor{ library, bit7z::BitFormat::Auto };
+    extractor.setOverwriteMode(bit7z::OverwriteMode::Overwrite);
+    extractor.extract(wide2Ascii(zipPath), wide2Ascii(outputDir));
 }
 
 void extractZipExclude(const fs::path& zipPath, const fs::path& outputDir, const std::set<std::string>& excludePrefixes) {
-    int error = 0;
-    zip* za = zip_open(wide2Ascii(zipPath).c_str(), 0, &error);
-    if (!za) {
-        throw std::runtime_error(std::format("Failed to open zip archive: {}", wide2Ascii(zipPath)));
-    }
-    zip_int64_t numEntries = zip_get_num_entries(za, 0);
-    for (zip_int64_t i = 0; i < numEntries; i++) {
-        zip_stat_t zs;
-        zip_stat_index(za, i, 0, &zs);
-        std::string name = zs.name;
-        if (std::ranges::any_of(excludePrefixes, [&](const std::string& prefix)
-            {
-                return name.starts_with(prefix);
-            }))
+    bit7z::Bit7zLibrary library{ "7z.dll" };
+    std::vector<uint32_t> indices;
+
+    bit7z::BitArchiveReader archive{ library, wide2Ascii(zipPath) };
+    for (const auto& item : archive) {
+        if (
+            std::ranges::any_of(excludePrefixes, [&](const std::string& prefix) { return item.path().starts_with(prefix); })
+            )
         {
             continue;
         }
-        fs::path path = outputDir / ascii2Wide(zs.name);
-        if (zs.name[strlen(zs.name) - 1] == '/') {
-            fs::create_directories(path);
-        }
-        else {
-            zip_file* zf = zip_fopen_index(za, i, 0);
-            if (!zf) {
-                zip_close(za);
-                throw std::runtime_error(std::format("Failed to open file in zip archive: {}, file: {}", wide2Ascii(zipPath), zs.name));
-            }
-            std::vector<char> buffer(zs.size);
-            zip_fread(zf, buffer.data(), zs.size);
-            zip_fclose(zf);
-            fs::create_directories(path.parent_path());
-            std::ofstream ofs(path, std::ios::binary);
-            ofs.write(buffer.data(), buffer.size());
-        }
+        indices.push_back(item.index());
     }
-    zip_close(za);
+
+    bit7z::BitFileExtractor extractor{ library, bit7z::BitFormat::Auto };
+    extractor.setOverwriteMode(bit7z::OverwriteMode::Overwrite);
+    extractor.extractItems(wide2Ascii(zipPath), indices, wide2Ascii(outputDir));
+    
 }
 
 bool cmpVer(const std::string& latestVer, const std::string& currentVer, bool& isCompatible)
