@@ -127,13 +127,17 @@ bool NormalDictModel::setData(const QModelIndex& index, const QVariant& value, i
         case Column::ConditionTar:
         {
             QString str = value.toString();
+            if (str.isEmpty()) {
+                entry.conditionTar.clear();
+                return true;
+            }
             if (entry.conditionTar == str) {
                 return false;
             }
             while (str.startsWith("prev_")) {
                 str = str.mid(5);
             }
-            while (str.endsWith("next_")) {
+            while (str.startsWith("next_")) {
                 str = str.mid(5);
             }
             //Name, NamePreview, Names, NamesPreview, OrigText, PreprocText, PretransText, Problems, OtherInfo, TranslatedBy, TransPreview 

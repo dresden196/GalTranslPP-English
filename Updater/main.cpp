@@ -61,6 +61,7 @@ int main(int argc, char* argv[]) {
     parser.addOption({ QStringList{"gppVersion"}, "Version of GalTranslPP.", "gppVersion" });
     parser.addOption({ QStringList{"pythonVersion"}, "Version of Python.", "pythonVersion" });
     parser.addOption({ QStringList{"promptVersion"}, "Version of Prompt.", "promptVersion" });
+    parser.addOption({ QStringList{"dictVersion"}, "Version of dictionary.", "dictVersion" });
     parser.process(a);
 
     qint64 pid = parser.value("pid").toLongLong();
@@ -76,8 +77,10 @@ int main(int argc, char* argv[]) {
 
     if (parser.isSet("newActionFlag")) {
         try {
+            std::string orgGppVersion = parser.isSet("gppVersion") ? parser.value("gppVersion").toStdString() : "1.0.0";
             std::string orgPythonVersion = parser.isSet("pythonVersion") ? parser.value("pythonVersion").toStdString() : "1.0.0";
             std::string orgPromptVersion = parser.isSet("promptVersion") ? parser.value("promptVersion").toStdString() : "1.0.0";
+            std::string orgDictVersion = parser.isSet("dictVersion") ? parser.value("dictVersion").toStdString() : "1.0.0";
             std::set<std::string> excludePreFixes =
             {
                 "BaseConfig/python-3.12.10-embed-amd64", "BaseConfig/pyScripts", "BaseConfig/Prompt.toml",
@@ -123,6 +126,7 @@ int main(int argc, char* argv[]) {
             arguments << "--gppVersion" << QString::fromStdString(GPPVERSION);
             arguments << "--pythonVersion" << QString::fromStdString(PYTHONVERSION);
             arguments << "--promptVersion" << QString::fromStdString(PROMPTVERSION);
+            arguments << "--dictVersion" << QString::fromStdString(DICTVERSION);
             QProcess::execute("Updater_new.exe", arguments);
         }
     }

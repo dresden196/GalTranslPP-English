@@ -18,6 +18,7 @@ UpdateWidget::UpdateWidget(QWidget* parent)
     QStringList updateList = {
         "1. 修复自定义文件插件无法使用 <PROJECT_DIR> 宏的 bug",
         "2. 运行时显式禁止刷新项目设置",
+        "3. 修复条件对象无法清空的 bug",
     };
 
     mainLayout->addWidget(updateTitle);

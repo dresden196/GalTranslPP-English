@@ -12,6 +12,8 @@ export {
 
     const std::string PROMPTVERSION = "1.0.2";
 
+    const std::string DICTVERSION = "1.0.0";
+
     const fs::path pluginConfigsPath = L"BaseConfig/pluginConfigs";
 
     enum class NameType
