@@ -284,7 +284,7 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
             throw std::runtime_error("没有可用的API Key了");
         }
         TranslationApi currentApi = optApi.value();
-        json payload = { {"model", currentApi.modelName}, {"messages", messages}, /*{"temperature", 0.6}*/ };
+        json payload = { {"messages", messages} };
 
         m_logger->info("[线程 {}] 开始从段落中生成术语表\ninputBlock: \n{}", threadId, text);
         ApiResponse response = performApiRequest(payload, currentApi, threadId, m_controller, m_logger, m_apiTimeoutMs);

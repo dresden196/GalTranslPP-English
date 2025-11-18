@@ -12,6 +12,6 @@ tokenizerBackend = "MeCab" # MeCab, spaCy, Stanza, pkuseg (除了MeCab，剩下�
 # https://github.com/panyang/MeCab-Chinese/tree/master/data/v0.3
 mecabDictDir = "BaseConfig/mecabDict/mecab-chinese" 
 # https://spacy.io/models
-spaCyModelName = "zh_core_web_sm"
+spaCyModelName = "zh_core_web_lg"
 # https://stanfordnlp.github.io/stanza/ner_models.html
 stanzaLang = "zh"

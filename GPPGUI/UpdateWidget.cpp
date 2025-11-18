@@ -19,6 +19,8 @@ UpdateWidget::UpdateWidget(QWidget* parent)
         "1. 修复自定义文件插件无法使用 <PROJECT_DIR> 宏的 bug",
         "2. 运行时显式禁止刷新项目设置",
         "3. 修复条件对象无法清空的 bug",
+        "4. API 增加温度设置",
+
     };
 
     mainLayout->addWidget(updateTitle);

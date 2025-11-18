@@ -4,60 +4,71 @@
 <context>
     <name>APISettingsPage</name>
     <message>
-        <location filename="APISettingsPage.cpp" line="26"/>
-        <location filename="APISettingsPage.cpp" line="61"/>
+        <location filename="APISettingsPage.cpp" line="28"/>
+        <location filename="APISettingsPage.cpp" line="66"/>
         <source>API 设置</source>
         <translation>API settings</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="88"/>
+        <location filename="APISettingsPage.cpp" line="97"/>
         <source>API 使用策略</source>
         <translation>API strategy</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="88"/>
+        <location filename="APISettingsPage.cpp" line="97"/>
         <source>令牌策略，random随机轮询，fallback优先第一个，出现[请求错误]时使用下一个</source>
         <translation>Strategy of api: using. randomly polling / preferring the first one and using the next one when ocurring [request mistake]</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="108"/>
+        <location filename="APISettingsPage.cpp" line="117"/>
         <source>API 超时时间</source>
         <translation>API timeout</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="108"/>
+        <location filename="APISettingsPage.cpp" line="117"/>
         <source>API 请求超时时间，单位为秒</source>
         <translation>in seconds</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="118"/>
+        <location filename="APISettingsPage.cpp" line="127"/>
         <source>增加新 API</source>
         <translation>Add new API</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="175"/>
+        <location filename="APISettingsPage.cpp" line="184"/>
         <source>请输入 API Key(Sakura引擎可不填)</source>
         <translation>Please type in API Key(Sakura transEngine can ignore this)</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="191"/>
+        <location filename="APISettingsPage.cpp" line="200"/>
         <source>请输入 API Url</source>
         <translation>Please type in API Url</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="198"/>
+        <location filename="APISettingsPage.cpp" line="207"/>
         <source>模型名称</source>
         <translation>Model name</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="208"/>
+        <location filename="APISettingsPage.cpp" line="217"/>
         <source>请输入模型名称(Sakura引擎可不填)</source>
         <translation>Please type in model name(Sakura transEngine can ignore this)</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="226"/>
+        <location filename="APISettingsPage.cpp" line="235"/>
         <source>流式</source>
         <translation>Stream</translation>
+    </message>
+    <message>
+        <location filename="APISettingsPage.cpp" line="244"/>
+        <source>温度</source>
+        <translation>Temperature</translation>
+    </message>
+    <message>
+        <location filename="APISettingsPage.cpp" line="246"/>
+        <source>勾选选框则使用自定义温度，&lt;br/&gt;否则使用供应商默认温度</source>
+        <oldsource>勾选选框则使用自定义温度，否则使用供应商默认温度</oldsource>
+        <translation>Use custom temperature if box is checked, &lt;br/&gt;otherwise use default temperature provided by api server</translation>
     </message>
 </context>
 <context>
@@ -2375,18 +2386,18 @@
 <context>
     <name>PostFull2HalfCfgPage</name>
     <message>
-        <location filename="PostFull2HalfCfgPage.cpp" line="16"/>
-        <location filename="PostFull2HalfCfgPage.cpp" line="59"/>
+        <location filename="PostFull2HalfCfgPage.cpp" line="17"/>
+        <location filename="PostFull2HalfCfgPage.cpp" line="58"/>
         <source>全角半角转换设置</source>
         <translation>Convert settings</translation>
     </message>
     <message>
-        <location filename="PostFull2HalfCfgPage.cpp" line="27"/>
+        <location filename="PostFull2HalfCfgPage.cpp" line="28"/>
         <source>转换标点符号</source>
         <translation>Convert punctuations</translation>
     </message>
     <message>
-        <location filename="PostFull2HalfCfgPage.cpp" line="41"/>
+        <location filename="PostFull2HalfCfgPage.cpp" line="43"/>
         <source>反向替换</source>
         <translation>Reverse converting</translation>
     </message>
@@ -2758,28 +2769,33 @@
 <context>
     <name>SkipTransCfgPage</name>
     <message>
-        <location filename="SkipTransCfgPage.cpp" line="18"/>
-        <location filename="SkipTransCfgPage.cpp" line="83"/>
+        <location filename="SkipTransCfgPage.cpp" line="19"/>
+        <location filename="SkipTransCfgPage.cpp" line="84"/>
         <source>跳过翻译设置</source>
         <translation>SkipTrans settings</translation>
     </message>
     <message>
-        <location filename="SkipTransCfgPage.cpp" line="29"/>
+        <location filename="SkipTransCfgPage.cpp" line="31"/>
         <source>跳过 H 关键字</source>
         <translation>Skip H keys</translation>
     </message>
     <message>
-        <location filename="SkipTransCfgPage.cpp" line="49"/>
+        <location filename="SkipTransCfgPage.cpp" line="31"/>
+        <source>关键字列表以 base64 编码形式存储在 SkipTrans.toml 中</source>
+        <translation>List of hKeys(base64) stores in SkipTrans.toml</translation>
+    </message>
+    <message>
+        <location filename="SkipTransCfgPage.cpp" line="50"/>
         <source>语法与 retranslKeys 完全相同</source>
         <translation>The grammars is completely same as retranslKeys&apos;</translation>
     </message>
     <message>
-        <location filename="SkipTransCfgPage.cpp" line="77"/>
+        <location filename="SkipTransCfgPage.cpp" line="78"/>
         <source>解析错误</source>
         <translation>Fail to analyze</translation>
     </message>
     <message>
-        <location filename="SkipTransCfgPage.cpp" line="77"/>
+        <location filename="SkipTransCfgPage.cpp" line="78"/>
         <source>skipKeys 不符合 toml 规范</source>
         <translation>skipKeys is nonconforming</translation>
     </message>
@@ -2956,33 +2972,33 @@
 <context>
     <name>TLFCfgPage</name>
     <message>
-        <location filename="TLFCfgPage.cpp" line="22"/>
-        <location filename="TLFCfgPage.cpp" line="243"/>
+        <location filename="TLFCfgPage.cpp" line="23"/>
+        <location filename="TLFCfgPage.cpp" line="228"/>
         <source>换行修复设置</source>
         <translation>Linebreak fix settings</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="31"/>
+        <location filename="TLFCfgPage.cpp" line="32"/>
         <source>优先标点</source>
         <translation>Prefer punctuations</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="31"/>
+        <location filename="TLFCfgPage.cpp" line="32"/>
         <source>保持位置</source>
         <translation>Keep positions</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="31"/>
+        <location filename="TLFCfgPage.cpp" line="32"/>
         <source>固定字数</source>
         <translation>Fixed char count</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="31"/>
+        <location filename="TLFCfgPage.cpp" line="32"/>
         <source>平均</source>
         <translation>Average</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="35"/>
+        <location filename="TLFCfgPage.cpp" line="36"/>
         <source>换行模式</source>
         <translation>Fix Mode</translation>
     </message>
@@ -2992,80 +3008,80 @@
         <translation>Segment threshold</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="72"/>
+        <location filename="TLFCfgPage.cpp" line="70"/>
         <source>仅在固定字数模式有效</source>
         <translation>Only applied in &quot;Fixed char count&quot; mode</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="86"/>
+        <location filename="TLFCfgPage.cpp" line="83"/>
         <source>强制修复</source>
         <translation>Force to fix</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="99"/>
+        <location filename="TLFCfgPage.cpp" line="97"/>
         <source>报错阈值</source>
         <translation>Error threshold</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="101"/>
+        <location filename="TLFCfgPage.cpp" line="97"/>
         <source>单行字符数超过此阈值时报错</source>
         <translation>Add a problem if char count of a line exceeds this threshold</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="112"/>
+        <location filename="TLFCfgPage.cpp" line="107"/>
         <source>分词器设置</source>
         <translation>Tokenizer settings</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="123"/>
+        <location filename="TLFCfgPage.cpp" line="119"/>
         <source>使用分词器</source>
         <translation>Use tokenizer</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="139"/>
+        <location filename="TLFCfgPage.cpp" line="133"/>
         <source>分词器后端</source>
         <translation>Tokenizer backend</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="141"/>
+        <location filename="TLFCfgPage.cpp" line="133"/>
         <source>应选择适合目标语言的后端/模型/字典</source>
         <translation>Should choose backend/model/dict fit to target language</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="160"/>
+        <location filename="TLFCfgPage.cpp" line="152"/>
         <source>MeCab词典目录</source>
         <translation>MeCab dict dir</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="162"/>
+        <location filename="TLFCfgPage.cpp" line="152"/>
         <source>MeCab中文词典需手动下载</source>
         <oldsource>MeCab词典需手动下载</oldsource>
         <translation>Chinese dict of MeCab need to be manually downloaded</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="174"/>
+        <location filename="TLFCfgPage.cpp" line="163"/>
         <source>选择MeCab词典目录</source>
         <translation>Choose MeCab dict dir</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="185"/>
+        <location filename="TLFCfgPage.cpp" line="175"/>
         <source>spaCy模型名称</source>
         <translation>spaCy model name</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="187"/>
+        <location filename="TLFCfgPage.cpp" line="175"/>
         <source>spaCy模型名称，新模型下载后需重启程序</source>
         <translation>spaCy model name, you need to reboot app after downloading new model</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="170"/>
-        <location filename="TLFCfgPage.cpp" line="195"/>
-        <location filename="TLFCfgPage.cpp" line="218"/>
+        <location filename="TLFCfgPage.cpp" line="159"/>
+        <location filename="TLFCfgPage.cpp" line="182"/>
+        <location filename="TLFCfgPage.cpp" line="203"/>
         <source>浏览</source>
         <translation>Browse</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="54"/>
+        <location filename="TLFCfgPage.cpp" line="56"/>
         <source>优先阈值</source>
         <translation>Prefer threshold</translation>
     </message>
@@ -3075,24 +3091,24 @@
         <translation>Only applied in &quot;Prefer punctuations&quot; mode, higher means linebreak can move farther to match punctuation</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="125"/>
+        <location filename="TLFCfgPage.cpp" line="119"/>
         <source>可能可以获得更好的换行效果，其中 pkuseg 的安装需要电脑上有 MS C++ Build Tools</source>
         <oldsource>可能可以获得更好的换行效果，其中 pkuseg 需要电脑上有 MS C++ Build Tools</oldsource>
         <translation>May get better performance (installing pkuseg needs MS C++ Build Tools on your PC)</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="196"/>
-        <location filename="TLFCfgPage.cpp" line="219"/>
+        <location filename="TLFCfgPage.cpp" line="183"/>
+        <location filename="TLFCfgPage.cpp" line="204"/>
         <source>浏览模型目录</source>
         <translation>Browse model contents</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="208"/>
+        <location filename="TLFCfgPage.cpp" line="196"/>
         <source>Stanza语言ID</source>
         <translation>Stanza lang id</translation>
     </message>
     <message>
-        <location filename="TLFCfgPage.cpp" line="210"/>
+        <location filename="TLFCfgPage.cpp" line="196"/>
         <source>Stanza语言ID，新模型下载后需重启程序</source>
         <translation>Stanza lang id, you need to reboot app after downloading new model</translation>
     </message>

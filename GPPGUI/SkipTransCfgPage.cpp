@@ -9,6 +9,7 @@
 #include "ElaScrollPageArea.h"
 #include "ElaPlainTextEdit.h"
 #include "ElaMessageBar.h"
+#include "ElaDoubleText.h"
 
 import Tool;
 
@@ -26,8 +27,8 @@ SkipTransCfgPage::SkipTransCfgPage(toml::ordered_value& projectConfig, QWidget* 
     bool skipH = toml::find_or(_projectConfig, "plugins", "SkipTrans", "skipH", false);
     ElaScrollPageArea* skipHArea = new ElaScrollPageArea(centerWidget);
     QHBoxLayout* skipHLayout = new QHBoxLayout(skipHArea);
-    ElaText* skipHText = new ElaText(tr("跳过 H 关键字"), 16, skipHArea);
-    skipHText->setWordWrap(false);
+    ElaDoubleText* skipHText = new ElaDoubleText(skipHArea,
+		tr("跳过 H 关键字"), 16, tr("关键字列表以 base64 编码形式存储在 SkipTrans.toml 中"), 10, "");
     skipHLayout->addWidget(skipHText);
     skipHLayout->addStretch();
     ElaToggleSwitch* skipHSwitch = new ElaToggleSwitch(skipHArea);

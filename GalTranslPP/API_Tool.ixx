@@ -16,6 +16,7 @@ export {
         std::string apikey;
         std::string apiurl;
         std::string modelName;
+        std::optional<double> temperature;
         std::chrono::steady_clock::time_point lastReportTime = std::chrono::steady_clock::now();
         int reportCount = 0;
         bool stream;
@@ -40,6 +41,10 @@ ApiResponse performApiRequest(json& payload, const TranslationApi& api, int thre
     std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, const int apiTimeOutMs) {
     ApiResponse apiResponse;
 
+    payload["model"] = api.modelName;
+    if (api.temperature.has_value()) {
+        payload["temperature"] = api.temperature.value();
+    }
     if (api.stream) {
         // =================================================
         // ===========   流式请求处理路径   ================

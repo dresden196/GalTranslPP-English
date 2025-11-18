@@ -7,6 +7,7 @@ apiTimeout = 120 # 请求超时时间，单位秒
   apiurl = ""             # https://openai-example.com | 请求地址，加不加/v1都行
   modelName = ""          # modelName | sakura引擎可不填
   stream = false
+  # temperature = 0.6
 
 [plugins]
 filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, MtoolJson(尚未实现)...
@@ -21,7 +22,7 @@ baseClassName = "NormalJson" # 参数同上，用于在使用自定义 filePlugi
 # Rebuild: 即使problem或orig_text中包含retranslKey也不会重翻，只根据缓存翻译重建结果
 # ShowNormal: 展示预处理后的内容及句子，如Epub格式下可生成预处理后的html/xhtml文件以及生成的json，可用于检查和排错
 # PS: 如果项目文件夹下有 Prompt.toml，会优先使用项目文件夹下的提示词，否则再去 BaseConfig 下寻找
-transEngine = "ForGalJson"
+transEngine = "ForGalTsv"
 
 #"SkipTrans"
 # 文本译前处理插件列表，可以设置多个，按顺序执行
@@ -62,7 +63,7 @@ skipH = false
 # 实际上只是将原文复制给译文并标记为已翻译，所以依旧影响上下文的缓存命中
 # 语法与 retranslKeys 完全相同
 skipKeys = [
-  '^[a-zA-Z\d_]+$', # 等效于 [{ conditionTarget = 'preproc_text', conditionReg = '^[a-zA-Z\d_]+$' }]
+  '^[a-zA-Z\d_\p{P}]+$', # 等效于 [{ conditionTarget = 'preproc_text', conditionReg = '^[a-zA-Z\d_\p{P}]+$' }]
 ]
 
 [plugins.TextLinebreakFix]
@@ -94,7 +95,7 @@ tokenizerBackend = "MeCab" # MeCab, spaCy, Stanza
 # MeCab 分词器所用的词典的路径
 mecabDictDir = "BaseConfig/mecabDict/mecab-ipadic-utf8" # 也可以用 mecab-ipadic-neologd 或 unidic(均需从网上下载字典)
 # spaCy(Python) 分词器所用的模型名，可从 https://spacy.io/models 查询，自动下载需重启程序
-spaCyModelName = "ja_core_news_sm" # sm模型的效果有点一言难尽，有条件的建议上trf模型
+spaCyModelName = "ja_core_news_lg" # sm模型的效果有点一言难尽，有条件的建议上trf模型
 # stanza 使用 LangID 来获取模型, 语言ID列表 https://stanfordnlp.github.io/stanza/ner_models.html
 stanzaLang = "ja"
 
@@ -102,7 +103,7 @@ stanzaLang = "ja"
 [problemAnalyze]
 # 要发现的问题清单
 problemList = [
-  #"词频过高",
+  "词频过高",
   "标点错漏",
 
   "丢失换行",

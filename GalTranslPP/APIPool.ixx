@@ -19,7 +19,7 @@ export {
     public:
         APIPool(std::shared_ptr<spdlog::logger> logger);
 
-        void loadAPIs(const std::vector<TranslationApi>& apis);
+        void loadApis(const std::vector<TranslationApi>& apis);
 
         std::optional<TranslationApi> getApi();
 
@@ -41,7 +41,7 @@ module :private;
 
 APIPool::APIPool(std::shared_ptr<spdlog::logger> logger) : m_logger(logger), m_gen(std::make_unique<std::mt19937>(std::random_device{}())) {}
 
-void APIPool::loadAPIs(const std::vector<TranslationApi>& apis) {
+void APIPool::loadApis(const std::vector<TranslationApi>& apis) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     m_apis.insert(m_apis.end(), apis.begin(), apis.end());

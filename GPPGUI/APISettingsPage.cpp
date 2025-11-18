@@ -17,6 +17,8 @@
 #include "ElaToolTip.h"
 #include "ElaIcon.h"
 #include "ElaDoubleText.h"
+#include "ElaCheckBox.h"
+#include "ElaDoubleSpinBox.h"
 
 import Tool;
 
@@ -46,7 +48,10 @@ void APISettingsPage::apply2Config()
         apiTable.insert({ "apiurl", apiRow.urlEdit->text().toStdString() });
         apiTable.insert({ "modelName", apiRow.modelEdit->text().toStdString() });
         apiTable.insert({ "stream", apiRow.streamSwitch->getIsToggled() });
-        apiArray.push_back(apiTable);
+        if (apiRow.enableTemperatureSwitch->isChecked()) {
+            apiTable.insert({ "temperature", apiRow.temperatureSpinBox->value() });
+        }
+        apiArray.push_back(std::move(apiTable));
     }
     insertToml(_projectConfig, "backendSpecific.OpenAI-Compatible.apis", apiArray);
     if (_applyFunc) {
@@ -72,7 +77,11 @@ void APISettingsPage::_setupUI()
         const std::string& url = toml::find_or(api, "apiurl", "");
         const std::string& model = toml::find_or(api, "modelName", "");
         bool stream = toml::find_or(api, "stream", false);
-        ElaScrollPageArea* newRowWidget = _createApiInputRowWidget(QString::fromStdString(key), QString::fromStdString(url), QString::fromStdString(model), stream);
+        std::optional<double> temperature;
+        if (api.contains("temperature") && api.at("temperature").is_floating()) {
+            temperature = api.at("temperature").as_floating();
+        }
+        ElaScrollPageArea* newRowWidget = _createApiInputRowWidget(QString::fromStdString(key), QString::fromStdString(url), QString::fromStdString(model), stream, temperature);
         _mainLayout->addWidget(newRowWidget);
     }
     if (apis.size() == 0) {
@@ -146,7 +155,7 @@ void APISettingsPage::_addApiInputRow()
 }
 
 // 【新增】这个函数创建一整行带边框和删除按钮的UI
-ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key, const QString& url, const QString& model, bool stream)
+ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key, const QString& url, const QString& model, bool stream, std::optional<double> temperature)
 {
     // 1. 创建带边框的容器 ElaScrollPageArea
     ElaScrollPageArea* container = new ElaScrollPageArea(this);
@@ -223,13 +232,34 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     QWidget* streamContainer = new QWidget(rightContainer);
     QHBoxLayout* streamLayout = new QHBoxLayout(streamContainer);
     streamLayout->addStretch();
-    ElaText* streamLabel = new ElaText(tr("流式"), streamContainer);
-    streamLabel->setTextPixelSize(13);
+    ElaText* streamLabel = new ElaText(tr("流式"), 13, streamContainer);
     streamLayout->addWidget(streamLabel);
     ElaToggleSwitch* streamSwitch = new ElaToggleSwitch(streamContainer);
     streamSwitch->setIsToggled(stream);
     streamLayout->addWidget(streamSwitch);
+    streamLayout->addStretch();
     rightLayout->addWidget(streamContainer);
+    QWidget* temperatureContainer = new QWidget(rightContainer);
+    QHBoxLayout* temperatureLayout = new QHBoxLayout(temperatureContainer);
+    ElaText* temperatureLabel = new ElaText(tr("温度"), 13, temperatureContainer);
+    ElaToolTip* temperatureToolTip = new ElaToolTip(temperatureLabel);
+    temperatureToolTip->setToolTip(tr("勾选选框则使用自定义温度，<br/>否则使用供应商默认温度"));
+    temperatureLayout->addWidget(temperatureLabel);
+    ElaDoubleSpinBox* temperatureSpinBox = new ElaDoubleSpinBox(temperatureContainer);
+    temperatureSpinBox->setRange(0.0, 100.0);
+    temperatureSpinBox->setDecimals(2);
+    temperatureSpinBox->setSingleStep(0.01);
+    if (temperature.has_value()) {
+        temperatureSpinBox->setValue(*temperature);
+    }
+    else {
+        temperatureSpinBox->setValue(1.0);
+    }
+    temperatureLayout->addWidget(temperatureSpinBox);
+    ElaCheckBox* temperatureCheckBox = new ElaCheckBox(temperatureContainer);
+    temperatureCheckBox->setChecked(temperature.has_value());
+    temperatureLayout->addWidget(temperatureCheckBox);
+    rightLayout->addWidget(temperatureContainer);
     rightLayout->addStretch();
 
     // 5. 组合布局
@@ -243,6 +273,8 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     newRowControls.urlEdit = urlEdit;
     newRowControls.modelEdit = modelEdit;
     newRowControls.streamSwitch = streamSwitch;
+    newRowControls.enableTemperatureSwitch = temperatureCheckBox;
+    newRowControls.temperatureSpinBox = temperatureSpinBox;
     _apiRows.append(newRowControls);
 
     return container;

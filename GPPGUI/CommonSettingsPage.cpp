@@ -321,7 +321,7 @@ void CommonSettingsPage::_setupUI()
 		});
 
 	// spaCyModelName  https://spacy.io/models
-	std::string spaCyModelName = toml::find_or(_projectConfig, "common", "spaCyModelName", "ja_core_news_sm");
+	std::string spaCyModelName = toml::find_or(_projectConfig, "common", "spaCyModelName", "ja_core_news_lg");
 	ElaScrollPageArea* spaCyModelNameArea = new ElaScrollPageArea(mainWidget);
 	QHBoxLayout* spaCyModelNameLayout = new QHBoxLayout(spaCyModelNameArea);
 	ElaDoubleText* spaCyModelNameTextWidget = new ElaDoubleText(spaCyModelNameArea,

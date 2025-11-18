@@ -236,6 +236,9 @@ void NormalJsonTranslator::init()
                     continue;
                 }
                 api.stream = apiTbl.contains("stream") && apiTbl.at("stream").as_boolean();
+                if (apiTbl.contains("temperature")) {
+                    api.temperature = apiTbl.at("temperature").as_floating();
+                }
                 apis.push_back(std::move(api));
             }
 
@@ -243,7 +246,7 @@ void NormalJsonTranslator::init()
                 throw std::invalid_argument("config.toml 中找不到可用的 apikey ");
             }
             else {
-                m_apiPool.loadAPIs(std::move(apis));
+                m_apiPool.loadApis(std::move(apis));
             }
         }
 
@@ -748,13 +751,13 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         }
         messages.push_back({ {"role", "user"}, {"content", promptReq} });
 
-        auto optApi = m_apiStrategy == "random" ? m_apiPool.getApi() : m_apiPool.getFirstApi();
-        if (!optApi.has_value()) {
+        std::optional<TranslationApi> apiOpt = m_apiStrategy == "random" ? m_apiPool.getApi() : m_apiPool.getFirstApi();
+        if (!apiOpt.has_value()) {
             throw std::runtime_error("没有可用的API Key了");
         }
-        const TranslationApi& currentApi = optApi.value();
+        const TranslationApi& currentApi = apiOpt.value();
 
-        json payload = { {"model", currentApi.modelName}, {"messages", messages} };
+        json payload = { {"messages", messages} };
 
         ApiResponse response = performApiRequest(payload, currentApi, threadId, m_controller, m_logger, m_apiTimeOutMs);
 
