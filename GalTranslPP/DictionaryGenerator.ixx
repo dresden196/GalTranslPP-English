@@ -23,6 +23,7 @@ export {
         std::shared_ptr<IController> m_controller;
         std::shared_ptr<spdlog::logger> m_logger;
         std::function<void(Sentence*)> m_preProcessFunc;
+        std::function<std::string(std::string)> m_onPerformApi;
         std::function<NLPResult(const std::string&)> m_tokenizeSourceLangFunc;
 
         std::string m_systemPrompt;
@@ -52,7 +53,7 @@ export {
 
     public:
         DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::function<NLPResult(const std::string&)> tokenizeFunc,
-            std::function<void(Sentence*)> preProcessFunc, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy, const std::string& targetLang,
+            std::function<void(Sentence*)> preProcessFunc, const std::function<std::string(std::string)>& onPerformApi, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy, const std::string& targetLang,
             int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota);
         void generate(const std::vector<fs::path>& jsonFiles, const fs::path& outputFilePath);
     };
@@ -62,10 +63,10 @@ export {
 module :private;
 
 DictionaryGenerator::DictionaryGenerator(std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, APIPool& apiPool, std::function<NLPResult(const std::string&)> tokenizeFunc,
-    std::function<void(Sentence*)> preProcessFunc, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy, const std::string& targetLang,
+    std::function<void(Sentence*)> preProcessFunc, const std::function<std::string(std::string)>& onPerformApi, const std::string& systemPrompt, const std::string& userPrompt, const std::string& apiStrategy, const std::string& targetLang,
     int maxRetries, int threadsNum, int apiTimeoutMs, bool checkQuota)
     : m_controller(controller), m_logger(logger), m_apiPool(apiPool), m_tokenizeSourceLangFunc(tokenizeFunc),
-    m_preProcessFunc(preProcessFunc), m_systemPrompt(systemPrompt), m_userPrompt(userPrompt), m_apiStrategy(apiStrategy), m_targetLang(targetLang),
+    m_preProcessFunc(preProcessFunc), m_onPerformApi(onPerformApi), m_systemPrompt(systemPrompt), m_userPrompt(userPrompt), m_apiStrategy(apiStrategy), m_targetLang(targetLang),
     m_maxRetries(maxRetries), m_threadsNum(threadsNum), m_apiTimeoutMs(apiTimeoutMs), m_checkQuota(checkQuota)
 {
 
@@ -279,15 +280,15 @@ void DictionaryGenerator::callLLMToGenerate(int segmentIndex, int threadId) {
         if (m_controller->shouldStop()) {
             return;
         }
-        auto optApi = m_apiStrategy == "random" ? m_apiPool.getApi() : m_apiPool.getFirstApi();
-        if (!optApi) {
+        std::optional<TranslationApi> apiOpt = m_apiStrategy == "random" ? m_apiPool.getApi() : m_apiPool.getFirstApi();
+        if (!apiOpt) {
             throw std::runtime_error("没有可用的API Key了");
         }
-        TranslationApi currentApi = optApi.value();
+        const TranslationApi& currentApi = apiOpt.value();
         json payload = { {"messages", messages} };
 
         m_logger->info("[线程 {}] 开始从段落中生成术语表\ninputBlock: \n{}", threadId, text);
-        ApiResponse response = performApiRequest(payload, currentApi, threadId, m_controller, m_logger, m_apiTimeoutMs);
+        ApiResponse response = performApiRequest(payload, currentApi, m_onPerformApi, threadId, m_controller, m_logger, m_apiTimeoutMs);
 
         /*bool checkResponse(const ApiResponse & response, const TranslationApi & currentAPI, int& retryCount, const std::filesystem::path & relInputPath,
             int threadId, bool m_checkQuota, const std::string & m_apiStrategy, APIPool & m_apiPool, std::shared_ptr<spdlog::logger> m_logger);*/
@@ -326,7 +327,7 @@ void DictionaryGenerator::generate(const std::vector<fs::path>& jsonFiles, const
         throw std::runtime_error("没有输入文件，无法生成字典。");
     }
     preprocessAndTokenize(jsonFiles);
-    auto selectedIndices = solveSentenceSelection();
+    std::vector<int> selectedIndices = solveSentenceSelection();
     if (int maxSelectedIndicesCount = std::max(m_totalSentences / 250, 128); selectedIndices.size() > maxSelectedIndicesCount) {
         selectedIndices.resize(maxSelectedIndicesCount);
     }

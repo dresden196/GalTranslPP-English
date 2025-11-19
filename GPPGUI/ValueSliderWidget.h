@@ -13,10 +13,10 @@ class ValueSliderWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit ValueSliderWidget(QWidget* parent = nullptr);
+    explicit ValueSliderWidget(QWidget* parent = nullptr, double minValue = 0.0, double maxValue = 1.0);
     ~ValueSliderWidget();
 
-    // 公共接口，用于设置和获取 0.0 - 1.0 之间的值
+    // 公共接口，用于设置和获取 minValue - maxValue 之间的值
     void setValue(double value);
     double value() const;
     void setDecimals(int decimals);
@@ -33,6 +33,8 @@ private Q_SLOTS:
 private:
     ElaSlider* _slider;
     ElaDoubleSpinBox* _spinBox;
+    double _maxValue;
+    double _minValue;
 };
 
 #endif // VALUESLIDERWIDGET_H

@@ -507,6 +507,7 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 		"m_splitFilePartsToJson", NESTED_CVT(NormalJsonTranslator, m_splitFilePartsToJson),
 		"m_jsonToSplitFileParts", NESTED_CVT(NormalJsonTranslator, m_jsonToSplitFileParts),
 		"m_onFileProcessed", &NormalJsonTranslator::m_onFileProcessed,
+		"m_onPerformApi", &NormalJsonTranslator::m_onPerformApi,
 		"m_threadPool", &NormalJsonTranslator::m_threadPool,
 		"preProcess", &NormalJsonTranslator::preProcess,
 		"postProcess", &NormalJsonTranslator::postProcess,

@@ -72,7 +72,8 @@ std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine
     std::string history;
 
     switch (transEngine) {
-    case TransEngine::ForGalTsv: {
+    case TransEngine::ForGalTsv: 
+    {
         history = "NAME\tDST\tID\n"; // Or DST\tID for novel
         std::vector<std::string> contextLines;
         const Sentence* current = batch[0]->prev;
@@ -89,9 +90,11 @@ std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine
         for (const auto& line : contextLines | std::views::reverse) {
             history += line + "\n";
         }
-        break;
     }
-    case TransEngine::ForNovelTsv: {
+    break;
+
+    case TransEngine::ForNovelTsv: 
+    {
         history = "DST\tID\n"; // Or DST\tID for novel
         std::vector<std::string> contextLines;
         const Sentence* current = batch[0]->prev;
@@ -107,8 +110,8 @@ std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine
         for (const auto& line : contextLines | std::views::reverse) {
             history += line + "\n";
         }
-        break;
     }
+    break;
 
     case TransEngine::ForGalJson:
     case TransEngine::DeepseekJson:
@@ -160,6 +163,7 @@ std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine
         }
     }
     break;
+
     default:
         throw std::runtime_error("未知的 PromptType");
     }
@@ -173,24 +177,28 @@ std::string buildContextHistory(const std::vector<Sentence*>& batch, TransEngine
 
 void fillBlockAndMap(const std::vector<Sentence*>& batchToTransThisRound, std::map<int, Sentence*>& id2SentenceMap, std::string& inputBlock, TransEngine transEngine) {
     switch (transEngine) {
-    case TransEngine::ForGalTsv: {
+    case TransEngine::ForGalTsv: 
+    {
         for (const auto& pSentence : batchToTransThisRound) {
             std::string name = pSentence->nameType == NameType::None ? "null" : getNameString(pSentence);
             inputBlock += name + "\t" + pSentence->pre_processed_text + "\t" + std::to_string(pSentence->index) + "\n";
             id2SentenceMap[pSentence->index] = pSentence;
         }
-        break;
     }
-    case TransEngine::ForNovelTsv: {
+    break;
+
+    case TransEngine::ForNovelTsv: 
+    {
         for (const auto& pSentence : batchToTransThisRound) {
             inputBlock += pSentence->pre_processed_text + "\t" + std::to_string(pSentence->index) + "\n";
             id2SentenceMap[pSentence->index] = pSentence;
         }
-        break;
     }
+    break;
 
     case TransEngine::ForGalJson:
     case TransEngine::DeepseekJson:
+    {
         for (const auto& pSentence : batchToTransThisRound) {
             json item;
             item["id"] = pSentence->index;
@@ -201,9 +209,11 @@ void fillBlockAndMap(const std::vector<Sentence*>& batchToTransThisRound, std::m
             inputBlock += item.dump() + "\n";
             id2SentenceMap[pSentence->index] = pSentence;
         }
-        break;
+    }
+    break;
 
     case TransEngine::Sakura:
+    {
         for (const auto& pSentence : batchToTransThisRound) {
             if (pSentence->nameType != NameType::None) {
                 inputBlock += getNameString(pSentence) + ":::::" + pSentence->pre_processed_text + "\n";
@@ -213,7 +223,9 @@ void fillBlockAndMap(const std::vector<Sentence*>& batchToTransThisRound, std::m
             }
         }
         inputBlock.pop_back(); // 移除最后一个换行符
-        break;
+    }
+    break;
+
     default:
         throw std::runtime_error("不支持的 TransEngine 用于构建输入");
     }
@@ -391,6 +403,7 @@ void parseContent(std::string& content, std::vector<Sentence*>& batchToTransThis
         }
     }
     break;
+
     default:
         throw std::runtime_error("不支持的 TransEngine 用于解析输出");
     }

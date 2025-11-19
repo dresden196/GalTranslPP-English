@@ -95,6 +95,7 @@ export {
         std::map<std::string, std::string> m_nameMap;
         toml::ordered_value m_problemOverview = toml::array{};
         std::function<void(fs::path)> m_onFileProcessed;
+        std::function<std::string(std::string)> m_onPerformApi;
         std::shared_mutex m_cacheMutex;
         std::mutex m_outputMutex;
 
@@ -210,6 +211,9 @@ void NormalJsonTranslator::init()
 
             std::vector<TranslationApi> apis;
             for (const auto& apiTbl : apisArr) {
+                if (apiTbl.contains("enable") && !apiTbl.at("enable").as_boolean()) {
+                    continue;
+                }
                 TranslationApi api;
                 if (apiTbl.contains("apikey") && !apiTbl.at("apikey").as_string().empty()) {
                     api.apikey = apiTbl.at("apikey").as_string();
@@ -238,6 +242,15 @@ void NormalJsonTranslator::init()
                 api.stream = apiTbl.contains("stream") && apiTbl.at("stream").as_boolean();
                 if (apiTbl.contains("temperature")) {
                     api.temperature = apiTbl.at("temperature").as_floating();
+                }
+                if (apiTbl.contains("topP")) {
+                    api.topP = apiTbl.at("topP").as_floating();
+                }
+                if (apiTbl.contains("frequencyPenalty")) {
+                    api.frequencyPenalty = apiTbl.at("frequencyPenalty").as_floating();
+                }
+                if (apiTbl.contains("presencePenalty")) {
+                    api.presencePenalty = apiTbl.at("presencePenalty").as_floating();
                 }
                 apis.push_back(std::move(api));
             }
@@ -759,7 +772,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
 
         json payload = { {"messages", messages} };
 
-        ApiResponse response = performApiRequest(payload, currentApi, threadId, m_controller, m_logger, m_apiTimeOutMs);
+        ApiResponse response = performApiRequest(payload, currentApi, m_onPerformApi, threadId, m_controller, m_logger, m_apiTimeOutMs);
 
         /*bool checkResponse(const ApiResponse & response, const TranslationApi & currentAPI, int& retryCount, const std::filesystem::path & relInputPath,
             int threadId, bool m_checkQuota, const std::string & m_apiStrategy, APIPool & m_apiPool, std::shared_ptr<spdlog::logger> m_logger);*/
@@ -1282,7 +1295,7 @@ std::optional<std::vector<fs::path>> NormalJsonTranslator::beforeRun() {
                 this->preProcess(se);
             };
         DictionaryGenerator generator(m_controller, m_logger, m_apiPool, m_tokenizeSourceLangFunc,
-            preProcessFunc, m_systemPrompt, m_userPrompt, m_apiStrategy, m_targetLang,
+            preProcessFunc, m_onPerformApi, m_systemPrompt, m_userPrompt, m_apiStrategy, m_targetLang,
             m_maxRetries, m_threadsNum, m_apiTimeOutMs, m_checkQuota);
         fs::path outputFilePath = m_projectDir / L"项目GPT字典-生成.toml";
         std::vector<fs::path> inputPaths = std::move(relJsonPaths);

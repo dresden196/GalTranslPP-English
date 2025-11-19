@@ -40,7 +40,6 @@ namespace fs = std::filesystem;
 
 export {
 
-#ifdef _WIN32
     std::string wide2Ascii(const std::wstring& wide, UINT CodePage = 65001, LPBOOL usedDefaultChar = nullptr);
 
     std::wstring ascii2Wide(const std::string& ascii, UINT CodePage = 65001);
@@ -50,7 +49,6 @@ export {
     bool executeCommand(const std::wstring& program, const std::wstring& args, bool showWindow = false);
 
     int getConsoleWidth();
-#endif
 
     std::string getNameString(const Sentence* se);
 
@@ -917,22 +915,22 @@ bool cmpVer(const std::string& latestVer, const std::string& currentVer, bool& i
     std::string v1s = latestVer.find_last_of("v") == std::string::npos ? latestVer : latestVer.substr(latestVer.find_last_of("v") + 1);
     std::string v2s = fixedCurrentVer.find_last_of("v") == std::string::npos ? fixedCurrentVer : fixedCurrentVer.substr(fixedCurrentVer.find_last_of("v") + 1);
 
-    std::vector<std::string> lastVerParts = splitString(v1s, '.');
+    std::vector<std::string> latestVerParts = splitString(v1s, '.');
     std::vector<std::string> currentVerParts = splitString(v2s, '.');
 
-    size_t len = std::max(lastVerParts.size(), currentVerParts.size());
+    size_t len = std::max(latestVerParts.size(), currentVerParts.size());
 
     for (size_t i = 0; i < len; i++) {
-        int lastVerPart = i < lastVerParts.size() ? std::stoi(lastVerParts[i]) : 0;
+        int latestVerPart = i < latestVerParts.size() ? std::stoi(latestVerParts[i]) : 0;
         int currentVerPart = i < currentVerParts.size() ? std::stoi(currentVerParts[i]) : 0;
-        if (i == 0 && lastVerPart > currentVerPart) {
+        if (i == 0 && latestVerPart > currentVerPart) {
             isCompatible = false;
         }
 
-        if (lastVerPart > currentVerPart) {
+        if (latestVerPart > currentVerPart) {
             return true;
         }
-        else if (lastVerPart < currentVerPart) {
+        else if (latestVerPart < currentVerPart) {
             return false;
         }
     }

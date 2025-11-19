@@ -17,6 +17,9 @@ export {
         std::string apiurl;
         std::string modelName;
         std::optional<double> temperature;
+        std::optional<double> topP;
+        std::optional<double> frequencyPenalty;
+        std::optional<double> presencePenalty;
         std::chrono::steady_clock::time_point lastReportTime = std::chrono::steady_clock::now();
         int reportCount = 0;
         bool stream;
@@ -28,7 +31,7 @@ export {
         long statusCode = 0;   // HTTP 状态码
     };
 
-    ApiResponse performApiRequest(json& payload, const TranslationApi& api, int threadId,
+    ApiResponse performApiRequest(json& payload, const TranslationApi& api, const std::function<std::string(std::string)>& onPerformApi, int threadId,
         std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, int apiTimeOutMs);
 
     std::string cvt2StdApiUrl(const std::string& url);
@@ -37,7 +40,7 @@ export {
 
 module :private;
 
-ApiResponse performApiRequest(json& payload, const TranslationApi& api, int threadId,
+ApiResponse performApiRequest(json& payload, const TranslationApi& api, const std::function<std::string(std::string)>& onPerformApi, int threadId,
     std::shared_ptr<IController> controller, std::shared_ptr<spdlog::logger> logger, const int apiTimeOutMs) {
     ApiResponse apiResponse;
 
@@ -45,11 +48,28 @@ ApiResponse performApiRequest(json& payload, const TranslationApi& api, int thre
     if (api.temperature.has_value()) {
         payload["temperature"] = api.temperature.value();
     }
+    if (api.topP.has_value()) {
+        payload["top_p"] = api.topP.value();
+    }
+    if (api.frequencyPenalty.has_value()) {
+        payload["frequency_penalty"] = api.frequencyPenalty.value();
+    }
+    if (api.presencePenalty.has_value()) {
+        payload["presence_penalty"] = api.presencePenalty.value();
+    }
+    if (api.stream) {
+        payload["stream"] = true;
+    }
+
+    std::string payloadStr = payload.dump();
+    if (onPerformApi) {
+        payloadStr = onPerformApi(payloadStr);
+    }
+
     if (api.stream) {
         // =================================================
         // ===========   流式请求处理路径   ================
         // =================================================
-        payload["stream"] = true;
         std::string concatenatedContent;
         std::string sseBuffer;
 
@@ -91,7 +111,7 @@ ApiResponse performApiRequest(json& payload, const TranslationApi& api, int thre
         // 3. 将该实例传递给 cpr::Post
         cpr::Response response = cpr::Post(
             cpr::Url{ api.apiurl },
-            cpr::Body{ payload.dump() },
+            cpr::Body{ payloadStr },
             cpr::Header{ {"Content-Type", "application/json"}, {"Authorization", "Bearer " + api.apikey} },
             cpr::Timeout{ apiTimeOutMs },
             writeCallbackInstance // 传递类的实例
@@ -114,7 +134,7 @@ ApiResponse performApiRequest(json& payload, const TranslationApi& api, int thre
         // =================================================
         cpr::Response response = cpr::Post(
             cpr::Url{ api.apiurl },
-            cpr::Body{ payload.dump() },
+            cpr::Body{ payloadStr },
             cpr::Header{ {"Content-Type", "application/json"}, {"Authorization", "Bearer " + api.apikey} },
             cpr::Timeout{ apiTimeOutMs }
         );

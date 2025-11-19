@@ -18,7 +18,8 @@
 #include "ElaIcon.h"
 #include "ElaDoubleText.h"
 #include "ElaCheckBox.h"
-#include "ElaDoubleSpinBox.h"
+#include "ValueSliderWidget.h"
+#include "ElaWidget.h"
 
 import Tool;
 
@@ -37,21 +38,9 @@ APISettingsPage::~APISettingsPage()
 
 void APISettingsPage::apply2Config()
 {
-    toml::array apiArray;
+    toml::ordered_array apiArray;
     for (const auto& apiRow : _apiRows) {
-        if (apiRow.urlEdit->text().isEmpty())
-        {
-            continue;
-        }
-        toml::ordered_table apiTable;
-        apiTable.insert({ "apikey", apiRow.keyEdit->text().toStdString() });
-        apiTable.insert({ "apiurl", apiRow.urlEdit->text().toStdString() });
-        apiTable.insert({ "modelName", apiRow.modelEdit->text().toStdString() });
-        apiTable.insert({ "stream", apiRow.streamSwitch->getIsToggled() });
-        if (apiRow.enableTemperatureSwitch->isChecked()) {
-            apiTable.insert({ "temperature", apiRow.temperatureSpinBox->value() });
-        }
-        apiArray.push_back(std::move(apiTable));
+        apiRow.applyFunc(apiArray);
     }
     insertToml(_projectConfig, "backendSpecific.OpenAI-Compatible.apis", apiArray);
     if (_applyFunc) {
@@ -73,15 +62,7 @@ void APISettingsPage::_setupUI()
         if (!api.is_table()) {
             continue;
         }
-        const std::string& key = toml::find_or(api, "apikey", "");
-        const std::string& url = toml::find_or(api, "apiurl", "");
-        const std::string& model = toml::find_or(api, "modelName", "");
-        bool stream = toml::find_or(api, "stream", false);
-        std::optional<double> temperature;
-        if (api.contains("temperature") && api.at("temperature").is_floating()) {
-            temperature = api.at("temperature").as_floating();
-        }
-        ElaScrollPageArea* newRowWidget = _createApiInputRowWidget(QString::fromStdString(key), QString::fromStdString(url), QString::fromStdString(model), stream, temperature);
+        ElaScrollPageArea* newRowWidget = _createApiInputRowWidget(api);
         _mainLayout->addWidget(newRowWidget);
     }
     if (apis.size() == 0) {
@@ -155,8 +136,30 @@ void APISettingsPage::_addApiInputRow()
 }
 
 // 【新增】这个函数创建一整行带边框和删除按钮的UI
-ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key, const QString& url, const QString& model, bool stream, std::optional<double> temperature)
+ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const toml::value& api)
 {
+    const std::string& key = toml::find_or(api, "apikey", "");
+    const std::string& url = toml::find_or(api, "apiurl", "");
+    const std::string& model = toml::find_or(api, "modelName", "");
+    bool stream = toml::find_or(api, "stream", false);
+    bool enable = toml::find_or(api, "enable", true);
+    std::optional<double> temperature;
+    std::optional<double> topP;
+    std::optional<double> frequencyPenalty;
+    std::optional<double> presencePenalty;
+    if (api.contains("temperature") && api.at("temperature").is_floating()) {
+        temperature = api.at("temperature").as_floating();
+    }
+    if (api.contains("topP") && api.at("topP").is_floating()) {
+        topP = api.at("topP").as_floating();
+    }
+    if (api.contains("frequencyPenalty") && api.at("frequencyPenalty").is_floating()) {
+        frequencyPenalty = api.at("frequencyPenalty").as_floating();
+    }
+    if (api.contains("presencePenalty") && api.at("presencePenalty").is_floating()) {
+        presencePenalty = api.at("presencePenalty").as_floating();
+    }
+
     // 1. 创建带边框的容器 ElaScrollPageArea
     ElaScrollPageArea* container = new ElaScrollPageArea(this);
     container->setFixedHeight(200);
@@ -177,8 +180,8 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     apiKeyLabel->setFixedWidth(100);
     apiKeyLayout->addWidget(apiKeyLabel);
     ElaLineEdit* keyEdit = new ElaLineEdit(apiKeyContainer);
-    if (!key.isEmpty()) {
-        keyEdit->setText(key);
+    if (!key.empty()) {
+        keyEdit->setText(QString::fromStdString(key));
     }
     else {
         keyEdit->setPlaceholderText(tr("请输入 API Key(Sakura引擎可不填)"));
@@ -193,8 +196,8 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     apiUrlLabel->setFixedWidth(100);
     apiSecretLayout->addWidget(apiUrlLabel);
     ElaLineEdit* urlEdit = new ElaLineEdit(apiUrlContainer);
-    if (!url.isEmpty()) {
-        urlEdit->setText(url);
+    if (!url.empty()) {
+        urlEdit->setText(QString::fromStdString(url));
     }
     else {
         urlEdit->setPlaceholderText(tr("请输入 API Url"));
@@ -210,8 +213,8 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     modelLabel->setFixedWidth(100);
     modelLayout->addWidget(modelLabel);
     ElaLineEdit* modelEdit = new ElaLineEdit(modelContainer);
-    if (!model.isEmpty()) {
-        modelEdit->setText(model);
+    if (!model.empty()) {
+        modelEdit->setText(QString::fromStdString(model));
     }
     else {
         modelEdit->setPlaceholderText(tr("请输入模型名称(Sakura引擎可不填)"));
@@ -219,7 +222,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     modelLayout->addWidget(modelEdit);
     formLayout->addWidget(modelContainer);
 
-    // 4. 创建右侧的删除按钮 和 流式开关
+    // 4. 创建右侧的删除按钮
     QWidget* rightContainer = new QWidget(container);
     QVBoxLayout* rightLayout = new QVBoxLayout(rightContainer);
     rightLayout->addStretch();
@@ -229,37 +232,132 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     deleteButton->setProperty("containerWidget", QVariant::fromValue<QWidget*>(container));
     rightLayout->addWidget(deleteButton);
     connect(deleteButton, &ElaIconButton::clicked, this, &APISettingsPage::_onDeleteApiRow);
-    QWidget* streamContainer = new QWidget(rightContainer);
-    QHBoxLayout* streamLayout = new QHBoxLayout(streamContainer);
-    streamLayout->addStretch();
-    ElaText* streamLabel = new ElaText(tr("流式"), 13, streamContainer);
-    streamLayout->addWidget(streamLabel);
-    ElaToggleSwitch* streamSwitch = new ElaToggleSwitch(streamContainer);
-    streamSwitch->setIsToggled(stream);
-    streamLayout->addWidget(streamSwitch);
-    streamLayout->addStretch();
-    rightLayout->addWidget(streamContainer);
-    QWidget* temperatureContainer = new QWidget(rightContainer);
-    QHBoxLayout* temperatureLayout = new QHBoxLayout(temperatureContainer);
-    ElaText* temperatureLabel = new ElaText(tr("温度"), 13, temperatureContainer);
-    ElaToolTip* temperatureToolTip = new ElaToolTip(temperatureLabel);
-    temperatureToolTip->setToolTip(tr("勾选选框则使用自定义温度，<br/>否则使用供应商默认温度"));
-    temperatureLayout->addWidget(temperatureLabel);
-    ElaDoubleSpinBox* temperatureSpinBox = new ElaDoubleSpinBox(temperatureContainer);
-    temperatureSpinBox->setRange(0.0, 100.0);
-    temperatureSpinBox->setDecimals(2);
-    temperatureSpinBox->setSingleStep(0.01);
+
+    QWidget* enableContainer = new QWidget(rightContainer);
+    QHBoxLayout* enableLayout = new QHBoxLayout(enableContainer);
+    enableLayout->addStretch();
+    ElaText* enableLabel = new ElaText(tr("启用"), 13, enableContainer);
+    enableLayout->addWidget(enableLabel);
+    ElaToggleSwitch* enableSwitch = new ElaToggleSwitch(enableContainer);
+    enableSwitch->setIsToggled(enable);
+    enableLayout->addWidget(enableSwitch);
+    enableLayout->addStretch();
+    rightLayout->addWidget(enableContainer);
+
+    ElaPushButton* configButton = new ElaPushButton(tr("高级配置"), rightContainer);
+    ElaWidget* configWidget = new ElaWidget();
+    configWidget->setContentsMargins(5, 25, 5, 0);
+    configWidget->setFixedWidth(950);
+    configWidget->setMinimumHeight(650);
+    configWidget->setWindowTitle(tr("API 高级配置"));
+    configWidget->setWindowModality(Qt::WindowModal);
+    configWidget->setWindowButtonFlags(ElaAppBarType::CloseButtonHint);
+    QVBoxLayout* configLayout = new QVBoxLayout(configWidget);
+
+    ElaScrollPageArea* streamConfigArea = new ElaScrollPageArea(configWidget);
+    QHBoxLayout* streamConfigLayout = new QHBoxLayout(streamConfigArea);
+    ElaText* streamConfigTitle = new ElaText(tr("流式输出"), 16, streamConfigArea);
+    streamConfigLayout->addWidget(streamConfigTitle);
+    streamConfigLayout->addStretch();
+    ElaToggleSwitch* streamConfigSwitch = new ElaToggleSwitch(streamConfigArea);
+    streamConfigSwitch->setIsToggled(stream);
+    streamConfigLayout->addWidget(streamConfigSwitch);
+    configLayout->addWidget(streamConfigArea);
+
+    ElaScrollPageArea* temperatureConfigArea = new ElaScrollPageArea(configWidget);
+    QHBoxLayout* temperatureConfigLayout = new QHBoxLayout(temperatureConfigArea);
+    ElaDoubleText* temperatureConfigTitle = new ElaDoubleText(temperatureConfigArea,
+        tr("温度"), 16, tr("勾选选框则使用自定义温度，否则使用供应商默认温度"), 10, "");
+    temperatureConfigLayout->addWidget(temperatureConfigTitle);
+    temperatureConfigLayout->addStretch();
+    ValueSliderWidget* temperatureSlider = new ValueSliderWidget(temperatureConfigArea, 0.0, 2.0);
+    temperatureSlider->setFixedWidth(400);
+    temperatureSlider->setDecimals(2);
     if (temperature.has_value()) {
-        temperatureSpinBox->setValue(*temperature);
+        temperatureSlider->setValue(*temperature);
     }
     else {
-        temperatureSpinBox->setValue(1.0);
+        temperatureSlider->setValue(1.0);
     }
-    temperatureLayout->addWidget(temperatureSpinBox);
-    ElaCheckBox* temperatureCheckBox = new ElaCheckBox(temperatureContainer);
+    temperatureConfigLayout->addWidget(temperatureSlider);
+    ElaCheckBox* temperatureCheckBox = new ElaCheckBox(temperatureConfigArea);
     temperatureCheckBox->setChecked(temperature.has_value());
-    temperatureLayout->addWidget(temperatureCheckBox);
-    rightLayout->addWidget(temperatureContainer);
+    temperatureConfigLayout->addWidget(temperatureCheckBox);
+    configLayout->addWidget(temperatureConfigArea);
+
+    ElaScrollPageArea* topPConfigArea = new ElaScrollPageArea(configWidget);
+    topPConfigArea->setFixedHeight(80);
+    QHBoxLayout* topPConfigLayout = new QHBoxLayout(topPConfigArea);
+    ElaDoubleText* topPConfigTitle = new ElaDoubleText(topPConfigArea,
+        tr("top_p"), 16, tr("核采样(也是控制随机性的)"), 10, "");
+    topPConfigLayout->addWidget(topPConfigTitle);
+    topPConfigLayout->addStretch();
+    ValueSliderWidget* topPSlider = new ValueSliderWidget(topPConfigArea, 0.0, 1.0);
+    topPSlider->setFixedWidth(400);
+    topPSlider->setDecimals(2);
+    if (topP.has_value()) {
+        topPSlider->setValue(*topP);
+    }
+    else {
+        topPSlider->setValue(0.9);
+    }
+    topPConfigLayout->addWidget(topPSlider);
+    ElaCheckBox* topPCheckBox = new ElaCheckBox(topPConfigArea);
+    topPCheckBox->setChecked(topP.has_value());
+    topPConfigLayout->addWidget(topPCheckBox);
+    configLayout->addWidget(topPConfigArea);
+
+    ElaScrollPageArea* frequencyPenaltyConfigArea = new ElaScrollPageArea(configWidget);
+    frequencyPenaltyConfigArea->setFixedHeight(80);
+    QHBoxLayout* frequencyPenaltyConfigLayout = new QHBoxLayout(frequencyPenaltyConfigArea);
+    ElaDoubleText* frequencyPenaltyConfigTitle = new ElaDoubleText(frequencyPenaltyConfigArea,
+        tr("frequency_penalty"), 16, tr("频率惩罚"), 10, "");
+    frequencyPenaltyConfigLayout->addWidget(frequencyPenaltyConfigTitle);
+    frequencyPenaltyConfigLayout->addStretch();
+    ValueSliderWidget* frequencyPenaltySlider = new ValueSliderWidget(frequencyPenaltyConfigArea, -2.0, 2.0);
+    frequencyPenaltySlider->setFixedWidth(400);
+    frequencyPenaltySlider->setDecimals(2);
+    if (frequencyPenalty.has_value()) {
+        frequencyPenaltySlider->setValue(*frequencyPenalty);
+    }
+    else {
+        frequencyPenaltySlider->setValue(0.0);
+    }
+    frequencyPenaltyConfigLayout->addWidget(frequencyPenaltySlider);
+    ElaCheckBox* frequencyPenaltyCheckBox = new ElaCheckBox(frequencyPenaltyConfigArea);
+    frequencyPenaltyCheckBox->setChecked(frequencyPenalty.has_value());
+    frequencyPenaltyConfigLayout->addWidget(frequencyPenaltyCheckBox);
+    configLayout->addWidget(frequencyPenaltyConfigArea);
+
+    ElaScrollPageArea* presencePenaltyConfigArea = new ElaScrollPageArea(configWidget);
+    presencePenaltyConfigArea->setFixedHeight(80);
+    QHBoxLayout* presencePenaltyConfigLayout = new QHBoxLayout(presencePenaltyConfigArea);
+    ElaDoubleText* presencePenaltyConfigTitle = new ElaDoubleText(presencePenaltyConfigArea,
+        tr("presence_penalty"), 16, tr("存在惩罚"), 10, "");
+    presencePenaltyConfigLayout->addWidget(presencePenaltyConfigTitle);
+    presencePenaltyConfigLayout->addStretch();
+    ValueSliderWidget* presencePenaltySlider = new ValueSliderWidget(presencePenaltyConfigArea, -2.0, 2.0);
+    presencePenaltySlider->setFixedWidth(400);
+    presencePenaltySlider->setDecimals(2);
+    if (presencePenalty.has_value()) {
+        presencePenaltySlider->setValue(*presencePenalty);
+    }
+    else {
+        presencePenaltySlider->setValue(0.0);
+    }
+    presencePenaltyConfigLayout->addWidget(presencePenaltySlider);
+    ElaCheckBox* presencePenaltyCheckBox = new ElaCheckBox(presencePenaltyConfigArea);
+    presencePenaltyCheckBox->setChecked(presencePenalty.has_value());
+    presencePenaltyConfigLayout->addWidget(presencePenaltyCheckBox);
+    configLayout->addWidget(presencePenaltyConfigArea);
+
+    configLayout->addStretch();
+    configWidget->hide();
+    connect(configButton, &ElaPushButton::clicked, this, [=](bool checked)
+        {
+            configWidget->show();
+        });
+    rightLayout->addWidget(configButton);
     rightLayout->addStretch();
 
     // 5. 组合布局
@@ -269,12 +367,32 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const QString& key,
     // 6. 存储这组控件的引用
     ApiRowControls newRowControls;
     newRowControls.container = container;
-    newRowControls.keyEdit = keyEdit;
-    newRowControls.urlEdit = urlEdit;
-    newRowControls.modelEdit = modelEdit;
-    newRowControls.streamSwitch = streamSwitch;
-    newRowControls.enableTemperatureSwitch = temperatureCheckBox;
-    newRowControls.temperatureSpinBox = temperatureSpinBox;
+    newRowControls.configWidget = configWidget;
+    newRowControls.applyFunc = [=](toml::ordered_array& apiArray)
+        {
+            if (urlEdit->text().isEmpty()) {
+                return;
+            }
+            toml::ordered_table apiTable;
+            apiTable.insert({ "apikey", keyEdit->text().toStdString() });
+            apiTable.insert({ "apiurl", urlEdit->text().toStdString() });
+            apiTable.insert({ "modelName", modelEdit->text().toStdString() });
+            apiTable.insert({ "stream", streamConfigSwitch->getIsToggled() });
+            apiTable.insert({ "enable", enableSwitch->getIsToggled() });
+            if (temperatureCheckBox->isChecked()) {
+                apiTable.insert({ "temperature", temperatureSlider->value() });
+            }
+            if (topPCheckBox->isChecked()) {
+                apiTable.insert({ "topP", topPSlider->value() });
+            }
+            if (frequencyPenaltyCheckBox->isChecked()) {
+                apiTable.insert({ "frequencyPenalty", frequencyPenaltySlider->value() });
+            }
+            if (presencePenaltyCheckBox->isChecked()) {
+                apiTable.insert({ "presencePenalty", presencePenaltySlider->value() });
+            }
+            apiArray.push_back(std::move(apiTable));
+        };
     _apiRows.append(newRowControls);
 
     return container;
@@ -297,6 +415,7 @@ void APISettingsPage::_onDeleteApiRow()
     // 从列表中找到并移除对应的控件组
     for (int i = 0; i < _apiRows.size(); ++i) {
         if (_apiRows.at(i).container == containerWidget) {
+            _apiRows.at(i).configWidget->deleteLater();
             _apiRows.removeAt(i);
             break;
         }

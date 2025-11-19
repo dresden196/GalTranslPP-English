@@ -8,11 +8,7 @@
 #include "BasePage.h"
 
 class QVBoxLayout;
-class ElaLineEdit;
 class ElaScrollPageArea;
-class ElaToggleSwitch;
-class ElaCheckBox;
-class ElaDoubleSpinBox;
 
 class APISettingsPage : public BasePage
 {
@@ -35,18 +31,14 @@ private:
     // 用于存储动态控件的列表
     struct ApiRowControls {
         ElaScrollPageArea* container;      // 容纳该行的容器（带边框的卡片）
-        ElaLineEdit* keyEdit;
-        ElaLineEdit* urlEdit;
-        ElaLineEdit* modelEdit;
-        ElaToggleSwitch* streamSwitch;
-        ElaCheckBox* enableTemperatureSwitch;
-        ElaDoubleSpinBox* temperatureSpinBox;
+        QWidget* configWidget;
+        std::function<void(toml::ordered_array&)> applyFunc;
     };
     QList<ApiRowControls> _apiRows;
 
     void _setupUI();
     // 创建一个新的API输入行（现在返回一个ElaScrollPageArea*）
-    ElaScrollPageArea* _createApiInputRowWidget(const QString& key = "", const QString& url = "", const QString& model = "", bool stream = false, std::optional<double> temperature = std::nullopt);
+    ElaScrollPageArea* _createApiInputRowWidget(const toml::value& apiTblValue = toml::table{});
 };
 
 #endif // APISETTINGSPAGE_H

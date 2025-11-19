@@ -43,7 +43,7 @@ export {
     public:
         CodePageChecker(const std::string& codePage, std::shared_ptr<spdlog::logger> logger);
 
-        const std::string& getCodePage() { return m_codePage; }
+        const std::string& getCodePage() const { return m_codePage; }
 
         const std::string& findUnmappableChars(const std::string& transViewToCheck);
     };
@@ -90,18 +90,18 @@ void U_CALLCONV codePageFromUCallback(
     UErrorCode* pErrorCode)
 {
     if (reason == UCNV_UNASSIGNED) {
-        std::string* unmappable_chars_str = static_cast<std::string*>(const_cast<void*>(context));
+        std::string* unmappableCharsStr = static_cast<std::string*>(const_cast<void*>(context));
 
         // 使用 U8_APPEND 宏直接将码点追加到 std::string 中
-        size_t current_size = unmappable_chars_str->size();
-        unmappable_chars_str->resize(current_size + U8_MAX_LENGTH); // 预留足够空间
-        char* buffer_ptr = &(*unmappable_chars_str)[current_size];
+        size_t currentLength = unmappableCharsStr->length();
+        unmappableCharsStr->resize(currentLength + U8_MAX_LENGTH); // 预留足够空间
+        char* bufferPtr = &(*unmappableCharsStr)[currentLength];
         int32_t i = 0; // U8_APPEND 需要一个索引变量
         // U8_APPEND_UNSAFE 是不进行边界检查的版本，速度最快
         // 在这里我们已经确保了空间足够，所以可以使用它
-        U8_APPEND_UNSAFE(buffer_ptr, i, codePoint);
+        U8_APPEND_UNSAFE(bufferPtr, i, codePoint);
         // 根据实际写入的字节数调整string的大小
-        unmappable_chars_str->resize(current_size + i);
+        unmappableCharsStr->resize(currentLength + i);
     }
     ucnv_cbFromUWriteSub(fromUArgs, 0, pErrorCode);
 }

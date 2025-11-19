@@ -57,6 +57,7 @@ TLFCfgPage::TLFCfgPage(toml::ordered_value& projectConfig, QWidget* parent) : Ba
 	priorityThresholdLayout->addWidget(priorityThresholdText);
 	priorityThresholdLayout->addStretch();
 	ValueSliderWidget* priorityThresholdSlider = new ValueSliderWidget(priorityThresholdArea);
+	priorityThresholdSlider->setFixedWidth(400);
 	priorityThresholdSlider->setValue(priorityThreshold);
 	priorityThresholdSlider->setDecimals(3);
 	priorityThresholdLayout->addWidget(priorityThresholdSlider);

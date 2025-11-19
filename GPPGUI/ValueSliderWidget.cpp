@@ -6,19 +6,17 @@
 #include "ElaSlider.h"
 #include "ElaDoubleSpinBox.h"
 
-ValueSliderWidget::ValueSliderWidget(QWidget* parent)
-    : QWidget(parent)
+ValueSliderWidget::ValueSliderWidget(QWidget* parent, double minValue, double maxValue)
+    : QWidget(parent), _minValue(minValue), _maxValue(maxValue)
 {
     // 1. 创建子控件
     _slider = new ElaSlider(Qt::Horizontal, this);
     _spinBox = new ElaDoubleSpinBox(this);
 
     // 2. 设置子控件的属性
-    // 滑块使用 0-100 的整数范围
-    _slider->setRange(0, 100);
+    _slider->setRange((int)(_minValue * 100), (int)(_maxValue * 100));
 
-    // 数字框使用 0.0-1.0 的浮点数范围
-    _spinBox->setRange(0.0, 1.0);
+    _spinBox->setRange(_minValue, _maxValue);
     _spinBox->setDecimals(3); // 显示两位小数
     _spinBox->setSingleStep(0.001); // 每次点击上下箭头变化的步长
     _spinBox->setFixedWidth(140); // 给一个合适的固定宽度
@@ -35,7 +33,7 @@ ValueSliderWidget::ValueSliderWidget(QWidget* parent)
     connect(_spinBox, QOverload<double>::of(&ElaDoubleSpinBox::valueChanged), this, &ValueSliderWidget::_onSpinBoxValueChanged);
 
     // 5. 设置初始值
-    setValue(0.5); // 默认值为 0.5
+    setValue((_minValue + _maxValue) / 2);
 }
 
 ValueSliderWidget::~ValueSliderWidget()
@@ -45,8 +43,7 @@ ValueSliderWidget::~ValueSliderWidget()
 // 公共接口：设置值
 void ValueSliderWidget::setValue(double value)
 {
-    // 限制 value 在 0.0 到 1.0 之间
-    value = qBound(0.0, value, 1.0);
+    value = qBound(_minValue, value, _maxValue);
 
     // 阻塞信号，防止在用代码设置值时触发无限循环
     _slider->blockSignals(true);
@@ -77,7 +74,7 @@ void ValueSliderWidget::setDecimals(int decimals) {
 // 私有槽：当滑块的值改变时
 void ValueSliderWidget::_onSliderValueChanged(int intValue)
 {
-    // 将滑块的整数值 (0-100) 转换为浮点数值 (0.0-1.0)
+    // 将滑块的整数值 转换为浮点数值
     double doubleValue = intValue / 100.0;
 
     // 更新数字框的值，注意阻塞信号
@@ -92,7 +89,7 @@ void ValueSliderWidget::_onSliderValueChanged(int intValue)
 // 私有槽：当数字框的值改变时
 void ValueSliderWidget::_onSpinBoxValueChanged(double doubleValue)
 {
-    // 将数字框的浮点数值 (0.0-1.0) 转换为整数值 (0-100)
+    // 将数字框的浮点数值  转换为整数值 
     int intValue = static_cast<int>(doubleValue * 100);
 
     // 更新滑块的值，注意阻塞信号
