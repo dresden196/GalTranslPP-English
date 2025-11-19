@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
             std::string orgDictVersion = parser.isSet("dictVersion") ? parser.value("dictVersion").toStdString() : "1.0.0";
             std::set<std::string> excludePreFixes =
             {
-                "BaseConfig/python-3.12.10-embed-amd64", "BaseConfig/pyScripts", "BaseConfig/Prompt.toml",
+                "BaseConfig/python-3.12.10-embed-amd64", "BaseConfig/pyScripts", "BaseConfig/Prompt.toml", "Updater_new.exe",
             };
             bool isCompatible = true;
             if (cmpVer(PYTHONVERSION, orgPythonVersion, isCompatible)) {
@@ -99,6 +99,9 @@ int main(int argc, char* argv[]) {
 #endif
             }
             extractZipExclude(sourceZip.toStdWString(), targetDir.toStdWString(), excludePreFixes);
+            if (fs::exists(L"7z_new.dll")) {
+                fs::rename(L"7z_new.dll", L"7z.dll");
+            }
         }
         catch (const std::exception&) {
 #ifdef Q_OS_WIN
