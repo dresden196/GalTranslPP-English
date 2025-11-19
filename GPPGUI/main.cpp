@@ -116,9 +116,11 @@ int main(int argc, char* argv[])
             waitForProcessToExit(pid);
         }
 
+        // 向后兼容，在下个大版本中删除
         if (fs::exists(L"Updater_new.exe")) {
             try {
                 fs::rename(L"Updater_new.exe", L"Updater.exe");
+                fs::remove_all(L"new");
             }
             catch (const fs::filesystem_error& e) {
 #ifdef Q_OS_WIN
