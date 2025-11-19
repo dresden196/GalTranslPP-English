@@ -251,7 +251,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const toml::value& 
     configWidget->setFixedWidth(950);
     configWidget->setFixedHeight(650);
     configWidget->setWindowTitle(tr("API 高级配置"));
-    configWidget->setWindowModality(Qt::WindowModal);
+    configWidget->setWindowModality(Qt::ApplicationModal);
     configWidget->setWindowButtonFlags(ElaAppBarType::CloseButtonHint);
     QVBoxLayout* configLayout = new QVBoxLayout(configWidget);
 
@@ -300,7 +300,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const toml::value& 
         topPSlider->setValue(*topP);
     }
     else {
-        topPSlider->setValue(0.9);
+        topPSlider->setValue(1.0);
     }
     topPConfigLayout->addWidget(topPSlider);
     ElaCheckBox* topPCheckBox = new ElaCheckBox(topPConfigArea);

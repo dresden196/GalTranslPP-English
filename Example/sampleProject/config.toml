@@ -12,7 +12,7 @@ apiTimeout = 120 # 请求超时时间，单位秒
   # topP = 1.0
   # frequencyPenalty = 0.0
   # presencePenalty = 0.0
-  # extraKeys = [ "", "" ]
+  # extraKeys = [ "sk-extra-1", "sk-extra-2" ]
 
 [plugins]
 filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, MtoolJson(尚未实现)...
