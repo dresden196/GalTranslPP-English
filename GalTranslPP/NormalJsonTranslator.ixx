@@ -221,9 +221,6 @@ void NormalJsonTranslator::init()
                 else if (m_transEngine == TransEngine::Sakura) {
                     api.apikey = "sk-sakura";
                 }
-                else {
-                    continue;
-                }
                 if (apiTbl.contains("apiurl") && !apiTbl.at("apiurl").as_string().empty()) {
                     api.apiurl = cvt2StdApiUrl(apiTbl.at("apiurl").as_string());
                 }
@@ -251,6 +248,20 @@ void NormalJsonTranslator::init()
                 }
                 if (apiTbl.contains("presencePenalty")) {
                     api.presencePenalty = apiTbl.at("presencePenalty").as_floating();
+                }
+                if (apiTbl.contains("extraKeys")) {
+                    const toml::array& extraKeysArr = apiTbl.at("extraKeys").as_array();
+                    for (const auto& extraKey : extraKeysArr) {
+                        TranslationApi extraApi = api;
+                        extraApi.apikey = extraKey.as_string();
+                        if (extraApi.apikey.empty()) {
+                            continue;
+                        }
+                        apis.push_back(std::move(extraApi));
+                    }
+                }
+                if (api.apikey.empty()) {
+                    continue;
                 }
                 apis.push_back(std::move(api));
             }

@@ -8,6 +8,7 @@
 
 #include "ElaText.h"
 #include "ElaLineEdit.h"
+#include "ElaPlainTextEdit.h"
 #include "ElaScrollPageArea.h"
 #include "ElaPushButton.h"
 #include "ElaRadioButton.h"
@@ -184,7 +185,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const toml::value& 
         keyEdit->setText(QString::fromStdString(key));
     }
     else {
-        keyEdit->setPlaceholderText(tr("请输入 API Key(Sakura引擎可不填)"));
+        keyEdit->setPlaceholderText(tr("请输入 API Key(Sakura引擎或有Extra Keys时可不填)"));
     }
     apiKeyLayout->addWidget(keyEdit);
     formLayout->addWidget(apiKeyContainer);
@@ -248,7 +249,7 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const toml::value& 
     ElaWidget* configWidget = new ElaWidget();
     configWidget->setContentsMargins(5, 25, 5, 0);
     configWidget->setFixedWidth(950);
-    configWidget->setMinimumHeight(650);
+    configWidget->setFixedHeight(650);
     configWidget->setWindowTitle(tr("API 高级配置"));
     configWidget->setWindowModality(Qt::WindowModal);
     configWidget->setWindowButtonFlags(ElaAppBarType::CloseButtonHint);
@@ -351,10 +352,28 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const toml::value& 
     presencePenaltyConfigLayout->addWidget(presencePenaltyCheckBox);
     configLayout->addWidget(presencePenaltyConfigArea);
 
+    configLayout->addSpacing(10);
+    ElaDoubleText* extraKeysTitle = new ElaDoubleText(configWidget,
+        tr("Extra Keys"), 18, "", 0, "一行一个 key");
+    configLayout->addWidget(extraKeysTitle);
+    ElaPlainTextEdit* extraKeysEdit = new ElaPlainTextEdit(configWidget);
+    if (api.contains("extraKeys") && api.at("extraKeys").is_array()) {
+        std::string extraKeysStr = api.at("extraKeys").as_array()
+            | std::views::filter([](const toml::value& v) { return v.is_string(); })
+            | std::views::transform([](const toml::value& v) { return v.as_string(); })
+            | std::views::join_with('\n') 
+            | std::ranges::to<std::string>();
+        extraKeysEdit->setPlainText(QString::fromStdString(extraKeysStr));
+    }
+    configLayout->addWidget(extraKeysEdit);
+
+
     configLayout->addStretch();
     configWidget->hide();
     connect(configButton, &ElaPushButton::clicked, this, [=](bool checked)
         {
+            configWidget->moveToCenter();
+            configWidget->resize(950, 650);
             configWidget->show();
         });
     rightLayout->addWidget(configButton);
@@ -390,6 +409,19 @@ ElaScrollPageArea* APISettingsPage::_createApiInputRowWidget(const toml::value& 
             }
             if (presencePenaltyCheckBox->isChecked()) {
                 apiTable.insert({ "presencePenalty", presencePenaltySlider->value() });
+            }
+            if (!extraKeysEdit->toPlainText().isEmpty()) {
+                toml::ordered_array newExtraKeysArr;
+                std::stringstream ss(extraKeysEdit->toPlainText().toStdString());
+                std::string line;
+                while (std::getline(ss, line)) {
+                    if (!line.empty()) {
+                        newExtraKeysArr.push_back(line);
+                    }
+                }
+                if (!newExtraKeysArr.empty()) {
+                     apiTable.insert({ "extraKeys", newExtraKeysArr });
+                }
             }
             apiArray.push_back(std::move(apiTable));
         };

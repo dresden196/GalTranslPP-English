@@ -4,112 +4,118 @@
 <context>
     <name>APISettingsPage</name>
     <message>
-        <location filename="APISettingsPage.cpp" line="29"/>
-        <location filename="APISettingsPage.cpp" line="55"/>
+        <location filename="APISettingsPage.cpp" line="30"/>
+        <location filename="APISettingsPage.cpp" line="56"/>
         <source>API 设置</source>
         <translation>API settings</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="78"/>
+        <location filename="APISettingsPage.cpp" line="79"/>
         <source>API 使用策略</source>
         <translation>API strategy</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="78"/>
+        <location filename="APISettingsPage.cpp" line="79"/>
         <source>令牌策略，random随机轮询，fallback优先第一个，出现[请求错误]时使用下一个</source>
         <translation>Strategy of api: using. randomly polling / preferring the first one and using the next one when ocurring [request mistake]</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="98"/>
+        <location filename="APISettingsPage.cpp" line="99"/>
         <source>API 超时时间</source>
         <translation>API timeout</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="98"/>
+        <location filename="APISettingsPage.cpp" line="99"/>
         <source>API 请求超时时间，单位为秒</source>
         <translation>in seconds</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="108"/>
+        <location filename="APISettingsPage.cpp" line="109"/>
         <source>增加新 API</source>
         <translation>Add new API</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="187"/>
-        <source>请输入 API Key(Sakura引擎可不填)</source>
-        <translation>Please type in API Key(Sakura transEngine can ignore this)</translation>
+        <location filename="APISettingsPage.cpp" line="188"/>
+        <source>请输入 API Key(Sakura引擎或有Extra Keys时可不填)</source>
+        <oldsource>请输入 API Key(Sakura引擎可不填)</oldsource>
+        <translation type="unfinished">Please type in API Key(Sakura transEngine can ignore this)</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="203"/>
+        <location filename="APISettingsPage.cpp" line="204"/>
         <source>请输入 API Url</source>
         <translation>Please type in API Url</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="210"/>
+        <location filename="APISettingsPage.cpp" line="211"/>
         <source>模型名称</source>
         <translation>Model name</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="220"/>
+        <location filename="APISettingsPage.cpp" line="221"/>
         <source>请输入模型名称(Sakura引擎可不填)</source>
         <translation>Please type in model name(Sakura transEngine can ignore this)</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="239"/>
+        <location filename="APISettingsPage.cpp" line="240"/>
         <source>启用</source>
         <translation>Enable</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="252"/>
+        <location filename="APISettingsPage.cpp" line="253"/>
         <source>API 高级配置</source>
         <translation>API advanced settings</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="259"/>
+        <location filename="APISettingsPage.cpp" line="260"/>
         <source>流式输出</source>
         <translation>Stream output</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="270"/>
+        <location filename="APISettingsPage.cpp" line="271"/>
         <source>勾选选框则使用自定义温度，否则使用供应商默认温度</source>
         <translation>Use custom temperature if box is checked, otherwise use default value provided by api server</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="292"/>
+        <location filename="APISettingsPage.cpp" line="293"/>
         <source>top_p</source>
         <translation>top_p</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="292"/>
+        <location filename="APISettingsPage.cpp" line="293"/>
         <source>核采样(也是控制随机性的)</source>
         <translation>Another parameter to controll randomness</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="314"/>
+        <location filename="APISettingsPage.cpp" line="315"/>
         <source>frequency_penalty</source>
         <translation>frequency_penalty</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="314"/>
+        <location filename="APISettingsPage.cpp" line="315"/>
         <source>频率惩罚</source>
         <translation>Reduce the probability of frequently used words</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="336"/>
+        <location filename="APISettingsPage.cpp" line="337"/>
         <source>presence_penalty</source>
         <translation>presence_penalty</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="336"/>
+        <location filename="APISettingsPage.cpp" line="337"/>
         <source>存在惩罚</source>
         <translation>Penalizes the reuse of tokens</translation>
+    </message>
+    <message>
+        <location filename="APISettingsPage.cpp" line="357"/>
+        <source>Extra Keys</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>流式</source>
         <translation type="vanished">Stream</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="270"/>
+        <location filename="APISettingsPage.cpp" line="271"/>
         <source>温度</source>
         <translation>Temperature</translation>
     </message>
@@ -119,7 +125,7 @@
         <translation type="vanished">Use custom temperature if box is checked, &lt;br/&gt;otherwise use default temperature provided by api server</translation>
     </message>
     <message>
-        <location filename="APISettingsPage.cpp" line="247"/>
+        <location filename="APISettingsPage.cpp" line="248"/>
         <source>高级配置</source>
         <oldsource>高级</oldsource>
         <translation>Advanced</translation>

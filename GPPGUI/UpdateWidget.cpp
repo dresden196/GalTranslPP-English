@@ -17,6 +17,7 @@ UpdateWidget::UpdateWidget(QWidget* parent)
     ElaText* updateTitle = new ElaText("v" + QString::fromStdString(GPPVERSION) + " 更新", 15, this);
     QStringList updateList = {
         "1. 新增 API 高级配置",
+        "2. 支持同一Url&Model接口批量加Key",
 
     };
 
