@@ -434,17 +434,29 @@ void LuaManager::registerCustomTypes(std::shared_ptr<LuaStateInstance> luaStateI
 	);
 	auto threadPoolPushFunc = [](ctpl::thread_pool& self, NormalJsonTranslator* classPtr, std::vector<fs::path> filePaths)
 		{
-			std::vector<std::future<void>> futures;
+			std::vector<std::future<void>> results;
 			for (const auto& filePath : filePaths) {
-				futures.emplace_back(self.push([classPtr, filePath](const int id)
+				results.emplace_back(self.push([classPtr, filePath](const int id)
 					{
 						classPtr->m_controller->addThreadNum();
 						classPtr->processFile(filePath, id);
 						classPtr->m_controller->reduceThreadNum();
 					}));
 			}
-			for (auto& future : futures) {
-				future.get();
+			std::exception_ptr firstException = nullptr;
+			for (auto& result : results) {
+				try {
+					result.get();
+				}
+				catch (...) {
+					classPtr->m_threadPool.stop();
+					if (!firstException) {
+						firstException = std::current_exception();
+					}
+				}
+			}
+			if (firstException) {
+				std::rethrow_exception(firstException);
 			}
 		};
 	lua.new_usertype<IController>("IController",

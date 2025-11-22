@@ -38,7 +38,7 @@
         <location filename="APISettingsPage.cpp" line="188"/>
         <source>请输入 API Key(Sakura引擎或有Extra Keys时可不填)</source>
         <oldsource>请输入 API Key(Sakura引擎可不填)</oldsource>
-        <translation type="unfinished">Please type in API Key(Sakura transEngine can ignore this)</translation>
+        <translation>Please type in API Key(Sakura transEngine can ignore this)</translation>
     </message>
     <message>
         <location filename="APISettingsPage.cpp" line="204"/>
@@ -108,7 +108,7 @@
     <message>
         <location filename="APISettingsPage.cpp" line="357"/>
         <source>Extra Keys</source>
-        <translation type="unfinished"></translation>
+        <translation>Extra Keys</translation>
     </message>
     <message>
         <source>流式</source>

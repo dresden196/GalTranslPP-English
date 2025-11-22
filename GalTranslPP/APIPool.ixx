@@ -88,7 +88,7 @@ void APIPool::reportProblem(const TranslationApi& badAPI) {
             return api.apikey == badAPI.apikey;
         });
     if (it == m_apis.end()) {
-        throw std::runtime_error("不存在的 API Key");
+        return;
     }
     auto durationInSec = std::chrono::duration_cast<std::chrono::seconds>
         (std::chrono::steady_clock::now() - it->lastReportTime).count();

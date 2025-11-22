@@ -6,7 +6,7 @@ namespace fs = std::filesystem;
 
 export {
 
-    const std::string GPPVERSION = "2.1.2";
+    const std::string GPPVERSION = "2.1.3";
     const std::string PYTHONVERSION = "1.0.0";
     const std::string PROMPTVERSION = "1.0.2";
     const std::string DICTVERSION = "1.0.0";

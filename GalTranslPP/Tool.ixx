@@ -41,9 +41,7 @@ namespace fs = std::filesystem;
 export {
 
     std::string wide2Ascii(const std::wstring& wide, UINT CodePage = 65001, LPBOOL usedDefaultChar = nullptr);
-
     std::wstring ascii2Wide(const std::string& ascii, UINT CodePage = 65001);
-
     std::string ascii2Ascii(const std::string& ascii, UINT src = 65001, UINT dst = 0, LPBOOL usedDefaultChar = nullptr);
 
     bool executeCommand(const std::wstring& program, const std::wstring& args, bool showWindow = false);
@@ -51,7 +49,6 @@ export {
     int getConsoleWidth();
 
     std::string getNameString(const Sentence* se);
-
     std::string getNameString(const json& j);
 
     bool createParent(const fs::path& path);
@@ -85,7 +82,6 @@ export {
     std::vector<std::string> splitTsvLine(const std::string& line, const std::vector<std::string>& delimiters);
 
     const std::string& chooseStringRef(const Sentence* sentence, CachePart tar);
-
     std::string chooseString(const Sentence* sentence, CachePart tar);
 
     CachePart chooseCachePart(const std::string& partName);
@@ -93,7 +89,6 @@ export {
     bool isSameExtension(const fs::path& filePath, const std::wstring& ext);
 
     std::string removePunctuation(const std::string& text);
-
     std::string removeWhitespace(const std::string& text);
 
     std::pair<std::string, int> getMostCommonChar(const std::string& s);
@@ -112,15 +107,10 @@ export {
     std::string replaceStr(const std::string& str, const std::string& org, const std::string& rep);
 
     std::string extractCharactersByScripts(const std::string& sourceString, const std::vector<UScriptCode>& targetScripts);
-
     std::string extractKatakana(const std::string& sourceString);
-
     std::string extractKana(const std::string& sourceString);
-
     std::string extractLatin(const std::string& sourceString);
-
     std::string extractHangul(const std::string& sourceString);
-
     std::string extractCJK(const std::string& sourceString);
 
     std::function<std::string(const std::string&)> getTraditionalChineseExtractor(std::shared_ptr<spdlog::logger> logger);
@@ -266,21 +256,19 @@ module :private;
 #ifdef _WIN32
 std::string wide2Ascii(const std::wstring& wide, UINT CodePage, LPBOOL usedDefaultChar) {
     int len = WideCharToMultiByte
-    (CodePage, 0, wide.c_str(), -1, nullptr, 0, nullptr, usedDefaultChar);
+    (CodePage, 0, wide.c_str(), wide.length(), nullptr, 0, nullptr, usedDefaultChar);
     if (len == 0) return {};
     std::string ascii(len, '\0');
     WideCharToMultiByte
-    (CodePage, 0, wide.c_str(), -1, &ascii[0], len, nullptr, nullptr);
-    ascii.pop_back();
+    (CodePage, 0, wide.c_str(), wide.length(), ascii.data(), len, nullptr, nullptr);
     return ascii;
 }
 
 std::wstring ascii2Wide(const std::string& ascii, UINT CodePage) {
-    int len = MultiByteToWideChar(CodePage, 0, ascii.c_str(), -1, nullptr, 0);
+    int len = MultiByteToWideChar(CodePage, 0, ascii.c_str(), ascii.length(), nullptr, 0);
     if (len == 0) return {};
     std::wstring wide(len, L'\0');
-    MultiByteToWideChar(CodePage, 0, ascii.c_str(), -1, &wide[0], len);
-    wide.pop_back();
+    MultiByteToWideChar(CodePage, 0, ascii.c_str(), ascii.length(), wide.data(), len);
     return wide;
 }
 

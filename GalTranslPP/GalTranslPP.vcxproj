@@ -183,6 +183,7 @@
     <ClCompile Include="LuaTranslator.ixx" />
     <ClCompile Include="NJ_ImplTool.ixx" />
     <ClCompile Include="NLPTool.ixx" />
+    <ClCompile Include="NormalJsonTranslator.cpp" />
     <ClCompile Include="PDFTool.ixx" />
     <ClCompile Include="proxy.ixx" />
     <ClCompile Include="PythonManager.cpp" />
