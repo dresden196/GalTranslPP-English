@@ -578,6 +578,7 @@ void NormalJsonTranslator::postProcess(Sentence* se) {
 bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath, std::vector<Sentence*>& batch, std::string& backgroundText, int threadId) {
 
     if (batch.empty()) {
+        m_logger->error("程序内部错误: batch 为空");
         return true;
     }
     for (Sentence* pSentence : batch) {
@@ -948,12 +949,19 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
         }
         int batchCount = 0;
         std::string backgroundText;
+        Sentence* pLastSentence = nullptr;
         for (size_t i = 0; i < toTranslate.size(); i += m_batchSize) {
             if (m_controller->shouldStop()) {
                 return;
             }
             std::vector<Sentence*> batch(toTranslate.begin() + i, toTranslate.begin() + std::min(i + m_batchSize, toTranslate.size()));
+            if (i != 0 && !backgroundText.empty() && pLastSentence) {
+                if (batch.front()->index - pLastSentence->index > m_batchSize) {
+                    backgroundText.clear();
+                }
+            }
             translateBatchWithRetry(relInputPath, batch, backgroundText, threadId);
+            pLastSentence = batch.back();
             for (Sentence* se : batch) {
                 postProcess(se);
             }
