@@ -19,9 +19,6 @@ import LuaManager;
 import PythonManager;
 export import ITranslator;
 
-using json = nlohmann::json;
-using ordered_json = nlohmann::ordered_json;
-namespace py = pybind11;
 namespace fs = std::filesystem;
 
 export {
