@@ -57,7 +57,7 @@ def run(se: gpp.Sentence):
             se.problems += ["注音顺序错误(基本文本中无汉字): " + match.group(0)]
 
     if katakana:
-        logger.error("BetterRetainJp 残留日文检测: " + katakana)
+        logger.trace("BetterRetainJp 残留日文检测: " + katakana)
         se.problems += ["残留日文: " + katakana]
 
 

@@ -17,6 +17,7 @@ UpdateWidget::UpdateWidget(QWidget* parent)
     ElaText* updateTitle = new ElaText("v" + QString::fromStdString(GPPVERSION) + " 更新", 15, this);
     QStringList updateList = {
         "1. 优化动态背景输入条件",
+        "2. 修复 TextLinebreakFix 报错阈值行数/字数不正确的 bug，并且现在即使在换行数相同的情况下也会触发阈值检查",
 
     };
 

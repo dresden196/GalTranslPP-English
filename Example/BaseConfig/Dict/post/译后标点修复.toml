@@ -1,4 +1,20 @@
 [[normalDict]]
+org = '“(.*)”'
+rep = '『$1』'
+conditionTarget = 'preproc_text'
+conditionReg = '^『[\S\s]*』$'
+isReg = true
+priority = 1
+
+[[normalDict]]
+org = '“(.*)”'
+rep = '「$1」'
+conditionTarget = 'preproc_text'
+conditionReg = '^「[\S\s]*」$'
+isReg = true
+priority = 1
+
+[[normalDict]]
 org = '。」'
 rep = '」'
 conditionTarget = 'preproc_text'

@@ -454,6 +454,9 @@ void NormalJsonTranslator::preProcess(Sentence* se) {
         else if (se->pre_processed_text.contains("\\r\\n")) {
             se->originalLinebreak = "\\r\\n";
         }
+        else if (se->pre_processed_text.contains("\\n:")) {
+            se->originalLinebreak = "\\n:";
+        }
         else if (se->pre_processed_text.contains("\\n")) {
             se->originalLinebreak = "\\n";
         }
@@ -681,6 +684,9 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
         )) {
             continue;
         }
+        else {
+            m_logger->trace("[线程 {}] [文件 {}] 成功响应，响应内容:\n{}", threadId, wide2Ascii(relInputPath), response.content);
+        }
 
         // --- 如果请求成功，则继续解析 ---
         int parsedCount = 0;
@@ -699,7 +705,7 @@ bool NormalJsonTranslator::translateBatchWithRetry(const fs::path& relInputPath,
             continue;
         }
         else {
-            m_logger->info("[线程 {}] [文件 {}] 成功响应，解析结果: \n{}", threadId, wide2Ascii(relInputPath), response.content);
+            m_logger->info("[线程 {}] [文件 {}] 成功解析，解析结果: \n{}", threadId, wide2Ascii(relInputPath), response.content);
         }
 
         m_logger->debug("[线程 {}] 批次翻译成功，解析了 {} 句话。", threadId, parsedCount);

@@ -140,7 +140,21 @@ void TextLinebreakFix::run(Sentence* se)
 	int origLinebreakCount = countSubstring(se->pre_processed_text, "<br>");
 	int transLinebreakCount = countSubstring(se->translated_preview, "<br>");
 
+	auto checkLineCharCountFunc = [&](const std::string& transViewToModify)
+		{
+			if (transViewToModify.length() > m_errorThreshold && (int)countGraphemes(transViewToModify) > m_errorThreshold) {
+				std::vector<std::string> newLines = splitString(transViewToModify, "<br>");
+				for (const auto& [index, newLine] : newLines | std::views::enumerate) {
+					if (size_t charCount = countGraphemes(newLine); charCount > m_errorThreshold) {
+						m_logger->trace("句子[{}](原有{}行)其中的 译文行[{}]超出报错阈值[{}/{}]", se->pre_processed_text, origLinebreakCount + 1, newLine, charCount, m_errorThreshold);
+						se->problems.push_back(std::format("第 {} 行字数超出报错阈值[{}/{}]", index + 1, charCount, m_errorThreshold));
+					}
+				}
+			}
+		};
+
 	if (transLinebreakCount == origLinebreakCount && !m_forceFix) {
+		checkLineCharCountFunc(se->translated_preview);
 		return;
 	}
 
@@ -196,6 +210,7 @@ void TextLinebreakFix::run(Sentence* se)
 		}
 	}
 	break;
+
 	case LinebreakFixMode::FixCharCount:
 	{
 		std::vector<std::string> graphemes = splitIntoGraphemes(transViewToModify);
@@ -208,6 +223,7 @@ void TextLinebreakFix::run(Sentence* se)
 		}
 	}
 	break;
+
 	case LinebreakFixMode::KeepPositions:
 	{
 		std::vector<std::string> tokens = m_useTokenizer ? splitIntoTokens(transViewToModify) : splitIntoGraphemes(transViewToModify);
@@ -230,6 +246,7 @@ void TextLinebreakFix::run(Sentence* se)
 		}
 	}
 	break;
+
 	case LinebreakFixMode::PreferPunctuations:
 	{
 		std::vector<std::string> graphemes = splitIntoGraphemes(transViewToModify);
@@ -390,26 +407,12 @@ void TextLinebreakFix::run(Sentence* se)
 			se->other_info["译文分词结果"] = tokensStr;
 		}
 	}
+	break;
+
 	}
 
-	se->translated_preview = transViewToModify;
-
-	if (transViewToModify.length() > m_errorThreshold && (int)countGraphemes(transViewToModify) > m_errorThreshold) {
-		std::vector<std::string> newLines = splitString(transViewToModify, "<br>");
-		std::ranges::sort(newLines, [&](const std::string& a, const std::string& b)
-			{
-				return a.length() > b.length();
-			});
-		for (const auto& [index, newLine] : newLines | std::views::enumerate) {
-			if (size_t charCount = countGraphemes(newLine); charCount > m_errorThreshold) {
-				m_logger->error("句子[{}](原有{}行)其中的 译文行[{}]超出报错阈值[{}/{}]", se->pre_processed_text, origLinebreakCount + 1, newLine, charCount, m_errorThreshold);
-				se->problems.push_back(std::format("第 {} 行超出报错阈值[{}/{}]", index + 1, charCount, m_errorThreshold));
-			}
-			else {
-				break;
-			}
-		}
-	}
+	se->translated_preview = std::move(transViewToModify);
+	checkLineCharCountFunc(se->translated_preview);
 
 	int newLinebreakCount = countSubstring(se->translated_preview, "<br>");
 	se->other_info["换行修复"] = std::format("原文 {} 行, 译文 {} 行, 修正后 {} 行", origLinebreakCount + 1, transLinebreakCount + 1, newLinebreakCount + 1);

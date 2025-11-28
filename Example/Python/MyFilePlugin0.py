@@ -16,6 +16,8 @@ pythonTranslator = None
 
 logger = None
 
+runUnloadFunc = True
+
 def process_file(rel_file_path, worker_id):
     """包装函数，worker_id是线程编号"""
     try:
@@ -86,6 +88,7 @@ def run():
     # 所以此函数可以阻塞，并不影响其它 translator 的工作
     relFilePaths = pythonTranslator.normalJsonTranslator_beforeRun()
     if relFilePaths is None:
+        runUnloadFunc = False
         logger.info("可能是 DumpName 或 GenDict 之类无需 processFile 的 TransEngine")
         return
     # 简单的单线程处理
@@ -104,24 +107,25 @@ def init():
     logger.info("Current inputDir: " + str(pythonTranslator.m_inputDir))
 
 def unload():
-    fontChangerPath = pythonTranslator.m_projectDir / "DynamicFontChanger.exe"
-    orgFontPath = pythonTranslator.m_projectDir / "julixiansimhei-Regular.ttf"
-    fontName = "HelloGoodBye"
-    gamePath = Path(r"D:\GALGAME\linshi\HelloGoodBye")
-    targetTransPath = gamePath / "data01000bak_dump/trans"
+    if runUnloadFunc and pythonTranslator.m_transEngine != gpp.ShowNormal:
+        fontChangerPath = pythonTranslator.m_projectDir / "DynamicFontChanger.exe"
+        orgFontPath = pythonTranslator.m_projectDir / "julixiansimhei-Regular.ttf"
+        fontName = "HelloGoodBye"
+        gamePath = Path(r"D:\GALGAME\linshi\HelloGoodBye")
+        targetTransPath = gamePath / "data01000bak_dump/trans"
 
-    result = subprocess.run(
-        [fontChangerPath, pythonTranslator.m_projectDir / "gt_output", "-i", str(orgFontPath), "--fontname", fontName, "-s"],
-        capture_output=True,  # 捕获输出
-        text=True,            # 以文本形式返回
-        encoding='utf-8'
-    )
-    logger.info(f"返回输出: {result.stdout}")
-    newFontPath = pythonTranslator.m_projectDir / (fontName + "_cnjp.ttf")
-    charMapPath = pythonTranslator.m_projectDir / "charMap.txt"
-    shutil.copy(newFontPath, gamePath)
-    shutil.copy(charMapPath, gamePath)
-    shutil.copytree(pythonTranslator.m_projectDir / "gt_output_sjis_output", targetTransPath, dirs_exist_ok=True)
+        result = subprocess.run(
+            [fontChangerPath, pythonTranslator.m_projectDir / "gt_output", "-i", orgFontPath, "--fontname", fontName, "-s"],
+            capture_output=True,  # 捕获输出
+            text=True,            # 以文本形式返回
+            encoding='utf-8'
+        )
+        logger.info(f"返回输出: {result.stdout}")
+        newFontPath = pythonTranslator.m_projectDir / (fontName + "_cnjp.ttf")
+        charMapPath = pythonTranslator.m_projectDir / "charMap.json"
+        shutil.copy(newFontPath, gamePath)
+        shutil.copy(charMapPath, gamePath)
+        shutil.copytree(pythonTranslator.m_projectDir / "gt_output_sjis_output", targetTransPath, dirs_exist_ok=True)
 
     pythonTranslator.normalJsonTranslator_afterRun()
     logger.info("MyFilePluginFromPython unloads")

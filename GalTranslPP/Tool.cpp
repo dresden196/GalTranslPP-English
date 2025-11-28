@@ -167,7 +167,7 @@ std::string getNameString(const json& j) {
 }
 
 bool createParent(const fs::path& path) {
-    if (path.has_parent_path()) {
+    if (path.has_parent_path() && !fs::exists(path.parent_path())) {
         return fs::create_directories(path.parent_path());
     }
     return false;
@@ -436,12 +436,13 @@ size_t countGraphemes(const std::string& sourceString) {
         throw std::runtime_error(std::format("Failed to create a character break iterator: {}", u_errorName(errorCode)));
     }
     breakIterator->setText(uString);
+
     int32_t start = breakIterator->first();
     size_t count = 0;
-    while (start != icu::BreakIterator::DONE) {
+    for (int32_t end = breakIterator->next(); end != icu::BreakIterator::DONE; end = breakIterator->next()) {
         ++count;
-        start = breakIterator->next();
     }
+
     return count;
 }
 
