@@ -182,12 +182,11 @@ void MainWindow::initEdgeLayout()
     ElaMenuBar* menuBar = new ElaMenuBar(this);
     menuBar->setFixedHeight(30);
     QWidget* customWidget = new QWidget(this);
-    QHBoxLayout* customLayout = new QHBoxLayout(customWidget);
+    customWidget->setFixedWidth(595);
+    QVBoxLayout* customLayout = new QVBoxLayout(customWidget);
     customLayout->setContentsMargins(0, 0, 0, 0);
     customLayout->addWidget(menuBar);
-    customLayout->addStretch();
     this->setCustomWidget(ElaAppBarType::MiddleArea, customWidget);
-    this->setCustomWidgetMaximumWidth(800);
 
     QAction* newProjectAction = menuBar->addElaIconAction(ElaIconType::AtomSimple, tr("新建项目"));
     QAction* openProjectAction = menuBar->addElaIconAction(ElaIconType::FolderOpen, tr("打开项目"));

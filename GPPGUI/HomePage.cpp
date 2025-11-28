@@ -43,7 +43,7 @@ HomePage::HomePage(toml::ordered_value& globalConfig, QWidget* parent)
     ElaImageCard* backgroundCard = new ElaImageCard(this);
     backgroundCard->setBorderRadius(10);
     backgroundCard->setFixedHeight(400);
-    backgroundCard->setMaximumAspectRatio(1.7);
+    backgroundCard->setBorderRadius(10);
     backgroundCard->setCardImage(QImage(":/GPPGUI/Resource/Image/homebackground.png"));
 
     ElaAcrylicUrlCard* urlCard1 = new ElaAcrylicUrlCard(this);
