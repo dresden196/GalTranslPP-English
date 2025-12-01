@@ -42,7 +42,7 @@ def run(se: gpp.Sentence):
     # 这个世界上我唯一爱过的。
     removeFurigana = re.sub(pattern, "", orgTransView)
     # ""
-    katakana = gpp.utils.extractKatakana(removeFurigana)
+    kanas = gpp.utils.extractKana(removeFurigana)
 
     # [ひと/(女人)]
     matches = re.finditer(pattern, orgTransView)
@@ -50,15 +50,15 @@ def run(se: gpp.Sentence):
         # 女人
         baseText = match.group(2)
         # ""
-        katakana += gpp.utils.extractKatakana(baseText)
+        kanas += gpp.utils.extractKana(baseText)
 
         cjkInBaseText = gpp.utils.extractCJK(baseText)
         if not cjkInBaseText:
             se.problems += ["注音顺序错误(基本文本中无汉字): " + match.group(0)]
 
-    if katakana:
-        logger.trace("BetterRetainJp 残留日文检测: " + katakana)
-        se.problems += ["残留日文: " + katakana]
+    if kanas:
+        logger.trace("BetterRetainJp 残留日文检测: " + kanas)
+        se.problems += ["残留日文: " + kanas]
 
 
 def unload():

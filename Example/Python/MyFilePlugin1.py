@@ -145,7 +145,7 @@ def unload():
              r"C:\Users\julixian\Desktop\Works\VS\JLXHP\Release\bakaple\bakaple_cn_base00\base\transMap.json"],
             capture_output=True,  # 捕获输出
             text=True,            # 以文本形式返回
-            encoding='932'
+            encoding='utf-8'
         )
         logger.info(f"返回输出: {result.stdout}")
 
