@@ -29,8 +29,6 @@ def init(project_dir: Path):
     logger.info(f"LineLink 初始化成功，projectDir: {project_dir}")
 
 def reformat_text(text, max_len=33):
-    # 1. 先把所有句子拆出来 (兼容 <br>, <br/>, <BR>)
-    # 使用 strip() 去除每段前后的空格
     dialogue = text.startswith("「")
     if dialogue:
         max_len = 32
@@ -92,6 +90,8 @@ def run(se: gpp.Sentence):
         se.translated_preview = "<br>　".join(new_lines) if dialogue else "<br>".join(new_lines)
         return
     transView = reformat_text(transView)
+    if not transView:
+        return
     se.translated_preview = transView
 
 

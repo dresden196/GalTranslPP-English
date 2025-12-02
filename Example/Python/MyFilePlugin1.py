@@ -120,7 +120,8 @@ def unload():
             [scriptToolPath, "inject", gamePath / "script_bak", targetTransPath, gamePath / "script_cn"],
             capture_output=True,  # 捕获输出
             text=True,            # 以文本形式返回
-            encoding='utf-8'
+            encoding='utf-8',
+            creationflags=subprocess.CREATE_NO_WINDOW
         )
         logger.info(f"返回输出: {result.stdout}")
 
@@ -131,7 +132,8 @@ def unload():
              gamePath / "repack" / "script.noa", gamePath / "repack" / "script\\*.*"],
             capture_output=True,  # 捕获输出
             text=True,            # 以文本形式返回
-            encoding='932'
+            encoding='932',
+            creationflags=subprocess.CREATE_NO_WINDOW
         )
         logger.info(f"返回输出: {result.stdout}")
 
@@ -145,7 +147,8 @@ def unload():
              r"C:\Users\julixian\Desktop\Works\VS\JLXHP\Release\bakaple\bakaple_cn_base00\base\transMap.json"],
             capture_output=True,  # 捕获输出
             text=True,            # 以文本形式返回
-            encoding='utf-8'
+            encoding='utf-8',
+            creationflags=subprocess.CREATE_NO_WINDOW
         )
         logger.info(f"返回输出: {result.stdout}")
 
