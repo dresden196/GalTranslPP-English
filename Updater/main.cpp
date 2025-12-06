@@ -105,6 +105,7 @@ int main(int argc, char* argv[]) {
             std::set<std::string> excludePreFixes =
             {
                 "BaseConfig/python-3.12.10-embed-amd64", "BaseConfig/pyScripts", "BaseConfig/Prompt.toml", 
+                "BaseConfig/Dict", 
             };
             if (cmpVer("2.1.1", orgGppVersion, isCompatible)) {
                 excludePreFixes.insert("Qt6Core.dll");
@@ -120,6 +121,14 @@ int main(int argc, char* argv[]) {
                 int ret = MessageBoxW(NULL, L"检测到新版本的 Prompt，是否更新 Prompt (会覆盖当前的默认提示词)？", L"GalTransl++ Updater", MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
                 if (ret == IDYES) {
                     excludePreFixes.erase("BaseConfig/Prompt.toml");
+                }
+#endif
+            }
+            if (cmpVer(DICTVERSION, orgDictVersion, isCompatible)) {
+#ifdef Q_OS_WIN
+                int ret = MessageBoxW(NULL, L"检测到新版本的 GPT 字典，是否更新字典（会覆盖当前的默认字典）？", L"GalTransl++ Updater", MB_YESNO | MB_ICONQUESTION | MB_TOPMOST);
+                if (ret == IDYES) {
+                    excludePreFixes.erase("BaseConfig/Dict");
                 }
 #endif
             }

@@ -74,7 +74,7 @@ public:
 						tbl[kv.first.as<std::string>()] = solObj2JsonValue(kv.second);
 					}
 					else {
-						tbl["LuaJson: non-string key"] = solObj2JsonValue(kv.second);
+						throw std::runtime_error("LuaJson: non-string key");
 					}
 				}
 				return tbl;
@@ -177,7 +177,7 @@ public:
 						tbl.insert({ kv.first.as<std::string>(), solObj2TomlValue(kv.second) });
 					}
 					else {
-						tbl.insert({ "LuaToml: non-string key", solObj2TomlValue(kv.second) });
+						throw std::runtime_error("LuaToml: non-string key");
 					}
 				}
 				return tbl;

@@ -1,5 +1,5 @@
 [[normalDict]]
-org = '“(.*)”'
+org = '^“([\S\s]*)”$'
 rep = '『$1』'
 conditionTarget = 'preproc_text'
 conditionReg = '^『[\S\s]*』$'
@@ -7,7 +7,7 @@ isReg = true
 priority = 1
 
 [[normalDict]]
-org = '“(.*)”'
+org = '^“([\S\s]*)”$'
 rep = '「$1」'
 conditionTarget = 'preproc_text'
 conditionReg = '^「[\S\s]*」$'
