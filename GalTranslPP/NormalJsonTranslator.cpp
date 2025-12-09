@@ -818,7 +818,7 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
                     if (i + 1 < jsonArr.size()) {
                         nextText = getNameString(jsonArr[i + 1]) + jsonArr[i + 1].value("original_text", "") + jsonArr[i + 1].value("pre_processed_text", "");
                     }
-                    cacheMap.insert(std::make_pair(prevText + currentText + nextText, item));
+                    cacheMap.insert({ prevText + currentText + nextText, item });
                 }
             };
 
@@ -845,7 +845,9 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
                         continue;
                     }
                     if (PathMatchSpecW(entry.path().filename().wstring().c_str(), cacheSpec.c_str())) {
-                        cachePaths.push_back(entry.path());
+                        if (!std::ranges::contains(cachePaths, entry.path())) {
+                            cachePaths.push_back(entry.path());
+                        }
                     }
                 }
                 if (additionalCachePath.has_value()) {
@@ -856,31 +858,28 @@ void NormalJsonTranslator::processFile(const fs::path& relInputPath, int threadI
                 }
             };
 
-        if (m_transEngine == TransEngine::Rebuild) {
-            if (fs::exists(cachePath)) {
-                cachePaths.push_back(cachePath);
-            }
+        // 同名缓存优先级最高
+        if (fs::exists(cachePath)) {
+            cachePaths.push_back(cachePath);
         }
-        else if (m_needsCombining) {
-            std::optional<fs::path> additionalCachePath = std::nullopt;
-            auto it = m_splitFilePartsToJson.find(relInputPath);
-            if (it != m_splitFilePartsToJson.end() && fs::exists(m_cacheDir / it->second)) {
-                additionalCachePath = m_cacheDir / it->second;
+        if (m_transEngine != TransEngine::Rebuild) {
+            if (m_needsCombining) {
+                std::optional<fs::path> additionalCachePath = std::nullopt;
+                if (auto it = m_splitFilePartsToJson.find(relInputPath); it != m_splitFilePartsToJson.end() && fs::exists(m_cacheDir / it->second)) {
+                    additionalCachePath = m_cacheDir / it->second;
+                }
+                // 这个逻辑还挺耗时的，我自己尝试优化结果大败而归
+                size_t pos = relInputPath.filename().wstring().rfind(L"_part_");
+                std::wstring orgStem = relInputPath.filename().wstring().substr(0, pos);
+                std::wstring cacheSpec = orgStem + L"_part_*.json";
+                // 分割优先读分割缓存
+                readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path(), additionalCachePath);
             }
-            // 这个逻辑还挺耗时的，我自己尝试优化结果大败而归
-            size_t pos = relInputPath.filename().wstring().rfind(L"_part_");
-            std::wstring orgStem = relInputPath.filename().wstring().substr(0, pos);
-            std::wstring cacheSpec = orgStem + L"_part_*.json";
-            // 分割优先读分割缓存
-            readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path(), additionalCachePath);
-        }
-        else {
-            if (fs::exists(cachePath)) {
-                cachePaths.push_back(cachePath);
+            else {
+                std::wstring cacheSpec = relInputPath.stem().wstring() + L"_part_*.json";
+                // 非分割优先读整体缓存
+                readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
             }
-            std::wstring cacheSpec = relInputPath.stem().wstring() + L"_part_*.json";
-            // 非分割优先读整体缓存
-            readAllPotentialPartFileCache(cacheSpec, m_cacheDir / relInputPath.parent_path());
         }
 
         json totalCacheJsonList = json::array();
