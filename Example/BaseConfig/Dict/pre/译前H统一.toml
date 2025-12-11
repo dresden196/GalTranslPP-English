@@ -15,6 +15,14 @@ isReg = false
 priority = 0
 
 [[normalDict]]
+org = 'ぢんぢん'
+rep = 'ちんちん'
+conditionTarget = ''
+conditionReg = ''
+isReg = false
+priority = 0
+
+[[normalDict]]
 org = 'おちんこ'
 rep = 'おちんぽ'
 conditionTarget = ''
@@ -100,7 +108,7 @@ rep = 'チン$1'
 conditionTarget = ''
 conditionReg = ''
 isReg = true
-priority = 0
+priority = 1
 
 [[normalDict]]
 org = 'ち[○●〇]([こちぽ])'
@@ -108,7 +116,15 @@ rep = 'ちん$1'
 conditionTarget = ''
 conditionReg = ''
 isReg = true
-priority = 0
+priority = 1
+
+[[normalDict]]
+org = 'おぢ[○●〇]ぢん'
+rep = 'おぢんぢん'
+conditionTarget = ''
+conditionReg = ''
+isReg = true
+priority = 1
 
 [[normalDict]]
 org = 'マ[○●〇]コ'
@@ -116,7 +132,7 @@ rep = 'マンコ'
 conditionTarget = ''
 conditionReg = ''
 isReg = true
-priority = 0
+priority = 1
 
 [[normalDict]]
 org = 'ま[○●〇]こ'
@@ -124,5 +140,5 @@ rep = 'まんこ'
 conditionTarget = ''
 conditionReg = ''
 isReg = true
-priority = 0
+priority = 1
 
