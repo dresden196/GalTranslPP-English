@@ -1,4 +1,4 @@
-# 必须: 导入 C++ 绑定的模块
+# Required: Import C++ binding module
 import gpp_plugin_api as gpp
 from pathlib import Path
 import tomllib
@@ -6,116 +6,116 @@ import threading
 import queue
 import time
 
-# 所有已注册类型和函数详见 GalTranslPP/PythonManager.cpp
+# See GalTranslPP/PythonManager.cpp for all registered types and functions
 
-# 必须: 声明 pythonTranslator
-# C++ 会在 init 前将此属性赋值为基类指针
+# Required: Declare pythonTranslator
+# C++ will assign base class pointer to this attribute before init
 pythonTranslator = None
 
 logger = None
 
 def process_file(rel_file_path, worker_id):
-    """包装函数，worker_id是线程编号"""
+    """Wrapper function, worker_id is the thread number"""
     try:
         pythonTranslator.m_controller.addThreadNum()
         pythonTranslator.processFile(rel_file_path, worker_id)
         pythonTranslator.m_controller.reduceThreadNum()
     except Exception as e:
-        error_msg = f"[线程{worker_id}] 处理文件 {rel_file_path} 时出错: {str(e)}\n{traceback.format_exc()}"
+        error_msg = f"[Thread {worker_id}] Error processing file {rel_file_path}: {str(e)}\n{traceback.format_exc()}"
         logger.error(error_msg)
 
 def worker(worker_id, task_queue):
-    """工作线程函数，worker_id是该线程的固定编号"""
+    """Worker thread function, worker_id is the fixed ID for this thread"""
     while True:
         task = task_queue.get()
-        if task is None:  # 收到退出信号
+        if task is None:  # Received exit signal
             task_queue.task_done()
             break
-        
+
         try:
-            rel_file_path = task  # 任务只包含文件路径
+            rel_file_path = task  # Task only contains file path
             process_file(rel_file_path, worker_id)
         finally:
             task_queue.task_done()
 
 def multi_threads_run(relFilePaths):
-    # 多线程使用手动线程管理
-    # 因为子解释器里用 多进程 或 ThreadPoolExecutor 会有一些妙妙小问题
-    # 在不进行大模型翻译时行为趋近于单线程，因为我只在大模型翻译部分释放了 C++ 侧占有的 GIL
+    # Multi-threading uses manual thread management
+    # Because using multiprocessing or ThreadPoolExecutor in sub-interpreters has some quirky issues
+    # Without LLM translation, behavior approaches single-threaded because I only release GIL on C++ side during LLM translation
     MAX_WORKERS = 29
     pythonTranslator.m_controller.makeBar(pythonTranslator.m_totalSentences, MAX_WORKERS)
     task_queue = queue.Queue()
     threads = []
-    
-    # 创建并启动工作线程，每个线程有固定的worker_id
+
+    # Create and start worker threads, each with a fixed worker_id
     for worker_id in range(MAX_WORKERS):
         t = threading.Thread(
-            target=worker, 
-            args=(worker_id, task_queue),  # 传递worker_id
+            target=worker,
+            args=(worker_id, task_queue),  # Pass worker_id
             name=f"Worker-{worker_id}"
         )
         t.daemon = False
         t.start()
         threads.append(t)
-        logger.info(f"启动工作线程 {worker_id}")
-    
-    # 将所有任务放入队列
+        logger.info(f"Started worker thread {worker_id}")
+
+    # Put all tasks into queue
     for relFilePath in relFilePaths:
         task_queue.put(relFilePath)
-    logger.info(f"已添加 {len(relFilePaths)} 个任务到队列")
-    
-    # 等待所有任务完成
+    logger.info(f"Added {len(relFilePaths)} tasks to queue")
+
+    # Wait for all tasks to complete
     task_queue.join()
-    
-    # 发送退出信号给所有工作线程
+
+    # Send exit signal to all worker threads
     for _ in range(MAX_WORKERS):
         task_queue.put(None)
-    
-    # 等待所有线程结束
+
+    # Wait for all threads to finish
     for t in threads:
         t.join(timeout=30)
         if t.is_alive():
-            logger.warn(f"线程 {t.name} 未能正常结束")
+            logger.warn(f"Thread {t.name} did not terminate properly")
 
-    logger.info("所有 Python 线程执行完毕")
+    logger.info("All Python threads finished execution")
 
 def run():
-    # 每个 translator 的每个 filePlugin 和 textPlugin 均使用一个专门的子解释器(NLP tokenize系列除外)
-    # 所以此函数可以阻塞，并不影响其它 translator 的工作
+    # Each translator's filePlugin and textPlugin uses a dedicated sub-interpreter (except NLP tokenize series)
+    # So this function can block without affecting other translator's work
     relFilePaths = pythonTranslator.normalJsonTranslator_beforeRun()
     if relFilePaths is None:
-        logger.info("可能是 DumpName 或 GenDict 之类无需 processFile 的 TransEngine")
+        logger.info("Probably a TransEngine like DumpName or GenDict that doesn't need processFile")
         return
-    # 简单的单线程处理
+    # Simple single-threaded processing
     # for relFilePath in relFilePaths:
     #     pythonTranslator.processFile(relFilePath, 0)
     multi_threads_run(relFilePaths)
     pythonTranslator.normalJsonTranslator_afterRun()
     return
 
-    # 继承 Epub 的小小示例，同样建议先看完 Lua 部分的说明
+    # Small example inheriting from Epub, also recommended to read Lua section first
     pythonTranslator.epubTranslator_beforeRun()
     # std::function<void(fs::path)>
     orgOnFileProcessedInEpubTranslator = pythonTranslator.m_onFileProcessed
-    # 同 Lua，这里也可以是闭包
-    # 但如果设定了这个，那么则禁止使用 xxTranslator_process() 系列会在 C++ 侧创建线程的函数
-    # 否则会导致死锁，因为 C++ 侧开辟的线程不具有 GIL，无法调用 python 闭包
+    # Like Lua, this can also be a closure
+    # But if you set this, then you must NOT use xxTranslator_process() series functions that create threads on C++ side
+    # Otherwise it will cause deadlock because C++ side threads don't have GIL and can't call Python closures
     def new_call_back(rel_file_path_processed):
-        logger.info("拦截然后加一条日志喵")
+        logger.info("Intercepting to add a log entry meow")
         orgOnFileProcessedInEpubTranslator(rel_file_path_processed)
     pythonTranslator.m_onFileProcessed = new_call_back
     relFilePaths = pythonTranslator.normalJsonTranslator_beforeRun()
     if relFilePaths is None:
-        logger.info("可能是 DumpName 或 GenDict 之类无需 processFile 的 TransEngine")
+        logger.info("Probably a TransEngine like DumpName or GenDict that doesn't need processFile")
         return
     multi_threads_run(relFilePaths)
     pythonTranslator.normalJsonTranslator_afterRun()
     return
 
 def init():
-    # init 后 toml 配置文件及字典文件等才会被加载
+    # TOML config files and dictionary files are loaded after init
     pythonTranslator.normalJsonTranslator_init()
-    # 建议先去看完 Lua 部分的插件说明
+    # Recommended to read Lua plugin documentation first
     # pythonTranslator.epubTranslator_init()
 
     logger.info("MySampleFilePluginFromPython starts")
@@ -137,6 +137,6 @@ def unload():
             if completed:
                 strs.append(str(splitFilePart))
             else:
-                logger.error("不应该发生")
+                logger.error("This should not happen")
     result = "\n".join(strs)
     # logger.info("map keys: \n" + result)

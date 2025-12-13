@@ -1,137 +1,137 @@
-# GalTranslPP 编译指南
+# GalTranslPP Build Guide
 
-## 1. 环境配置
+## 1. Environment Setup
 
-在开始编译之前，请确保你的开发环境满足以下要求：
+Before building, ensure your development environment meets these requirements:
 
-- **操作系统**: Windows 10 或 Windows 11
-- **IDE**: [Visual Studio 2026](https://visualstudio.microsoft.com/insiders/?rwnlp=zh-hans) 和 
+- **Operating System**: Windows 10 or Windows 11
+- **IDE**: [Visual Studio 2026](https://visualstudio.microsoft.com/insiders/?rwnlp=zh-hans) and
 
-    VS2022(会用到 2022 的 ToolChain，如果你懂的话可以只下 VS2022 的 BuildTools 而不下其 IDE，不过依然需要勾选**使用C++的桌面开发**选项)
+    VS2022 (uses 2022's ToolChain - if you know what you're doing, you can install just VS2022 BuildTools without the IDE, but still need to check **Desktop development with C++**)
     ![BuildTools](img/BuildTools.png?raw=true)
-  - **必需工作负载**: `使用 C++ 的桌面开发`
-  - **必需工具集**: `MSVC v143` (VS 2022) 和 `MSVC v145`
-- **Python 3.12.10**: 本仓库中的 `python-3.12.10-embed-amd64.zip`
-- **版本控制工具**: [git](https://git-scm.com/)
+  - **Required Workload**: `Desktop development with C++`
+  - **Required Toolsets**: `MSVC v143` (VS 2022) and `MSVC v145`
+- **Python 3.12.10**: `python-3.12.10-embed-amd64.zip` from this repository
+- **Version Control**: [git](https://git-scm.com/)
 
-## 2. 安装核心依赖
+## 2. Installing Core Dependencies
 
-### 2.1 vcpkg 包管理器
+### 2.1 vcpkg Package Manager
 
-vcpkg 用于管理项目所需的 C++ 库。
+vcpkg manages the C++ libraries required by the project.
 
 ```cmd
-# 1. 克隆 vcpkg 仓库到任意位置
+# 1. Clone vcpkg repository to any location
 git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg
 
-# 2. 执行引导脚本进行安装
+# 2. Run bootstrap script to install
 .\bootstrap-vcpkg.bat
 
-# 3. (重要) 将 vcpkg 的根目录路径添加到用户环境变量"Path"中或运行 vcpkg integreate install 来将 vcpkg 绑定到 Visual Studio
+# 3. (Important) Add vcpkg root directory to user PATH environment variable, or run vcpkg integrate install to bind vcpkg to Visual Studio
 ```
 
-### 2.2 Qt 框架
+### 2.2 Qt Framework
 
-- 1、  访问 [Qt 官方网站](https://www.qt.io/download-qt-installer-oss)下载并运行Qt社区开源版本(LGPL协议)的在线安装器 (需要注册 Qt 账户)。
-- 2、  在安装器的组件选择页面，确保勾选以下组件:
-  - `Qt` → `Qt 6.9.2(或更高，但不保证兼容性)` → `MSVC 2022 64-bit`
+- 1. Visit [Qt official website](https://www.qt.io/download-qt-installer-oss) to download and run the Qt Community Open Source (LGPL license) online installer (requires Qt account registration).
+- 2. On the component selection page, ensure these components are checked:
+  - `Qt` → `Qt 6.9.2 (or higher, but compatibility not guaranteed)` → `MSVC 2022 64-bit`
 
-## 3. 获取项目源码
+## 3. Getting the Source Code
 
-将 GalTranslPP 主仓库连同子模块依赖克隆至本地。
+Clone the GalTranslPP main repository along with submodule dependencies.
 
 ```cmd
 git clone --recurse-submodules https://github.com/julixian/GalTranslPP.git
 cd GalTranslPP
 ```
 
-## 4. 编译依赖
+## 4. Building Dependencies
 
-### 4.1 配置 Python 库
+### 4.1 Configure Python Libraries
 
-- 1、 在 `GalTranslPP` 根目录下手动创建一个名为 `lib` 的新文件夹。
-- 2、 将 `GalTranslPP` 文件夹中的 `Python.zip` 解压到当前文件夹，程序会用到里面的头文件。
+- 1. Manually create a folder named `lib` in the `GalTranslPP` root directory.
+- 2. Extract `Python.zip` from the `GalTranslPP` folder to the current folder - the program needs the header files inside.
 
-### 4.2 配置 Visual Studio 与 Qt
+### 4.2 Configure Visual Studio and Qt
 
-- 1、  **安装 VS 插件**:
-  - 启动 Visual Studio，在顶部菜单栏选择 `扩展` → `管理扩展`。
-  - 搜索并安装 **"Qt Visual Studio Tools"** 插件。
-  - 根据提示重启 Visual Studio 以完成安装。
-- 2、  **关联 Qt 版本**:
-  - 重启后，在菜单栏选择 `扩展` → `Qt VS Tools` → `Qt Versions`。
-  - 点击 `Add New Qt Version`，将路径指向你安装的 Qt MSVC 目录 (例如: `C:\Qt\6.9.2\msvc2022_64`)，并将其设置为默认版本。
+- 1. **Install VS Extension**:
+  - Launch Visual Studio, select `Extensions` → `Manage Extensions` from the top menu bar.
+  - Search for and install **"Qt Visual Studio Tools"** extension.
+  - Restart Visual Studio as prompted to complete installation.
+- 2. **Link Qt Version**:
+  - After restart, select `Extensions` → `Qt VS Tools` → `Qt Versions` from the menu bar.
+  - Click `Add New Qt Version`, point the path to your Qt MSVC installation directory (e.g., `C:\Qt\6.9.2\msvc2022_64`), and set it as the default version.
 
-### 4.3 编译 ElaWidgetTools
+### 4.3 Build ElaWidgetTools
 
-- 1、  使用 Visual Studio 打开 `3rdParty\ElaWidgetTools` 文件夹。
-- 2、  在顶部工具栏中，将生成配置从 `Qt-Debug` 切换为 **`Qt-Release`**。
-- 3、  在菜单栏中选择 `生成` → `全部生成` (如果使用Visual Studio且严格按照上述步骤执行，则无需更改CMakeLists中的QT_SDK_DIR)。
-- 4、  **部署编译产物**:
-  - 将 `3rdParty\ElaWidgetTools\out\build\Release\ElaWidgetTools` 目录下的 `ElaWidgetTools.lib` 文件移动到在上一步创建的 `lib\` 文件夹中。
+- 1. Open the `3rdParty\ElaWidgetTools` folder with Visual Studio.
+- 2. In the top toolbar, switch build configuration from `Qt-Debug` to **`Qt-Release`**.
+- 3. Select `Build` → `Build All` from the menu bar (if using Visual Studio and following the above steps, no need to change QT_SDK_DIR in CMakeLists).
+- 4. **Deploy Build Artifacts**:
+  - Move `ElaWidgetTools.lib` from `3rdParty\ElaWidgetTools\out\build\Release\ElaWidgetTools` to the `lib\` folder created earlier.
 
-### 4.4 编译 OpenCC
+### 4.4 Build OpenCC
 
-- 1、  使用 Visual Studio 打开 `3rdParty\OpenCC` 文件夹。
-- 2、  如果编译选项没有 `x64-Release`，就先点到管理配置，点击绿色加号，选择 `x64-Release`，Ctrl + S 保存。
-- 3、  选择 `x64-Release`，生成 opencc.dll(安装) (lib\opencc.dll)。
-- 4、  **部署编译产物**
-  - 将`3rdParty\OpenCC\out\install\x64-Release\lib` 目录下的 `marisa.lib` 和 `opencc.lib` 文件移动到 `lib\` 文件夹中。
-  - 确保 `3rdParty\OpenCC\out\install\x64-Release\include` 文件夹存在，程序会用到里面的头文件
+- 1. Open the `3rdParty\OpenCC` folder with Visual Studio.
+- 2. If `x64-Release` build option doesn't exist, click Manage Configurations, click the green plus sign, select `x64-Release`, and save with Ctrl + S.
+- 3. Select `x64-Release`, build opencc.dll (Install) (lib\opencc.dll).
+- 4. **Deploy Build Artifacts**
+  - Move `marisa.lib` and `opencc.lib` from `3rdParty\OpenCC\out\install\x64-Release\lib` to the `lib\` folder.
+  - Ensure the `3rdParty\OpenCC\out\install\x64-Release\include` folder exists - the program needs the header files inside.
 
-## 5. 编译 GalTranslPP (主项目)
+## 5. Building GalTranslPP (Main Project)
 
-此步骤涉及一次临时的平台工具集切换，以解决特定依赖的兼容性问题。
+This step involves a temporary toolset switch to resolve specific dependency compatibility issues.
 
-- 1、  使用 Visual Studio 打开根目录下的 `GalTranslPP.sln` 解决方案文件。
+- 1. Open the `GalTranslPP.sln` solution file in the root directory with Visual Studio.
 
-- 2、  **步骤一：使用 v143 工具集编译依赖**
-  - 在 **解决方案资源管理器** 中，右键点击 `GalTranslPP` 模块，选择 `属性`。
-  - 在属性页中，导航至 `配置属性` → `常规`。
-  - 将 **平台工具集** 选项更改为 **`Visual Studio 2022 (v143)`** **(Debug和Release都改过来)**。
-  - 点击 `应用` 保存设置。
-  - 在菜单栏选择 `生成` → `批生成`勾选`GalTranslPP|Release|x64`并点击生成。
-    > **注意**: 此步骤专门用于编译 `mecab:x64-windows` 等依赖。
+- 2. **Step 1: Build Dependencies with v143 Toolset**
+  - In **Solution Explorer**, right-click the `GalTranslPP` module and select `Properties`.
+  - In the properties page, navigate to `Configuration Properties` → `General`.
+  - Change **Platform Toolset** to **`Visual Studio 2022 (v143)`** **(change this for both Debug and Release)**.
+  - Click `Apply` to save.
+  - Select `Build` → `Batch Build` from the menu, check `GalTranslPP|Release|x64` and click Build.
+    > **Note**: This step specifically compiles dependencies like `mecab:x64-windows`.
 
-- 3、  **步骤二：使用 v145 工具集编译主程序**
-  - 再次打开 `GalTranslPP` 项目的属性页。
-  - 将 **平台工具集** 切换回 **`Visual Studio v18 (v145)`**。
-  - 点击 `应用` 并关闭属性窗口。
-  - 为确保所有模块都被正确编译，在`生成` → `批生成`编译目标模块时应选择`全部重新生成`(如果实在过不了就用VS2022把工具集切回v143编译)。
+- 3. **Step 2: Build Main Program with v145 Toolset**
+  - Open `GalTranslPP` project properties again.
+  - Switch **Platform Toolset** back to **`Visual Studio v18 (v145)`**.
+  - Click `Apply` and close the properties window.
+  - To ensure all modules compile correctly, use `Rebuild All` when building target modules in `Build` → `Batch Build` (if it still fails, use VS2022 and switch back to v143 toolset to compile).
 
-## 6. 完成与运行
+## 6. Completion and Running
 
-编译成功后，所有可执行文件将生成于 `Release\` 目录下。  
+After successful compilation, all executables are generated in the `Release\` directory.
 
-还需将一些文件复制到文件夹内程序才可正常运行。  
+Additional files must be copied to the folder for the program to run properly.
 
-- 0、 先将项目根目录的`Example\BaseConfig`文件夹内的`python-3.12.10-embed-amd64.zip`文件解压到当前文件夹
+- 0. First extract `python-3.12.10-embed-amd64.zip` from the `Example\BaseConfig` folder in the project root to the current folder.
 
 ### 6.1 GPPCLI
 
-- 1、  将`Example`文件夹内的`BaseConfig`和`sampleProject`文件夹复制到`GalTranslPP\Release\GPPCLI`
-- 2、  将以下文件复制到程序根目录
-  -  `3rdParty\OpenCC\out\install\x64-Release\bin\opencc.dll`
+- 1. Copy the `BaseConfig` and `sampleProject` folders from `Example` to `GalTranslPP\Release\GPPCLI`
+- 2. Copy these files to the program root directory:
+  - `3rdParty\OpenCC\out\install\x64-Release\bin\opencc.dll`
 
 ### 6.2 GPPGUI
 
-- 1、  将`BaseConfig`文件夹复制到`GalTranslPP\Release\GPPGUI`
-- 2、  在`GalTranslPP\Release\GPPGUI`新建`Projects`文件夹并将`sampleProject`文件夹整体复制进去
-- 3、  打开 Qt专属控制台，如 Qt 6.9.2(MSVC 2022 64-bit)，输入命令 
+- 1. Copy the `BaseConfig` folder to `GalTranslPP\Release\GPPGUI`
+- 2. Create a `Projects` folder in `GalTranslPP\Release\GPPGUI` and copy the entire `sampleProject` folder into it
+- 3. Open a Qt-specific console, such as Qt 6.9.2 (MSVC 2022 64-bit), and run:
 
 ```cmd
 windeployqt path/to/GalTranslPP_GUI.exe
 ```
 
-- 4、将以下文件复制到程序根目录
+- 4. Copy these files to the program root directory:
   - `3rdParty\OpenCC\out\install\x64-Release\bin\opencc.dll`
   - `3rdParty\ElaWidgetTools\out\build\Release\ElaWidgetTools\ElaWidgetTools.dll`
 
-### 6.3 私人部署（非必需）
+### 6.3 Private Deployment (Optional)
 
-若你想将GPPCLI和GPPGUI移动到其它位置运行如`D:\GALGAME\GALGAMETOOLS\AIGC\GPPCLI`  
-和`D:\GALGAME\GALGAMETOOLS\AIGC\GPPGUI`则请在GalTranslPP\Release执行以下cmd命令创建软链接
+If you want to move GPPCLI and GPPGUI to other locations like `D:\GALGAME\GALGAMETOOLS\AIGC\GPPCLI`
+and `D:\GALGAME\GALGAMETOOLS\AIGC\GPPGUI`, run these cmd commands in GalTranslPP\Release to create symbolic links:
 
 #### GPPCLI
 
@@ -145,6 +145,6 @@ mklink .\GPPCLI_PRIVATE "D:\GALGAME\GALGAMETOOLS\AIGC\GPPCLI"
 mklink .\GPPGUI_PRIVATE "D:\GALGAME\GALGAMETOOLS\AIGC\GPPGUI"
 ```
 
-这样每次编译都会将最核心的文件`GalTranslPP_CLI.exe`、`GalTranslPP_GUI.exe`和`Updater_new.exe`复制到相应目录。  
+This way, each build will copy the core files `GalTranslPP_CLI.exe`, `GalTranslPP_GUI.exe`, and `Updater_new.exe` to the corresponding directories.
 
-至此所有步骤均已完成。
+All steps are now complete.

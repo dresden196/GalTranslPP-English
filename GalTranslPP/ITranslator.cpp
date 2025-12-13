@@ -74,7 +74,7 @@ std::unique_ptr<ITranslator> createTranslator(const fs::path& projectDir, std::s
 
     const std::string& filePlugin = toml::find_or(configData, "plugins", "filePlugin", "NormalJson");
     const std::string& transEngine = toml::find_or(configData, "plugins", "transEngine", "ForGalJson");
-    // 日志配置
+    // Logger configuration
     spdlog::level::level_enum logLevel;
     bool saveLog = toml::find_or(configData, "common", "saveLog", true);
     const std::string& logLevelStr = toml::find_or(configData, "common", "logLevel", "info");
@@ -123,7 +123,7 @@ std::unique_ptr<ITranslator> createTranslator(const fs::path& projectDir, std::s
     }
     logger->set_pattern("[%H:%M:%S.%e %^%l%$] %v");
     logger->info("Logger initialized.");
-    // 日志配置结束
+    // End logger configuration
 
     std::string filePluginLower = str2Lower(filePlugin);
     if (filePluginLower.ends_with(".lua")) {

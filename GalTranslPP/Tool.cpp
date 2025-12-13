@@ -60,27 +60,27 @@ std::string ascii2Ascii(const std::string& ascii, UINT src, UINT dst, LPBOOL use
 
 bool executeCommand(const std::wstring& program, const std::wstring& args, bool showWindow) {
 
-    // 1. 构造完整的命令行字符串。
-    //    CreateProcess 的 lpCommandLine 参数要求，如果程序路径包含空格，
-    //    它应该被双引号包围。
+    // 1. Construct complete command line string.
+    //    CreateProcess lpCommandLine parameter requires that if program path contains spaces,
+    //    it should be surrounded by double quotes.
     std::wstring commandLineStr = L"\"" + program + L"\" " + args;
 
     STARTUPINFOW si;
     PROCESS_INFORMATION pi;
 
     ZeroMemory(&si, sizeof(si));
-    si.dwFlags |= STARTF_USESHOWWINDOW; // 指定 wShowWindow 成员有效
-    si.wShowWindow = showWindow ? SW_SHOW : SW_HIDE;          // 将窗口设置为隐藏
+    si.dwFlags |= STARTF_USESHOWWINDOW; // Specify wShowWindow member is valid
+    si.wShowWindow = showWindow ? SW_SHOW : SW_HIDE;          // Set window to hidden
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
 
-    // CreateProcessW 需要一个可写的字符缓冲区
+    // CreateProcessW requires a writable character buffer
     std::vector<wchar_t> commandLineVec(commandLineStr.begin(), commandLineStr.end());
     commandLineVec.push_back(L'\0');
 
-    //    设置 dwCreationFlags
-    //    CREATE_NEW_CONSOLE 会为新进程创建一个新的控制台窗口。
-    //    这个新窗口会显示 python.exe 的所有标准输出和标准错误。
+    //    Set dwCreationFlags
+    //    CREATE_NEW_CONSOLE will create a new console window for the new process.
+    //    This new window will display all stdout and stderr from python.exe.
     DWORD creationFlags = 0;
     if (showWindow) {
         creationFlags |= CREATE_NEW_CONSOLE;
@@ -99,10 +99,10 @@ bool executeCommand(const std::wstring& program, const std::wstring& args, bool 
         return false;
     }
 
-    // 等待子进程结束
+    // Wait for child process to finish
     WaitForSingleObject(pi.hProcess, INFINITE);
 
-    // 清理句柄
+    // Cleanup handles
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
 
@@ -115,12 +115,12 @@ int getConsoleWidth() {
     if (h == INVALID_HANDLE_VALUE) {
         return 80;
     }
-    // 获取控制台屏幕缓冲区信息
+    // Get console screen buffer info
     if (GetConsoleScreenBufferInfo(h, &csbi)) {
-        // 宽度 = 右坐标 - 左坐标 + 1
+        // Width = right coordinate - left coordinate + 1
         return csbi.srWindow.Right - csbi.srWindow.Left + 1;
     }
-    return 80; // 获取失败，返回默认值
+    return 80; // Failed to get, return default value
 }
 #endif
 
@@ -281,7 +281,7 @@ CachePart chooseCachePart(std::string_view partName) {
         part = CachePart::TransPreview;
     }
     else {
-        throw std::invalid_argument("无效的 CachePart: " + std::string(partName));
+        throw std::invalid_argument("Invalid CachePart: " + std::string(partName));
     }
     return part;
 }
@@ -321,7 +321,7 @@ std::string removeWhitespace(const std::string& text) {
     return resultUstr.toUTF8String(utf8Output);
 }
 
-// 这两个函数遍历字形簇
+// These two functions traverse grapheme clusters
 std::pair<std::string, int> getMostCommonChar(const std::string& s) {
     if (s.empty()) {
         return { {}, 0 };
@@ -366,25 +366,25 @@ std::vector<std::string> splitIntoTokens(const WordPosVec& wordPosVec, const std
 {
     std::vector<std::string> tokens;
 
-    size_t searchPos = 0; // 在原始句子中搜索的起始位置
+    size_t searchPos = 0; // Starting position for searching in original sentence
     for (const auto& wordPos : wordPosVec) {
         const auto& token = wordPos.front();
-        // 从 searchPos 开始查找当前 token
+        // Search for current token starting from searchPos
         size_t tokenPos = text.find(token, searchPos);
-        // 错误处理：如果在预期位置找不到 token，说明输入有问题
+        // Error handling: if token not found at expected position, input is invalid
         if (tokenPos == std::string::npos) {
             throw std::runtime_error("Token '" + token + "' not found in the remainder of the original sentence.");
         }
-        // 1. 提取并添加 token 前面的空白部分
+        // 1. Extract and add whitespace before token
         if (tokenPos > searchPos) {
             tokens.push_back(text.substr(searchPos, tokenPos - searchPos));
         }
-        // 2. 更新下一次搜索的起始位置
+        // 2. Update starting position for next search
         searchPos = tokenPos + token.length();
-        // 3. 添加 token 本身
+        // 3. Add the token itself
         tokens.push_back(std::move(token));
     }
-    // 4. 处理最后一个 token 后面的尾随空白
+    // 4. Handle trailing whitespace after last token
     if (searchPos < text.length()) {
         tokens.push_back(text.substr(searchPos));
     }
@@ -446,12 +446,12 @@ size_t countGraphemes(const std::string& sourceString) {
     return count;
 }
 
-// 计算子串出现次数
+// Count substring occurrences
 int countSubstring(const std::string& text, std::string_view sub) {
     return (int)std::ranges::distance(text | std::views::split(sub)) - 1;
 }
 
-// 计算的是子串在删去子串后的主串中出现的位置
+// Calculate substring positions in the main string after removing all substrings
 std::vector<double> getSubstringPositions(const std::string& text, std::string_view sub) {
     if (text.empty() || sub.empty()) return {};
     std::vector<size_t> positions;
@@ -481,8 +481,8 @@ std::string replaceStr(const std::string& str, std::string_view org, std::string
     return result;
 }
 
-// 核心辅助函数
-// 接受一个源字符串和一组目标脚本，返回所有匹配字符组成的UTF-8字符串
+// Core helper function
+// Takes a source string and a set of target scripts, returns all matching characters as UTF-8 string
 std::string extractCharactersByScripts(const std::string& sourceString, const std::vector<UScriptCode>& targetScripts) {
 
     icu::UnicodeString resultUString;
@@ -530,7 +530,7 @@ std::string extractCJK(const std::string& sourceString) {
 
 std::function<std::string(const std::string&)> getTraditionalChineseExtractor(std::shared_ptr<spdlog::logger> logger)
 {
-    // 是否需要线程安全？(似乎是不需要)
+    // Is thread safety needed? (Probably not)
     static std::function<std::string(const std::string&)> result;
     if (result) {
         return result;
@@ -570,8 +570,8 @@ std::function<std::string(const std::string&)> getTraditionalChineseExtractor(st
 
         result = [=](const std::string& sourceString)
             {
-                // 白名单/排除列表：用于解决简繁转换中的歧义问题。
-                // "著" (U+8457) 是一个典型例子，它在简体中文里也是合法字符，但T->S的转换规则可能导致误判。
+                // Whitelist/Exclude list: Used to resolve ambiguities in traditional-simplified conversion.
+                // "著" (U+8457) is a typical example - it's also a valid simplified Chinese character, but T->S rules may cause misjudgment.
                 static const std::set<UChar32> excludeList = {
                     U'著', U'乾', U'阪',
                 };
@@ -584,13 +584,13 @@ std::function<std::string(const std::string&)> getTraditionalChineseExtractor(st
                 while (iter.hasNext()) {
                     charSource = iter.next32PostInc();
 
-                    // 1. 必须是汉字
+                    // 1. Must be Han character
                     UErrorCode scriptErr = U_ZERO_ERROR;
                     if (uscript_getScript(charSource, &scriptErr) != USCRIPT_HAN || U_FAILURE(scriptErr)) {
                         continue;
                     }
 
-                    // 2. 检查是否在排除列表中
+                    // 2. Check if in exclude list
                     if (excludeList.contains(charSource)) {
                         continue;
                     }
@@ -599,12 +599,12 @@ std::function<std::string(const std::string&)> getTraditionalChineseExtractor(st
                     icu::UnicodeString uSimplified = uCharSource;
                     toSimplified->transliterate(uSimplified);
 
-                    // 3. 繁体转简体后必须有变化
+                    // 3. Traditional to simplified must produce a change
                     if (uCharSource == uSimplified) {
                         continue;
                     }
 
-                    // 4. 核心双向检查：简体转回繁体，必须能得到原始字符，确保转换是明确且可逆的
+                    // 4. Core bidirectional check: simplified back to traditional must yield original character, ensuring conversion is unambiguous and reversible
                     icu::UnicodeString uReTraditional = uSimplified;
                     toTraditional->transliterate(uReTraditional);
 

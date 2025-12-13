@@ -1,11 +1,11 @@
 [backendSpecific.OpenAI-Compatible]
-apiStrategy = "random" # 令牌策略，random随机轮询，fallback优先第一个，出现[请求错误]时使用下一个
-apiTimeout = 120 # 请求超时时间，单位秒
+apiStrategy = "random" # API key strategy: random=random rotation, fallback=prefer first key, use next on [request error]
+apiTimeout = 120 # Request timeout in seconds
 
   [[backendSpecific.OpenAI-Compatible.apis]]
-  apikey = ""             # sk-example-key | sakura引擎可不填
-  apiurl = ""             # https://openai-example.com | 请求地址，加不加/v1都行
-  modelName = ""          # modelName | sakura引擎可不填
+  apikey = ""             # sk-example-key | can be empty for Sakura engine
+  apiurl = ""             # https://openai-example.com | request URL, with or without /v1
+  modelName = ""          # modelName | can be empty for Sakura engine
   stream = false
   # enable = false
   # temperature = 1.0
@@ -15,40 +15,40 @@ apiTimeout = 120 # 请求超时时间，单位秒
   # extraKeys = [ "sk-extra-1", "sk-extra-2" ]
 
 [plugins]
-filePlugin = "NormalJson" # 用于支持更多格式: NormalJson, Epub, PDF, MtoolJson(尚未实现)...
-baseClassName = "NormalJson" # 参数同上，用于在使用自定义 filePlugin 时指定脚本要继承的基类
+filePlugin = "NormalJson" # Supported formats: NormalJson, Epub, PDF, MtoolJson(not yet implemented)...
+baseClassName = "NormalJson" # Same as above, specifies base class for custom filePlugin scripts to inherit
 
-# ForGalJson: 向AI输入json格式的对话并要求AI以json格式回复，使用 FORGALJSON_SYSTEM 和 FORGALJSON_TRANS_PROMPT_EN 作为提示词
-# ForGalTsv: 向AI输入TSV格式的对话并要求AI以TSV格式回复，使用 FORGALTSV_SYSTEM 和 FORGALTSV_TRANS_PROMPT_EN 作为提示词
-# ForNovelTsv: 和 ForGalTsv 的区别是输入不带name，使用 FORNOVELTSV_SYSTEM 和 FORNOVELTSV_TRANS_PROMPT_EN 作为提示词
-# Sakura: 使用 SAKURA_SYSTEM_PROMPT 和 SAKURA_TRANS_PROMPT 作为提示词
-# DumpName: 生成 人名替换表.toml 以供替换人名
-# GenDict: 借助AI自动生成术语表，使用 GENDIC_SYSTEM 和 GENDIC_PROMPT 作为提示词
-# Rebuild: 即使problem或orig_text中包含retranslKey也不会重翻，只根据缓存翻译重建结果
-# ShowNormal: 展示预处理后的内容及句子，如Epub格式下可生成预处理后的html/xhtml文件以及生成的json，可用于检查和排错
-# PS: 如果项目文件夹下有 Prompt.toml，会优先使用项目文件夹下的提示词，否则再去 BaseConfig 下寻找
+# ForGalJson: Feed JSON-formatted dialogue to AI, require JSON response. Uses FORGALJSON_SYSTEM and FORGALJSON_TRANS_PROMPT_EN prompts
+# ForGalTsv: Feed TSV-formatted dialogue to AI, require TSV response. Uses FORGALTSV_SYSTEM and FORGALTSV_TRANS_PROMPT_EN prompts
+# ForNovelTsv: Like ForGalTsv but without name in input. Uses FORNOVELTSV_SYSTEM and FORNOVELTSV_TRANS_PROMPT_EN prompts
+# Sakura: Uses SAKURA_SYSTEM_PROMPT and SAKURA_TRANS_PROMPT prompts
+# DumpName: Generate NameTable.toml for name replacement
+# GenDict: Auto-generate terminology glossary using AI. Uses GENDIC_SYSTEM and GENDIC_PROMPT prompts
+# Rebuild: Skip retranslation even if problem or orig_text contains retranslKey, only rebuild from cache
+# ShowNormal: Output preprocessed content and sentences. For EPUB, generates preprocessed html/xhtml and json for debugging
+# Note: If project folder has Prompt.toml, it takes priority over BaseConfig
 transEngine = "ForGalTsv"
 
 #"SkipTrans"
-# 文本译前处理插件列表，可以设置多个，按顺序执行
-# 译前/译后 Plugins 均可使用 lua/py 脚本作为自定义扩展插件
-# 插件加载格式为 "path/to/script.lua" / "path/to/script.py"
-# 如"Lua/MySampleTextPlugin.lua"
-# 插件中必须定义 init 和 run 函数，具体示例详见 README
+# Text pre-processing plugin list, can set multiple, executed in order
+# Pre/Post Plugins can use lua/py scripts as custom extension plugins
+# Plugin format: "path/to/script.lua" / "path/to/script.py"
+# e.g. "Lua/MySampleTextPlugin.lua"
+# Plugins must define init and run functions, see README for examples
 textPrePlugins = [
 ]
 
 #"TextLinebreakFix"
 #"TextPostFull2Half"
-# 文本译后处理插件列表，可以设置多个，按顺序执行
+# Text post-processing plugin list, can set multiple, executed in order
 textPostPlugins = [
-] 
+]
 
 [plugins.NormalJson]
 output_with_src = true
 
 [plugins.Epub]
-"双语显示" = true
+"bilingual" = true
 
 [[plugins.Epub.preprocRegex]]
 org = '<ruby><rb>(.+?)</rb><rt>(.+?)</rt></ruby>'
@@ -65,126 +65,126 @@ callback = [
 
 [plugins.SkipTrans]
 skipH = false
-# 实际上只是将原文复制给译文并标记为已翻译，所以依旧影响上下文的缓存命中
-# 语法与 retranslKeys 完全相同
+# Actually copies original to translation and marks as translated, still affects context cache hits
+# Syntax identical to retranslKeys
 skipKeys = [
-  '^[a-zA-Z\d_\p{P}]+$', # 等效于 [{ conditionTarget = 'preproc_text', conditionReg = '^[a-zA-Z\d_\p{P}]+$' }]
+  '^[a-zA-Z\d_\p{P}]+$', # Equivalent to [{ conditionTarget = 'preproc_text', conditionReg = '^[a-zA-Z\d_\p{P}]+$' }]
 ]
 
 [plugins.TextLinebreakFix]
-"换行模式" = "优先标点" # 判断换行数目是否相同的基准是 preproc_text(中的<br>) 而不是 orig_text，请注意
-"优先阈值" = 0.24
+"linebreakMode" = "preferPunctuation" # Reference for line count comparison is preproc_text (with <br>) not orig_text
+"preferThreshold" = 0.24
 
 [plugins.TextPostFull2Half]
-"是否反向替换" = false  # false=全角->半角，true=半角->全角
+"reverseReplace" = false  # false=fullwidth->halfwidth, true=halfwidth->fullwidth
 
 [common]
-numPerRequestTranslate = 8 # 单次请求翻译句子数量，推荐值 < 15
-threadsNum = 5             # 最大线程数
-sortMethod = "size"         # 翻译顺序，name为文件名，size为大文件优先，多线程时大文件优先可以提高整体速度[name/size]
-targetLang = "zh-cn"        # 翻译到的目标语言，包括但不限于[zh-cn/zh-tw/en/ja/ko/ru/fr]
-splitFile = "No"            # 是否启用单文件分割。Num: 每n条分割一次，Equal: 每个文件均分n份，No: 关闭单文件分割。[No/Num/Equal]
-splitFileNum = 10            # Num时，表示n句拆分一次；Equal时，表示每个文件均分拆成n部分
-saveCacheInterval = 1       # 每翻译n次保存一次缓存
-linebreakSymbol = "auto"    # 这个项目在json中使用的换行符
-maxRetries = 5              # 最大重试次数
-contextHistorySize = 8      # 携带上文数量
-smartRetry = false          # 解析结果失败时尝试折半重翻与清空上下文，如果用的打野 key 其实不建议开这个
-checkQuota = true           # 运行时动态检测key额度，自动从 API 池中删除额度不足的 key
+numPerRequestTranslate = 8 # Sentences per request, recommended < 15
+threadsNum = 5             # Max thread count
+sortMethod = "size"        # Translation order: name=by filename, size=larger files first (improves multi-thread speed) [name/size]
+targetLang = "zh-cn"       # Target language: zh-cn/zh-tw/en/ja/ko/ru/fr and more
+splitFile = "No"           # Single file splitting: Num=split every n sentences, Equal=split each file into n parts, No=disable [No/Num/Equal]
+splitFileNum = 10          # For Num: sentences per split; For Equal: parts per file
+saveCacheInterval = 1      # Save cache every n translation batches
+linebreakSymbol = "auto"   # Line break symbol used in this project's json
+maxRetries = 5             # Max retry attempts
+contextHistorySize = 8     # Number of context sentences to include
+smartRetry = false         # On parse failure, try halving content and clearing context (not recommended for unofficial API keys)
+checkQuota = true          # Dynamically check key quota at runtime, auto-remove exhausted keys from API pool
 logLevel = "info"
 saveLog = true
 
-# 用于生成字典和查错的分词器后端及其设置 (除了MeCab，剩下的都依赖Python，所以速度变慢或内存占用变大是正常的)
-# 但 MeCab 只限于日文分词，如果想分词其它语言需要使用别的分词器并指定对应语言的模型
+# Tokenizer backend for dict generation and error checking (except MeCab, others depend on Python, so slower/higher memory is normal)
+# MeCab is Japanese-only; use other tokenizers for other languages with appropriate models
 tokenizerBackend = "MeCab" # MeCab, spaCy, Stanza
-# MeCab 分词器所用的词典的路径
-mecabDictDir = "BaseConfig/mecabDict/mecab-ipadic-utf8" # 也可以用 mecab-ipadic-neologd 或 unidic(均需从网上下载字典)
-# spaCy(Python) 分词器所用的模型名，可从 https://spacy.io/models 查询，自动下载需重启程序
-spaCyModelName = "ja_core_news_lg" # sm模型的效果有点一言难尽，有条件的建议上trf模型
-# stanza 使用 LangID 来获取模型, 语言ID列表 https://stanfordnlp.github.io/stanza/ner_models.html
+# MeCab tokenizer dictionary path
+mecabDictDir = "BaseConfig/mecabDict/mecab-ipadic-utf8" # Can also use mecab-ipadic-neologd or unidic (download from web)
+# spaCy (Python) model name, see https://spacy.io/models, restart required after downloading new model
+spaCyModelName = "ja_core_news_lg" # sm models aren't great, use trf models if possible
+# Stanza uses LangID for models, see https://stanfordnlp.github.io/stanza/ner_models.html
 stanzaLang = "ja"
 
 
 [problemAnalyze]
-# 要发现的问题清单
+# Problem checklist
 problemList = [
-  "词频过高",
-  "标点错漏",
+  "High Word Frequency",
+  "Punctuation Errors",
 
-  "丢失换行",
-  "多加换行",
-  #"比原文长",
-  #"比原文长严格",
-  "字典未使用",
+  "Lost Line Break",
+  "Extra Line Break",
+  #"Longer Than Source",
+  #"Strictly Longer Than Source",
+  "Dict Unused",
 
-  "残留日文",
-  #"引入拉丁字母",
-  #"非法字符",
-  #"语言不通",
-  "引入韩文",
-  "引入繁体字",
+  "Remaining Japanese",
+  #"Introduced Latin",
+  #"Invalid Character",
+  #"Language Mismatch",
+  "Introduced Korean",
+  "Introduced Traditional Chinese",
 ]
 
-# 正则表达式列表，如果句子缓存中的某条 problem 能被以下任一正则 search 通过，则进行重翻
-# 如果想对指定原文/译文进行重翻，请通过内联表(数组)指定 conditionTarget 和 conditionReg
-# 也可以指定 conditionScript 和 conditionFunc 来外接 lua/py 脚本(conditionFunc 接收 Sentence，返回bool)
-# <PROJECT_DIR>为代表当前项目路径字符串的宏
-# conditionTarget 加前缀 prev_ 或 next_ 可表示 前/后 句，如 prev_prev_orig_text 表示上上句原文，如果不存在则条件失败
+# Regex list - if any problem in cache matches, retranslate
+# Specify conditionTarget and conditionReg via inline table to retranslate based on specific source/target text
+# Can also use conditionScript and conditionFunc for external lua/py scripts (conditionFunc receives Sentence, returns bool)
+# <PROJECT_DIR> macro represents current project path
+# Prefix conditionTarget with prev_ or next_ for previous/next sentence, e.g., prev_prev_orig_text for two sentences back
 retranslKeys = [
   #[{ conditionScript='<PROJECT_DIR>/Lua/MySampleTextPlugin.lua',conditionFunc='funcName'},
   #{ conditionScript='<PROJECT_DIR>/Python/MySampleTextPlugin.py',conditionFunc='funcName'}],
-  #"残留日文",
-  "翻译失败", # 等效于 [{ conditionTarget = 'problems', conditionReg = '翻译失败' }]
+  #"Remaining Japanese",
+  "Translation Failed", # Equivalent to [{ conditionTarget = 'problems', conditionReg = 'Translation Failed' }]
 ]
 
-# 正则表达式列表，如果一条 problem 能被以下任一正则 search 通过，则不加入 problems 列表
-# 如果想忽略指定原文/译文的指定问题，请通过内联表(数组)指定 conditionTarget 和 conditionReg
-# 并在表数组第一项填入要忽略的 problem (同样也是正则表达式)
+# Regex list - if a problem matches, don't add to problems list
+# Specify conditionTarget and conditionReg via inline table for specific source/target conditions
+# First item in array is the problem to ignore (also regex)
 skipProblems = [
-  # "^引入拉丁字母: Live$"  # 不加任何条件
-  # 如果 原文中包含'モチモチ'且译文中包含'Q弹'，则忽略此句子中所有能被 '引入拉丁字母' search 通过的 problem
-  [ '引入拉丁字母', { conditionTarget = 'preproc_text', conditionReg = 'モチモチ'},
-    { conditionTarget = 'trans_preview', conditionReg = 'Q弹'}],
+  # "^Introduced Latin: Live$"  # No conditions
+  # If source contains 'モチモチ' and translation contains 'chewy', ignore problems matching 'Introduced Latin'
+  [ 'Introduced Latin', { conditionTarget = 'preproc_text', conditionReg = 'モチモチ'},
+    { conditionTarget = 'trans_preview', conditionReg = 'chewy'}],
 ]
 
-#规定标点错漏要查哪些标点
-punctSet = """（()）：:*[]{}<>『』「」“”;；'/\\"""
-codePage = "gbk"   # 非法字符要检查的字符集
-langProbability = 0.94 # 语言不通检测的语言置信度，设置越高则检测越精准，但可能遗漏，反之亦然
+# Punctuation marks to check for punctuation errors
+punctSet = """（()）：:*[]{}<>『』「」"";；'/\\"""
+codePage = "gbk"   # Code page for invalid character checking
+langProbability = 0.94 # Language detection confidence (0-1), higher=more precise but may miss, lower=opposite
 
-# 问题的比较对象和被比较对象(不写则默认为 orig_text 和 trans_preview )
-# 如 { base = 'orig_text', check = 'trans_preview', problemKey = '比原文长严格' }
-# 意思是当 trans_preview 比 orig_text 严格长时，在 problem 中留下对应的问题。
+# Problem comparison base and check objects (defaults to orig_text and trans_preview)
+# e.g., { base = 'orig_text', check = 'trans_preview', problemKey = 'Strictly Longer Than Source' }
+# means when trans_preview is strictly longer than orig_text, record the problem
 overwriteCompareObj = [
-  { problemKey = "词频过高", base = "orig_text", check = "trans_preview" },
-  { problemKey = "标点错漏", base = "orig_text", check = "trans_preview" },
-  { problemKey = "引入拉丁字母", base = "preproc_text", check = "trans_preview" },
-  { problemKey = "引入韩文", base = "preproc_text", check = "trans_preview" },
-  { problemKey = "丢失换行", base = "orig_text", check = "trans_preview" },
-  { problemKey = "多加换行", base = "orig_text", check = "trans_preview" },
-  { problemKey = "字典未使用", base = "preproc_text", check = "trans_preview" },
-  { problemKey = "语言不通", base = "preproc_text", check = "trans_preview" },
+  { problemKey = "High Word Frequency", base = "orig_text", check = "trans_preview" },
+  { problemKey = "Punctuation Errors", base = "orig_text", check = "trans_preview" },
+  { problemKey = "Introduced Latin", base = "preproc_text", check = "trans_preview" },
+  { problemKey = "Introduced Korean", base = "preproc_text", check = "trans_preview" },
+  { problemKey = "Lost Line Break", base = "orig_text", check = "trans_preview" },
+  { problemKey = "Extra Line Break", base = "orig_text", check = "trans_preview" },
+  { problemKey = "Dict Unused", base = "preproc_text", check = "trans_preview" },
+  { problemKey = "Language Mismatch", base = "preproc_text", check = "trans_preview" },
 ]
 
-# 翻译执行顺序详见使用说明
+# See documentation for translation execution order
 [dictionary]
-# 如果出现同名字典文件，则只读取项目文件夹中的
-# 否则读取 defaultDictFolder 中对应 pre/gpt/post 文件夹下的字典
-defaultDictFolder = "BaseConfig/Dict" 
-usePreDictInName = false   # 将译前字典用在name字段，可用于翻译name字段，会发送给翻译引擎替换后的name[true/false]
-usePostDictInName = false  # 将译后字典用在name字段，可用于翻译name字段[true/false]
-usePreDictInMsg = true   # 将译前字典用在message字段，可用于翻译message字段，会发送给翻译引擎替换后的message[true/false]
-usePostDictInMsg = true  # 将译后字典用在message字段，可用于翻译message字段[true/false]
+# If duplicate dict filenames exist, project folder takes priority
+# Otherwise reads from corresponding pre/gpt/post folders in defaultDictFolder
+defaultDictFolder = "BaseConfig/Dict"
+usePreDictInName = false   # Apply pre-dict to name field, sends replaced name to translation engine [true/false]
+usePostDictInName = false  # Apply post-dict to name field [true/false]
+usePreDictInMsg = true     # Apply pre-dict to message field, sends replaced message to translation engine [true/false]
+usePostDictInMsg = true    # Apply post-dict to message field [true/false]
 
-useGPTDictToReplaceName = false   # 将GPT字典用在name字段，可用于翻译name字段(直接搜索替换)[true/false]
+useGPTDictToReplaceName = false   # Apply GPT dict to name field (direct search-replace) [true/false]
 
 preDict = [
-  "项目译前字典.toml"
+  "Project PreDict.toml"
 ]
 gptDict = [
-  "项目GPT字典.toml",
-  "项目GPT字典-生成.toml"
+  "Project GptDict.toml",
+  "Project GptDict-Generated.toml"
 ]
 postDict = [
-  "项目译后字典.toml"
+  "Project PostDict.toml"
 ]

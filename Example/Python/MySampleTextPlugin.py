@@ -1,11 +1,11 @@
-# 必须: 导入 C++ 绑定的模块
+# Required: Import C++ binding module
 import gpp_plugin_api as gpp
 from pathlib import Path
 
-# Sentence 的声明详见 Example/Lua/MySampleTextPlugin.lua
+# See Example/Lua/MySampleTextPlugin.lua for Sentence declaration details
 
-# 全局变量，由 C++ 注入
-# python 中的 logger 和 toknizeFunc 不在 utils 中而是在当前模块的全局变量中
+# Global variables, injected by C++
+# In Python, logger and tokenizeFunc are in the current module's globals, not in utils
 logger = None
 
 # sourceLang_useTokenizer = True
@@ -19,7 +19,7 @@ logger = None
 
 targetLang_useTokenizer = True
 targetLang_tokenizerBackend = "pkuseg"
-# 如果使用提供的分词器则必须先定义 tokenizeFunc
+# If using provided tokenizer, must define tokenizeFunc first
 targetLang_tokenizeFunc = None
 
 
@@ -30,16 +30,17 @@ def checkConditionForRetranslKeysFunc(se: gpp.Sentence) -> bool:
 
 def checkConditionForSkipProblemsFunc(se: gpp.Sentence) -> bool:
     if se.index == 278:
-        # retranslKey 中检查的 se 是一个副本，只负责检查，怎么设置都不会影响到要翻译和输出的部分
-        # 但 skipProblems 的检查提供的是要输出的 se 的引用
-        # 通过某个自定义的译后插件插入自定义的 flag problem
-        # 再把 skipProblems 中最初的元素定义为此 problem 的全匹配检查
-        # 甚至可达成在译后字典执行完毕后再执行一次插件的效果(区别是不会调用 init 和 unload)
+        # The se in retranslKey check is a copy, only for checking - modifications won't affect translation/output
+        # But skipProblems check provides a reference to the actual se to be output
+        # By inserting a custom flag problem via a custom post-processing plugin
+        # and defining the first element in skipProblems as a full match check for this problem
+        # You can even achieve running a plugin again after post-translation dict finishes
+        # (difference: won't call init and unload)
         current_problem = ""
         for i, s in enumerate(se.problems):
-            # 正则检查通过后，执行 Condition 验证时，当前正在检查的 problem 会拥有前缀 'Current problem:'
-            # PS: 不要在此检查函数中的任何地方以任何方式修改 problems 对象本身，可能导致 C++侧 出现异常
-            # 但可以通过 problems_set_by_index 修改元素内容曲线救国
+            # After regex check passes, during Condition verification, the current problem has prefix 'Current problem:'
+            # PS: DO NOT modify the problems object itself in any way within this check function - may cause C++ side exceptions
+            # But you can modify element content indirectly via problems_set_by_index
             if s.startswith("Current problem:"):
                 current_problem = s[16:]
             else:
@@ -56,23 +57,23 @@ def checkConditionForSkipProblemsFunc(se: gpp.Sentence) -> bool:
 
 def init(project_dir: Path):
     """
-    插件初始化函数，由 C++ 调用一次。
+    Plugin initialization function, called once by C++.
     """
-    logger.info(f"MySampleTextPluginFromLua 初始化成功，projectDir: {project_dir}")
+    logger.info(f"MySampleTextPluginFromLua initialized successfully, projectDir: {project_dir}")
 
 
 def run(se: gpp.Sentence):
     """
-    处理每个句子的主函数。
-    se 是一个 C++ Sentence 对象的代理。
+    Main function to process each sentence.
+    se is a proxy for a C++ Sentence object.
     """
     if se.translated_preview == "久远紧锁眉头，脸上写着「骗人的吧，喂」。":
         wordpos_vec, entity_vec = targetLang_tokenizeFunc(se.translated_preview)
-        # 其它(虽然没几个)工具函数依然在 utils 里
+        # Other utility functions (though not many) are still in utils
         tokens = gpp.utils.splitIntoTokens(wordpos_vec, se.translated_preview)
         parts = [f"[{value[0]}]" for value in wordpos_vec]
         result = "#".join(parts)
-        # 所有容器均为 copy，直接对其进行 insert，append 等是无效的
+        # All containers are copies, direct insert/append etc. operations are ineffective
         se.other_info |= { "tokens_python": result }
 
 def unload():

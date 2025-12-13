@@ -242,7 +242,7 @@
     <message>
         <location filename="CommonGptDictPage.cpp" line="101"/>
         <source>撤回删除行</source>
-        <translation>Cancel deleted row</translation>
+        <translation>Undo row deletion</translation>
     </message>
     <message>
         <location filename="CommonGptDictPage.cpp" line="106"/>
@@ -428,7 +428,7 @@
     <message>
         <location filename="CommonGptDictPage.cpp" line="412"/>
         <source>思考人生</source>
-        <translation>Thinking of life</translation>
+        <translation>Let me think...</translation>
     </message>
     <message>
         <location filename="CommonGptDictPage.cpp" line="413"/>
@@ -549,7 +549,7 @@
     <message>
         <location filename="CommonNormalDictPage.cpp" line="120"/>
         <source>撤回删除行</source>
-        <translation>Cancel deleted row</translation>
+        <translation>Undo row deletion</translation>
     </message>
     <message>
         <location filename="CommonNormalDictPage.cpp" line="125"/>
@@ -750,7 +750,7 @@
     <message>
         <location filename="CommonNormalDictPage.cpp" line="440"/>
         <source>思考人生</source>
-        <translation>Thinking of life</translation>
+        <translation>Let me think...</translation>
     </message>
     <message>
         <location filename="CommonNormalDictPage.cpp" line="441"/>
@@ -1206,7 +1206,7 @@
     <message>
         <location filename="DictSettingsPage.cpp" line="84"/>
         <source>撤回删除行</source>
-        <translation>Cancel deleted row</translation>
+        <translation>Undo row deletion</translation>
     </message>
     <message>
         <location filename="DictSettingsPage.cpp" line="89"/>
@@ -1443,12 +1443,12 @@
     <message>
         <location filename="mainwindow.cpp" line="47"/>
         <source>不是哥们</source>
-        <translation>What fuck</translation>
+        <translation>Wait, what?</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="47"/>
         <source>有病吧，你把我软件的配置文件删了！？</source>
-        <translation>Where is the app&apos;s config file!?</translation>
+        <translation>The config file is missing! Did you delete it?</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="63"/>
@@ -1747,7 +1747,7 @@
         <location filename="mainwindow.cpp" line="511"/>
         <location filename="mainwindow.cpp" line="565"/>
         <source>思考人生</source>
-        <translation>Thinking of life</translation>
+        <translation>Let me think...</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="512"/>
@@ -1887,7 +1887,7 @@
     <message>
         <location filename="NameTableSettingsPage.cpp" line="100"/>
         <source>撤回删除行</source>
-        <translation>Cancel deleted row</translation>
+        <translation>Undo row deletion</translation>
     </message>
     <message>
         <location filename="NameTableSettingsPage.cpp" line="105"/>
@@ -2048,7 +2048,7 @@
     <message>
         <location filename="OtherSettingsPage.cpp" line="125"/>
         <source>项目名不能为空且不能包含斜杠</source>
-        <translation></translation>
+        <translation>Project name cannot be empty and cannot contain slashes</translation>
     </message>
     <message>
         <location filename="OtherSettingsPage.cpp" line="131"/>
@@ -2170,7 +2170,7 @@
         <location filename="OtherSettingsPage.cpp" line="187"/>
         <location filename="OtherSettingsPage.cpp" line="233"/>
         <source>思考人生</source>
-        <translation>Thinking of life</translation>
+        <translation>Let me think...</translation>
     </message>
     <message>
         <location filename="OtherSettingsPage.cpp" line="188"/>
@@ -2472,7 +2472,7 @@
     <message>
         <location filename="ProjectSettingsPage.cpp" line="36"/>
         <source>项目设置主页</source>
-        <translation></translation>
+        <translation>Project Settings</translation>
     </message>
     <message>
         <location filename="ProjectSettingsPage.cpp" line="44"/>
@@ -2483,7 +2483,7 @@
     <message>
         <location filename="ProjectSettingsPage.cpp" line="44"/>
         <source> 的配置文件不符合 toml 规范</source>
-        <translation></translation>
+        <translation>'s config file is not valid TOML format</translation>
     </message>
     <message>
         <location filename="ProjectSettingsPage.cpp" line="44"/>
@@ -2575,7 +2575,7 @@
     <message>
         <location filename="ProjectSettingsPage.cpp" line="272"/>
         <source> 的配置文件不符合规范</source>
-        <translation></translation>
+        <translation>'s config file is invalid</translation>
     </message>
     <message>
         <location filename="ProjectSettingsPage.cpp" line="283"/>
@@ -2610,7 +2610,7 @@
     <message>
         <location filename="PromptSettingsPage.cpp" line="33"/>
         <source> 的提示词配置文件不符合标准。</source>
-        <translation></translation>
+        <translation>'s prompt config file is not valid.</translation>
     </message>
     <message>
         <location filename="PromptSettingsPage.cpp" line="41"/>
@@ -2620,7 +2620,7 @@
     <message>
         <location filename="PromptSettingsPage.cpp" line="45"/>
         <source>找不到提示词文件</source>
-        <translation></translation>
+        <translation>Prompt file not found</translation>
     </message>
     <message>
         <location filename="PromptSettingsPage.cpp" line="76"/>
@@ -2963,7 +2963,7 @@
     <message>
         <location filename="StartSettingsPage.cpp" line="450"/>
         <source> 连工厂函数都失败了，玩毛啊</source>
-        <translation></translation>
+        <translation> - even the factory function failed. Something is seriously wrong.</translation>
     </message>
     <message>
         <location filename="StartSettingsPage.cpp" line="454"/>
