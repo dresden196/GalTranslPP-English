@@ -18,10 +18,10 @@ apiTimeout = 120 # Request timeout in seconds
 filePlugin = "NormalJson" # Supported formats: NormalJson, Epub, PDF, MtoolJson(not yet implemented)...
 baseClassName = "NormalJson" # Same as above, specifies base class for custom filePlugin scripts to inherit
 
-# ForGalJson: Feed JSON-formatted dialogue to AI, require JSON response. Uses FORGALJSON_SYSTEM and FORGALJSON_TRANS_PROMPT_EN prompts
-# ForGalTsv: Feed TSV-formatted dialogue to AI, require TSV response. Uses FORGALTSV_SYSTEM and FORGALTSV_TRANS_PROMPT_EN prompts
-# ForNovelTsv: Like ForGalTsv but without name in input. Uses FORNOVELTSV_SYSTEM and FORNOVELTSV_TRANS_PROMPT_EN prompts
-# Sakura: Uses SAKURA_SYSTEM_PROMPT and SAKURA_TRANS_PROMPT prompts
+# ForGalJson: Feed JSON-formatted dialogue to AI, require JSON response. Works with any targetLang.
+# ForGalTsv: Feed TSV-formatted dialogue to AI, require TSV response. Works with any targetLang. More token efficient.
+# ForNovelTsv: Like ForGalTsv but without name in input. Works with any targetLang.
+# Sakura: [CHINESE ONLY!] Uses local Sakura model for Japanese->Chinese translation. Does NOT support English output!
 # DumpName: Generate NameTable.toml for name replacement
 # GenDict: Auto-generate terminology glossary using AI. Uses GENDIC_SYSTEM and GENDIC_PROMPT prompts
 # Rebuild: Skip retranslation even if problem or orig_text contains retranslKey, only rebuild from cache
@@ -82,7 +82,7 @@ skipKeys = [
 numPerRequestTranslate = 8 # Sentences per request, recommended < 15
 threadsNum = 5             # Max thread count
 sortMethod = "size"        # Translation order: name=by filename, size=larger files first (improves multi-thread speed) [name/size]
-targetLang = "zh-cn"       # Target language: zh-cn/zh-tw/en/ja/ko/ru/fr and more
+targetLang = "en"          # Target language: en/zh-cn/zh-tw/ja/ko/ru/fr and more
 splitFile = "No"           # Single file splitting: Num=split every n sentences, Equal=split each file into n parts, No=disable [No/Num/Equal]
 splitFileNum = 10          # For Num: sentences per split; For Equal: parts per file
 saveCacheInterval = 1      # Save cache every n translation batches

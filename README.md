@@ -47,10 +47,10 @@ When reading JSON, two keys are primarily relevant: `name` and `message`. Differ
 
 #### Translation Modes (transEngine)
 
-* **`# ForGalJson`**: Production translation mode. Feeds JSON-formatted sentences (including `name` and `message`) to the AI and requires JSON-formatted responses. The program parses the returned JSON.
-* **`# ForGalTsv`**: Production translation mode. Feeds TSV-formatted sentences (including `name` and `message`) to the AI and requires TSV-formatted responses. The program parses the returned TSV. May use fewer tokens than ForGalJson.
-* **`# ForNovelTsv`**: Production translation mode. Similar to `ForGalTsv` but with modified prompts - the `name` key is omitted during input and parsing.
-* **`# Sakura`**: Production translation mode. Feeds natural language-formatted sentences (including `name` and `message`) to the AI. Since Sakura is a translation-specialized model, it returns similarly formatted sentences without explicit requirements. The program parses the natural language response.
+* **`# ForGalJson`**: Production translation mode. Feeds JSON-formatted sentences (including `name` and `message`) to the AI and requires JSON-formatted responses. The program parses the returned JSON. **Supports any target language.**
+* **`# ForGalTsv`**: Production translation mode. Feeds TSV-formatted sentences (including `name` and `message`) to the AI and requires TSV-formatted responses. The program parses the returned TSV. May use fewer tokens than ForGalJson. **Supports any target language.**
+* **`# ForNovelTsv`**: Production translation mode. Similar to `ForGalTsv` but with modified prompts - the `name` key is omitted during input and parsing. **Supports any target language.**
+* **`# Sakura`**: ⚠️ **JAPANESE → CHINESE ONLY!** Uses the local Sakura model specifically trained for JP→CN visual novel translation. This mode does NOT support English or other language outputs. For English translations, use ForGalJson or ForGalTsv instead.
 * **`# DumpName`**: Extracts all `name` keys and generates a `NameTable.toml` file in the project folder for unified name replacement (updates existing file if present).
 * **`# GenDict`**: Uses AI to automatically generate a terminology glossary, saved to `Project GptDict-Generated.toml` in the project folder.
 * **`# Rebuild`**: Skips retranslation even when `retranslKey` matches - only rebuilds results from cache.
