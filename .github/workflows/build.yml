@@ -1,0 +1,160 @@
+name: Build GalTransl++
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+env:
+  QT_VERSION: '6.9.2'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup MSVC
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup Visual Studio Dev Environment
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: ${{ env.QT_VERSION }}
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2022_64'
+        modules: 'qtwebsockets qtwebchannel'
+        cache: true
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgGitCommitId: '67e3bd8657a810e4fd3f200a35008bebc7c93f93'
+
+    - name: Install vcpkg dependencies
+      run: |
+        vcpkg install --triplet x64-windows
+      working-directory: ${{ github.workspace }}
+
+    - name: Create lib directory
+      run: mkdir -p lib
+      shell: bash
+
+    - name: Extract Python headers
+      run: |
+        if (Test-Path "GalTranslPP/Python.zip") {
+          Expand-Archive -Path "GalTranslPP/Python.zip" -DestinationPath "." -Force
+        }
+      shell: pwsh
+
+    - name: Build ElaWidgetTools
+      run: |
+        cd 3rdParty/ElaWidgetTools
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DQT_SDK_DIR="${{ env.Qt6_DIR }}"
+        cmake --build build --config Release
+        cp build/Release/ElaWidgetTools/ElaWidgetTools.lib ../../lib/
+      shell: bash
+
+    - name: Build OpenCC
+      run: |
+        cd 3rdParty/OpenCC
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=out/install/x64-Release
+        cmake --build build --config Release
+        cmake --install build --config Release
+        cp out/install/x64-Release/lib/marisa.lib ../../lib/
+        cp out/install/x64-Release/lib/opencc.lib ../../lib/
+      shell: bash
+
+    - name: Build GalTranslPP
+      run: |
+        msbuild GalTranslPP.sln /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143
+
+    - name: Prepare GPPGUI Release
+      run: |
+        mkdir -p release/GPPGUI
+        cp Release/GPPGUI/GalTranslPP_GUI.exe release/GPPGUI/
+        cp 3rdParty/OpenCC/out/install/x64-Release/bin/opencc.dll release/GPPGUI/
+        cp 3rdParty/ElaWidgetTools/build/Release/ElaWidgetTools/ElaWidgetTools.dll release/GPPGUI/
+        cp -r Example/BaseConfig release/GPPGUI/
+        mkdir -p release/GPPGUI/Projects
+        cp -r Example/sampleProject release/GPPGUI/Projects/
+        windeployqt release/GPPGUI/GalTranslPP_GUI.exe
+      shell: bash
+
+    - name: Prepare GPPCLI Release
+      run: |
+        mkdir -p release/GPPCLI
+        cp Release/GPPCLI/GalTranslPP_CLI.exe release/GPPCLI/
+        cp 3rdParty/OpenCC/out/install/x64-Release/bin/opencc.dll release/GPPCLI/
+        cp -r Example/BaseConfig release/GPPCLI/
+        cp -r Example/sampleProject release/GPPCLI/
+      shell: bash
+
+    - name: Extract Python Embed for Release
+      run: |
+        if (Test-Path "Example/BaseConfig/python-3.12.10-embed-amd64.zip") {
+          Expand-Archive -Path "Example/BaseConfig/python-3.12.10-embed-amd64.zip" -DestinationPath "release/GPPGUI/BaseConfig/python-3.12.10-embed-amd64" -Force
+          Expand-Archive -Path "Example/BaseConfig/python-3.12.10-embed-amd64.zip" -DestinationPath "release/GPPCLI/BaseConfig/python-3.12.10-embed-amd64" -Force
+        }
+      shell: pwsh
+
+    - name: Upload GPPGUI Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: GalTranslPP-GUI-English
+        path: release/GPPGUI/
+
+    - name: Upload GPPCLI Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: GalTranslPP-CLI-English
+        path: release/GPPCLI/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Download GUI Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: GalTranslPP-GUI-English
+        path: GalTranslPP-GUI-English
+
+    - name: Download CLI Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: GalTranslPP-CLI-English
+        path: GalTranslPP-CLI-English
+
+    - name: Create Archives
+      run: |
+        cd GalTranslPP-GUI-English && zip -r ../GalTranslPP-GUI-English.zip . && cd ..
+        cd GalTranslPP-CLI-English && zip -r ../GalTranslPP-CLI-English.zip . && cd ..
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          GalTranslPP-GUI-English.zip
+          GalTranslPP-CLI-English.zip
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
