@@ -61,7 +61,7 @@ jobs:
         cd 3rdParty/ElaWidgetTools
         cmake -B build -DCMAKE_BUILD_TYPE=Release -DQT_SDK_DIR="${{ env.Qt6_DIR }}"
         cmake --build build --config Release
-        cp build/Release/ElaWidgetTools/ElaWidgetTools.lib ../../lib/
+        cp build/ElaWidgetTools/Release/ElaWidgetTools.lib ../../lib/
       shell: bash
 
     - name: Build OpenCC
@@ -83,7 +83,7 @@ jobs:
         mkdir -p release/GPPGUI
         cp Release/GPPGUI/GalTranslPP_GUI.exe release/GPPGUI/
         cp 3rdParty/OpenCC/out/install/x64-Release/bin/opencc.dll release/GPPGUI/
-        cp 3rdParty/ElaWidgetTools/build/Release/ElaWidgetTools/ElaWidgetTools.dll release/GPPGUI/
+        cp 3rdParty/ElaWidgetTools/build/ElaWidgetTools/Release/ElaWidgetTools.dll release/GPPGUI/
         cp -r Example/BaseConfig release/GPPGUI/
         mkdir -p release/GPPGUI/Projects
         cp -r Example/sampleProject release/GPPGUI/Projects/
