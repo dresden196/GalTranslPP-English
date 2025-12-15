@@ -45,11 +45,6 @@ jobs:
       with:
         runVcpkgInstall: true
 
-    - name: Install additional vcpkg dependencies
-      run: |
-        vcpkg install nlohmann-json toml11 spdlog icu bit7z gumbo --triplet x64-windows
-      shell: cmd
-
     - name: Create lib directory
       run: mkdir -p lib
       shell: bash
