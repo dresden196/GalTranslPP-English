@@ -76,7 +76,7 @@ jobs:
 
     - name: Build GalTranslPP
       run: |
-        msbuild GalTranslPP.sln /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143
+        msbuild GalTranslPP.slnx /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143
 
     - name: Prepare GPPGUI Release
       run: |
