@@ -45,6 +45,50 @@ jobs:
       with:
         runVcpkgInstall: true
 
+    - name: Integrate vcpkg with MSBuild
+      run: |
+        ${{ env.VCPKG_ROOT }}\vcpkg integrate install
+      shell: cmd
+
+    - name: Download Qt VS Tools MSBuild files
+      run: |
+        # Download QtMsBuild files from Qt VS Tools repository
+        $qtMsBuildUrl = "https://github.com/qt-labs/vstools/releases/download/v3.3.0/QtMsBuild.zip"
+        Invoke-WebRequest -Uri $qtMsBuildUrl -OutFile QtMsBuild.zip
+
+        # Extract to each project directory that needs it
+        Expand-Archive -Path QtMsBuild.zip -DestinationPath GPPGUI -Force
+        Expand-Archive -Path QtMsBuild.zip -DestinationPath Updater -Force
+
+        # Create Qt version config for MSBuild
+        $qtPath = "${{ env.Qt6_DIR }}"
+        $qtVersionContent = @"
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Qt_INCLUDEPATH_>$qtPath\include</Qt_INCLUDEPATH_>
+    <Qt_LIBPATH_>$qtPath\lib</Qt_LIBPATH_>
+    <Qt_BINPATH_>$qtPath\bin</Qt_BINPATH_>
+    <QtToolsPath>$qtPath\bin</QtToolsPath>
+    <QtDllPath>$qtPath\bin</QtDllPath>
+    <QTDIR>$qtPath</QTDIR>
+  </PropertyGroup>
+</Project>
+"@
+        # Create qt.conf in QtMsBuild folders
+        $qtConfContent = @"
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <QtInstall>$qtPath</QtInstall>
+    <QtInstallDir>$qtPath</QtInstallDir>
+  </PropertyGroup>
+</Project>
+"@
+        Set-Content -Path "GPPGUI\QtMsBuild\Qt_6.9.2_msvc2022_64_.props" -Value $qtVersionContent
+        Set-Content -Path "Updater\QtMsBuild\Qt_6.9.2_msvc2022_64_.props" -Value $qtVersionContent
+      shell: pwsh
+
     - name: Create lib directory
       run: mkdir -p lib
       shell: bash
@@ -76,7 +120,9 @@ jobs:
 
     - name: Build GalTranslPP
       run: |
-        msbuild GalTranslPP.slnx /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143
+        msbuild GalTranslPP.slnx /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /p:QtInstall=${{ env.Qt6_DIR }} /p:QtToolsPath=${{ env.Qt6_DIR }}\bin
+      env:
+        QTDIR: ${{ env.Qt6_DIR }}
 
     - name: Prepare GPPGUI Release
       run: |
