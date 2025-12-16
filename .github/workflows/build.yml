@@ -46,47 +46,22 @@ jobs:
         runVcpkgInstall: true
 
     - name: Integrate vcpkg with MSBuild
-      run: |
-        ${{ env.VCPKG_ROOT }}\vcpkg integrate install
+      run: vcpkg integrate install
       shell: cmd
 
-    - name: Download Qt VS Tools MSBuild files
+    - name: Download and setup Qt VS Tools MSBuild files
       run: |
-        # Download QtMsBuild files from Qt VS Tools repository
-        $qtMsBuildUrl = "https://github.com/qt-labs/vstools/releases/download/v3.3.0/QtMsBuild.zip"
-        Invoke-WebRequest -Uri $qtMsBuildUrl -OutFile QtMsBuild.zip
-
-        # Extract to each project directory that needs it
+        Invoke-WebRequest -Uri "https://github.com/qt-labs/vstools/releases/download/v3.3.0/QtMsBuild.zip" -OutFile QtMsBuild.zip
         Expand-Archive -Path QtMsBuild.zip -DestinationPath GPPGUI -Force
         Expand-Archive -Path QtMsBuild.zip -DestinationPath Updater -Force
+      shell: pwsh
 
-        # Create Qt version config for MSBuild
-        $qtPath = "${{ env.Qt6_DIR }}"
-        $qtVersionContent = @"
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <Qt_INCLUDEPATH_>$qtPath\include</Qt_INCLUDEPATH_>
-    <Qt_LIBPATH_>$qtPath\lib</Qt_LIBPATH_>
-    <Qt_BINPATH_>$qtPath\bin</Qt_BINPATH_>
-    <QtToolsPath>$qtPath\bin</QtToolsPath>
-    <QtDllPath>$qtPath\bin</QtDllPath>
-    <QTDIR>$qtPath</QTDIR>
-  </PropertyGroup>
-</Project>
-"@
-        # Create qt.conf in QtMsBuild folders
-        $qtConfContent = @"
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <QtInstall>$qtPath</QtInstall>
-    <QtInstallDir>$qtPath</QtInstallDir>
-  </PropertyGroup>
-</Project>
-"@
-        Set-Content -Path "GPPGUI\QtMsBuild\Qt_6.9.2_msvc2022_64_.props" -Value $qtVersionContent
-        Set-Content -Path "Updater\QtMsBuild\Qt_6.9.2_msvc2022_64_.props" -Value $qtVersionContent
+    - name: Configure Qt paths for MSBuild
+      run: |
+        $qtPath = $env:Qt6_DIR
+        $propsContent = "<?xml version=`"1.0`" encoding=`"utf-8`"?><Project ToolsVersion=`"4.0`" xmlns=`"http://schemas.microsoft.com/developer/msbuild/2003`"><PropertyGroup><Qt_INCLUDEPATH_>$qtPath\include</Qt_INCLUDEPATH_><Qt_LIBPATH_>$qtPath\lib</Qt_LIBPATH_><Qt_BINPATH_>$qtPath\bin</Qt_BINPATH_><QtToolsPath>$qtPath\bin</QtToolsPath><QTDIR>$qtPath</QTDIR></PropertyGroup></Project>"
+        Set-Content -Path "GPPGUI\QtMsBuild\Qt_6.9.2_msvc2022_64_.props" -Value $propsContent
+        Set-Content -Path "Updater\QtMsBuild\Qt_6.9.2_msvc2022_64_.props" -Value $propsContent
       shell: pwsh
 
     - name: Create lib directory
@@ -119,8 +94,8 @@ jobs:
       shell: bash
 
     - name: Build GalTranslPP
-      run: |
-        msbuild GalTranslPP.slnx /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /p:QtInstall=${{ env.Qt6_DIR }} /p:QtToolsPath=${{ env.Qt6_DIR }}\bin
+      run: msbuild GalTranslPP.slnx /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143
+      shell: cmd
       env:
         QTDIR: ${{ env.Qt6_DIR }}
 
