@@ -51,8 +51,8 @@ jobs:
 
     - name: Download and setup Qt VS Tools MSBuild files
       run: |
-        # Download Qt VS Tools extension from Visual Studio Marketplace
-        $vsixUrl = "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/TheQtCompany/vsextensions/QtVisualStudioTools2022/3.3.0/vspackage"
+        # Download Qt VS Tools extension from Qt's official download server
+        $vsixUrl = "https://download.qt.io/official_releases/vsaddin/3.2.0/qt-vsaddin-msvc2022-3.2.0.vsix"
         Invoke-WebRequest -Uri $vsixUrl -OutFile QtVsTools.vsix
 
         # VSIX is just a ZIP file - extract it
