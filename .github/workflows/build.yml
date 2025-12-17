@@ -51,22 +51,12 @@ jobs:
 
     - name: Download and setup Qt VS Tools MSBuild files
       run: |
-        # Download Qt VS Tools extension from Qt's official download server
-        $vsixUrl = "https://download.qt.io/official_releases/vsaddin/3.2.0/qt-vsaddin-msvc2022-3.2.0.vsix"
-        Invoke-WebRequest -Uri $vsixUrl -OutFile QtVsTools.vsix
+        # Download standalone QtMsBuild package from Qt's official download server
+        Invoke-WebRequest -Uri "https://download.qt.io/official_releases/vsaddin/3.2.0/qt-vsaddin-msbuild-3.2.0-rev.47.zip" -OutFile QtMsBuild.zip
 
-        # VSIX is just a ZIP file - extract it
-        Expand-Archive -Path QtVsTools.vsix -DestinationPath QtVsToolsExtracted -Force
-
-        # Find and copy QtMsBuild folder
-        $qtMsBuildSrc = Get-ChildItem -Path QtVsToolsExtracted -Recurse -Directory -Filter "QtMsBuild" | Select-Object -First 1
-        if ($qtMsBuildSrc) {
-          Copy-Item -Path $qtMsBuildSrc.FullName -Destination "GPPGUI\QtMsBuild" -Recurse -Force
-          Copy-Item -Path $qtMsBuildSrc.FullName -Destination "Updater\QtMsBuild" -Recurse -Force
-        } else {
-          Write-Error "QtMsBuild folder not found in extension"
-          exit 1
-        }
+        # Extract to project directories
+        Expand-Archive -Path QtMsBuild.zip -DestinationPath GPPGUI -Force
+        Expand-Archive -Path QtMsBuild.zip -DestinationPath Updater -Force
       shell: pwsh
 
     - name: Configure Qt paths for MSBuild
